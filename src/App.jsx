@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ArrowLeft, ChevronRight, Search, Leaf, Zap, Beaker, Award, Info, Filter, Heart, Scale, X, Sparkles, Target } from "lucide-react";
+import { ArrowLeft, ChevronRight, Search, Leaf, Zap, Beaker, Award, Info, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
+import { PRODUCTS, AVISO_POLIOL, POLIOL_IDS, MOOD_META, QUIZ } from "./data.js";
 
 const T = {
   bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
@@ -8,118 +9,6 @@ const T = {
   border:"#D9D2BD",borderSoft:"#E5DFCB",accent:"#C4A882",
 };
 
-const BASE = "Inulina, Liga Neutra, Polidextrose, Edulcorantes, Steviol";
-
-const PRODUCTS = [
-  { id:"ninho-nutella", name:"Ninho com Nutella", category:"gelato", sub:"Cremoso avelã & leite", emoji:"🍫",
-    moods:["indulgente","comfort"], palette:{base:"#E8C896",mid:"#C49862",deep:"#7B5328",swirl:"#3E2511",hl:"#FFF1D8"}, image:null,
-    serving:100, portionLabel:"100 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"250 g"},{name:"Creme de Gianduia",qty:"400 g"}],
-    nutrition:{kcal:120,carbs:21,sugars:1.8,addedSugars:0,protein:5.7,fat:4.0,satFat:0.8,transFat:0,fiber:0.8,sodium:8},
-    flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"O clássico reinventado sem açúcar adicionado. Cremoso italiano com avelã e creme de gianduia enriquecido com whey hidrolisado." },
-  { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋",
-    moods:["refrescante","leve","zerocal"], palette:{base:"#F4E78A",mid:"#D9C447",deep:"#8B7A1E",swirl:"#5C5114",hl:"#FFF8C4"}, image:null,
-    serving:100, portionLabel:"100 g",
-    ingredients:[{name:"Base G Frutte",qty:"1.050 g"},{name:"Água",qty:"2.500 mL"},{name:"Base Limone 50",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
-    nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:1.4,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
-    flags:{gluten:false,lactose:false}, yield:"2.000 mL",
-    description:"Sorbet de limão siciliano com colágeno hidrolisado. Zero gordura, alta fibra. O gelato mais leve do cardápio." },
-  { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100%", emoji:"🖤",
-    moods:["zerocal","leve","premium"], palette:{base:"#5A3A22",mid:"#3A2418",deep:"#1A0E08",swirl:"#0A0503",hl:"#A87545"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Cacau em pó",qty:"250 g"}],
-    nutrition:{kcal:70,carbs:20,sugars:0.1,addedSugars:0.1,protein:1.2,fat:0.8,satFat:0.5,transFat:0,fiber:2.2,sodium:1.24},
-    flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade, zero lactose, zero glúten. Para quem não abre mão do chocolate." },
-  { id:"pacoca", name:"Paçoca", category:"gelato", sub:"Amendoim cremoso", emoji:"🥜",
-    moods:["postreino","comfort","proteina"], palette:{base:"#D9B574",mid:"#B08A48",deep:"#6E5224",swirl:"#3E2D11",hl:"#F2DDA8"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"420 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Pasta de amendoim",qty:"420 g"}],
-    nutrition:{kcal:166,carbs:22,sugars:5.1,addedSugars:0,protein:13,fat:7.7,satFat:2.7,transFat:0,fiber:0.6,sodium:86},
-    flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"13g de proteína por porção. Pasta de amendoim de verdade com whey WPH. Pós-treino que parece sobremesa." },
-  { id:"chocolate-branco", name:"Chocolate Branco", category:"gelato", sub:"Veludo lácteo", emoji:"🤍",
-    moods:["indulgente","comfort","proteina"], palette:{base:"#F4EAD2",mid:"#E0CFA8",deep:"#A8916A",swirl:"#6E5C3D",hl:"#FFF8E8"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Latissimo",qty:"250 g"}],
-    nutrition:{kcal:144,carbs:23,sugars:5.4,addedSugars:0,protein:11,fat:5.2,satFat:2.4,transFat:0,fiber:0.3,sodium:51},
-    flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Textura aveludada com Latissimo e whey WPH. 11g de proteína, zero lactose. Suavidade sem culpa." },
-  { id:"coco", name:"Coco", category:"gelato", sub:"Tropical cremoso", emoji:"🥥",
-    moods:["refrescante","comfort"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#A89C7C",swirl:"#5E5440",hl:"#FFFFFF"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"250 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
-    nutrition:{kcal:159,carbs:22,sugars:3.8,addedSugars:0,protein:6.7,fat:5.5,satFat:4.2,transFat:0,fiber:0,sodium:41},
-    flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Leite de coco em pó real com textura densa e aroma tropical. Zero lactose, zero glúten." },
-  { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
-    moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de Pistache G",qty:"200 g"},{name:"Chocolate 70%",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
-    nutrition:{kcal:162,carbs:27,sugars:4.5,addedSugars:0.1,protein:12,fat:6.6,satFat:2.9,transFat:0,fiber:2.5,sodium:47},
-    flags:{gluten:true,lactose:true}, yield:"5.000 mL",
-    description:"A tendência do Dubai em formato gelato. Cacau 70%, creme de pistache e kadaif crocante. 12g de proteína." },
-  { id:"pistache", name:"Pistache", category:"gelato", sub:"Pasta de pistache italiano", emoji:"💚",
-    moods:["premium","proteina","comfort"], palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Pasta Pistache Selection",qty:"160 g"}],
-    nutrition:{kcal:130,carbs:21,sugars:4.4,addedSugars:0,protein:10,fat:4.5,satFat:2.1,transFat:0,fiber:0,sodium:40},
-    flags:{gluten:true,lactose:false}, yield:"5.000 mL",
-    description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, zero açúcar adicionado." },
-  { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · stracciatella", emoji:"✨",
-    moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:null,
-    serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"600 g"},{name:"Leite em pó",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de Pistache G",qty:"300 g"},{name:"Stracciatella",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
-    nutrition:{kcal:108,carbs:17,sugars:3.6,addedSugars:0.1,protein:10,fat:4.3,satFat:1.7,transFat:0,fiber:1.5,sodium:33},
-    flags:{gluten:true,lactose:true}, yield:"~100 picolés",
-    description:"O Dubai em formato mini picolé. Cacau escuro, pistache, stracciatella e kadaif crocante. 10g de proteína." },
-  { id:"bentole-snickers", name:"Snickers", category:"bentole", sub:"Amendoim · doce de leite · choco 70%", emoji:"🥜",
-    moods:["postreino","proteina","indulgente"], palette:{base:"#A87545",mid:"#7A4F2A",deep:"#3E2511",swirl:"#1A0D05",hl:"#D9A878"}, image:null,
-    serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite Zero (Veneza)",qty:"250 g"},{name:"Chocolate 70%",qty:"30 g"}],
-    nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
-    flags:{gluten:false,lactose:false}, yield:"~100 picolés",
-    description:"Picolé inspirado no Snickers. Amendoim real, doce de leite zero açúcar, chocolate 70%. 9,6g de proteína." },
-  { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · choco branco · choco 70%", emoji:"🫐",
-    moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:null,
-    serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base G Frutte",qty:"1.000 g"},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"},{name:"Chocolate 70%",qty:"15 g"}],
-    nutrition:{kcal:42,carbs:8.9,sugars:1.4,addedSugars:0,protein:1.2,fat:0.3,satFat:0.1,transFat:0,fiber:7.7,sodium:4.64},
-    flags:{gluten:false,lactose:false}, yield:"~100 picolés",
-    description:"Apenas 42 kcal. Framboesa real, colágeno, cobertura dupla de chocolate. O mais leve e frutado da linha." },
-  { id:"bentole-opereta", name:"Opereta", category:"bentole", sub:"Choco branco · castanhas", emoji:"🌰",
-    moods:["premium","proteina","comfort"], palette:{base:"#EADCB8",mid:"#C9A878",deep:"#7A5A2E",swirl:"#3E2D14",hl:"#FFF2CE"}, image:null,
-    serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"700 g"},{name:"Latissimo",qty:"200 g"},{name:"Castanhas",qty:"100 g"}],
-    nutrition:{kcal:86,carbs:14,sugars:3.5,addedSugars:0,protein:9.9,fat:3.0,satFat:1.4,transFat:0,fiber:0.2,sodium:28},
-    flags:{gluten:false,lactose:true}, yield:"~100 picolés",
-    description:"Chocolate branco Latissimo com castanhas selecionadas. 9,9g de proteína. Elegante, crocante, sofisticado." },
-  { id:"bentole-pistache-cb", name:"Pistache & Choco Branco", category:"bentole", sub:"Recheio + cobertura + pistaches inteiros", emoji:"💚",
-    moods:["premium","proteina","postreino"], palette:{base:"#F0E4C8",mid:"#C9D49A",deep:"#5A6A2E",swirl:"#3E4A18",hl:"#FFFFFF"}, image:null,
-    serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite desnatado",qty:"350 g"},{name:"Whey WPH",qty:"680 g"},{name:"Pasta Pistache Selection",qty:"170 g"},{name:"Latissimo",qty:"200 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"}],
-    nutrition:{kcal:61,carbs:10,sugars:5.7,addedSugars:0,protein:10,fat:2.4,satFat:0.9,transFat:0,fiber:3.7,sodium:21},
-    flags:{gluten:false,lactose:true}, yield:"~100 picolés",
-    description:"O campeão da linha: 10g de proteína com apenas 61 kcal. Pasta de pistache selecionada, cobertura de chocolate branco, pistaches inteiros." },
-];
-
-// Aviso ANVISA obrigatório — polióis presentes na Base Super Clean (~0,5% maltitol/sorbitol)
-const AVISO_POLIOL = "O consumo excessivo pode ter efeito laxativo.";
-// Quais produtos têm poliol declarável (todos os gelatos com Base Super Clean ou Base G Frutte)
-// Base G Frutte também usa polióis como umectantes
-const POLIOL_IDS = ["ninho-nutella","limao-siciliano","extra-dark","pacoca","chocolate-branco","coco","chocolate-dubai","pistache"];
-
-const MOOD_META = {
-  postreino:  {label:"Pós-treino",  color:"#3A6B20",bg:"#D0EAB8",icon:"💪"},
-  proteina:   {label:"Rico em Prot.",color:"#1A4FAA",bg:"#C0D5F5",icon:"⚡"},
-  refrescante:{label:"Refrescante", color:"#0A6A5E",bg:"#B8E8E2",icon:"❄️"},
-  leve:       {label:"Levinho",     color:"#6A5E0A",bg:"#EAE0B8",icon:"🍃"},
-  zerocal:    {label:"Zero Culpa",  color:"#5A2DAA",bg:"#DED0F8",icon:"✅"},
-  indulgente: {label:"Indulgente",  color:"#8A2A00",bg:"#F5CEBA",icon:"😋"},
-  premium:    {label:"Premium",     color:"#4A5A2A",bg:"#D8E5BE",icon:"👑"},
-  comfort:    {label:"Comfort",     color:"#7A3A0A",bg:"#F0D5BA",icon:"🫶"},
-};
 
 function BentoLogo({size=120,mono=false}){
   const c=mono?T.ink:T.pistacheDark;
@@ -170,14 +59,20 @@ function GStyle(){return(<style>{`
 .gn::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(31,35,23,.05) 1px,transparent 1px);background-size:3px 3px;opacity:.6;mix-blend-mode:multiply}
 *::-webkit-scrollbar{width:5px}*::-webkit-scrollbar-thumb{background:${T.border};border-radius:99px}
 input:focus,button:focus{outline:none}button{cursor:pointer}
+@media print{
+  @page{margin:12mm}
+  body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .no-print{display:none!important}
+  .print-only{display:flex!important}
+  .gn::after{display:none!important}
+  .print-grid{display:block!important}
+  .print-grid > div{margin-bottom:14px;break-inside:avoid}
+  .print-grid > div > div{break-inside:avoid}
+  *{box-shadow:none!important}
+}
 `}</style>);}
 
 /* ========== QUIZ ========== */
-const QUIZ=[
-  {q:"O que você está buscando agora?",opts:[{label:"Proteína & resultado",icon:"💪",val:"proteina"},{label:"Algo leve & refrescante",icon:"❄️",val:"refrescante"},{label:"Prazer sem culpa",icon:"😋",val:"indulgente"},{label:"Experiência premium",icon:"👑",val:"premium"}]},
-  {q:"Alguma restrição alimentar?",opts:[{label:"Sem glúten",icon:"🌾",val:"nogluten"},{label:"Sem lactose",icon:"🥛",val:"nolactose"},{label:"Sem glúten & sem lactose",icon:"✅",val:"both"},{label:"Nenhuma restrição",icon:"👍",val:"none"}]},
-  {q:"Qual é o momento?",opts:[{label:"Pós-treino",icon:"🏋️",val:"postreino"},{label:"Sobremesa",icon:"🍽️",val:"comfort"},{label:"Lanche rápido",icon:"⚡",val:"lanche"},{label:"Me surpreenda!",icon:"🎲",val:"surprise"}]},
-];
 function QuizModal({onClose,onResult}){
   const [step,setStep]=useState(0);const [ans,setAns]=useState([]);const [done,setDone]=useState(false);const [result,setResult]=useState(null);
   const pick=(val)=>{
@@ -305,7 +200,7 @@ function CompareModal({ids,onClose,onViewProduct}){
 /* ========== HEADER ========== */
 function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   return(
-    <header className="sticky top-0 z-40 backdrop-blur" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
+    <header className="sticky top-0 z-40 backdrop-blur no-print" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
       <div style={{maxWidth:1152,margin:"0 auto",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
         <button onClick={onHome} style={{display:"flex",alignItems:"center",gap:12,background:"none",border:"none"}}>
           <BentoLogo size={34}/>
@@ -413,7 +308,7 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
   const [filter,setFilter]=useState("all");
   const [moodF,setMoodF]=useState(null);
   const allMoods=useMemo(()=>[...new Set(PRODUCTS.filter(p=>p.category===category).flatMap(p=>p.moods))],...[category]);
-  const items=useMemo(()=>PRODUCTS.filter(p=>p.category===category).filter(p=>p.name.toLowerCase().includes(search.toLowerCase())).filter(p=>filter==="nogluten"?!p.flags.gluten:filter==="nolactose"?!p.flags.lactose:filter==="prot9"?p.nutrition.protein>=9:true).filter(p=>moodF?p.moods.includes(moodF):true),[category,search,filter,moodF]);
+  const items=useMemo(()=>PRODUCTS.filter(p=>p.category===category).filter(p=>p.name.toLowerCase().includes(search.toLowerCase())).filter(p=>filter==="nogluten"?!p.flags.gluten:filter==="nolactose"?!p.flags.lactose:filter==="prot9"?p.nutrition.protein>=9:filter==="kcal100"?p.nutrition.kcal<100:true).filter(p=>moodF?p.moods.includes(moodF):true),[category,search,filter,moodF]);
   const meta=category==="gelato"?{tag:"01 / Linha Vitrine",title:"Gelatos",sub:"Potes para vitrine · cremoso italiano"}:{tag:"02 / Linha Take-Home",title:"Bentôlé",sub:"Mini picolés · 55–60g · embalagem individual"};
   return(
     <div className="fade">
@@ -432,7 +327,7 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
         </div>
         <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:10,alignItems:"center"}}>
           <Filter size={12} style={{color:T.inkSoft}}/>
-          {[{id:"all",l:"Todos"},{id:"prot9",l:"Proteína ≥ 9g"},{id:"nogluten",l:"Sem glúten"},{id:"nolactose",l:"Sem lactose"}].map(f=>(
+          {[{id:"all",l:"Todos"},{id:"prot9",l:"Proteína ≥ 9g"},{id:"kcal100",l:"< 100 kcal"},{id:"nogluten",l:"Sem glúten"},{id:"nolactose",l:"Sem lactose"}].map(f=>(
             <button key={f.id} onClick={()=>setFilter(f.id)} className="fm" style={{fontSize:10,letterSpacing:"0.14em",padding:"6px 12px",borderRadius:2,textTransform:"uppercase",background:filter===f.id?T.pistacheDark:"transparent",color:filter===f.id?T.surface:T.inkSoft,border:`1px solid ${filter===f.id?T.pistacheDark:T.border}`}}>{f.l}</button>
           ))}
         </div>
@@ -521,12 +416,26 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
   return(
     <div className="fade">
       <div style={{maxWidth:1152,margin:"0 auto",padding:"28px 24px 40px"}}>
-        <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6,marginBottom:24}}><ArrowLeft size={13}/>Voltar</button>
-        <div style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1.4fr)",gap:16,alignItems:"start"}}>
+        <div className="no-print" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:24,flexWrap:"wrap"}}>
+          <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6}}><ArrowLeft size={13}/>Voltar</button>
+          <button onClick={()=>window.print()} className="fm" style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:3,padding:"9px 16px",display:"flex",alignItems:"center",gap:7}}><Printer size={13}/>Imprimir / PDF</button>
+        </div>
+        {/* Cabeçalho visível apenas na impressão */}
+        <div className="print-only" style={{display:"none",justifyContent:"space-between",alignItems:"flex-end",borderBottom:`2px solid ${T.ink}`,paddingBottom:10,marginBottom:18}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <BentoLogo size={42}/>
+            <div>
+              <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô Gelatos</div>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Ficha Técnica · Informação Nutricional</div>
+            </div>
+          </div>
+          <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textAlign:"right"}}>{product.name}<br/>Emitido em {new Date().toLocaleDateString("pt-BR")}</div>
+        </div>
+        <div className="print-grid" style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1.4fr)",gap:16,alignItems:"start"}}>
           {/* LEFT */}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             <div style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:4,padding:26,textAlign:"center",position:"relative"}}>
-              <div style={{position:"absolute",top:12,right:12,display:"flex",gap:8}}>
+              <div className="no-print" style={{position:"absolute",top:12,right:12,display:"flex",gap:8}}>
                 <button onClick={onToggleFav} style={{background:isFav?"#FFEDED":T.bgWarm,border:`1px solid ${isFav?"#E8A0A0":T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:isFav?"#C04040":T.inkSoft}}><Heart size={14} fill={isFav?"#C04040":"none"}/></button>
                 <button onClick={onToggleCompare} style={{background:inCmp?"#E5EBD3":T.bgWarm,border:`1px solid ${inCmp?T.pistacheDark:T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:inCmp?T.pistacheDark:T.inkSoft}}><Scale size={14}/></button>
               </div>
@@ -558,7 +467,7 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
               )}
             </div>
             {/* Calculadora */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
+            <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Target size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Calculadora de proteína</h3></div>
               <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:10}}>Qual é sua meta diária de proteína?</div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
@@ -633,7 +542,7 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
         </div>
         {/* Similares */}
         {similar.length>0&&(
-          <div style={{marginTop:28}}>
+          <div className="no-print" style={{marginTop:28}}>
             <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:14}}>Você também pode gostar</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
               {similar.map(p=>(
@@ -680,8 +589,9 @@ export default function App(){
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);onQuizResult(id);}}/>}
       {showCmp&&compareIds.length>=2&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={(id)=>{setShowCmp(false);const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);openProd(id);}}}/>}
-      <footer style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",borderTop:`1px solid ${T.border}`}}>
+      <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô Gelatos · ES · BR</div>
+        <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"5px 10px"}}>↓ Baixar tabela nutricional (CSV)</a>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v3.0 · Clean Label</div>
       </footer>
     </div>
