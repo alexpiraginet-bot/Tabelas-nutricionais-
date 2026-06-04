@@ -1,0 +1,9 @@
+node_modules
+dist
+.env
+.env.local
+.DS_Store
+*.log
+
+# CSVs gerados por scripts/generate-fichas.mjs (regenerados no build)
+public/*.csv
