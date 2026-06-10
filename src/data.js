@@ -1,108 +1,149 @@
-// Fonte única de dados da Bentô Gelatos — consumida pelo app (App.jsx),
+// Fonte única de dados da Bentô Functional Nutrition — consumida pelo app (App.jsx),
 // pelos geradores de ficha técnica (scripts/) e por material derivado.
 // NÃO duplique estes dados em outro lugar: edite apenas aqui.
 
-export const BASE = "Inulina, Liga Neutra, Polidextrose, Edulcorantes, Steviol";
+// Base única usada em TODOS os gelatos e picolés (ficha técnica Ice Cream Mix Italia, rev. 31/05/2026).
+// Zero açúcar; 65 g de polióis/100 g; sem alérgenos de declaração obrigatória.
+export const BASE_NOME = "Base FRUTA 300 ZERO";
+export const BASE = "Maltitol, sorbitol, polidextrose, gordura vegetal, emulsificante, goma guar, carboximetilcelulose sódica (CMC) e goma tara";
 
 export const PRODUCTS = [
   { id:"ninho-nutella", name:"Ninho com Nutella", category:"gelato", sub:"Cremoso avelã & leite", emoji:"🍫",
     moods:["indulgente","comfort"], palette:{base:"#E8C896",mid:"#C49862",deep:"#7B5328",swirl:"#3E2511",hl:"#FFF1D8"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"250 g"},{name:"Creme de Gianduia",qty:"400 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"250 g"},{name:"Creme de Gianduia",qty:"400 g"}],
     nutrition:{kcal:120,carbs:21,sugars:1.8,addedSugars:0,protein:5.7,fat:4.0,satFat:0.8,transFat:0,fiber:0.8,sodium:8},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"O clássico reinventado sem açúcar adicionado. Cremoso italiano com avelã e creme de gianduia enriquecido com whey hidrolisado." },
   { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋",
     moods:["refrescante","leve","zerocal"], palette:{base:"#F4E78A",mid:"#D9C447",deep:"#8B7A1E",swirl:"#5C5114",hl:"#FFF8C4"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:"Base G Frutte",qty:"1.050 g"},{name:"Água",qty:"2.500 mL"},{name:"Base Limone 50",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.050 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Base Limone 50",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
     nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:1.4,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
     flags:{gluten:false,lactose:false}, yield:"2.000 mL",
     description:"Sorbet de limão siciliano com colágeno hidrolisado. Zero gordura, alta fibra. O gelato mais leve do cardápio." },
   { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100%", emoji:"🖤",
     moods:["zerocal","leve","premium"], palette:{base:"#5A3A22",mid:"#3A2418",deep:"#1A0E08",swirl:"#0A0503",hl:"#A87545"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Cacau em pó",qty:"250 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Cacau em pó",qty:"250 g"}],
     nutrition:{kcal:70,carbs:20,sugars:0.1,addedSugars:0.1,protein:1.2,fat:0.8,satFat:0.5,transFat:0,fiber:2.2,sodium:1.24},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade, zero lactose, zero glúten. Para quem não abre mão do chocolate." },
   { id:"pacoca", name:"Paçoca", category:"gelato", sub:"Amendoim cremoso", emoji:"🥜",
     moods:["postreino","comfort","proteina"], palette:{base:"#D9B574",mid:"#B08A48",deep:"#6E5224",swirl:"#3E2D11",hl:"#F2DDA8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"420 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Pasta de amendoim",qty:"420 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"420 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Pasta de amendoim",qty:"420 g"}],
     nutrition:{kcal:166,carbs:22,sugars:5.1,addedSugars:0,protein:13,fat:7.7,satFat:2.7,transFat:0,fiber:0.6,sodium:86},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"13g de proteína por porção. Pasta de amendoim de verdade com whey WPH. Pós-treino que parece sobremesa." },
   { id:"chocolate-branco", name:"Chocolate Branco", category:"gelato", sub:"Veludo lácteo", emoji:"🤍",
     moods:["indulgente","comfort","proteina"], palette:{base:"#F4EAD2",mid:"#E0CFA8",deep:"#A8916A",swirl:"#6E5C3D",hl:"#FFF8E8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Latissimo",qty:"250 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Latissimo",qty:"250 g"}],
     nutrition:{kcal:144,carbs:23,sugars:5.4,addedSugars:0,protein:11,fat:5.2,satFat:2.4,transFat:0,fiber:0.3,sodium:51},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Textura aveludada com Latissimo e whey WPH. 11g de proteína, zero lactose. Suavidade sem culpa." },
   { id:"coco", name:"Coco", category:"gelato", sub:"Tropical cremoso", emoji:"🥥",
     moods:["refrescante","comfort"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#A89C7C",swirl:"#5E5440",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"250 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"250 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
     nutrition:{kcal:159,carbs:22,sugars:3.8,addedSugars:0,protein:6.7,fat:5.5,satFat:4.2,transFat:0,fiber:0,sodium:41},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Leite de coco em pó real com textura densa e aroma tropical. Zero lactose, zero glúten." },
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de Pistache G",qty:"200 g"},{name:"Chocolate 70%",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de Pistache G",qty:"200 g"},{name:"Chocolate 70%",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
     nutrition:{kcal:162,carbs:27,sugars:4.5,addedSugars:0.1,protein:12,fat:6.6,satFat:2.9,transFat:0,fiber:2.5,sodium:47},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"A tendência do Dubai em formato gelato. Cacau 70%, creme de pistache e kadaif crocante. 12g de proteína." },
   { id:"pistache", name:"Pistache", category:"gelato", sub:"Pasta de pistache italiano", emoji:"💚",
     moods:["premium","proteina","comfort"], palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Pasta Pistache Selection",qty:"160 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Pasta Pistache Selection",qty:"160 g"}],
     nutrition:{kcal:130,carbs:21,sugars:4.4,addedSugars:0,protein:10,fat:4.5,satFat:2.1,transFat:0,fiber:0,sodium:40},
     flags:{gluten:true,lactose:false}, yield:"5.000 mL",
     description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, zero açúcar adicionado." },
   { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · stracciatella", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:null,
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"600 g"},{name:"Leite em pó",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de Pistache G",qty:"300 g"},{name:"Stracciatella",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"600 g"},{name:"Leite em pó",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de Pistache G",qty:"300 g"},{name:"Stracciatella",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
     nutrition:{kcal:108,carbs:17,sugars:3.6,addedSugars:0.1,protein:10,fat:4.3,satFat:1.7,transFat:0,fiber:1.5,sodium:33},
     flags:{gluten:true,lactose:true}, yield:"~100 picolés",
     description:"O Dubai em formato mini picolé. Cacau escuro, pistache, stracciatella e kadaif crocante. 10g de proteína." },
   { id:"bentole-snickers", name:"Snickers", category:"bentole", sub:"Amendoim · doce de leite · choco 70%", emoji:"🥜",
     moods:["postreino","proteina","indulgente"], palette:{base:"#A87545",mid:"#7A4F2A",deep:"#3E2511",swirl:"#1A0D05",hl:"#D9A878"}, image:null,
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite Zero (Veneza)",qty:"250 g"},{name:"Chocolate 70%",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite Zero (Veneza)",qty:"250 g"},{name:"Chocolate 70%",qty:"30 g"}],
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
     description:"Picolé inspirado no Snickers. Amendoim real, doce de leite zero açúcar, chocolate 70%. 9,6g de proteína." },
   { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · choco branco · choco 70%", emoji:"🫐",
     moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:null,
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:"Base G Frutte",qty:"1.000 g"},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"},{name:"Chocolate 70%",qty:"15 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"},{name:"Chocolate 70%",qty:"15 g"}],
     nutrition:{kcal:42,carbs:8.9,sugars:1.4,addedSugars:0,protein:1.2,fat:0.3,satFat:0.1,transFat:0,fiber:7.7,sodium:4.64},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
     description:"Apenas 42 kcal. Framboesa real, colágeno, cobertura dupla de chocolate. O mais leve e frutado da linha." },
   { id:"bentole-opereta", name:"Opereta", category:"bentole", sub:"Choco branco · castanhas", emoji:"🌰",
     moods:["premium","proteina","comfort"], palette:{base:"#EADCB8",mid:"#C9A878",deep:"#7A5A2E",swirl:"#3E2D14",hl:"#FFF2CE"}, image:null,
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"700 g"},{name:"Latissimo",qty:"200 g"},{name:"Castanhas",qty:"100 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"700 g"},{name:"Latissimo",qty:"200 g"},{name:"Castanhas",qty:"100 g"}],
     nutrition:{kcal:86,carbs:14,sugars:3.5,addedSugars:0,protein:9.9,fat:3.0,satFat:1.4,transFat:0,fiber:0.2,sodium:28},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"Chocolate branco Latissimo com castanhas selecionadas. 9,9g de proteína. Elegante, crocante, sofisticado." },
   { id:"bentole-pistache-cb", name:"Pistache & Choco Branco", category:"bentole", sub:"Recheio + cobertura + pistaches inteiros", emoji:"💚",
     moods:["premium","proteina","postreino"], palette:{base:"#F0E4C8",mid:"#C9D49A",deep:"#5A6A2E",swirl:"#3E4A18",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:"Base Super Clean",qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite desnatado",qty:"350 g"},{name:"Whey WPH",qty:"680 g"},{name:"Pasta Pistache Selection",qty:"170 g"},{name:"Latissimo",qty:"200 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite desnatado",qty:"350 g"},{name:"Whey WPH",qty:"680 g"},{name:"Pasta Pistache Selection",qty:"170 g"},{name:"Latissimo",qty:"200 g"},{name:"Chocolate Branco Cacauzissimo",qty:"30 g"}],
     nutrition:{kcal:61,carbs:10,sugars:5.7,addedSugars:0,protein:10,fat:2.4,satFat:0.9,transFat:0,fiber:3.7,sodium:21},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O campeão da linha: 10g de proteína com apenas 61 kcal. Pasta de pistache selecionada, cobertura de chocolate branco, pistaches inteiros." },
 ];
 
-// Aviso ANVISA obrigatório — polióis presentes na Base Super Clean (~0,5% maltitol/sorbitol)
-export const AVISO_POLIOL = "O consumo excessivo pode ter efeito laxativo.";
-// Quais produtos têm poliol declarável (todos os gelatos com Base Super Clean ou Base G Frutte)
-// Base G Frutte também usa polióis como umectantes
-export const POLIOL_IDS = ["ninho-nutella","limao-siciliano","extra-dark","pacoca","chocolate-branco","coco","chocolate-dubai","pistache"];
+// Advertência de polióis (maltitol/sorbitol da Base FRUTA 300 ZERO — 65 g/100 g na base).
+// Texto oficial da RDC 727/2022, art. 25 (exibido em negrito no rótulo).
+export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
+// A base única está em TODAS as receitas, portanto todos os produtos declaram polióis.
+export const POLIOL_IDS = PRODUCTS.map(p => p.id);
+
+// ALÉRGICOS por produto (RDC 26/2015) — derivado dos insumos de cada receita.
+// PRELIMINAR: SOJA (lecitina dos chocolates/cremes) marcada onde provável — confirmar nas fichas dos fornecedores.
+export const ALLERGENS = {
+  "ninho-nutella":      ["LEITE","AVELÃ","SOJA"],
+  "limao-siciliano":    [],
+  "extra-dark":         [],
+  "pacoca":             ["LEITE","AMENDOIM"],
+  "chocolate-branco":   ["LEITE","SOJA"],
+  "coco":               ["LEITE"],
+  "chocolate-dubai":    ["LEITE","PISTACHE","TRIGO","SOJA"],
+  "pistache":           ["LEITE","PISTACHE"],
+  "bentole-choco-dubai":["LEITE","PISTACHE","TRIGO","SOJA"],
+  "bentole-snickers":   ["LEITE","AMENDOIM","SOJA"],
+  "bentole-franui":     ["LEITE","SOJA"],
+  "bentole-opereta":    ["LEITE","CASTANHAS","SOJA"],
+  "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
+};
+// Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
+export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","TRIGO","SOJA"];
+
+// Rotulagem nutricional frontal (RDC 429/2020 — limites para sólidos, por 100 g):
+// açúcares adicionados ≥ 15 g · gordura saturada ≥ 6 g · sódio ≥ 600 mg.
+export function lupaFrontal(p){
+  const f = 100 / p.serving, n = p.nutrition, out = [];
+  if (n.addedSugars * f >= 15) out.push("AÇÚCAR ADICIONADO");
+  if (n.satFat * f >= 6)       out.push("GORDURA SATURADA");
+  if (n.sodium * f >= 600)     out.push("SÓDIO");
+  return out;
+}
+
+// Alegações de proteína (RDC 54/2012): "alto teor" ≥ 12 g/porção · "fonte" ≥ 6 g/porção.
+export function proteinClaim(p){
+  const g = p.nutrition.protein;
+  if (g >= 12) return "ALTO TEOR DE PROTEÍNA";
+  if (g >= 6)  return "FONTE DE PROTEÍNA";
+  return null;
+}
 
 export const MOOD_META = {
   postreino:  {label:"Pós-treino",  color:"#3A6B20",bg:"#D0EAB8",icon:"💪"},

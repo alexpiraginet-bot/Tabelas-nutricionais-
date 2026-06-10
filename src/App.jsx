@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ArrowLeft, ChevronRight, Search, Leaf, Zap, Beaker, Award, Info, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
-import { PRODUCTS, AVISO_POLIOL, POLIOL_IDS, MOOD_META, QUIZ } from "./data.js";
+import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
+import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
 
 const T = {
   bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
@@ -10,9 +10,8 @@ const T = {
 };
 
 
-function BentoLogo({size=120,mono=false}){
-  const c=mono?T.ink:T.pistacheDark;
-  return(<svg viewBox="0 0 200 200" width={size} height={size}><defs><path id="tA" d="M 30 100 A 70 70 0 0 1 170 100" fill="none"/><path id="bA" d="M 35 105 A 65 65 0 0 0 165 105" fill="none"/></defs><circle cx="100" cy="100" r="78" fill={c}/><g transform="translate(100 105)" fill="none" stroke={T.bg} strokeWidth="2.4" strokeLinecap="round"><path d="M -22 -4 Q 0 -10 22 -4 L 18 12 Q 0 18 -18 12 Z"/><circle cx="-8" cy="-12" r="1.4" fill={T.bg} stroke="none"/><circle cx="0" cy="-14" r="1.4" fill={T.bg} stroke="none"/><circle cx="8" cy="-12" r="1.4" fill={T.bg} stroke="none"/></g><text fill={T.bg} style={{fontFamily:"'Fraunces',serif",fontSize:"20px",letterSpacing:"0.18em",fontWeight:500}}><textPath href="#tA" startOffset="50%" textAnchor="middle">BENTÔ</textPath></text><text fill={T.bg} style={{fontFamily:"'JetBrains Mono',monospace",fontSize:"8px",letterSpacing:"0.42em"}}><textPath href="#bA" startOffset="50%" textAnchor="middle">GELATOS</textPath></text></svg>);
+function BentoLogo({size=120}){
+  return <img src="/bento-logo.png" alt="Bentô Functional Nutrition" width={size} height={size} style={{display:"block",borderRadius:"50%"}}/>;
 }
 
 function GelatoSVG({p,size=200,id}){
@@ -44,7 +43,6 @@ function MacroBar({label,value,max,color=T.pistacheDark}){
 }
 
 function GStyle(){return(<style>{`
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap');
 .fd{font-family:'Fraunces',Georgia,serif}
 .fb{font-family:'DM Sans',system-ui,sans-serif}
 .fm{font-family:'JetBrains Mono',ui-monospace,monospace}
@@ -58,7 +56,14 @@ function GStyle(){return(<style>{`
 .gn{position:relative}
 .gn::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(31,35,23,.05) 1px,transparent 1px);background-size:3px 3px;opacity:.6;mix-blend-mode:multiply}
 *::-webkit-scrollbar{width:5px}*::-webkit-scrollbar-thumb{background:${T.border};border-radius:99px}
-input:focus,button:focus{outline:none}button{cursor:pointer}
+button{cursor:pointer}
+:focus{outline:none}
+:focus-visible{outline:2px solid ${T.pistacheDark};outline-offset:2px}
+.hdr{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.shell{min-height:100dvh}
+.detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
+@media(max-width:760px){.detail-grid{grid-template-columns:1fr}}
+.cmp-first{position:sticky;left:0;background:${T.surface};z-index:1}
 @media print{
   @page{margin:12mm}
   body{background:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -68,12 +73,26 @@ input:focus,button:focus{outline:none}button{cursor:pointer}
   .print-grid{display:block!important}
   .print-grid > div{margin-bottom:14px;break-inside:avoid}
   .print-grid > div > div{break-inside:avoid}
+  /* IN 75/2020: tabela nutricional impressa em preto sobre branco, sem cores */
+  .nutri-print,.nutri-print *{background:#fff!important;color:#000!important;border-color:#000!important}
   *{box-shadow:none!important}
 }
 `}</style>);}
 
+// Comportamento padrão de modal: fecha no Esc e trava o scroll do fundo (iOS inclusive)
+function useModal(onClose){
+  useEffect(()=>{
+    const h=e=>{if(e.key==="Escape")onClose();};
+    document.addEventListener("keydown",h);
+    const prev=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    return()=>{document.removeEventListener("keydown",h);document.body.style.overflow=prev;};
+  },[onClose]);
+}
+
 /* ========== QUIZ ========== */
 function QuizModal({onClose,onResult}){
+  useModal(onClose);
   const [step,setStep]=useState(0);const [ans,setAns]=useState([]);const [done,setDone]=useState(false);const [result,setResult]=useState(null);
   const pick=(val)=>{
     const na=[...ans,val];
@@ -91,14 +110,14 @@ function QuizModal({onClose,onResult}){
     }
   };
   return(
-    <div className="fade" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",border:`1px solid ${T.border}`,overflow:"hidden"}}>
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Quiz: qual é o seu Bentô" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",border:`1px solid ${T.border}`,overflow:"hidden"}}>
         <div style={{background:T.ink,padding:"18px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>{done?"Resultado":`Pergunta ${step+1} de ${QUIZ.length}`}</div>
             <div className="fd" style={{fontSize:18,color:T.bg,marginTop:4}}>{done?"Seu Bentô ideal 🎉":"Qual é o seu Bentô?"}</div>
           </div>
-          <button onClick={onClose} style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={14}/></button>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
         {!done&&<div style={{height:3,background:T.bgWarm}}><div style={{height:"100%",background:T.pistacheDark,width:`${((step+1)/QUIZ.length)*100}%`,transition:"width .4s ease"}}/></div>}
         <div style={{padding:22}}>
@@ -141,28 +160,38 @@ function QuizModal({onClose,onResult}){
 
 /* ========== COMPARE ========== */
 function CompareModal({ids,onClose,onViewProduct}){
+  useModal(onClose);
   const products=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);
-  if(products.length<2)return null;
+  if(products.length<2)return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" style={{position:"fixed",inset:0,zIndex:100,background:"rgba(31,35,23,0.65)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:360,width:"100%",border:`1px solid ${T.border}`,padding:"28px 24px",textAlign:"center"}}>
+        <Scale size={28} style={{color:T.pistacheDark}}/>
+        <div className="fd" style={{fontSize:20,color:T.ink,marginTop:10}}>Selecione 2 ou 3 sabores</div>
+        <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>Toque no ícone de balança ⚖️ nos cards para montar a comparação lado a lado.</div>
+        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"10px 20px",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,fontSize:13,fontWeight:500}}>Entendi</button>
+      </div>
+    </div>
+  );
   const fields=[{k:"kcal",l:"Energia (kcal)"},{k:"protein",l:"Proteínas (g)",hi:true},{k:"carbs",l:"Carboidratos (g)"},{k:"sugars",l:"Açúcares totais (g)"},{k:"addedSugars",l:"Açúc. adicionados (g)"},{k:"fat",l:"Gorduras totais (g)"},{k:"fiber",l:"Fibra alimentar (g)"},{k:"sodium",l:"Sódio (mg)"}];
   const best=(k)=>{const vs=products.map(p=>p.nutrition[k]);return(k==="protein"||k==="fiber")?Math.max(...vs):Math.min(...vs);};
   return(
-    <div className="fade" style={{position:"fixed",inset:0,zIndex:100,background:"rgba(31,35,23,0.65)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div className="rise" style={{background:T.surface,borderRadius:6,maxWidth:680,width:"100%",maxHeight:"88vh",overflow:"auto",border:`1px solid ${T.border}`}}>
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Comparar sabores" style={{position:"fixed",inset:0,zIndex:100,background:"rgba(31,35,23,0.65)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:680,width:"100%",maxHeight:"88dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"14px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10}}>
           <span className="fd" style={{fontSize:18,color:T.bg}}>Comparando sabores</span>
-          <button onClick={onClose} style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={14}/></button>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
         <div style={{overflowX:"auto"}}>
           <table style={{width:"100%",borderCollapse:"collapse"}}>
             <thead>
               <tr>
-                <th style={{padding:"14px 18px",textAlign:"left",background:T.bg,borderBottom:`1px solid ${T.border}`,minWidth:150}}><span className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase"}}>Nutriente</span></th>
+                <th className="cmp-first" style={{padding:"14px 18px",textAlign:"left",borderBottom:`1px solid ${T.border}`,minWidth:120}}><span className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase"}}>Nutriente</span></th>
                 {products.map(p=>(
-                  <th key={p.id} style={{padding:"14px 18px",textAlign:"center",background:T.bg,borderBottom:`1px solid ${T.border}`,minWidth:150}}>
+                  <th key={p.id} style={{padding:"14px 18px",textAlign:"center",background:T.bg,borderBottom:`1px solid ${T.border}`,minWidth:140}}>
                     <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><ProductArt product={p} size={64}/></div>
                     <div className="fd" style={{fontSize:15,color:T.ink,lineHeight:1.2}}>{p.name}</div>
                     <div className="fm" style={{fontSize:9,color:T.inkSoft,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:2}}>{p.category==="gelato"?"Gelato":"Bentôlé"} · {p.portionLabel}</div>
-                    <button onClick={()=>{onClose();onViewProduct(p.id);}} className="fm" style={{marginTop:8,fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",background:"transparent",border:`1px solid ${T.border}`,borderRadius:2,padding:"4px 10px",color:T.inkSoft}}>Ver ficha</button>
+                    <button onClick={()=>{onClose();onViewProduct(p.id);}} className="fm" style={{marginTop:8,fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",background:"transparent",border:`1px solid ${T.border}`,borderRadius:2,padding:"6px 10px",color:T.inkSoft}}>Ver ficha</button>
                   </th>
                 ))}
               </tr>
@@ -171,19 +200,19 @@ function CompareModal({ids,onClose,onViewProduct}){
               {fields.map((f,i)=>{
                 const b=best(f.k);
                 return(<tr key={f.k} style={{background:i%2===0?T.surface:T.bg}}>
-                  <td className="fb" style={{padding:"12px 18px",fontSize:13,color:f.hi?T.ink:T.inkSoft,fontWeight:f.hi?500:400,borderBottom:`1px solid ${T.borderSoft}`}}>{f.l}</td>
+                  <td className="fb cmp-first" style={{padding:"12px 18px",fontSize:13,color:f.hi?T.ink:T.inkSoft,fontWeight:f.hi?500:400,borderBottom:`1px solid ${T.borderSoft}`}}>{f.l}</td>
                   {products.map(p=>{const v=p.nutrition[f.k],iB=v===b;return(
                     <td key={p.id} style={{padding:"12px 18px",textAlign:"center",borderBottom:`1px solid ${T.borderSoft}`}}>
                       <span className="fm" style={{fontSize:15,fontWeight:500,color:iB?T.pistacheDark:T.ink}}>{v}</span>
-                      {iB&&<span style={{marginLeft:4,fontSize:11}}>✓</span>}
+                      {iB&&<span style={{marginLeft:4,fontSize:11}} aria-label="melhor valor">✓</span>}
                     </td>
                   );})}
                 </tr>);
               })}
-              {[{l:"Sem glúten",k:"gluten"},{l:"Sem lactose",k:"lactose"}].map(f=>(
+              {[{l:"Glúten",k:"gluten"},{l:"Lactose",k:"lactose"}].map(f=>(
                 <tr key={f.k} style={{background:T.bgWarm}}>
-                  <td className="fb" style={{padding:"12px 18px",fontSize:13,color:T.inkSoft}}>{f.l}</td>
-                  {products.map(p=><td key={p.id} style={{padding:"12px 18px",textAlign:"center"}}><span style={{fontSize:14}}>{!p.flags[f.k]?"✅":"⚠️"}</span></td>)}
+                  <td className="fb cmp-first" style={{padding:"12px 18px",fontSize:13,color:T.inkSoft,background:T.bgWarm}}>{f.l}</td>
+                  {products.map(p=><td key={p.id} style={{padding:"12px 18px",textAlign:"center"}}><span className="fm" style={{fontSize:11,color:p.flags[f.k]?"#7A5320":T.pistacheDark}}>{p.flags[f.k]?"Contém":"Não contém"}</span></td>)}
                 </tr>
               ))}
             </tbody>
@@ -200,24 +229,24 @@ function CompareModal({ids,onClose,onViewProduct}){
 /* ========== HEADER ========== */
 function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   return(
-    <header className="sticky top-0 z-40 backdrop-blur no-print" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
+    <header className="hdr no-print" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
       <div style={{maxWidth:1152,margin:"0 auto",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
-        <button onClick={onHome} style={{display:"flex",alignItems:"center",gap:12,background:"none",border:"none"}}>
-          <BentoLogo size={34}/>
+        <button onClick={onHome} aria-label="Início" style={{display:"flex",alignItems:"center",gap:12,background:"none",border:"none"}}>
+          <BentoLogo size={38}/>
           <div style={{lineHeight:1.3,textAlign:"left"}}>
-            <div className="fd" style={{fontSize:14,color:T.ink}}>Bentô · Lab</div>
-            <div className="fm" style={{fontSize:8,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Nutritional Index</div>
+            <div className="fd" style={{fontSize:14,color:T.ink}}>Bentô</div>
+            <div className="fm" style={{fontSize:8,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Functional Nutrition</div>
           </div>
         </button>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          {favorites.length>0&&<span className="fm" style={{fontSize:9,letterSpacing:"0.18em",color:T.inkSoft,textTransform:"uppercase"}}>❤️ {favorites.length}</span>}
+          {favorites.length>0&&<span className="fm" aria-label={`${favorites.length} favoritos`} style={{fontSize:9,letterSpacing:"0.18em",color:T.inkSoft,textTransform:"uppercase"}}>❤️ {favorites.length}</span>}
           {compareCount>0&&(
-            <button onClick={onOpenCompare} className="fb" style={{background:T.bgWarm,color:T.ink,border:`1px solid ${T.border}`,borderRadius:3,padding:"8px 12px",fontSize:12,display:"flex",alignItems:"center",gap:6,position:"relative"}}>
+            <button onClick={onOpenCompare} className="fb" aria-label={`Comparar ${compareCount} sabores`} style={{background:T.bgWarm,color:T.ink,border:`1px solid ${T.border}`,borderRadius:3,padding:"8px 12px",fontSize:12,display:"flex",alignItems:"center",gap:6,position:"relative"}}>
               <Scale size={13}/><span className="fm" style={{fontSize:9,letterSpacing:"0.14em"}}>Comparar</span>
               <span style={{position:"absolute",top:-6,right:-6,background:T.pistacheDark,color:T.surface,borderRadius:"50%",width:18,height:18,fontSize:10,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace"}}>{compareCount}</span>
             </button>
           )}
-          <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,padding:"9px 14px",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
+          <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,padding:"10px 14px",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
             <Sparkles size={13}/>Encontre seu sabor
           </button>
         </div>
@@ -227,7 +256,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onQuiz}){
+function Home({onSelect,onSelectProduct,onQuiz}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -276,7 +305,7 @@ function Home({onSelect,onQuiz}){
         <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:14}}>⚡ Mais ricos em proteína</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
           {topProt.map(p=>(
-            <div key={p.id} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelect(p.category)}>
+            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
               <ProductArt product={p} size={72}/>
               <div>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>{p.name}</div>
@@ -284,13 +313,13 @@ function Home({onSelect,onQuiz}){
                 <div className="fm" style={{fontSize:9,color:T.inkSoft,letterSpacing:"0.18em",textTransform:"uppercase"}}>proteína · {p.nutrition.kcal} kcal</div>
                 <div style={{marginTop:6,display:"flex",gap:4}}>{p.moods.slice(0,1).map(m=><MoodChip key={m} mood={m} small/>)}</div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       </section>
 
       <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 40px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}}>
-        {[{icon:"🧬",title:"Whey WPH",desc:"Proteína hidrolisada de alta biodisponibilidade"},{icon:"🌿",title:"Base Super Clean",desc:"Inulina · Liga Neutra · Polidextrose · Steviol"},{icon:"0️⃣",title:"Zero açúcar",desc:"Sem sacarose adicionada em toda a linha"},{icon:"🧪",title:"Formulação técnica",desc:"Balanço PAC/POD calibrado para textura perfeita"}].map(b=>(
+        {[{icon:"🧬",title:"Whey WPH",desc:"Proteína hidrolisada de alta biodisponibilidade"},{icon:"🌿",title:"Base FRUTA 300 ZERO",desc:"Zero açúcar · adoçada com polióis e fibras"},{icon:"0️⃣",title:"Sem açúcar adicionado",desc:"Sem sacarose adicionada à formulação"},{icon:"🧪",title:"Formulação técnica",desc:"Balanço PAC/POD calibrado para textura perfeita"}].map(b=>(
           <div key={b.title} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:16}}>
             <div style={{fontSize:24,marginBottom:8}}>{b.icon}</div>
             <div className="fd" style={{fontSize:15,color:T.ink,marginBottom:4}}>{b.title}</div>
@@ -307,7 +336,7 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
   const [search,setSearch]=useState("");
   const [filter,setFilter]=useState("all");
   const [moodF,setMoodF]=useState(null);
-  const allMoods=useMemo(()=>[...new Set(PRODUCTS.filter(p=>p.category===category).flatMap(p=>p.moods))],...[category]);
+  const allMoods=useMemo(()=>[...new Set(PRODUCTS.filter(p=>p.category===category).flatMap(p=>p.moods))],[category]);
   const items=useMemo(()=>PRODUCTS.filter(p=>p.category===category).filter(p=>p.name.toLowerCase().includes(search.toLowerCase())).filter(p=>filter==="nogluten"?!p.flags.gluten:filter==="nolactose"?!p.flags.lactose:filter==="prot9"?p.nutrition.protein>=9:filter==="kcal100"?p.nutrition.kcal<100:true).filter(p=>moodF?p.moods.includes(moodF):true),[category,search,filter,moodF]);
   const meta=category==="gelato"?{tag:"01 / Linha Vitrine",title:"Gelatos",sub:"Potes para vitrine · cremoso italiano"}:{tag:"02 / Linha Take-Home",title:"Bentôlé",sub:"Mini picolés · 55–60g · embalagem individual"};
   return(
@@ -371,19 +400,22 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
         </div>
         <div className="hd" style={{margin:"12px 0"}}/>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={onClick} className="fb" style={{flex:1,padding:"9px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,fontSize:12,fontWeight:500}}>Ver ficha completa</button>
-          <button onClick={e=>{e.stopPropagation();onToggleCompare();}} title={inCompare?"Remover":canCompare?"Comparar":"Máx 3"} style={{width:36,height:36,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:3,background:inCompare?T.pistacheDark:"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:inCompare?T.surface:T.inkSoft,opacity:(!inCompare&&!canCompare)?0.4:1}}><Scale size={14}/></button>
+          <button onClick={onClick} className="fb" style={{flex:1,padding:"10px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,fontSize:12,fontWeight:500}}>Ver ficha completa</button>
+          <button onClick={e=>{e.stopPropagation();onToggleCompare();}} aria-label={inCompare?"Remover da comparação":canCompare?"Adicionar à comparação":"Máximo de 3 sabores"} style={{width:44,height:44,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:3,background:inCompare?T.pistacheDark:"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:inCompare?T.surface:T.inkSoft,opacity:(!inCompare&&!canCompare)?0.4:1}}><Scale size={14}/></button>
         </div>
         <div style={{display:"flex",gap:5,marginTop:10,flexWrap:"wrap"}}>
-          {!p.flags.gluten&&<Chip tone="good">Sem Glúten</Chip>}
-          {!p.flags.lactose&&<Chip tone="good">Sem Lactose</Chip>}
-          {p.nutrition.addedSugars===0&&<Chip tone="good">0 Açúcar Adic.</Chip>}
+          <Chip tone={p.flags.gluten?"warn":"good"}>{p.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
+          {!p.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
+          {proteinClaim(p)&&<Chip tone="good">{proteinClaim(p)}</Chip>}
+          {p.nutrition.addedSugars===0&&<Chip tone="good">Sem Açúcar Adicionado</Chip>}
         </div>
-        {POLIOL_IDS.includes(p.id)&&(
-          <div style={{marginTop:10,display:"flex",alignItems:"flex-start",gap:6,background:"#FDF8EC",border:"1px solid #E8D98A",borderRadius:2,padding:"7px 10px"}}>
-            <span style={{fontSize:11,flexShrink:0}}>⚠️</span>
-            <span className="fb" style={{fontSize:10.5,color:"#6B5A10",lineHeight:1.45}}>Contém polióis (sorbitol, maltitol ~0,5%). {AVISO_POLIOL}</span>
+        {lupaFrontal(p).map(l=>(
+          <div key={l} style={{marginTop:8,display:"inline-flex",alignSelf:"flex-start",alignItems:"center",gap:6,background:"#1F2317",color:"#fff",borderRadius:2,padding:"5px 9px"}}>
+            <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",fontWeight:600}}>⬛ ALTO EM {l}</span>
           </div>
+        ))}
+        {ALLERGENS[p.id]?.length>0&&(
+          <div className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.06em",color:"#7A1F1F",lineHeight:1.4,fontWeight:600}}>ALÉRGICOS: CONTÉM {ALLERGENS[p.id].join(", ")}.</div>
         )}
       </div>
     </div>
@@ -391,27 +423,37 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
 }
 
 /* ========== DETAIL ========== */
-function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onToggleCompare}){
-  const product=PRODUCTS.find(p=>p.id===productId);if(!product)return null;
-  const n=product.nutrition;
+// Valores Diários de Referência — IN 75/2020, Anexo II
+const VD={kcal:2000,carbs:300,addedSugars:50,protein:50,fat:65,satFat:20,fiber:25,sodium:2000};
+// Arredondamento/formatação pt-BR (vírgula decimal); sódio < 5 mg = não significativo → "0"
+const br=v=>Number.isInteger(v)?String(v):String(v).replace(".",",");
+function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,compareIds,onToggleCompare}){
   const [protGoal,setProtGoal]=useState(120);
-  const VD={kcal:2000,carbs:300,protein:50,fat:65,satFat:20,fiber:25,sodium:2400};
+  const product=PRODUCTS.find(p=>p.id===productId);
+  if(!product)return null;
+  const n=product.nutrition;
+  const per100=k=>n[k]*(100/product.serving);
   const pct=(v,r)=>Math.round((v/r)*100);
   const isFav=favorites.includes(product.id);
   const inCmp=compareIds.includes(product.id);
-  const units=Math.ceil(protGoal/n.protein);
+  const units=n.protein>0?Math.min(99,Math.ceil(protGoal/n.protein)):0;
+  const lupas=lupaFrontal(product);
+  const claim=proteinClaim(product);
+  const allergens=ALLERGENS[product.id]||[];
+  // sódio: valores não significativos (< 5 mg/porção) declaram 0 (IN 75, Anexo III)
+  const sod=n.sodium<5?0:n.sodium, sod100=per100("sodium")<5?0:per100("sodium");
   const ROWS=[
-    {k:"kcal",l:"Valor energético",v:n.kcal,u:"kcal",vd:pct(n.kcal,VD.kcal)},
-    {k:"carbs",l:"Carboidratos",v:n.carbs,u:"g",vd:pct(n.carbs,VD.carbs)},
-    {k:"sugars",l:"Açúcares totais",v:n.sugars,u:"g",ind:true},
-    {k:"added",l:"Açúcares adicionados",v:n.addedSugars,u:"g",ind:true,hl:n.addedSugars===0},
-    {k:"protein",l:"Proteínas",v:n.protein,u:"g",vd:pct(n.protein,VD.protein),main:true},
-    {k:"fat",l:"Gorduras totais",v:n.fat,u:"g",vd:pct(n.fat,VD.fat)},
-    {k:"satFat",l:"Gorduras saturadas",v:n.satFat,u:"g",vd:pct(n.satFat,VD.satFat),ind:true},
-    {k:"trans",l:"Gorduras trans",v:n.transFat,u:"g",ind:true},
-    {k:"fiber",l:"Fibra alimentar",v:n.fiber,u:"g",vd:pct(n.fiber,VD.fiber)},
-    {k:"sodium",l:"Sódio",v:n.sodium,u:"mg",vd:pct(n.sodium,VD.sodium)},
-  ];
+    {k:"kcal",l:"Valor energético (kcal)",v100:Math.round(per100("kcal")),v:n.kcal,u:"",vd:pct(n.kcal,VD.kcal)},
+    {k:"carbs",l:"Carboidratos",v100:per100("carbs"),v:n.carbs,u:"g",vd:pct(n.carbs,VD.carbs)},
+    {k:"sugars",l:"Açúcares totais",v100:per100("sugars"),v:n.sugars,u:"g",ind:true},
+    {k:"added",l:"Açúcares adicionados",v100:per100("addedSugars"),v:n.addedSugars,u:"g",ind:true,vd:pct(n.addedSugars,VD.addedSugars)},
+    {k:"protein",l:"Proteínas",v100:per100("protein"),v:n.protein,u:"g",vd:pct(n.protein,VD.protein),main:true},
+    {k:"fat",l:"Gorduras totais",v100:per100("fat"),v:n.fat,u:"g",vd:pct(n.fat,VD.fat)},
+    {k:"satFat",l:"Gorduras saturadas",v100:per100("satFat"),v:n.satFat,u:"g",vd:pct(n.satFat,VD.satFat),ind:true},
+    {k:"trans",l:"Gorduras trans",v100:per100("transFat"),v:n.transFat,u:"g",ind:true},
+    {k:"fiber",l:"Fibras alimentares",v100:per100("fiber"),v:n.fiber,u:"g",vd:pct(n.fiber,VD.fiber)},
+    {k:"sodium",l:"Sódio",v100:sod100,v:sod,u:"mg",vd:pct(sod,VD.sodium)},
+  ].map(r=>({...r,v100:typeof r.v100==="number"&&r.u==="g"?Math.round(r.v100*10)/10:r.v100}));
   const similar=PRODUCTS.filter(p=>p.id!==product.id&&p.moods.some(m=>product.moods.includes(m))).slice(0,3);
   return(
     <div className="fade">
@@ -423,15 +465,15 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
         {/* Cabeçalho visível apenas na impressão */}
         <div className="print-only" style={{display:"none",justifyContent:"space-between",alignItems:"flex-end",borderBottom:`2px solid ${T.ink}`,paddingBottom:10,marginBottom:18}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <BentoLogo size={42}/>
+            <BentoLogo size={48}/>
             <div>
-              <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô Gelatos</div>
+              <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô · Functional Nutrition</div>
               <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Ficha Técnica · Informação Nutricional</div>
             </div>
           </div>
           <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textAlign:"right"}}>{product.name}<br/>Emitido em {new Date().toLocaleDateString("pt-BR")}</div>
         </div>
-        <div className="print-grid" style={{display:"grid",gridTemplateColumns:"minmax(0,1fr) minmax(0,1.4fr)",gap:16,alignItems:"start"}}>
+        <div className="detail-grid print-grid">
           {/* LEFT */}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             <div style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:4,padding:26,textAlign:"center",position:"relative"}}>
@@ -447,24 +489,37 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
               <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginTop:14}}>{product.moods.map(m=><MoodChip key={m} mood={m}/>)}</div>
               <div className="hd" style={{margin:"16px 0"}}/>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}}>
-                {!product.flags.gluten&&<Chip tone="good">Sem Glúten</Chip>}
-                {!product.flags.lactose&&<Chip tone="good">Sem Lactose</Chip>}
-                {n.addedSugars===0&&<Chip tone="good">0 Açúcar Adicionado</Chip>}
-                {n.protein>=9&&<Chip tone="good">Alta Proteína</Chip>}
-                {product.flags.gluten&&<Chip tone="warn">Contém Glúten</Chip>}
-                {product.flags.lactose&&<Chip tone="warn">Contém Lactose</Chip>}
+                <Chip tone={product.flags.gluten?"warn":"good"}>{product.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
+                {!product.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
+                {n.addedSugars===0&&<Chip tone="good">Sem Açúcar Adicionado</Chip>}
+                {claim&&<Chip tone="good">{claim}</Chip>}
+                {n.fiber>=5&&<Chip tone="good">Alto em Fibras</Chip>}
               </div>
-              {POLIOL_IDS.includes(product.id)&&(
-                <div style={{marginTop:16,display:"flex",alignItems:"flex-start",gap:10,background:"#FDF8EC",border:"1px solid #D4B840",borderRadius:3,padding:"12px 14px",textAlign:"left"}}>
-                  <span style={{fontSize:18,flexShrink:0,marginTop:1}}>⚠️</span>
-                  <div>
-                    <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:"#7A6210",marginBottom:4}}>Aviso regulatório · ANVISA</div>
-                    <div className="fb" style={{fontSize:12.5,color:"#5A4A08",lineHeight:1.55}}>
-                      Contém <strong>polióis</strong> (sorbitol e maltitol) em aproximadamente 0,5% da composição, provenientes da Base Super Clean. <strong>{AVISO_POLIOL}</strong>
+              {lupas.length>0&&(
+                <div style={{marginTop:14,display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
+                  {lupas.map(l=>(
+                    <div key={l} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#1F2317",color:"#fff",border:"2px solid #1F2317",borderRadius:6,padding:"8px 12px",minWidth:96}}>
+                      <span className="fm" style={{fontSize:9,letterSpacing:"0.1em",opacity:0.85}}>ALTO EM</span>
+                      <span className="fd" style={{fontSize:13,fontWeight:600,textAlign:"center",lineHeight:1.1}}>{l==="GORDURA SATURADA"?"GORDURA SATURADA":l}</span>
                     </div>
-                  </div>
+                  ))}
+                  <div className="fm" style={{fontSize:8,letterSpacing:"0.1em",color:T.inkSoft,alignSelf:"center",maxWidth:120}}>Rotulagem frontal · RDC 429/2020 (por 100 g)</div>
                 </div>
               )}
+              {n.addedSugars===0&&(
+                <p className="fb" style={{fontSize:10,color:T.inkSoft,lineHeight:1.5,marginTop:10,fontStyle:"italic"}}>
+                  Contém açúcares próprios dos ingredientes. Este não é um alimento baixo ou reduzido em valor energético.
+                </p>
+              )}
+              <div style={{marginTop:16,display:"flex",alignItems:"flex-start",gap:10,background:"#FDF8EC",border:"1px solid #D4B840",borderRadius:3,padding:"12px 14px",textAlign:"left"}}>
+                <span style={{fontSize:18,flexShrink:0,marginTop:1}} aria-hidden="true">⚠️</span>
+                <div>
+                  <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:"#7A6210",marginBottom:4}}>Advertência · Polióis</div>
+                  <div className="fb" style={{fontSize:12.5,color:"#5A4A08",lineHeight:1.55}}>
+                    Contém <strong>polióis</strong> (maltitol e sorbitol), provenientes da {product.ingredients[0].name}. <strong>{AVISO_POLIOL}</strong>
+                  </div>
+                </div>
+              </div>
             </div>
             {/* Calculadora */}
             <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
@@ -486,33 +541,45 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
           {/* RIGHT */}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {/* Tabela */}
-            <div className="gn" style={{background:T.surface,border:`1px solid ${T.ink}`,borderRadius:4,overflow:"hidden"}}>
+            <div className="gn nutri-print" style={{background:T.surface,border:`1px solid ${T.ink}`,borderRadius:4,overflow:"hidden"}}>
               <div style={{background:T.ink,color:T.bg,padding:"13px 20px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <h3 className="fd" style={{fontSize:20,fontWeight:500}}>Informação Nutricional</h3>
-                  <span className="fm" style={{fontSize:8,letterSpacing:"0.28em",opacity:0.6,textTransform:"uppercase"}}>ANVISA · RDC 429/20</span>
+                  <span className="fm" style={{fontSize:8,letterSpacing:"0.28em",opacity:0.6,textTransform:"uppercase"}}>IN 75/2020</span>
                 </div>
-                <div className="fm" style={{fontSize:9,letterSpacing:"0.16em",opacity:0.68,textTransform:"uppercase",marginTop:4}}>Porção: {product.portionLabel}</div>
+                <div className="fm" style={{fontSize:9,letterSpacing:"0.12em",opacity:0.68,textTransform:"uppercase",marginTop:4}}>Porções por embalagem: {product.category==="gelato"?"variável (granel)":"1"} · Porção: {product.portionLabel}</div>
               </div>
               <div style={{padding:"0 20px"}}>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 70px 48px",padding:"10px 0",borderBottom:`1px solid ${T.border}`}}>
-                  {["Nutriente","Por porção","%VD*"].map((h,i)=><span key={h} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textAlign:i>0?"right":"left"}}>{h}</span>)}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 64px 64px 44px",padding:"10px 0",borderBottom:`1px solid ${T.border}`,gap:4}}>
+                  {[{h:"Nutriente",a:"left"},{h:"100 g",a:"right"},{h:"Porção",a:"right"},{h:"%VD*",a:"right"}].map(c=><span key={c.h} className="fm" style={{fontSize:9,letterSpacing:"0.12em",color:T.inkSoft,textTransform:"uppercase",textAlign:c.a}}>{c.h}</span>)}
                 </div>
                 {ROWS.map((row,i)=>(
-                  <div key={row.k} style={{display:"grid",gridTemplateColumns:"1fr 70px 48px",padding:"11px 0",paddingLeft:row.ind?14:0,borderBottom:i<ROWS.length-1?`1px solid ${T.borderSoft}`:"none",background:row.main?"#EFF5E5":"transparent",marginLeft:row.main?-20:0,paddingLeft:row.main?20:row.ind?14:0,paddingRight:row.main?20:0,marginRight:row.main?-20:0}}>
-                    <span className="fb" style={{fontSize:row.ind?12:13.5,color:row.ind?T.inkSoft:T.ink,fontWeight:row.main?600:400}}>{row.l}</span>
-                    <span className="fm" style={{textAlign:"right",fontSize:13,color:row.main?T.pistacheDark:T.ink,fontWeight:row.main?600:400}}>{row.v}{row.u!=="kcal"?` ${row.u}`:""}</span>
+                  <div key={row.k} style={{display:"grid",gridTemplateColumns:"1fr 64px 64px 44px",gap:4,padding:"11px 0",paddingLeft:row.ind?14:0,borderBottom:i<ROWS.length-1?`1px solid ${T.borderSoft}`:"none",background:row.main?"#EFF5E5":"transparent"}}>
+                    <span className="fb" style={{fontSize:row.ind?12:13,color:row.ind?T.inkSoft:T.ink,fontWeight:row.main?600:400}}>{row.l}</span>
+                    <span className="fm" style={{textAlign:"right",fontSize:12,color:T.inkSoft}}>{br(row.v100)}{row.u&&` ${row.u}`}</span>
+                    <span className="fm" style={{textAlign:"right",fontSize:12,color:row.main?T.pistacheDark:T.ink,fontWeight:row.main?600:400}}>{br(row.v)}{row.u&&` ${row.u}`}</span>
                     <span className="fm" style={{textAlign:"right",fontSize:11,color:T.inkSoft}}>{row.vd!=null?`${row.vd}%`:"—"}</span>
                   </div>
                 ))}
               </div>
               <div style={{background:T.bgWarm,padding:"10px 20px",borderTop:`1px solid ${T.border}`}}>
-                <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5}}>*Valores diários com base em dieta de 2.000 kcal.</p>
-                {POLIOL_IDS.includes(product.id)&&(
-                  <p className="fb" style={{fontSize:10.5,color:"#6B5010",lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed #D4B840`}}>
-                    ⚠️ Contém polióis (sorbitol, maltitol). {AVISO_POLIOL}
-                  </p>
-                )}
+                <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5}}>*Percentual de valores diários fornecidos pela porção.</p>
+                <p className="fb" style={{fontSize:10.5,color:"#6B5010",lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed #D4B840`}}>
+                  Contém polióis. <strong>{AVISO_POLIOL}</strong>
+                </p>
+              </div>
+            </div>
+            {/* Alérgicos — RDC 26/2015 */}
+            <div className="nutri-print" style={{background:"#fff",border:`2px solid #1F2317`,borderRadius:4,padding:"14px 18px"}}>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",marginBottom:6}}>Informação ao alérgico · RDC 26/2015</div>
+              <div className="fb" style={{fontSize:13,color:"#1F2317",fontWeight:700,lineHeight:1.5,textTransform:"uppercase"}}>
+                {allergens.length>0?`Alérgicos: contém ${allergens.join(", ")}.`:"Alérgicos: não contém alérgenos de declaração obrigatória."}
+              </div>
+              <div className="fb" style={{fontSize:12,color:"#5A4A08",fontWeight:600,lineHeight:1.5,textTransform:"uppercase",marginTop:4}}>
+                Alérgicos: pode conter {PODE_CONTER.join(", ")}.
+              </div>
+              <div className="fb" style={{fontSize:13,color:"#1F2317",fontWeight:700,marginTop:8,textTransform:"uppercase"}}>
+                {product.flags.gluten?"Contém glúten.":"Não contém glúten."}
               </div>
             </div>
             {/* Ingredientes */}
@@ -546,7 +613,7 @@ function ProductDetail({productId,onBack,favorites,onToggleFav,compareIds,onTogg
             <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:14}}>Você também pode gostar</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
               {similar.map(p=>(
-                <button key={p.id} onClick={onBack} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
+                <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
                   <ProductArt product={p} size={68}/>
                   <div>
                     <div className="fd" style={{fontSize:15,color:T.ink}}>{p.name}</div>
@@ -571,28 +638,28 @@ export default function App(){
   const[showQuiz,setShowQuiz]=useState(false);
   const[showCmp,setShowCmp]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
-  const[favorites,setFavs]=useState([]);
-  useEffect(()=>{window.scrollTo({top:0,behavior:"smooth"});},[view,productId]);
+  const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
+  useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
+  useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
-  const openProd=useCallback((id)=>{setProd(id);setView("detail");},[]);
-  const backList=useCallback(()=>{setView("list");setProd(null);},[]);
+  const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p)setCat(p.category);setProd(id);setView("detail");},[]);
+  const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
-  const onQuizResult=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);setProd(id);setView("detail");}},[]);
   return(
-    <div className="min-h-screen fb gn" style={{background:T.bg,color:T.ink}}>
+    <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onQuiz={()=>setShowQuiz(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
-      {view==="detail"&&<ProductDetail productId={productId} onBack={backList} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);onQuizResult(id);}}/>}
-      {showCmp&&compareIds.length>=2&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={(id)=>{setShowCmp(false);const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);openProd(id);}}}/>}
+      {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
+      {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
-        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô Gelatos · ES · BR</div>
-        <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"5px 10px"}}>↓ Baixar tabela nutricional (CSV)</a>
-        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v3.0 · Clean Label</div>
+        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
+        <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Baixar tabela nutricional (CSV)</a>
+        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.0 · Clean Label</div>
       </footer>
     </div>
   );
