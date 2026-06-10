@@ -408,6 +408,7 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
           {!p.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
           {proteinClaim(p)&&<Chip tone="good">{proteinClaim(p)}</Chip>}
           {p.nutrition.addedSugars===0&&<Chip tone="good">Sem Açúcar Adicionado</Chip>}
+          {p.estimated&&<Chip tone="neutral">Macros Estimados</Chip>}
         </div>
         {lupaFrontal(p).map(l=>(
           <div key={l} style={{marginTop:8,display:"inline-flex",alignSelf:"flex-start",alignItems:"center",gap:6,background:"#1F2317",color:"#fff",borderRadius:2,padding:"5px 9px"}}>
@@ -567,6 +568,11 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                 <p className="fb" style={{fontSize:10.5,color:"#6B5010",lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed #D4B840`}}>
                   Contém polióis. <strong>{AVISO_POLIOL}</strong>
                 </p>
+                {product.estimated&&(
+                  <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed ${T.border}`,fontStyle:"italic"}}>
+                    Valores nutricionais <strong>estimados</strong> por analogia de formulação — sujeitos a confirmação por análise laboratorial antes do uso em rótulo.
+                  </p>
+                )}
               </div>
             </div>
             {/* Alérgicos — RDC 26/2015 */}
