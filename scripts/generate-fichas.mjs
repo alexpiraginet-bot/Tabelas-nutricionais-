@@ -2,7 +2,7 @@
 //   - public/tabela-nutricional.csv : 1 linha por sabor, com toda a tabela nutricional
 //   - public/ficha-tecnica.csv      : 1 linha por ingrediente, com colunas de custo p/ preencher
 // Uso: npm run fichas
-import { PRODUCTS, BASE } from "../src/data.js";
+import { PRODUCTS, BASE, ALLERGENS } from "../src/data.js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -25,14 +25,15 @@ const nutHeader = [
   "Sabor", "Linha", "Porção", "Rendimento",
   "Energia (kcal)", "Carboidratos (g)", "Açúcares totais (g)", "Açúcares adic. (g)",
   "Proteínas (g)", "Gorduras totais (g)", "Gord. saturadas (g)", "Gord. trans (g)",
-  "Fibra alimentar (g)", "Sódio (mg)", "Sem glúten", "Sem lactose",
+  "Fibra alimentar (g)", "Sódio (mg)", "Contém glúten", "Contém lactose", "ALÉRGICOS: CONTÉM",
 ];
 const nutRows = PRODUCTS.map((p) => {
   const n = p.nutrition;
   return [
     p.name, cat(p.category), p.portionLabel, p.yield,
     n.kcal, n.carbs, n.sugars, n.addedSugars, n.protein, n.fat, n.satFat,
-    n.transFat, n.fiber, n.sodium, p.flags.gluten ? "não" : "sim", p.flags.lactose ? "não" : "sim",
+    n.transFat, n.fiber, n.sodium, p.flags.gluten ? "sim" : "não", p.flags.lactose ? "sim" : "não",
+    (ALLERGENS[p.id] || []).join(", "),
   ];
 });
 writeFileSync(join(OUT, "tabela-nutricional.csv"), toCSV([nutHeader, ...nutRows]));
