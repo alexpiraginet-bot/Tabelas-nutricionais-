@@ -9,6 +9,9 @@ const T = {
   border:"#D9D2BD",borderSoft:"#E5DFCB",accent:"#C4A882",
 };
 
+// Apresentação institucional da marca (pitch deck no Gamma)
+const DECK_URL = "https://gamma.app/docs/35clwnhqszfjorx";
+
 
 function BentoLogo({size=120}){
   return <img src="/bento-logo.png" alt="Bentô Functional Nutrition" width={size} height={size} style={{display:"block",borderRadius:"50%"}}/>;
@@ -276,6 +279,9 @@ function Home({onSelect,onSelectProduct,onQuiz}){
           <button onClick={()=>onSelect("gelato")} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
             Explorar catálogo <ChevronRight size={14}/>
           </button>
+          <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}>
+            <Sparkles size={15}/>Conheça a Bentô
+          </a>
         </div>
       </section>
 
@@ -664,8 +670,11 @@ export default function App(){
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
-        <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Baixar tabela nutricional (CSV)</a>
-        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.0 · Clean Label</div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",textDecoration:"none",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</a>
+          <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
+        </div>
+        <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
       </footer>
     </div>
   );
