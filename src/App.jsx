@@ -60,6 +60,7 @@ function GStyle(){return(<style>{`
 .hl:hover{transform:translateY(-3px);border-color:${T.pistacheDark};box-shadow:0 16px 40px -18px rgba(31,35,23,.22)}
 .hd{background-image:linear-gradient(90deg,${T.border} 50%,transparent 0);background-size:6px 1px;background-repeat:repeat-x;height:1px}
 .gn{position:relative}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
 .gn::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(31,35,23,.05) 1px,transparent 1px);background-size:3px 3px;opacity:.6;mix-blend-mode:multiply}
 *::-webkit-scrollbar{width:5px}*::-webkit-scrollbar-thumb{background:${T.border};border-radius:99px}
 button{cursor:pointer}
@@ -227,6 +228,91 @@ function CompareModal({ids,onClose,onViewProduct}){
         <div style={{padding:"10px 22px",background:T.bgWarm,borderTop:`1px solid ${T.border}`}}>
           <span className="fm" style={{fontSize:9,color:T.inkSoft,letterSpacing:"0.14em"}}>✓ = melhor valor na comparação para esse nutriente</span>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========== CARDÁPIO DIGITAL ========== */
+const CARDAPIO = [
+  { cat:"Gelatos", emoji:"🍨", items:[
+    { name:"Gelato Box", info:"700 ml · até 3 sabores", price:"99,90", img:"/sabores/doce-de-leite.jpg" },
+    { name:"Tamanho M", info:"170 g · 1–2 sabores · p/ viagem", price:"28,90", img:"/sabores/brigadeiro.jpg" },
+    { name:"Tamanho P", info:"120 g · 1–2 sabores · p/ viagem", price:"23,90", img:"/sabores/morango.jpg" },
+  ]},
+  { cat:"Bentôlé", emoji:"🍡", items:[
+    { name:"Bentôlé P Proteico", info:"50 g (aprox. 55 g) · embalagem prateada", price:"14,90", img:"/sabores/bentole-prestigio.jpg" },
+    { name:"Bentôlé Proteico MEGA", info:"110 g aprox.", price:"26,90", img:"/sabores/bentole-choco-dubai.jpg" },
+    { name:"Kit 4 Picolés Mega", info:"cada unidade sai a R$ 24,00", price:"96,00", img:"/sabores/bentole-pistache-cb.jpg" },
+    { name:"Kit 6 Bentôlés", info:"cada unidade sai a R$ 13,00", price:"78,00", img:"/sabores/bentole-snickers.jpg" },
+    { name:"Bentôlé Baby", info:"cortesia · consumo local · até 1 un", price:"6,90", img:"/sabores/bentole-franui.jpg" },
+  ]},
+  { cat:"Shakes", emoji:"🥤", items:[
+    { name:"Shake Morango c/ Maracujá", info:"Whey True Vanilla + 200 g de fruta", price:"29,90" },
+    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g", price:"37,90" },
+    { name:"Shake Dark Chocolate", info:"Whey hidrolisado + chocolate zero", price:"37,90" },
+    { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90" },
+    { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90" },
+  ]},
+  { cat:"Bebidas", emoji:"🧃", items:[
+    { name:"Brain-Up True", info:"lata", price:"14,90" },
+    { name:"Pro Force", info:"bebida láctea proteica", price:"9,90" },
+    { name:"Cold Brew 200 ml", info:"zero açúcar", price:"24,90" },
+  ]},
+  { cat:"Cafeteria", emoji:"☕", items:[
+    { name:"Café Expresso", info:"especial 85 pontos", price:"8,90" },
+    { name:"Café Expresso Duplo", info:"90 ml · 85 pontos", price:"14,90" },
+    { name:"Coado V60", info:"café especial 86 pontos", price:"14,90" },
+    { name:"Capuccino Italiano", info:"verificar disponibilidade", price:"16,90" },
+    { name:"Affogato Proteico", info:"1 bola de gelato (100 g) à escolha", price:"24,90" },
+  ]},
+  { cat:"Cafés Especiais", emoji:"🫘", items:[
+    { name:"Café Moído 85+ Pontos", info:"250 g · Muniz Freire/Caparaó-ES", price:"49,90" },
+    { name:"Café em Grãos 85+ Pontos", info:"250 g · 85 pontos", price:"49,90" },
+    { name:"Drip Coffee c/ Creatina", info:"100% arábica · 3 g de creatina", price:"9,90" },
+  ]},
+];
+function CardapioDigital({onClose}){
+  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist=T.pistache;
+  const [c,setC]=useState(0);
+  useEffect(()=>{
+    const h=e=>{if(e.key==="Escape")onClose();};
+    window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
+  },[onClose]);
+  const cat=CARDAPIO[c];
+  const grid="radial-gradient(rgba(201,168,106,0.10) 1px, transparent 1px)";
+  return (
+    <div className="fade" role="dialog" aria-modal="true" aria-label="Cardápio digital Bentô"
+      style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"26px 26px",display:"flex",flexDirection:"column"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}><BentoLogo size={32}/><div><div className="fd" style={{fontSize:17,color:cream,lineHeight:1}}>Cardápio</div><div className="fm" style={{fontSize:8.5,letterSpacing:"0.24em",color:"#9A9C86",textTransform:"uppercase",marginTop:2}}>Digital</div></div></div>
+        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:5,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+      </div>
+      {/* chips de categoria */}
+      <div className="no-scrollbar" style={{display:"flex",gap:8,overflowX:"auto",padding:"4px 20px 14px",flexShrink:0}}>
+        {CARDAPIO.map((k,idx)=>(
+          <button key={k.cat} onClick={()=>setC(idx)} className="fm" style={{whiteSpace:"nowrap",flexShrink:0,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",padding:"9px 15px",borderRadius:999,cursor:"pointer",border:`1px solid ${idx===c?gold:"rgba(201,168,106,0.3)"}`,background:idx===c?gold:"transparent",color:idx===c?ink:cream}}>
+            <span style={{marginRight:6}}>{k.emoji}</span>{k.cat}
+          </button>
+        ))}
+      </div>
+      {/* itens */}
+      <div key={c} className="rise" style={{flex:1,overflow:"auto",padding:"4px 16px 24px"}}>
+        <div style={{maxWidth:640,margin:"0 auto",display:"flex",flexDirection:"column",gap:10}}>
+          {cat.items.map(it=>(
+            <div key={it.name} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",border:"1px solid rgba(201,168,106,0.2)",borderRadius:8,background:"rgba(255,255,255,0.02)"}}>
+              {it.img
+                ? <div style={{width:62,height:62,borderRadius:8,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}}/></div>
+                : <div style={{width:62,height:62,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}>{cat.emoji}</div>}
+              <div style={{flex:1,minWidth:0}}>
+                <div className="fb" style={{fontSize:15,color:cream,fontWeight:500,lineHeight:1.2}}>{it.name}</div>
+                <div className="fb" style={{fontSize:12,color:"#A9AB96",marginTop:3,lineHeight:1.35}}>{it.info}</div>
+              </div>
+              <div className="fm" style={{fontSize:15,color:gold,whiteSpace:"nowrap",fontWeight:500}}>R$ {it.price}</div>
+            </div>
+          ))}
+        </div>
+        <p className="fb" style={{textAlign:"center",fontSize:10.5,color:"#7E806C",marginTop:22,lineHeight:1.5}}>Preços e disponibilidade conforme a loja · sujeitos a alteração.<br/>Sabores de gelato e picolé: consulte a ficha nutricional completa no catálogo.</p>
       </div>
     </div>
   );
@@ -512,7 +598,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch}){
+function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -531,6 +617,9 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch}){
           </button>
           <button onClick={onPote} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
             🍦 Monte seu pote
+          </button>
+          <button onClick={onCardapio} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
+            📋 Cardápio
           </button>
           <button onClick={onPitch} className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
             <Sparkles size={15}/>Conheça a Bentô
@@ -913,6 +1002,7 @@ export default function App(){
   const[showCmp,setShowCmp]=useState(false);
   const[showPote,setShowPote]=useState(false);
   const[showPitch,setShowPitch]=useState(false);
+  const[showCardapio,setShowCardapio]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -927,16 +1017,18 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
+      {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <button onClick={()=>setShowCardapio(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
           <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
         </div>
