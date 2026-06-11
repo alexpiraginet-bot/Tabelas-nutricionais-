@@ -229,6 +229,89 @@ function CompareModal({ids,onClose,onViewProduct}){
   );
 }
 
+/* ========== MONTE SEU POTE ========== */
+const CUPS=[{id:"P",label:"Pote P",g:120},{id:"M",label:"Pote M",g:170}];
+function PoteBuilder({onClose}){
+  useModal(onClose);
+  const gelatos=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
+  const [cup,setCup]=useState("P");
+  const [aId,setAId]=useState(gelatos[0].id);
+  const [bId,setBId]=useState(gelatos[1].id);
+  const [ratio,setRatio]=useState(50);
+  const A=gelatos.find(p=>p.id===aId)||gelatos[0];
+  const B=gelatos.find(p=>p.id===bId)||gelatos[1];
+  const g=CUPS.find(c=>c.id===cup).g;
+  const gA=Math.round(g*ratio/100), gB=g-gA;
+  const per=(p,k)=>p.nutrition[k]/p.serving;       // por grama
+  const tot=k=>per(A,k)*gA+per(B,k)*gB;            // total no pote
+  const Sel=({value,onChange,label})=>(
+    <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label} className="fb" style={{width:"100%",padding:"8px 10px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:13}}>
+      {gelatos.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+    </select>
+  );
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Monte seu pote" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Calculadora</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Monte seu pote 🍦</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:12}}>Escolha o tamanho e combine 2 sabores. As calorias e a proteína são calculadas para o peso real do pote.</div>
+          <div style={{display:"flex",gap:8,marginBottom:18}}>
+            {CUPS.map(c=>(
+              <button key={c.id} onClick={()=>setCup(c.id)} className="fb" style={{flex:1,padding:"11px",borderRadius:4,border:`1px solid ${cup===c.id?T.pistacheDark:T.border}`,background:cup===c.id?T.pistacheDark:"transparent",color:cup===c.id?T.surface:T.ink,fontSize:13,fontWeight:500}}>{c.label} · {c.g} g</button>
+            ))}
+          </div>
+          <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
+            <div style={{flex:1,textAlign:"center"}}>
+              <ProductArt product={A} size={84}/>
+              <div className="fm" style={{fontSize:11,color:T.pistacheDark,fontWeight:600,marginTop:4}}>{gA} g</div>
+              <div style={{marginTop:8}}><Sel value={aId} onChange={setAId} label="Sabor 1"/></div>
+            </div>
+            <div className="fd" style={{fontSize:26,color:T.pistacheDark,alignSelf:"center",paddingTop:24}}>+</div>
+            <div style={{flex:1,textAlign:"center"}}>
+              <ProductArt product={B} size={84}/>
+              <div className="fm" style={{fontSize:11,color:T.pistacheDark,fontWeight:600,marginTop:4}}>{gB} g</div>
+              <div style={{marginTop:8}}><Sel value={bId} onChange={setBId} label="Sabor 2"/></div>
+            </div>
+          </div>
+          <div style={{marginTop:18}}>
+            <input type="range" min={0} max={100} step={5} value={ratio} onChange={e=>setRatio(Number(e.target.value))} aria-label="Proporção entre os sabores" style={{width:"100%",accentColor:T.pistacheDark}}/>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <span className="fm" style={{fontSize:10,color:T.inkSoft}}>{ratio}% {A.name}</span>
+              <span className="fm" style={{fontSize:10,color:T.inkSoft}}>{B.name} {100-ratio}%</span>
+            </div>
+          </div>
+          <div style={{marginTop:18,background:T.ink,borderRadius:6,padding:"16px 18px",display:"flex",gap:12,alignItems:"center"}}>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div className="fd" style={{fontSize:34,color:T.bg,fontWeight:500,lineHeight:1}}>{Math.round(tot("kcal"))}</div>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.border,textTransform:"uppercase",marginTop:4}}>kcal no pote</div>
+            </div>
+            <div style={{width:1,alignSelf:"stretch",background:"rgba(255,255,255,0.15)"}}/>
+            <div style={{flex:1,textAlign:"center"}}>
+              <div className="fd" style={{fontSize:34,color:"#B8C97A",fontWeight:500,lineHeight:1}}>{tot("protein").toFixed(1)}g</div>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.border,textTransform:"uppercase",marginTop:4}}>proteína</div>
+            </div>
+          </div>
+          <div style={{marginTop:10,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+            {[["Carboidratos",tot("carbs")],["Gorduras",tot("fat")],["Fibras",tot("fiber")]].map(([l,v])=>(
+              <div key={l} style={{background:T.bg,borderRadius:4,padding:"9px 6px",textAlign:"center"}}>
+                <div className="fd" style={{fontSize:16,color:T.ink}}>{v.toFixed(1)}g</div>
+                <div className="fm" style={{fontSize:8,letterSpacing:"0.12em",color:T.inkSoft,textTransform:"uppercase",marginTop:2}}>{l}</div>
+              </div>
+            ))}
+          </div>
+          <p className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:12,lineHeight:1.5,textAlign:"center"}}>Referência padrão: 100 g · valores calculados proporcionalmente para o pote de {g} g.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== HEADER ========== */
 function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   return(
@@ -259,7 +342,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz}){
+function Home({onSelect,onSelectProduct,onQuiz,onPote}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -276,8 +359,8 @@ function Home({onSelect,onSelectProduct,onQuiz}){
           <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
             <Sparkles size={15}/>Qual é o meu sabor?
           </button>
-          <button onClick={()=>onSelect("gelato")} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
-            Explorar catálogo <ChevronRight size={14}/>
+          <button onClick={onPote} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
+            🍦 Monte seu pote
           </button>
           <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}>
             <Sparkles size={15}/>Conheça a Bentô
@@ -304,6 +387,11 @@ function Home({onSelect,onSelectProduct,onQuiz}){
           <span style={{fontSize:34,marginBottom:12}}>🎯</span>
           <div className="fd" style={{fontSize:24,color:T.surface,lineHeight:1.2}}>Descubra seu<br/>sabor ideal</div>
           <div className="fb" style={{fontSize:12,color:`${T.surface}99`,marginTop:8}}>Quiz rápido · 3 perguntas</div>
+        </button>
+        <button onClick={onPote} className="hl" style={{background:T.ink,border:"none",borderRadius:4,padding:22,display:"flex",flexDirection:"column",justifyContent:"center",textAlign:"left"}}>
+          <span style={{fontSize:34,marginBottom:12}}>🍦</span>
+          <div className="fd" style={{fontSize:24,color:T.bg,lineHeight:1.2}}>Monte seu<br/>pote</div>
+          <div className="fb" style={{fontSize:12,color:`${T.bg}99`,marginTop:8}}>2 sabores · P 120g ou M 170g · calorias e proteína</div>
         </button>
       </section>
 
@@ -649,6 +737,7 @@ export default function App(){
   const[productId,setProd]=useState(null);
   const[showQuiz,setShowQuiz]=useState(false);
   const[showCmp,setShowCmp]=useState(false);
+  const[showPote,setShowPote]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -663,11 +752,12 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
+      {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
