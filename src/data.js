@@ -224,10 +224,15 @@ export const ALLERGENS = {
 // Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
 export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","TRIGO","SOJA"];
 
-// LACTOSE = derivada dos alérgicos (presença de LEITE) — FONTE ÚNICA DE VERDADE.
-// Whey WPH e Leite contêm lactose; logo, todo sabor com LEITE nos alérgicos contém lactose.
-// Apenas sabores sem leite/whey (Limão, Extra Dark, Maracujá) são, de fato, zero lactose.
-for (const p of PRODUCTS) p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE");
+// LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
+// Whey WPH e Leite contêm lactose → todo sabor com LEITE nos alérgicos contém lactose.
+// (Apenas Limão, Extra Dark e Maracujá, sem leite/whey, são zero lactose.)
+// Glúten só vem de kadaif e cookies (trigo) → só sabores com TRIGO contêm glúten.
+// Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
+for (const p of PRODUCTS) {
+  p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE");
+  p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO");
+}
 
 // BASE dos picolés foi reformulada (sem maltitol/sorbitol). Substitui o 1º ingrediente
 // (a base) dos Bentôlé pela Base Funcional ZERO, mantendo a quantidade da receita.
