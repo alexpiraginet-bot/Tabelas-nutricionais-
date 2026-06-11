@@ -326,9 +326,9 @@ const PARC_PILARES=[
 ];
 const PARC_PUBLICOS=["Lojas de suplementos","Empórios naturais","Academias","Studios de treino","Restaurantes saudáveis","Cafeterias premium","Mercados de alto padrão","Clínicas de estética","Espaços fitness & wellness"];
 const PARC_PRODUTOS=[
-  {n:"Picolé Bistrô",pv:"16,90",m:"30–35%",papel:"Entrada premium · impulso · maior giro",img:"/cardapio/pic-p.jpg"},
-  {n:"Picolé Mega",pv:"27,90",m:"32–35%",papel:"Ticket maior · indulgência proteica",img:"/cardapio/pic-mega.jpg"},
-  {n:"Gelato 140 ml",pv:"27,90",m:"40–50%",papel:"Maior margem · percepção gourmet",img:"/cardapio/gelato-m.jpg"},
+  {n:"Picolé Bistrô",papel:"Entrada premium e impulso. O produto que faz o freezer girar.",badge:"Maior giro",img:"/cardapio/pic-p.jpg"},
+  {n:"Picolé Mega",papel:"Indulgência proteica de ticket alto e alto valor percebido.",badge:"Ticket maior",img:"/cardapio/pic-mega.jpg"},
+  {n:"Gelato 140 ml",papel:"O potinho gourmet — a maior margem da linha para o parceiro.",badge:"Até 50% de margem",img:"/cardapio/gelato-m.jpg"},
 ];
 const PARC_MODELOS=[
   {t:"Compra avulsa",d:"Para testar a aceitação sem compromisso mensal. Reposição conforme a demanda.",tag:"Flexível"},
@@ -411,19 +411,16 @@ function SejaParceiro({onClose,onForm}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginTop:26}}>
           {PARC_PRODUTOS.map(p=>(
             <div key={p.n} style={{...card,padding:0,overflow:"hidden"}}>
-              <img src={p.img} alt={p.n} style={{width:"100%",height:160,objectFit:"cover",display:"block"}}/>
+              <img src={p.img} alt={p.n} style={{width:"100%",height:170,objectFit:"cover",display:"block"}}/>
               <div style={{padding:"18px 20px"}}>
                 <div className="fd" style={{fontSize:20,color:cream}}>{p.n}</div>
-                <div className="fb" style={{fontSize:12.5,color:soft,marginTop:5,lineHeight:1.4}}>{p.papel}</div>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:14,borderTop:"1px solid rgba(201,168,106,0.18)",paddingTop:12}}>
-                  <div><div className="fm" style={{fontSize:9,letterSpacing:"0.16em",color:soft,textTransform:"uppercase"}}>Preço sugerido</div><div className="fm" style={{fontSize:17,color:cream,fontWeight:500}}>R$ {p.pv}</div></div>
-                  <div style={{textAlign:"right"}}><div className="fm" style={{fontSize:9,letterSpacing:"0.16em",color:soft,textTransform:"uppercase"}}>Margem</div><div className="fm" style={{fontSize:17,color:gold,fontWeight:600}}>{p.m}</div></div>
-                </div>
+                <div className="fb" style={{fontSize:13,color:soft,marginTop:6,lineHeight:1.45}}>{p.papel}</div>
+                <span className="fm" style={{display:"inline-block",marginTop:14,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:gold,border:`1px solid ${gold}`,borderRadius:999,padding:"6px 13px"}}>{p.badge}</span>
               </div>
             </div>
           ))}
         </div>
-        <p className="fb" style={{fontSize:11.5,color:soft,marginTop:16,lineHeight:1.5}}>Preço final sugerido protegido para preservar a percepção premium. Valores e condições finais definidos após avaliação do ponto.</p>
+        <p className="fb" style={{fontSize:13,color:soft,marginTop:18,lineHeight:1.55,maxWidth:680}}>Trabalhamos com <strong style={{color:cream}}>preço final sugerido protegido</strong> — você mantém a percepção premium e ainda garante uma margem saudável. As <strong style={{color:cream}}>condições exatas são reveladas após avaliarmos o seu ponto</strong>. 👀</p>
       </section>
 
       {/* MODELOS */}
