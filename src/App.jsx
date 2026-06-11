@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
 
@@ -315,6 +315,173 @@ function PoteBuilder({onClose}){
   );
 }
 
+/* ========== PITCH DECK (interativo, tech, on-brand) ========== */
+function PitchKicker({n,total,label,gold}){
+  return (
+    <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:22}}>
+      <span className="fm" style={{fontSize:12,letterSpacing:"0.3em",color:gold}}>{String(n).padStart(2,"0")} / {String(total).padStart(2,"0")}</span>
+      <span style={{flex:"0 0 28px",height:1,background:gold,opacity:0.6}}/>
+      <span className="fm" style={{fontSize:10,letterSpacing:"0.34em",textTransform:"uppercase",color:"#B9BBA6"}}>{label}</span>
+    </div>
+  );
+}
+function PitchStat({v,u,l,gold,cream}){
+  return (
+    <div style={{border:"1px solid rgba(196,168,130,0.28)",borderRadius:6,padding:"18px 16px",background:"rgba(255,255,255,0.02)"}}>
+      <div className="fm" style={{fontSize:"clamp(30px,5vw,46px)",color:gold,lineHeight:1,fontWeight:500}}>{v}<span style={{fontSize:"0.5em",color:cream,opacity:0.7}}>{u}</span></div>
+      <div className="fb" style={{fontSize:12.5,color:cream,opacity:0.72,marginTop:8,lineHeight:1.4}}>{l}</div>
+    </div>
+  );
+}
+function PitchDeck({onClose,onCatalog}){
+  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist=T.pistache,pistD="#7C8B4E";
+  const G=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
+  const B=useMemo(()=>PRODUCTS.filter(p=>p.category==="bentole"),[]);
+  const thumbs=useMemo(()=>[G[7],G[6],G[8],G[2],B[0],B[5]].filter(Boolean),[G,B]);
+  const H1={fontFamily:"'Fraunces',Georgia,serif",color:cream,fontSize:"clamp(30px,6.2vw,60px)",lineHeight:1.04,letterSpacing:"-0.02em",fontWeight:400};
+  const BODY={fontSize:"clamp(14px,2.4vw,18px)",color:cream,opacity:0.8,lineHeight:1.6,maxWidth:640};
+  const card=(title,desc)=>(
+    <div key={title} style={{flex:"1 1 180px",minWidth:170,border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px 18px",background:"rgba(255,255,255,0.02)"}}>
+      <div className="fd" style={{fontSize:18,color:gold,marginBottom:8}}>{title}</div>
+      <div className="fb" style={{fontSize:13.5,color:cream,opacity:0.72,lineHeight:1.5}}>{desc}</div>
+    </div>
+  );
+  const pill=t=><span key={t} className="fm" style={{fontSize:11,letterSpacing:"0.16em",color:cream,border:`1px solid ${gold}`,borderRadius:999,padding:"7px 14px",textTransform:"uppercase"}}>{t}</span>;
+
+  const slides=[
+    // 0 — Capa
+    <div key="s0" style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <span className="fm" style={{fontSize:11,letterSpacing:"0.42em",color:gold,marginBottom:26}}>PITCH DECK · 2026</span>
+      <BentoLogo size={104}/>
+      <h1 style={{...H1,marginTop:26,fontSize:"clamp(38px,8vw,76px)"}}>Gelato com <i style={{color:pist,fontStyle:"italic"}}>propósito</i></h1>
+      <p style={{...BODY,marginTop:18,opacity:0.85}}>A primeira linha brasileira de gelato funcional: sabor de sobremesa, ficha técnica de suplemento.</p>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:28}}>{["Zero açúcar adicionado","Rico em proteína","Rótulo limpo"].map(pill)}</div>
+      <div className="fm" style={{fontSize:11,letterSpacing:"0.3em",color:"#9A9C86",marginTop:34,textTransform:"uppercase"}}>Espírito Santo · Brasil</div>
+    </div>,
+    // 1 — Problema
+    <div key="s1">
+      <PitchKicker n={1} total={10} label="O problema" gold={gold}/>
+      <h1 style={H1}>Prazer gelado ainda<br/>é sinônimo de culpa.</h1>
+      <p style={{...BODY,marginTop:22}}>Um público crescente — fitness, low-carb, controle glicêmico, alimentação limpa — não encontra sobremesa gelada que entregue prazer real sem comprometer a dieta. O “fit” tradicional falha em sabor e confunde no rótulo.</p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:30}}>{[["Mercado grande","sorvete é hábito nacional"],["Mal atendido","sabor ruim ou rótulo opaco"],["Tendência clara","alta proteína + menos açúcar"]].map(([t,d])=>card(t,d))}</div>
+    </div>,
+    // 2 — Solução
+    <div key="s2">
+      <PitchKicker n={2} total={10} label="A solução" gold={gold}/>
+      <h1 style={H1}>Gelato italiano,<br/>reformulado do zero.</h1>
+      <p style={{...BODY,marginTop:22}}>Reengenharia de formulação para unir cremosidade real e desempenho nutricional — sem sacarose adicionada em toda a linha.</p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:30}}>{[["Base ZERO","fibras e polióis no lugar do açúcar"],["Whey WPH","proteína hidrolisada, alta absorção"],["0 g sacarose","adoçado por stévia e polióis"]].map(([t,d])=>card(t,d))}</div>
+    </div>,
+    // 3 — Portfólio
+    <div key="s3">
+      <PitchKicker n={3} total={10} label="Portfólio" gold={gold}/>
+      <h1 style={H1}>{PRODUCTS.length} sabores. Duas linhas.</h1>
+      <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:24}}>
+        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px"}}>
+          <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",color:gold,textTransform:"uppercase"}}>01 · Vitrine</div>
+          <div className="fd" style={{fontSize:26,color:cream,marginTop:4}}>Gelatos <span style={{color:pist}}>· {G.length}</span></div>
+          <div className="fb" style={{fontSize:13,color:cream,opacity:0.7,marginTop:6,lineHeight:1.5}}>Cremosos e proteicos. Clássicos e premium (Pistache, Dubai, Doce de Leite) e sorbets funcionais.</div>
+        </div>
+        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px"}}>
+          <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",color:gold,textTransform:"uppercase"}}>02 · Take-home</div>
+          <div className="fd" style={{fontSize:26,color:cream,marginTop:4}}>Bentôlé <span style={{color:pist}}>· {B.length}</span></div>
+          <div className="fb" style={{fontSize:13,color:cream,opacity:0.7,marginTop:6,lineHeight:1.5}}>Mini picolés premium de alta proteína. Leve para onde for.</div>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>{thumbs.map(p=><div key={p.id} style={{width:74,height:74,borderRadius:6,overflow:"hidden",border:"1px solid rgba(196,168,130,0.3)"}}><ProductArt product={p} size={74}/></div>)}</div>
+    </div>,
+    // 4 — Números
+    <div key="s4">
+      <PitchKicker n={4} total={10} label="Números que vendem" gold={gold}/>
+      <h1 style={H1}>Indulgência com<br/>ficha de suplemento.</h1>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:28}}>
+        <PitchStat v="13" u="g" l="proteína por porção (Paçoca, Brigadeiro)" gold={gold} cream={cream}/>
+        <PitchStat v="61" u="kcal" l="campeão Pistache & Choco Branco — com 10 g de proteína" gold={gold} cream={cream}/>
+        <PitchStat v="0" u="g" l="açúcar adicionado em toda a linha" gold={gold} cream={cream}/>
+        <PitchStat v="42" u="kcal" l="o mais leve (Franui)" gold={gold} cream={cream}/>
+      </div>
+    </div>,
+    // 5 — Engenharia / regulatório
+    <div key="s5">
+      <PitchKicker n={5} total={10} label="Engenharia & conformidade" gold={gold}/>
+      <h1 style={H1}>Técnica que o<br/>“fit” não entrega.</h1>
+      <p style={{...BODY,marginTop:22}}>Balanço PAC/POD calibrado para textura cremosa real, whey hidrolisado e chocolates zero açúcar (Lukau). Rotulagem limpa, auditável e pronta para escala.</p>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:26}}>{["RDC 429/2020","IN 75/2020","RDC 26/2015 · alérgicos","RDC 727/2022"].map(pill)}</div>
+    </div>,
+    // 6 — Transparência / app
+    <div key="s6">
+      <PitchKicker n={6} total={10} label="Transparência como marca" gold={gold}/>
+      <h1 style={H1}>Índice nutricional<br/>digital, no PDV.</h1>
+      <p style={{...BODY,marginTop:22}}>Um QR code no balcão leva o cliente à ficha completa de cada sabor: informação nutricional, ingredientes, alérgicos, comparador e calculadora de proteína. Transparência radical vira conversão.</p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:28}}>{[["Ficha completa","IN 75/2020 por sabor"],["Comparador","lado a lado"],["Calculadora","proteína por meta"]].map(([t,d])=>card(t,d))}</div>
+    </div>,
+    // 7 — Monte seu Pote
+    <div key="s7">
+      <PitchKicker n={7} total={10} label="Experiência interativa" gold={gold}/>
+      <h1 style={H1}>Monte seu pote.</h1>
+      <p style={{...BODY,marginTop:22}}>O cliente combina 2 sabores no pote P (120 g) ou M (170 g) e vê na hora as calorias e a proteína exatas da combinação. Personalização que engaja, aumenta o ticket e reforça o posicionamento funcional.</p>
+      <div style={{display:"flex",gap:16,alignItems:"center",marginTop:30,flexWrap:"wrap"}}>
+        <div className="fm" style={{fontSize:"clamp(28px,5vw,44px)",color:gold}}>2 <span style={{fontSize:"0.42em",color:cream,opacity:0.7}}>SABORES</span></div>
+        <span style={{color:pist,fontSize:28}}>→</span>
+        <div className="fm" style={{fontSize:"clamp(28px,5vw,44px)",color:gold}}>kcal + proteína <span style={{fontSize:"0.4em",color:cream,opacity:0.7}}>NA HORA</span></div>
+      </div>
+    </div>,
+    // 8 — Mercado & modelo
+    <div key="s8">
+      <PitchKicker n={8} total={10} label="Mercado & modelo" gold={gold}/>
+      <h1 style={H1}>Público premium,<br/>escala por franquia.</h1>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:26}}>{[["Público","musculação, low-carb, controle glicêmico, clean label"],["Canais","vitrine, franquia, take-home, e-commerce, academias"],["Escala","~100 picolés por receita de Bentôlé"],["Recorrência","assinatura e cross-sell entre linhas"]].map(([t,d])=>card(t,d))}</div>
+    </div>,
+    // 9 — Visão / CTA
+    <div key="s9" style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <PitchKicker n={9} total={10} label="Visão" gold={gold}/>
+      <h1 style={{...H1,fontSize:"clamp(32px,7vw,64px)"}}>A referência nacional<br/>em sobremesa funcional.</h1>
+      <p style={{...BODY,marginTop:20,textAlign:"center"}}>Zero açúcar adicionado. Alta proteína. Rótulo limpo. Sem abrir mão do prazer.</p>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center",marginTop:34}}>
+        <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:gold,color:ink,border:"none",borderRadius:5,padding:"13px 24px",fontSize:14,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><Printer size={15}/>Baixar PDF</a>
+        <button onClick={onCatalog} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:5,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Explorar catálogo <ChevronRight size={14}/></button>
+      </div>
+      <div className="fm" style={{fontSize:11,letterSpacing:"0.3em",color:"#9A9C86",marginTop:30,textTransform:"uppercase"}}>Bentô · Functional Nutrition</div>
+    </div>,
+  ];
+  const n=slides.length;
+  const [i,setI]=useState(0);
+  const go=useCallback(d=>setI(v=>Math.max(0,Math.min(n-1,v+d))),[n]);
+  useEffect(()=>{
+    const h=e=>{if(e.key==="ArrowRight"||e.key===" "){e.preventDefault();go(1);}else if(e.key==="ArrowLeft")go(-1);else if(e.key==="Escape")onClose();};
+    window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
+  },[go,onClose]);
+  const tx=useRef(null);
+  const grid="radial-gradient(rgba(201,168,106,0.10) 1px, transparent 1px)";
+  return (
+    <div className="fade" role="dialog" aria-modal="true" aria-label="Pitch deck Bentô"
+      onTouchStart={e=>tx.current=e.touches[0].clientX}
+      onTouchEnd={e=>{if(tx.current==null)return;const d=e.changedTouches[0].clientX-tx.current;if(Math.abs(d)>50)go(d<0?1:-1);tx.current=null;}}
+      style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"26px 26px",display:"flex",flexDirection:"column"}}>
+      {/* topo */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px",flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}><BentoLogo size={30}/><span className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:"#9A9C86",textTransform:"uppercase"}}>Pitch</span></div>
+        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:5,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+      </div>
+      {/* slide */}
+      <div style={{flex:1,overflow:"auto",display:"flex",alignItems:"center",justifyContent:"center",padding:"12px 24px"}}>
+        <div key={i} className="rise" style={{width:"100%",maxWidth:880}}>{slides[i]}</div>
+      </div>
+      {/* progresso */}
+      <div style={{height:2,background:"rgba(255,255,255,0.08)",flexShrink:0}}><div style={{height:"100%",width:`${((i+1)/n)*100}%`,background:gold,transition:"width .4s cubic-bezier(.2,.8,.2,1)"}}/></div>
+      {/* base */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 20px",flexShrink:0,gap:12}}>
+        <div style={{display:"flex",gap:7}}>{slides.map((_,k)=><button key={k} onClick={()=>setI(k)} aria-label={`Slide ${k+1}`} style={{width:k===i?22:8,height:8,borderRadius:999,border:"none",background:k===i?gold:"rgba(255,255,255,0.22)",transition:"all .3s",cursor:"pointer"}}/>)}</div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span className="fm" style={{fontSize:12,color:"#9A9C86",minWidth:54,textAlign:"right"}}>{String(i+1).padStart(2,"0")} / {String(n).padStart(2,"0")}</span>
+          <button onClick={()=>go(-1)} disabled={i===0} aria-label="Anterior" style={{background:"transparent",border:`1px solid rgba(201,168,106,${i===0?0.15:0.4})`,color:i===0?"#555":cream,borderRadius:5,width:38,height:34,cursor:i===0?"default":"pointer"}}><ArrowLeft size={15} style={{verticalAlign:"middle"}}/></button>
+          <button onClick={()=>go(1)} disabled={i===n-1} aria-label="Próximo" style={{background:i===n-1?"transparent":gold,border:`1px solid ${gold}`,color:i===n-1?"#555":ink,borderRadius:5,width:38,height:34,cursor:i===n-1?"default":"pointer"}}><ChevronRight size={16} style={{verticalAlign:"middle"}}/></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== HEADER ========== */
 function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   return(
@@ -345,7 +512,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz,onPote}){
+function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -365,9 +532,9 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote}){
           <button onClick={onPote} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
             🍦 Monte seu pote
           </button>
-          <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8,textDecoration:"none"}}>
+          <button onClick={onPitch} className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
             <Sparkles size={15}/>Conheça a Bentô
-          </a>
+          </button>
         </div>
       </section>
 
@@ -745,6 +912,7 @@ export default function App(){
   const[showQuiz,setShowQuiz]=useState(false);
   const[showCmp,setShowCmp]=useState(false);
   const[showPote,setShowPote]=useState(false);
+  const[showPitch,setShowPitch]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -759,16 +927,17 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
+      {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",textDecoration:"none",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</a>
+          <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
