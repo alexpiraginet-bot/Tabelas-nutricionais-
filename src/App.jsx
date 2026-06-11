@@ -28,7 +28,10 @@ function PicoleSVG({p,size=200,id}){
 }
 
 function ProductArt({product,size}){
-  if(product.image) return <img src={product.image} alt={product.name} style={{width:size,height:size,objectFit:"cover",borderRadius:4}}/>;
+  // Foto por convenção (/sabores/<id>.jpg); se faltar, cai para a arte SVG.
+  const [err,setErr]=useState(false);
+  const src=product.image||`/sabores/${product.id}.jpg`;
+  if(src&&!err) return <img src={src} alt={product.name} loading="lazy" onError={()=>setErr(true)} style={{width:size,height:size,objectFit:"cover",borderRadius:4,background:T.bgWarm}}/>;
   return product.category==="gelato"?<GelatoSVG p={product.palette} size={size} id={product.id}/>:<PicoleSVG p={product.palette} size={size} id={product.id}/>;
 }
 
