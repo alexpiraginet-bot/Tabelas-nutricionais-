@@ -318,6 +318,68 @@ function CardapioDigital({onClose}){
   );
 }
 
+/* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
+const WHATS_REVENDA="__WHATS__"; // DDI+DDD+número, só dígitos (ex.: 5527999999999)
+function SejaBento({onClose}){
+  const[form,setForm]=useState({interesse:"Revendedor",nome:"",zap:"",cidade:"",ponto:"",msg:""});
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim();
+  const enviar=()=>{
+    const linhas=[
+      "*Nova solicitação — Seja Bentô* 🍨",
+      `*Interesse:* ${form.interesse}`,
+      `*Nome:* ${form.nome.trim()}`,
+      `*WhatsApp:* ${form.zap.trim()}`,
+      `*Cidade/UF:* ${form.cidade.trim()}`,
+      form.ponto&&`*Ponto comercial:* ${form.ponto}`,
+      form.msg.trim()&&`*Mensagem:* ${form.msg.trim()}`,
+    ].filter(Boolean);
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank");
+  };
+  const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
+  const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Seja um revendedor ou franqueado" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Expansão</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Seja Bentô 🤝</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quer levar a Bentô para a sua cidade? Preencha abaixo — a mensagem chega direto no nosso WhatsApp e respondemos rapidinho.</div>
+          <span className="fm" style={lab}>Tenho interesse em ser</span>
+          <div style={{display:"flex",gap:8}}>
+            {["Revendedor","Franqueado"].map(o=>(
+              <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:4,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
+            ))}
+          </div>
+          <span className="fm" style={lab}>Nome completo *</span>
+          <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
+          <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
+          <input className="fb" style={inp} value={form.zap} onChange={e=>set("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
+          <span className="fm" style={lab}>Cidade / Estado *</span>
+          <input className="fb" style={inp} value={form.cidade} onChange={e=>set("cidade",e.target.value)} placeholder="Ex.: Vitória / ES"/>
+          <span className="fm" style={lab}>Já possui ponto comercial?</span>
+          <div style={{display:"flex",gap:8}}>
+            {["Sim","Não","Ainda avaliando"].map(o=>(
+              <button key={o} onClick={()=>set("ponto",form.ponto===o?"":o)} className="fb" style={{flex:1,padding:"10px 6px",borderRadius:4,border:`1px solid ${form.ponto===o?T.pistacheDark:T.border}`,background:form.ponto===o?T.pistacheDark:"transparent",color:form.ponto===o?T.surface:T.ink,fontSize:12.5}}>{o}</button>
+            ))}
+          </div>
+          <span className="fm" style={lab}>Mensagem (opcional)</span>
+          <textarea className="fb" rows={3} style={{...inp,resize:"vertical"}} value={form.msg} onChange={e=>set("msg",e.target.value)} placeholder="Conte um pouco sobre você, sua experiência ou sua região…"/>
+          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:18,padding:"14px",borderRadius:4,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            💬 Enviar pelo WhatsApp
+          </button>
+          <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta — é só confirmar o envio.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== MONTE SEU POTE ========== */
 const CUPS=[{id:"P",label:"Pote P",g:120},{id:"M",label:"Pote M",g:170}];
 function PoteBuilder({onClose}){
@@ -598,7 +660,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio}){
+function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onRevenda}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -679,6 +741,19 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio}){
             <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.4}}>{b.desc}</div>
           </div>
         ))}
+      </section>
+
+      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 48px"}}>
+        <div style={{background:T.ink,borderRadius:6,padding:"32px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:18,flexWrap:"wrap"}}>
+          <div style={{minWidth:240,flex:1}}>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.pistache,textTransform:"uppercase",marginBottom:8}}>Expansão · Revenda &amp; Franquia</div>
+            <div className="fd" style={{fontSize:"clamp(22px,3.4vw,32px)",color:T.bg,lineHeight:1.15}}>Leve a Bentô para a sua cidade</div>
+            <div className="fb" style={{fontSize:13,color:`${T.bg}AA`,marginTop:8,maxWidth:480,lineHeight:1.5}}>Quer revender nossos gelatos e picolés proteicos ou abrir a sua unidade? Fale direto com a gente pelo WhatsApp.</div>
+          </div>
+          <button onClick={onRevenda} className="fb" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:4,padding:"15px 26px",fontSize:15,fontWeight:600,display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
+            🤝 Quero ser Bentô
+          </button>
+        </div>
       </section>
     </div>
   );
@@ -1003,6 +1078,7 @@ export default function App(){
   const[showPote,setShowPote]=useState(false);
   const[showPitch,setShowPitch]=useState(false);
   const[showCardapio,setShowCardapio]=useState(false);
+  const[showRevenda,setShowRevenda]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -1017,7 +1093,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onRevenda={()=>setShowRevenda(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
@@ -1025,10 +1101,12 @@ export default function App(){
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
+      {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <button onClick={()=>setShowCardapio(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
+          <button onClick={()=>setShowRevenda(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
           <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
         </div>
