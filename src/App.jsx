@@ -318,10 +318,167 @@ function CardapioDigital({onClose}){
   );
 }
 
+/* ========== PÁGINA PARCERIA / REVENDA ========== */
+const PARC_PILARES=[
+  {t:"Premium",d:"Estética sofisticada e percepção de valor superior ao congelado comum.",e:"✦"},
+  {t:"Proteico",d:"Comunicação direta com o público fitness, wellness e consumidores de suplementos.",e:"💪"},
+  {t:"Impulso",d:"Formato prático para consumo imediato e venda adicional no checkout.",e:"⚡"},
+];
+const PARC_PUBLICOS=["Lojas de suplementos","Empórios naturais","Academias","Studios de treino","Restaurantes saudáveis","Cafeterias premium","Mercados de alto padrão","Clínicas de estética","Espaços fitness & wellness"];
+const PARC_PRODUTOS=[
+  {n:"Picolé Bistrô",pv:"16,90",m:"30–35%",papel:"Entrada premium · impulso · maior giro",img:"/cardapio/pic-p.jpg"},
+  {n:"Picolé Mega",pv:"27,90",m:"32–35%",papel:"Ticket maior · indulgência proteica",img:"/cardapio/pic-mega.jpg"},
+  {n:"Gelato 140 ml",pv:"27,90",m:"40–50%",papel:"Maior margem · percepção gourmet",img:"/cardapio/gelato-m.jpg"},
+];
+const PARC_MODELOS=[
+  {t:"Compra avulsa",d:"Para testar a aceitação sem compromisso mensal. Reposição conforme a demanda.",tag:"Flexível"},
+  {t:"Compra recorrente",d:"Para parceiros com giro previsível e freezer próprio. Calendário de reposição.",tag:"Recorrência"},
+  {t:"Freezer Bentô",d:"Equipamento personalizado no ponto, com exposição exclusiva da marca.",tag:"Mais margem"},
+  {t:"Parceiro estratégico",d:"Alto volume, alto fluxo ou operação regional. Condição máxima em mix selecionado.",tag:"Top"},
+];
+const PARC_PASSOS=[
+  {t:"Avaliação do ponto",d:"Perfil do público, fluxo, localização e estrutura."},
+  {t:"Escolha do modelo",d:"Avulsa, recorrente, freezer Bentô ou parceiro estratégico."},
+  {t:"Definição do mix",d:"Picolés Bistrô, Mega e gelatos 140 ml em sabores selecionados."},
+  {t:"Condição comercial",d:"Margem definida conforme volume, recorrência e compromisso."},
+  {t:"Início da operação",d:"Exposição, reposição e acompanhamento de giro."},
+];
+function SejaParceiro({onClose,onForm}){
+  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist="#8B9D5A",soft="#A9AB96";
+  useEffect(()=>{const h=e=>{if(e.key==="Escape")onClose();};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[onClose]);
+  const grid="radial-gradient(rgba(201,168,106,0.08) 1px, transparent 1px)";
+  const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto. 🍨");
+  const Kicker=({children})=>(<div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:gold,textTransform:"uppercase",marginBottom:12}}>{children}</div>);
+  const H=({children})=>(<h2 className="fd" style={{fontSize:"clamp(24px,4vw,38px)",color:cream,fontWeight:400,lineHeight:1.12,letterSpacing:"-0.02em",margin:0}}>{children}</h2>);
+  const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(201,168,106,0.2)",borderRadius:10,padding:"22px"};
+  const wrap={maxWidth:980,margin:"0 auto",padding:"0 22px"};
+  return(
+    <div className="fade" role="dialog" aria-modal="true" aria-label="Seja um parceiro Bentô" style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"28px 28px",overflow:"auto"}}>
+      <button onClick={onClose} aria-label="Fechar" className="fm" style={{position:"fixed",top:16,right:16,zIndex:10,background:"rgba(24,28,18,0.7)",backdropFilter:"blur(6px)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:6,padding:"9px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>FECHAR</button>
+
+      {/* HERO */}
+      <section style={{...wrap,paddingTop:64,paddingBottom:40}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:24}}><BentoLogo size={34}/><div className="fm" style={{fontSize:9,letterSpacing:"0.26em",color:soft,textTransform:"uppercase"}}>Gelatos · Vitória-ES</div></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr",gap:28,alignItems:"center"}}>
+          <div className="rise">
+            <div className="fm" style={{display:"inline-block",fontSize:10,letterSpacing:"0.2em",color:ink,background:gold,textTransform:"uppercase",padding:"6px 12px",borderRadius:999,marginBottom:16}}>Condições exclusivas para lojistas</div>
+            <h1 className="fd" style={{fontSize:"clamp(32px,6.4vw,60px)",color:cream,fontWeight:400,lineHeight:1.05,letterSpacing:"-0.025em",margin:0}}>Tenha a Bentô<br/>no seu <em style={{color:gold,fontStyle:"italic"}}>ponto</em>.</h1>
+            <p className="fb" style={{fontSize:16,color:soft,lineHeight:1.6,marginTop:18,maxWidth:560}}>O picolé proteico mais desejado do mercado — e gelatos premium em potinhos — para lojas, academias, empórios e cafeterias que querem <strong style={{color:cream}}>aumentar ticket, desejo e percepção de valor</strong>.</p>
+            <div className="fm" style={{fontSize:13,letterSpacing:"0.08em",color:gold,marginTop:16}}>Programa de revenda · margens de 30% a 50%</div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:24}}>
+              <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:6,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
+              <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:6,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 WhatsApp direto</a>
+            </div>
+          </div>
+          <div className="rise" style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+            <img src="/parceria/freezer.jpg" alt="Freezer Bentô personalizado em um ponto de venda" style={{width:"100%",display:"block"}}/>
+          </div>
+        </div>
+      </section>
+
+      {/* OPORTUNIDADE / PILARES */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <Kicker>A oportunidade</Kicker>
+        <H>Uma nova categoria premium de consumo por impulso.</H>
+        <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14,maxWidth:680}}>Transforme o freezer em um ponto de desejo dentro da loja — gerando tráfego, diferenciação e aumento do ticket médio, sem cozinha nem operação complexa.</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14,marginTop:26}}>
+          {PARC_PILARES.map(p=>(
+            <div key={p.t} style={card}>
+              <div style={{fontSize:24,marginBottom:10}}>{p.e}</div>
+              <div className="fd" style={{fontSize:21,color:cream}}>{p.t}</div>
+              <div className="fb" style={{fontSize:13.5,color:soft,lineHeight:1.5,marginTop:6}}>{p.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* PARA QUEM É */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <Kicker>Para quem é</Kicker>
+        <H>Produto certo para o ponto certo.</H>
+        <div style={{display:"flex",flexWrap:"wrap",gap:10,marginTop:22}}>
+          {PARC_PUBLICOS.map(p=>(
+            <span key={p} className="fb" style={{fontSize:13.5,color:cream,border:"1px solid rgba(201,168,106,0.3)",borderRadius:999,padding:"10px 16px"}}>{p}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* MARGENS / PRODUTOS */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <Kicker>Arquitetura de produtos</Kicker>
+        <H>Margens de <span style={{color:gold}}>30% a 50%</span>.</H>
+        <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14,maxWidth:680}}>Faixas de preço pensadas para preservar a percepção premium e entregar margem comercial real ao parceiro.</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginTop:26}}>
+          {PARC_PRODUTOS.map(p=>(
+            <div key={p.n} style={{...card,padding:0,overflow:"hidden"}}>
+              <img src={p.img} alt={p.n} style={{width:"100%",height:160,objectFit:"cover",display:"block"}}/>
+              <div style={{padding:"18px 20px"}}>
+                <div className="fd" style={{fontSize:20,color:cream}}>{p.n}</div>
+                <div className="fb" style={{fontSize:12.5,color:soft,marginTop:5,lineHeight:1.4}}>{p.papel}</div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginTop:14,borderTop:"1px solid rgba(201,168,106,0.18)",paddingTop:12}}>
+                  <div><div className="fm" style={{fontSize:9,letterSpacing:"0.16em",color:soft,textTransform:"uppercase"}}>Preço sugerido</div><div className="fm" style={{fontSize:17,color:cream,fontWeight:500}}>R$ {p.pv}</div></div>
+                  <div style={{textAlign:"right"}}><div className="fm" style={{fontSize:9,letterSpacing:"0.16em",color:soft,textTransform:"uppercase"}}>Margem</div><div className="fm" style={{fontSize:17,color:gold,fontWeight:600}}>{p.m}</div></div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="fb" style={{fontSize:11.5,color:soft,marginTop:16,lineHeight:1.5}}>Preço final sugerido protegido para preservar a percepção premium. Valores e condições finais definidos após avaliação do ponto.</p>
+      </section>
+
+      {/* MODELOS */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <Kicker>Modelos de parceria</Kicker>
+        <H>Quanto maior o compromisso, melhor a margem.</H>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14,marginTop:26}}>
+          {PARC_MODELOS.map((m,i)=>(
+            <div key={m.t} style={card}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <span className="fm" style={{fontSize:13,color:gold}}>0{i+1}</span>
+                <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:ink,background:pist,borderRadius:999,padding:"4px 9px"}}>{m.tag}</span>
+              </div>
+              <div className="fd" style={{fontSize:19,color:cream}}>{m.t}</div>
+              <div className="fb" style={{fontSize:13.5,color:soft,lineHeight:1.5,marginTop:6}}>{m.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <Kicker>Como funciona</Kicker>
+        <H>Cinco passos para começar.</H>
+        <div style={{marginTop:24,display:"flex",flexDirection:"column",gap:0}}>
+          {PARC_PASSOS.map((s,i)=>(
+            <div key={s.t} style={{display:"flex",gap:18,alignItems:"flex-start",padding:"16px 0",borderTop:i?"1px solid rgba(201,168,106,0.16)":"none"}}>
+              <div className="fd" style={{fontSize:30,color:gold,lineHeight:1,minWidth:46}}>{i+1}</div>
+              <div><div className="fd" style={{fontSize:19,color:cream}}>{s.t}</div><div className="fb" style={{fontSize:14,color:soft,marginTop:4,lineHeight:1.5}}>{s.d}</div></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section style={{...wrap,paddingTop:20,paddingBottom:70}}>
+        <div style={{background:"linear-gradient(135deg, rgba(201,168,106,0.16), rgba(124,139,78,0.12))",border:"1px solid rgba(201,168,106,0.3)",borderRadius:14,padding:"40px 28px",textAlign:"center"}}>
+          <H>Vamos conversar?</H>
+          <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:12,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>Conte sobre o seu ponto e a sua região. Avaliamos o perfil e montamos a melhor condição para você.</p>
+          <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:24}}>
+            <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:6,padding:"15px 28px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Preencher meus dados →</button>
+            <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:6,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 Chamar no WhatsApp</a>
+          </div>
+          <div className="fm" style={{fontSize:12,color:soft,marginTop:22,letterSpacing:"0.06em"}}>WhatsApp (27) 99915-9995 · Instagram @bentogelateria · Vitória-ES</div>
+          <div className="fb" style={{fontSize:11.5,color:soft,marginTop:14,maxWidth:520,marginLeft:"auto",marginRight:"auto",lineHeight:1.5}}>💡 Pensando em <strong style={{color:cream}}>franquia</strong>? É um projeto futuro — registre seu interesse no formulário e avisamos você primeiro.</div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
 const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 function SejaBento({onClose}){
-  const[form,setForm]=useState({interesse:"Revendedor",nome:"",zap:"",cidade:"",ponto:"",msg:""});
+  const[form,setForm]=useState({interesse:"Revenda",nome:"",zap:"",cidade:"",ponto:"",msg:""});
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim();
   const enviar=()=>{
@@ -350,12 +507,13 @@ function SejaBento({onClose}){
         </div>
         <div style={{padding:22}}>
           <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quer levar a Bentô para a sua cidade? Preencha abaixo — a mensagem chega direto no nosso WhatsApp e respondemos rapidinho.</div>
-          <span className="fm" style={lab}>Tenho interesse em ser</span>
+          <span className="fm" style={lab}>Tenho interesse em</span>
           <div style={{display:"flex",gap:8}}>
-            {["Revendedor","Franqueado"].map(o=>(
+            {["Revenda","Franquia (futuro)"].map(o=>(
               <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:4,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
+          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro. 💛</div>}
           <span className="fm" style={lab}>Nome completo *</span>
           <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
           <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
@@ -660,7 +818,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onRevenda}){
+function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onParceria}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   return(
@@ -750,7 +908,7 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onReven
             <div className="fd" style={{fontSize:"clamp(22px,3.4vw,32px)",color:T.bg,lineHeight:1.15}}>Leve a Bentô para a sua cidade</div>
             <div className="fb" style={{fontSize:13,color:`${T.bg}AA`,marginTop:8,maxWidth:480,lineHeight:1.5}}>Quer revender nossos gelatos e picolés proteicos ou abrir a sua unidade? Fale direto com a gente pelo WhatsApp.</div>
           </div>
-          <button onClick={onRevenda} className="fb" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:4,padding:"15px 26px",fontSize:15,fontWeight:600,display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
+          <button onClick={onParceria} className="fb" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:4,padding:"15px 26px",fontSize:15,fontWeight:600,display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
             🤝 Quero ser Bentô
           </button>
         </div>
@@ -1079,6 +1237,7 @@ export default function App(){
   const[showPitch,setShowPitch]=useState(false);
   const[showCardapio,setShowCardapio]=useState(false);
   const[showRevenda,setShowRevenda]=useState(false);
+  const[showParceria,setShowParceria]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -1093,7 +1252,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onRevenda={()=>setShowRevenda(true)}/>}
+      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
@@ -1101,12 +1260,13 @@ export default function App(){
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
+      {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           <button onClick={()=>setShowCardapio(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
-          <button onClick={()=>setShowRevenda(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
+          <button onClick={()=>setShowParceria(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
           <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
         </div>
