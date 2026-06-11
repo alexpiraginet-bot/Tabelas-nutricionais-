@@ -609,6 +609,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                   Contém açúcares próprios dos ingredientes. Este não é um alimento baixo ou reduzido em valor energético.
                 </p>
               )}
+              {product.hasPolyols&&(
               <div style={{marginTop:16,display:"flex",alignItems:"flex-start",gap:10,background:"#FDF8EC",border:"1px solid #D4B840",borderRadius:3,padding:"12px 14px",textAlign:"left"}}>
                 <span style={{fontSize:18,flexShrink:0,marginTop:1}} aria-hidden="true">⚠️</span>
                 <div>
@@ -618,6 +619,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                   </div>
                 </div>
               </div>
+              )}
             </div>
             {/* Calculadora */}
             <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
@@ -662,9 +664,11 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               </div>
               <div style={{background:T.bgWarm,padding:"10px 20px",borderTop:`1px solid ${T.border}`}}>
                 <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5}}>*Percentual de valores diários fornecidos pela porção.</p>
+                {product.hasPolyols&&(
                 <p className="fb" style={{fontSize:10.5,color:"#6B5010",lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed #D4B840`}}>
                   Contém polióis. <strong>{AVISO_POLIOL}</strong>
                 </p>
+                )}
                 {product.estimated&&(
                   <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed ${T.border}`,fontStyle:"italic"}}>
                     Valores nutricionais <strong>estimados</strong> por analogia de formulação — sujeitos a confirmação por análise laboratorial antes do uso em rótulo.
