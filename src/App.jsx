@@ -236,11 +236,11 @@ function CompareModal({ids,onClose,onViewProduct}){
 /* ========== CARDÁPIO DIGITAL ========== */
 const CARDAPIO = [
   { cat:"Bentôlé", emoji:"🍡", items:[
-    { name:"Bentôlé P Proteico", info:"50 g (aprox. 55 g) · embalagem prateada", price:"14,90", img:"/sabores/bentole-prestigio.jpg" },
-    { name:"Bentôlé Proteico MEGA", info:"110 g aprox.", price:"26,90", img:"/sabores/bentole-choco-dubai.jpg" },
-    { name:"Kit 4 Picolés Mega", info:"cada unidade sai a R$ 24,00", price:"96,00", img:"/sabores/bentole-pistache-cb.jpg" },
-    { name:"Kit 6 Bentôlés", info:"cada unidade sai a R$ 13,00", price:"78,00", img:"/sabores/bentole-snickers.jpg" },
-    { name:"Bentôlé Baby", info:"cortesia · consumo local · até 1 un", price:"6,90", img:"/sabores/bentole-franui.jpg" },
+    { name:"Bentôlé P Proteico", info:"50 g (aprox. 55 g) · embalagem prateada", price:"14,90", img:"/cardapio/pic-p.jpg" },
+    { name:"Bentôlé Proteico MEGA", info:"110 g aprox.", price:"26,90", img:"/cardapio/pic-mega.jpg" },
+    { name:"Kit 4 Picolés Mega", info:"cada unidade sai a R$ 24,00", price:"96,00", img:"/cardapio/pic-kit4.jpg" },
+    { name:"Kit 6 Bentôlés", info:"cada unidade sai a R$ 13,00", price:"78,00", img:"/cardapio/pic-kit6.jpg" },
+    { name:"Bentôlé Baby", info:"cortesia · consumo local · até 1 un", price:"6,90", img:"/cardapio/pic-baby.jpg" },
   ]},
   { cat:"Gelatos", emoji:"🍨", items:[
     { name:"Gelato Box", info:"700 ml · até 3 sabores", price:"99,90", img:"/cardapio/gelato-box.jpg" },
