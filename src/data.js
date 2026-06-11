@@ -42,14 +42,14 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Latissimo",qty:"250 g"}],
     nutrition:{kcal:144,carbs:23,sugars:5.4,addedSugars:0,protein:11,fat:5.2,satFat:2.4,transFat:0,fiber:0.3,sodium:51},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Textura aveludada com Latissimo e whey WPH. 11g de proteína, zero lactose. Suavidade sem culpa." },
+    description:"Textura aveludada com Latissimo e whey WPH. 11g de proteína, sem açúcar adicionado. Suavidade sem culpa." },
   { id:"coco", name:"Coco", category:"gelato", sub:"Tropical cremoso", emoji:"🥥",
     moods:["refrescante","comfort"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#A89C7C",swirl:"#5E5440",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Whey WPH",qty:"250 g"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
     nutrition:{kcal:159,carbs:22,sugars:3.8,addedSugars:0,protein:6.7,fat:5.5,satFat:4.2,transFat:0,fiber:0,sodium:41},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Leite de coco em pó real com textura densa e aroma tropical. Zero lactose, zero glúten." },
+    description:"Leite de coco em pó real com textura densa e aroma tropical. Sem açúcar adicionado, sem glúten." },
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -217,6 +217,11 @@ export const ALLERGENS = {
 };
 // Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
 export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","TRIGO","SOJA"];
+
+// LACTOSE = derivada dos alérgicos (presença de LEITE) — FONTE ÚNICA DE VERDADE.
+// Whey WPH e Leite contêm lactose; logo, todo sabor com LEITE nos alérgicos contém lactose.
+// Apenas sabores sem leite/whey (Limão, Extra Dark, Maracujá) são, de fato, zero lactose.
+for (const p of PRODUCTS) p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE");
 
 // Rotulagem nutricional frontal (RDC 429/2020 — limites para sólidos, por 100 g):
 // açúcares adicionados ≥ 15 g · gordura saturada ≥ 6 g · sódio ≥ 600 mg.
