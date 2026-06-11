@@ -10,7 +10,7 @@ const T = {
 };
 
 // Apresentação institucional da marca (pitch deck no Gamma)
-const DECK_URL = "https://gamma.app/docs/35clwnhqszfjorx";
+const DECK_URL = "/Bento-Functional-Nutrition.pdf";
 
 
 function BentoLogo({size=120}){
