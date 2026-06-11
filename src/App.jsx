@@ -319,7 +319,7 @@ function CardapioDigital({onClose}){
 }
 
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
-const WHATS_REVENDA="__WHATS__"; // DDI+DDD+número, só dígitos (ex.: 5527999999999)
+const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 function SejaBento({onClose}){
   const[form,setForm]=useState({interesse:"Revendedor",nome:"",zap:"",cidade:"",ponto:"",msg:""});
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
