@@ -2,10 +2,15 @@
 // pelos geradores de ficha técnica (scripts/) e por material derivado.
 // NÃO duplique estes dados em outro lugar: edite apenas aqui.
 
-// Base única usada em TODOS os gelatos e picolés (ficha técnica Ice Cream Mix Italia, rev. 31/05/2026).
+// Base dos GELATOS (ficha técnica Ice Cream Mix Italia, rev. 31/05/2026).
 // Zero açúcar; 65 g de polióis/100 g; sem alérgenos de declaração obrigatória.
 export const BASE_NOME = "Base FRUTA 300 ZERO";
 export const BASE = "Maltitol, sorbitol, polidextrose, gordura vegetal, emulsificante, goma guar, carboximetilcelulose sódica (CMC) e goma tara";
+
+// Base reformulada dos PICOLÉS (Bentôlé) — SEM polióis (maltitol/sorbitol),
+// logo sem advertência de efeito laxativo.
+export const BASE_PICOLE_NOME = "Base Funcional ZERO";
+export const BASE_PICOLE = "Inulina, polidextrose, stévia e goma tara";
 
 export const PRODUCTS = [
   { id:"ninho-nutella", name:"Ninho com Nutella", category:"gelato", sub:"Cremoso avelã & leite", emoji:"🍫",
@@ -184,8 +189,9 @@ export const PRODUCTS = [
 // Advertência de polióis (maltitol/sorbitol da Base FRUTA 300 ZERO — 65 g/100 g na base).
 // Texto oficial da RDC 727/2022, art. 25 (exibido em negrito no rótulo).
 export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
-// A base única está em TODAS as receitas, portanto todos os produtos declaram polióis.
-export const POLIOL_IDS = PRODUCTS.map(p => p.id);
+// Apenas os gelatos usam a Base FRUTA 300 (maltitol/sorbitol); os picolés foram
+// reformulados com base sem polióis. Logo, só os gelatos declaram polióis.
+export const POLIOL_IDS = PRODUCTS.filter(p => p.category === "gelato").map(p => p.id);
 
 // ALÉRGICOS por produto (RDC 26/2015) — derivado dos insumos de cada receita.
 // PRELIMINAR: SOJA (lecitina dos chocolates/cremes) marcada onde provável — confirmar nas fichas dos fornecedores.
@@ -222,6 +228,16 @@ export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","
 // Whey WPH e Leite contêm lactose; logo, todo sabor com LEITE nos alérgicos contém lactose.
 // Apenas sabores sem leite/whey (Limão, Extra Dark, Maracujá) são, de fato, zero lactose.
 for (const p of PRODUCTS) p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE");
+
+// BASE dos picolés foi reformulada (sem maltitol/sorbitol). Substitui o 1º ingrediente
+// (a base) dos Bentôlé pela Base Funcional ZERO, mantendo a quantidade da receita.
+for (const p of PRODUCTS) if (p.category === "bentole") {
+  p.ingredients[0] = { name: BASE_PICOLE_NOME, qty: p.ingredients[0].qty, note: BASE_PICOLE };
+}
+
+// POLIÓIS = presença de polióis (maltitol/sorbitol), provenientes da Base FRUTA 300.
+// Só os gelatos usam essa base; os picolés (base reformulada) não declaram polióis.
+for (const p of PRODUCTS) p.hasPolyols = p.ingredients[0].name === BASE_NOME;
 
 // Rotulagem nutricional frontal (RDC 429/2020 — limites para sólidos, por 100 g):
 // açúcares adicionados ≥ 15 g · gordura saturada ≥ 6 g · sódio ≥ 600 mg.
