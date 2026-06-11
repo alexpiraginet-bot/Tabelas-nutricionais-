@@ -235,11 +235,6 @@ function CompareModal({ids,onClose,onViewProduct}){
 
 /* ========== CARDÁPIO DIGITAL ========== */
 const CARDAPIO = [
-  { cat:"Gelatos", emoji:"🍨", items:[
-    { name:"Gelato Box", info:"700 ml · até 3 sabores", price:"99,90", img:"/sabores/doce-de-leite.jpg" },
-    { name:"Tamanho M", info:"170 g · 1–2 sabores · p/ viagem", price:"28,90", img:"/sabores/brigadeiro.jpg" },
-    { name:"Tamanho P", info:"120 g · 1–2 sabores · p/ viagem", price:"23,90", img:"/sabores/morango.jpg" },
-  ]},
   { cat:"Bentôlé", emoji:"🍡", items:[
     { name:"Bentôlé P Proteico", info:"50 g (aprox. 55 g) · embalagem prateada", price:"14,90", img:"/sabores/bentole-prestigio.jpg" },
     { name:"Bentôlé Proteico MEGA", info:"110 g aprox.", price:"26,90", img:"/sabores/bentole-choco-dubai.jpg" },
@@ -247,29 +242,34 @@ const CARDAPIO = [
     { name:"Kit 6 Bentôlés", info:"cada unidade sai a R$ 13,00", price:"78,00", img:"/sabores/bentole-snickers.jpg" },
     { name:"Bentôlé Baby", info:"cortesia · consumo local · até 1 un", price:"6,90", img:"/sabores/bentole-franui.jpg" },
   ]},
+  { cat:"Gelatos", emoji:"🍨", items:[
+    { name:"Gelato Box", info:"700 ml · até 3 sabores", price:"99,90", img:"/cardapio/gelato-box.jpg" },
+    { name:"Tamanho M", info:"170 g · 1–2 sabores · p/ viagem", price:"28,90", img:"/cardapio/gelato-m.jpg" },
+    { name:"Tamanho P", info:"120 g · 1–2 sabores · p/ viagem", price:"23,90", img:"/cardapio/gelato-p.jpg" },
+  ]},
   { cat:"Shakes", emoji:"🥤", items:[
-    { name:"Shake Morango c/ Maracujá", info:"Whey True Vanilla + 200 g de fruta", price:"29,90" },
-    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g", price:"37,90" },
-    { name:"Shake Dark Chocolate", info:"Whey hidrolisado + chocolate zero", price:"37,90" },
-    { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90" },
-    { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90" },
+    { name:"Shake Morango c/ Maracujá", info:"Whey True Vanilla + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
+    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
+    { name:"Shake Dark Chocolate", info:"Whey hidrolisado + chocolate zero", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
+    { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90", img:"/cardapio/milkshake-pistache.jpg" },
+    { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90", img:"/cardapio/milkshake-doce-leite.jpg" },
   ]},
   { cat:"Bebidas", emoji:"🧃", items:[
-    { name:"Brain-Up True", info:"lata", price:"14,90" },
-    { name:"Pro Force", info:"bebida láctea proteica", price:"9,90" },
-    { name:"Cold Brew 200 ml", info:"zero açúcar", price:"24,90" },
+    { name:"Brain-Up True", info:"lata", price:"14,90", img:"/cardapio/brain-up.jpg" },
+    { name:"Pro Force", info:"bebida láctea proteica", price:"9,90", img:"/cardapio/pro-force.jpg" },
+    { name:"Cold Brew 200 ml", info:"zero açúcar", price:"24,90", img:"/cardapio/cold-brew.jpg" },
   ]},
   { cat:"Cafeteria", emoji:"☕", items:[
-    { name:"Café Expresso", info:"especial 85 pontos", price:"8,90" },
-    { name:"Café Expresso Duplo", info:"90 ml · 85 pontos", price:"14,90" },
-    { name:"Coado V60", info:"café especial 86 pontos", price:"14,90" },
-    { name:"Capuccino Italiano", info:"verificar disponibilidade", price:"16,90" },
-    { name:"Affogato Proteico", info:"1 bola de gelato (100 g) à escolha", price:"24,90" },
+    { name:"Café Expresso", info:"especial 85 pontos", price:"8,90", img:"/cardapio/cafe-expresso.jpg" },
+    { name:"Café Expresso Duplo", info:"90 ml · 85 pontos", price:"14,90", img:"/cardapio/cafe-duplo.jpg" },
+    { name:"Coado V60", info:"café especial 86 pontos", price:"14,90", img:"/cardapio/coado-v60.jpg" },
+    { name:"Capuccino Italiano", info:"verificar disponibilidade", price:"16,90", img:"/cardapio/capuccino.jpg" },
+    { name:"Affogato Proteico", info:"1 bola de gelato (100 g) à escolha", price:"24,90", img:"/cardapio/affogato.jpg" },
   ]},
   { cat:"Cafés Especiais", emoji:"🫘", items:[
-    { name:"Café Moído 85+ Pontos", info:"250 g · Muniz Freire/Caparaó-ES", price:"49,90" },
-    { name:"Café em Grãos 85+ Pontos", info:"250 g · 85 pontos", price:"49,90" },
-    { name:"Drip Coffee c/ Creatina", info:"100% arábica · 3 g de creatina", price:"9,90" },
+    { name:"Café Moído 85+ Pontos", info:"250 g · Muniz Freire/Caparaó-ES", price:"49,90", img:"/cardapio/cafe-moido.jpg" },
+    { name:"Café em Grãos 85+ Pontos", info:"250 g · 85 pontos", price:"49,90", img:"/cardapio/cafe-graos.jpg" },
+    { name:"Drip Coffee c/ Creatina", info:"100% arábica · 3 g de creatina", price:"9,90", img:"/cardapio/drip-creatina.jpg" },
   ]},
 ];
 function CardapioDigital({onClose}){
