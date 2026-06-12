@@ -818,6 +818,16 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onParceria}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
+  const hub=[
+    {title:"Gelatos",tag:"Tabelas · Vitrine",desc:"Sabores cremosos com ficha nutricional completa.",go:`${counts.gelato} sabores →`,onClick:()=>onSelect("gelato"),art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={62} id="hg"/>},
+    {title:"Bentôlé",tag:"Tabelas · Take-home",desc:"Mini picolés proteicos, ficha por sabor.",go:`${counts.bentole} sabores →`,onClick:()=>onSelect("bentole"),art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={62} id="hp"/>},
+    {title:"Cardápio",tag:"Vitrine completa",desc:"Toda a linha com fotos e preços — gelatos, picolés, shakes e cafés.",go:"Ver cardápio →",onClick:onCardapio,emoji:"📋"},
+    {title:"Qual é o meu sabor?",tag:"Quiz interativo",desc:"Responda 3 perguntas e descubra seu match.",go:"Fazer o quiz →",onClick:onQuiz,emoji:"🎯"},
+    {title:"Monte seu pote",tag:"Calculadora",desc:"Combine 2 sabores e veja calorias e proteína do pote.",go:"Calcular →",onClick:onPote,emoji:"🍦"},
+    {title:"Conheça a Bentô",tag:"Sobre nós",desc:"Nossa história, propósito e a ciência por trás do produto.",go:"Conhecer →",onClick:onPitch,emoji:"✦"},
+    {title:"Stranger Gelatos",tag:"Joguinho",desc:"Nosso game arcade — encare o desafio Bentô e divirta-se.",go:"Jogar →",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),emoji:"🎮"},
+    {title:"Seja um parceiro",tag:"Revenda & franquia",desc:"Leve a Bentô ao seu ponto. Margens de até 50%.",go:"Saber mais →",onClick:onParceria,emoji:"🤝",feature:true},
+  ];
   return(
     <div className="fade">
       <section style={{maxWidth:1152,margin:"0 auto",padding:"52px 24px 32px",textAlign:"center"}}>
@@ -826,49 +836,23 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onParce
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
         </h1>
         <p className="fb rise" style={{maxWidth:480,margin:"14px auto 0",color:T.inkSoft,fontSize:15,lineHeight:1.6,animationDelay:"100ms"}}>
-          Zero açúcar adicionado. Rico em proteína. Rótulo limpo. Descubra o sabor feito para você.
+          Zero açúcar adicionado. Rico em proteína. Rótulo limpo. Tudo o que você precisa, em um só lugar.
         </p>
-        <div className="rise" style={{animationDelay:"150ms",marginTop:22,display:"flex",justifyContent:"center",gap:10,flexWrap:"wrap"}}>
-          <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
-            <Sparkles size={15}/>Qual é o meu sabor?
-          </button>
-          <button onClick={onPote} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
-            🍦 Monte seu pote
-          </button>
-          <button onClick={onCardapio} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:4,padding:"13px 22px",fontSize:14,display:"flex",alignItems:"center",gap:6}}>
-            📋 Cardápio
-          </button>
-          <button onClick={onPitch} className="fb" style={{background:T.ink,color:T.bg,border:"none",borderRadius:4,padding:"13px 22px",fontSize:14,fontWeight:500,display:"flex",alignItems:"center",gap:8}}>
-            <Sparkles size={15}/>Conheça a Bentô
-          </button>
-        </div>
       </section>
 
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 20px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
-        {[
-          {cat:"gelato",tag:"01 · Vitrine",title:"Gelatos",desc:"Cremosos, proteicos, sem açúcar adicionado.",count:counts.gelato,art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={120} id="cg"/>},
-          {cat:"bentole",tag:"02 · Take-home",title:"Bentôlé",desc:"Mini picolés premium. Alta proteína. Leve para onde for.",count:counts.bentole,art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={120} id="cp"/>},
-        ].map(c=>(
-          <button key={c.cat} onClick={()=>onSelect(c.cat)} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:22,textAlign:"left",display:"flex",alignItems:"center",gap:16}}>
-            {c.art}
-            <div>
-              <div className="fm" style={{fontSize:9,letterSpacing:"0.24em",color:T.inkSoft,textTransform:"uppercase",marginBottom:8}}>{c.tag}</div>
-              <div className="fd" style={{fontSize:32,color:T.ink,lineHeight:1,letterSpacing:"-0.015em"}}>{c.title}</div>
-              <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.4}}>{c.desc}</div>
-              <div className="fm" style={{fontSize:10,color:T.pistacheDark,letterSpacing:"0.18em",textTransform:"uppercase",marginTop:10}}>{c.count} sabores →</div>
-            </div>
-          </button>
-        ))}
-        <button onClick={onQuiz} style={{background:T.pistacheDark,border:"none",borderRadius:4,padding:22,display:"flex",flexDirection:"column",justifyContent:"center",textAlign:"left"}}>
-          <span style={{fontSize:34,marginBottom:12}}>🎯</span>
-          <div className="fd" style={{fontSize:24,color:T.surface,lineHeight:1.2}}>Descubra seu<br/>sabor ideal</div>
-          <div className="fb" style={{fontSize:12,color:`${T.surface}99`,marginTop:8}}>Quiz rápido · 3 perguntas</div>
-        </button>
-        <button onClick={onPote} className="hl" style={{background:T.ink,border:"none",borderRadius:4,padding:22,display:"flex",flexDirection:"column",justifyContent:"center",textAlign:"left"}}>
-          <span style={{fontSize:34,marginBottom:12}}>🍦</span>
-          <div className="fd" style={{fontSize:24,color:T.bg,lineHeight:1.2}}>Monte seu<br/>pote</div>
-          <div className="fb" style={{fontSize:12,color:`${T.bg}99`,marginTop:8}}>2 sabores · P 120g ou M 170g · calorias e proteína</div>
-        </button>
+      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 28px"}}>
+        <div className="fm rise" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:16,textAlign:"center"}}>Por onde você quer começar?</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(248px,1fr))",gap:14}}>
+          {hub.map((h,i)=>(
+            <button key={h.title} onClick={h.onClick} className="hl rise" style={{...(h.feature?{background:T.ink,border:"none"}:{background:T.surface,border:`1px solid ${T.border}`}),borderRadius:6,padding:"20px 20px 18px",textAlign:"left",display:"flex",flexDirection:"column",minHeight:190,cursor:"pointer",animationDelay:`${i*45}ms`}}>
+              <div style={{height:62,display:"flex",alignItems:"center"}}>{h.art||<span style={{fontSize:36,lineHeight:1}}>{h.emoji}</span>}</div>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",marginTop:12,color:h.feature?T.pistache:T.inkSoft}}>{h.tag}</div>
+              <div className="fd" style={{fontSize:23,lineHeight:1.08,marginTop:5,letterSpacing:"-0.015em",color:h.feature?T.bg:T.ink}}>{h.title}</div>
+              <div className="fb" style={{fontSize:12.5,lineHeight:1.4,marginTop:6,flex:1,color:h.feature?`${T.bg}AA`:T.inkSoft}}>{h.desc}</div>
+              <div className="fm" style={{fontSize:10,letterSpacing:"0.16em",textTransform:"uppercase",marginTop:14,color:h.feature?"#7FD99B":T.pistacheDark}}>{h.go}</div>
+            </button>
+          ))}
+        </div>
       </section>
 
       <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 20px"}}>
@@ -898,18 +882,6 @@ function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onParce
         ))}
       </section>
 
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 48px"}}>
-        <div style={{background:T.ink,borderRadius:6,padding:"32px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:18,flexWrap:"wrap"}}>
-          <div style={{minWidth:240,flex:1}}>
-            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.pistache,textTransform:"uppercase",marginBottom:8}}>Expansão · Revenda &amp; Franquia</div>
-            <div className="fd" style={{fontSize:"clamp(22px,3.4vw,32px)",color:T.bg,lineHeight:1.15}}>Leve a Bentô para a sua cidade</div>
-            <div className="fb" style={{fontSize:13,color:`${T.bg}AA`,marginTop:8,maxWidth:480,lineHeight:1.5}}>Quer revender nossos gelatos e picolés proteicos ou abrir a sua unidade? Fale direto com a gente pelo WhatsApp.</div>
-          </div>
-          <button onClick={onParceria} className="fb" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:4,padding:"15px 26px",fontSize:15,fontWeight:600,display:"flex",alignItems:"center",gap:8,whiteSpace:"nowrap"}}>
-            🤝 Quero ser Bentô
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
