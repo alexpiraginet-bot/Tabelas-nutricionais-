@@ -814,74 +814,101 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   );
 }
 
-/* ========== HOME ========== */
-function Home({onSelect,onSelectProduct,onQuiz,onPote,onPitch,onCardapio,onParceria}){
-  const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
-  const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
-  const hub=[
-    {title:"Gelatos",tag:"Tabelas · Vitrine",desc:"Sabores cremosos com ficha nutricional completa.",go:`${counts.gelato} sabores →`,onClick:()=>onSelect("gelato"),art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={62} id="hg"/>},
-    {title:"Bentôlé",tag:"Tabelas · Take-home",desc:"Mini picolés proteicos, ficha por sabor.",go:`${counts.bentole} sabores →`,onClick:()=>onSelect("bentole"),art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={62} id="hp"/>},
-    {title:"Cardápio",tag:"Vitrine completa",desc:"Toda a linha com fotos e preços — gelatos, picolés, shakes e cafés.",go:"Ver cardápio →",onClick:onCardapio,emoji:"📋"},
-    {title:"Qual é o meu sabor?",tag:"Quiz interativo",desc:"Responda 3 perguntas e descubra seu match.",go:"Fazer o quiz →",onClick:onQuiz,emoji:"🎯"},
-    {title:"Monte seu pote",tag:"Calculadora",desc:"Combine 2 sabores e veja calorias e proteína do pote.",go:"Calcular →",onClick:onPote,emoji:"🍦"},
-    {title:"Conheça a Bentô",tag:"Sobre nós",desc:"Nossa história, propósito e a ciência por trás do produto.",go:"Conhecer →",onClick:onPitch,emoji:"✦"},
-    {title:"Stranger Gelatos",tag:"Joguinho",desc:"Nosso game arcade — encare o desafio Bentô e divirta-se.",go:"Jogar →",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),emoji:"🎮"},
-    {title:"Seja um parceiro",tag:"Revenda & franquia",desc:"Leve a Bentô ao seu ponto. Margens de até 50%.",go:"Saber mais →",onClick:onParceria,emoji:"🤝",feature:true},
+/* ========== HOME (LAUNCHER) ========== */
+function Home({onTabelas,onCardapio,onPitch,onParceria}){
+  const tiles=[
+    {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
+    {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
+    {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
+    {title:"Stranger Gelatos",sub:"Nosso joguinho arcade",emoji:"🎮",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink},
   ];
   return(
     <div className="fade">
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"52px 24px 32px",textAlign:"center"}}>
-        <div className="rise"><BentoLogo size={110}/></div>
-        <h1 className="fd rise" style={{fontSize:"clamp(34px,6vw,68px)",lineHeight:1.05,color:T.ink,marginTop:18,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
+      <section style={{minHeight:"calc(100svh - 78px)",maxWidth:880,margin:"0 auto",padding:"18px 20px 26px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
+        <div className="rise"><BentoLogo size={78}/></div>
+        <h1 className="fd rise" style={{fontSize:"clamp(26px,5vw,46px)",lineHeight:1.05,color:T.ink,marginTop:12,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
         </h1>
-        <p className="fb rise" style={{maxWidth:480,margin:"14px auto 0",color:T.inkSoft,fontSize:15,lineHeight:1.6,animationDelay:"100ms"}}>
-          Zero açúcar adicionado. Rico em proteína. Rótulo limpo. Tudo o que você precisa, em um só lugar.
+        <p className="fb rise" style={{maxWidth:440,margin:"8px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.55,animationDelay:"100ms"}}>
+          Zero açúcar adicionado · rico em proteína · rótulo limpo.
         </p>
-      </section>
 
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 28px"}}>
-        <div className="fm rise" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:16,textAlign:"center"}}>Por onde você quer começar?</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(248px,1fr))",gap:14}}>
-          {hub.map((h,i)=>(
-            <button key={h.title} onClick={h.onClick} className="hl rise" style={{...(h.feature?{background:T.ink,border:"none"}:{background:T.surface,border:`1px solid ${T.border}`}),borderRadius:6,padding:"20px 20px 18px",textAlign:"left",display:"flex",flexDirection:"column",minHeight:190,cursor:"pointer",animationDelay:`${i*45}ms`}}>
-              <div style={{height:62,display:"flex",alignItems:"center"}}>{h.art||<span style={{fontSize:36,lineHeight:1}}>{h.emoji}</span>}</div>
-              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",marginTop:12,color:h.feature?T.pistache:T.inkSoft}}>{h.tag}</div>
-              <div className="fd" style={{fontSize:23,lineHeight:1.08,marginTop:5,letterSpacing:"-0.015em",color:h.feature?T.bg:T.ink}}>{h.title}</div>
-              <div className="fb" style={{fontSize:12.5,lineHeight:1.4,marginTop:6,flex:1,color:h.feature?`${T.bg}AA`:T.inkSoft}}>{h.desc}</div>
-              <div className="fm" style={{fontSize:10,letterSpacing:"0.16em",textTransform:"uppercase",marginTop:14,color:h.feature?"#7FD99B":T.pistacheDark}}>{h.go}</div>
+        <div style={{width:"100%",marginTop:22}}>
+          {/* Botão principal: Tabelas */}
+          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:16,textAlign:"left",background:"#E9F0D8",border:"1px solid #CBD9A6",borderRadius:14,padding:"18px 20px",cursor:"pointer",animationDelay:"120ms"}}>
+            <div style={{display:"flex",gap:2,flexShrink:0}}>
+              <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={56} id="hg"/>
+              <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={48} id="hp"/>
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,marginBottom:3}}>Comece por aqui</div>
+              <div className="fd" style={{fontSize:"clamp(20px,3.4vw,26px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:3,lineHeight:1.35}}>Gelatos, picolés, monte seu pote e o quiz “qual é o meu sabor”.</div>
+            </div>
+            <span className="fd" style={{fontSize:26,color:T.pistacheDark,flexShrink:0}}>→</span>
+          </button>
+
+          {/* Demais funções */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
+            {tiles.map((t,i)=>(
+              <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${160+i*45}ms`}}>
+                <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
+                <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
+                <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/* ========== TABELAS (HUB DE PRODUTOS/FERRAMENTAS) ========== */
+function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack}){
+  const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
+  const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
+  const tools=[
+    {title:"Gelatos",sub:`${counts.gelato} sabores · ficha completa`,onClick:()=>onSelect("gelato"),art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={64} id="tg"/>},
+    {title:"Bentôlé",sub:`${counts.bentole} picolés · ficha por sabor`,onClick:()=>onSelect("bentole"),art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={64} id="tp"/>},
+    {title:"Monte seu pote",sub:"Combine 2 sabores · calorias e proteína",onClick:onPote,emoji:"🍦"},
+    {title:"Qual é o meu sabor?",sub:"Quiz rápido de 3 perguntas",onClick:onQuiz,emoji:"🎯"},
+  ];
+  return(
+    <div className="fade">
+      <section style={{maxWidth:1000,margin:"0 auto",padding:"24px 24px 40px"}}>
+        <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6,marginBottom:18,cursor:"pointer"}}><ArrowLeft size={13}/>Início</button>
+        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>Tabelas Nutricionais</div>
+        <h1 className="fd" style={{fontSize:"clamp(30px,5vw,52px)",lineHeight:1,color:T.ink,fontWeight:400,letterSpacing:"-0.02em"}}>Explore os produtos</h1>
+        <p className="fb" style={{fontSize:14,color:T.inkSoft,marginTop:8,maxWidth:560,lineHeight:1.5}}>Fichas nutricionais completas, calculadora de pote e o quiz de sabores.</p>
+
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14,marginTop:24}}>
+          {tools.map((t,i)=>(
+            <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"20px",textAlign:"left",display:"flex",alignItems:"center",gap:14,cursor:"pointer",animationDelay:`${i*45}ms`}}>
+              <div style={{width:64,height:64,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{t.art||<span style={{fontSize:38,lineHeight:1}}>{t.emoji}</span>}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div className="fd" style={{fontSize:22,color:T.ink,lineHeight:1.1,letterSpacing:"-0.01em"}}>{t.title}</div>
+                <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:4,lineHeight:1.35}}>{t.sub}</div>
+              </div>
+              <span className="fd" style={{fontSize:22,color:T.pistacheDark,flexShrink:0}}>→</span>
             </button>
           ))}
         </div>
-      </section>
 
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 20px"}}>
-        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:14}}>⚡ Mais ricos em proteína</div>
+        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>⚡ Mais ricos em proteína</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
           {topProt.map(p=>(
-            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
-              <ProductArt product={p} size={72}/>
+            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
+              <ProductArt product={p} size={64}/>
               <div>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>{p.name}</div>
-                <div className="fm" style={{fontSize:18,color:T.pistacheDark,fontWeight:500,marginTop:4}}>{p.nutrition.protein}g</div>
+                <div className="fm" style={{fontSize:17,color:T.pistacheDark,fontWeight:500,marginTop:3}}>{p.nutrition.protein}g</div>
                 <div className="fm" style={{fontSize:9,color:T.inkSoft,letterSpacing:"0.18em",textTransform:"uppercase"}}>proteína · {p.nutrition.kcal} kcal</div>
-                <div style={{marginTop:6,display:"flex",gap:4}}>{p.moods.slice(0,1).map(m=><MoodChip key={m} mood={m} small/>)}</div>
               </div>
             </button>
           ))}
         </div>
       </section>
-
-      <section style={{maxWidth:1152,margin:"0 auto",padding:"0 24px 40px",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:12}}>
-        {[{icon:"🧬",title:"Whey WPH",desc:"Proteína hidrolisada de alta biodisponibilidade"},{icon:"🌿",title:"Base FRUTA 300 ZERO",desc:"Zero açúcar · adoçada com polióis e fibras"},{icon:"0️⃣",title:"Sem açúcar adicionado",desc:"Sem sacarose adicionada à formulação"},{icon:"🧪",title:"Formulação técnica",desc:"Balanço PAC/POD calibrado para textura perfeita"}].map(b=>(
-          <div key={b.title} style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:16}}>
-            <div style={{fontSize:24,marginBottom:8}}>{b.icon}</div>
-            <div className="fd" style={{fontSize:15,color:T.ink,marginBottom:4}}>{b.title}</div>
-            <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.4}}>{b.desc}</div>
-          </div>
-        ))}
-      </section>
-
     </div>
   );
 }
@@ -1221,8 +1248,9 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onSelect={openCat} onSelectProduct={openProd} onQuiz={()=>setShowQuiz(true)} onPote={()=>setShowPote(true)} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)}/>}
-      {view==="list"&&<ProductList category={category} onBack={goHome} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)}/>}
+      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>setShowPote(true)} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
+      {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
