@@ -566,6 +566,14 @@ function EventosModal({onClose}){
   };
   const ok3=cad.nome.trim()&&cad.doc.trim().length>=11&&cad.email.includes("@")&&cad.zap.replace(/\D/g,"").length>=10;
   const enviar=()=>{
+    // link interno: abre o contrato pré-preenchido para a equipe revisar e gerar o PDF
+    const payload={nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
+      data:ev.data.split("-").reverse().join("/"),local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
+      sabores:q.sabores,rend:q.rend,promotoras:q.promotoras,pers:ev.pers,persAC:q.persACombinar,
+      base:q.base,logistica:q.logistica,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,
+      potinhos:q.potinhos,carrinho:q.carrinho,total:q.total};
+    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    const linkContrato=`https://bentogelateria.com/?contrato=${b64}`;
     const linhas=[
       "*Novo orçamento — Eventos Bentô* 🎉","",
       "*— Dados do contratante —*",
@@ -591,7 +599,8 @@ function EventosModal({onClose}){
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
       `*Total estimado:* ${fmtBRL(q.total)}`,
       cad.obs.trim()&&`*Observações:* ${cad.obs.trim()}`,"",
-      "_Solicito a formulação do contrato para assinatura online._",
+      "_Solicito a formulação do contrato para assinatura online._","",
+      `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank");
   };
@@ -1592,7 +1601,94 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 }
 
 /* ========== APP ========== */
+/* ========== CONTRATO AUTOMÁTICO (uso interno) ========== */
+function ContratoPage({data:d}){
+  const hoje=new Date().toLocaleDateString("pt-BR");
+  const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
+    <span contentEditable suppressContentEditableWarning spellCheck={false}
+      style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
+      className="ed">{children}</span>
+  );
+  const Clause=({n,t,children})=>(
+    <div style={{marginTop:14}}>
+      <div style={{fontWeight:700,fontSize:11.5,letterSpacing:"0.04em"}}>CLÁUSULA {n} — {t}</div>
+      <div style={{fontSize:11,lineHeight:1.55,marginTop:4,textAlign:"justify"}}>{children}</div>
+    </div>
+  );
+  const money=v=>typeof v==="number"?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}):v;
+  return(
+    <div style={{minHeight:"100vh",background:"#54594A",padding:"24px 8px",fontFamily:"'DM Sans',system-ui,sans-serif"}}>
+      <style>{`
+        .ct-sheet{max-width:760px;margin:0 auto;background:#fff;color:#1a1a1a;padding:56px 58px;box-shadow:0 20px 60px -20px rgba(0,0,0,.5)}
+        @media print{
+          body *{visibility:visible}
+          .ct-bar{display:none!important}
+          .ct-wrap{padding:0!important;background:#fff!important}
+          .ct-sheet{box-shadow:none!important;max-width:none!important;padding:0!important}
+          .ed{background:transparent!important;border-bottom:none!important}
+          @page{margin:22mm 18mm}
+        }
+      `}</style>
+      <div className="ct-bar" style={{maxWidth:760,margin:"0 auto 14px",display:"flex",gap:10,flexWrap:"wrap",alignItems:"center"}}>
+        <button onClick={()=>window.print()} style={{background:"#C9A86A",border:"none",borderRadius:6,padding:"12px 20px",fontSize:14,fontWeight:700,cursor:"pointer"}}>🖨️ Imprimir / Salvar PDF</button>
+        <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
+        <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · os campos amarelos são editáveis — clique e ajuste antes de salvar. Modelo automático: recomendamos validação jurídica.</span>
+      </div>
+      <div className="ct-wrap"><div className="ct-sheet">
+        <div style={{textAlign:"center",borderBottom:"2px solid #1a1a1a",paddingBottom:14}}>
+          <div style={{fontFamily:"'Fraunces',Georgia,serif",fontSize:20,fontWeight:600}}>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</div>
+          <div style={{fontSize:11,letterSpacing:"0.18em",marginTop:4}}>GELATERIA PARA EVENTOS · BENTÔ GELATOS</div>
+        </div>
+        <div style={{marginTop:18,fontSize:11,lineHeight:1.6}}>
+          <strong>CONTRATADA:</strong> <Ed>BENTÔ GELATOS — [razão social], CNPJ [00.000.000/0000-00]</Ed>, com sede em <Ed>Vitória — ES</Ed>, WhatsApp (27) 99915-9995, e-mail <Ed>[e-mail da loja]</Ed>.<br/>
+          <strong>CONTRATANTE:</strong> {d.nome}, CPF/CNPJ {d.doc}{d.empresa?<> , representando <strong>{d.empresa}</strong></>:null}, e-mail {d.email}, WhatsApp {d.zap}.
+        </div>
+        <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, incluindo carrinho Bentô, produtos e equipe, a realizar-se em <strong>{d.data}</strong>, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
+        <Clause n="2ª" t="DETALHAMENTO DO SERVIÇO">
+          Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}). Equipe: <strong>{d.promotoras} promotora{d.promotoras>1?"s":""}</strong> uniformizada{d.promotoras>1?"s":""} e treinada{d.promotoras>1?"s":""}. {d.pers&&d.pers.length>0?<>Personalização contratada: <strong>{d.pers.join(", ")}</strong>. </>:null}
+          Duração do serviço: <Ed>[definir horário de início e término]</Ed>.
+        </Clause>
+        <Clause n="3ª" t="VALORES">
+          <table style={{width:"100%",borderCollapse:"collapse",marginTop:6,fontSize:11}}>
+            <tbody>
+              {[["Serviço de gelateria (R$ 27 × "+d.convidados+" convidados)",money(d.base)],
+                d.logistica!=null?["Logística — ~"+d.km+" km · referência Bentô "+d.loja+" (ida e volta)",money(d.logistica)]:["Logística (deslocamento)","a confirmar"],
+                d.potinhos>0?["Potinhos personalizados (2 por pessoa)",money(d.potinhos)]:null,
+                d.carrinho>0?["Personalização do carrinho",money(d.carrinho)]:null,
+                d.persAC&&d.persAC.length>0?[d.persAC.join(", "),"a combinar"]:null,
+              ].filter(Boolean).map(([l,v],i)=>(
+                <tr key={i}><td style={{border:"1px solid #999",padding:"6px 10px"}}>{l}</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>{v}</td></tr>
+              ))}
+              <tr><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",fontWeight:700}}>TOTAL</td><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",textAlign:"right",fontWeight:700}}>{money(d.total)}</td></tr>
+            </tbody>
+          </table>
+        </Clause>
+        <Clause n="4ª" t="PAGAMENTO"><Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante até 5 (cinco) dias úteis antes da data do evento, via Pix ou transferência bancária.</Ed></Clause>
+        <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
+        <Clause n="6ª" t="OBRIGAÇÕES DO CONTRATANTE">Garantir acesso ao local com antecedência mínima de <Ed>[2 horas]</Ed> para montagem; disponibilizar ponto de energia elétrica <Ed>[220V]</Ed> próximo ao local de instalação; informar com antecedência alterações de data, local ou número de convidados.</Clause>
+        <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></Clause>
+        <Clause n="8ª" t="DISPOSIÇÕES GERAIS">Casos de força maior serão tratados conforme a legislação vigente. Fica eleito o foro da Comarca de <strong>Vitória — ES</strong> para dirimir quaisquer controvérsias oriundas deste contrato.</Clause>
+        <div style={{marginTop:30,fontSize:11}}>Vitória — ES, <Ed>{hoje}</Ed>.</div>
+        <div style={{display:"flex",gap:40,marginTop:46}}>
+          {[["CONTRATADA","Bentô Gelatos"],["CONTRATANTE",d.nome]].map(([t,n])=>(
+            <div key={t} style={{flex:1,textAlign:"center"}}>
+              <div style={{borderTop:"1px solid #1a1a1a",paddingTop:6,fontSize:10.5}}><strong>{t}</strong><br/>{n}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{marginTop:34,paddingTop:10,borderTop:"1px solid #ccc",fontSize:8.5,color:"#777",textAlign:"center"}}>Documento gerado automaticamente em {hoje} a partir do orçamento online · bentogelateria.com</div>
+      </div></div>
+    </div>
+  );
+}
+
 export default function App(){
+  const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
+    try{
+      const p=new URLSearchParams(window.location.search).get("contrato");
+      return p?JSON.parse(decodeURIComponent(escape(atob(p.replace(/-/g,"+").replace(/_/g,"/"))))):null;
+    }catch{return null;}
+  });
   const[view,setView]=useState("home");
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -1616,6 +1712,7 @@ export default function App(){
   const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
+  if(contrato) return(<><GStyle/><ContratoPage data={contrato}/></>);
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
