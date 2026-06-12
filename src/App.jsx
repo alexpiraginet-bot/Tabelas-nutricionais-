@@ -493,6 +493,157 @@ function SejaParceiro({onClose,onForm}){
   );
 }
 
+/* ========== EVENTOS ========== */
+const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Copinhos & colheres com a marca","Outra personalização"];
+const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+function calcEvento(g){
+  const n=Math.max(1,Number(g)||0);
+  return{
+    sabores:n>=150?6:Math.max(2,Math.round(n*6/150)),   // até 6 sabores (150+); proporcional abaixo
+    litros:Math.round(n*0.15),                           // ~150 ml por pessoa
+    promotoras:n>300?2:1,                                // até 2 promotoras acima de 300
+    total:n*27,                                          // R$ 27 por pessoa
+    corporativo:n>300,
+  };
+}
+function EventosModal({onClose}){
+  const[step,setStep]=useState(1);
+  const[ev,setEv]=useState({data:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
+  const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:""});
+  const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
+  const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
+  const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
+  const q=calcEvento(ev.convidados);
+  const ok1=ev.data&&ev.local.trim()&&Number(ev.convidados)>=20;
+  const ok3=cad.nome.trim()&&cad.doc.trim().length>=11&&cad.email.includes("@")&&cad.zap.replace(/\D/g,"").length>=10;
+  const enviar=()=>{
+    const linhas=[
+      "*Novo orçamento — Eventos Bentô* 🎉","",
+      "*— Dados do contratante —*",
+      `*Nome:* ${cad.nome.trim()}`,
+      `*CPF/CNPJ:* ${cad.doc.trim()}`,
+      `*E-mail:* ${cad.email.trim()}`,
+      `*WhatsApp:* ${cad.zap.trim()}`,
+      cad.empresa.trim()&&`*Empresa:* ${cad.empresa.trim()}`,"",
+      "*— Dados do evento —*",
+      `*Data:* ${ev.data.split("-").reverse().join("/")}`,
+      `*Local:* ${ev.local.trim()}`,
+      `*Convidados:* ${ev.convidados}`,
+      `*Produtos:* ${ev.tipo}`,
+      `*Sabores:* até ${q.sabores}`,
+      `*Volume estimado:* ~${q.litros} L (150 ml/pessoa)`,
+      `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,
+      ev.pers.length>0&&`*Personalização (a combinar):* ${ev.pers.join(", ")}`,
+      q.corporativo&&"*Evento corporativo 300+:* condições especiais",
+      `*Estimativa online:* ${fmtBRL(q.total)} (R$ 27/pessoa)`,
+      cad.obs.trim()&&`*Observações:* ${cad.obs.trim()}`,"",
+      "_Solicito a formulação do contrato para assinatura online._",
+    ].filter(Boolean);
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank");
+  };
+  const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
+  const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
+  const Row=({l,v,strong})=>(
+    <div style={{display:"flex",justifyContent:"space-between",gap:10,padding:"9px 0",borderBottom:`1px solid ${T.borderSoft}`}}>
+      <span className="fb" style={{fontSize:13,color:T.inkSoft}}>{l}</span>
+      <span className={strong?"fd":"fb"} style={{fontSize:strong?16:13,color:strong?T.pistacheDark:T.ink,fontWeight:strong?600:500,textAlign:"right"}}>{v}</span>
+    </div>
+  );
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Nos leve para seu evento" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 3</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento 🎉</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          {step===1&&(<>
+            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Estrutura completa de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
+            <span className="fm" style={lab}>Data do evento *</span>
+            <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
+            <span className="fm" style={lab}>Local (cidade / espaço) *</span>
+            <input className="fb" style={inp} value={ev.local} onChange={e=>setE("local",e.target.value)} placeholder="Ex.: Vitória — Cerimonial X"/>
+            <span className="fm" style={lab}>Quantidade de convidados *</span>
+            <input type="number" min={20} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value)} inputMode="numeric"/>
+            <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
+              {[50,100,150,300,500].map(n=>(
+                <button key={n} onClick={()=>setE("convidados",n)} className="fm" style={{fontSize:10,padding:"6px 12px",borderRadius:999,border:`1px solid ${Number(ev.convidados)===n?T.pistacheDark:T.border}`,background:Number(ev.convidados)===n?T.pistacheDark:"transparent",color:Number(ev.convidados)===n?T.surface:T.inkSoft,cursor:"pointer"}}>{n}</button>
+              ))}
+            </div>
+            <span className="fm" style={lab}>O que servir?</span>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {["Gelatos","Picolés","Mix (gelatos + picolés)"].map(o=>(
+                <button key={o} onClick={()=>setE("tipo",o)} className="fb" style={{flex:1,minWidth:110,padding:"11px 8px",borderRadius:4,border:`1px solid ${ev.tipo===o?T.pistacheDark:T.border}`,background:ev.tipo===o?T.pistacheDark:"transparent",color:ev.tipo===o?T.surface:T.ink,fontSize:12.5,fontWeight:500,cursor:"pointer"}}>{o}</button>
+              ))}
+            </div>
+            <span className="fm" style={lab}>Personalização (opcional · custo a combinar)</span>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {EV_PERS.map(p=>(
+                <button key={p} onClick={()=>togglePers(p)} className="fb" style={{fontSize:12,padding:"9px 12px",borderRadius:999,border:`1px solid ${ev.pers.includes(p)?T.pistacheDark:T.border}`,background:ev.pers.includes(p)?"#EFF5E5":"transparent",color:T.ink,cursor:"pointer"}}>{ev.pers.includes(p)?"✓ ":""}{p}</button>
+              ))}
+            </div>
+            <button onClick={()=>setStep(2)} disabled={!ok1} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1?T.pistacheDark:T.border,color:ok1?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1?"pointer":"not-allowed"}}>Ver meu orçamento →</button>
+            {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha data, local e ao menos 20 convidados.</div>}
+          </>)}
+
+          {step===2&&(<>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.25em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:10}}>Seu orçamento online</div>
+            <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:6,padding:"6px 16px 4px"}}>
+              <Row l="Convidados" v={ev.convidados}/>
+              <Row l="Produtos" v={ev.tipo}/>
+              <Row l="Sabores inclusos" v={`até ${q.sabores}`}/>
+              <Row l="Volume estimado" v={`~${q.litros} L (150 ml/pessoa)`}/>
+              <Row l="Equipe" v={`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`}/>
+              {ev.pers.length>0&&<Row l="Personalização" v="a combinar ✨"/>}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
+                <span className="fb" style={{fontSize:13,color:T.inkSoft}}>Estimativa (R$ 27/pessoa)</span>
+                <span className="fd" style={{fontSize:28,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
+              </div>
+            </div>
+            {q.corporativo&&(
+              <div className="fb" style={{marginTop:12,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:4,padding:"11px 14px",fontSize:12.5,color:T.ink,lineHeight:1.5}}>🏢 <strong>Evento corporativo com mais de 300 pessoas?</strong> Você tem condições especiais — o valor final pode ficar ainda melhor no fechamento.</div>
+            )}
+            {ev.pers.length>0&&(
+              <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>✨ Personalização escolhida: {ev.pers.join(", ")} — valores combinados diretamente com nossa equipe.</div>
+            )}
+            <div className="fb" style={{marginTop:10,fontSize:11,color:T.inkSoft,lineHeight:1.5,fontStyle:"italic"}}>Estimativa online sujeita a confirmação de data, logística e proposta final em contrato.</div>
+            <div style={{display:"flex",gap:8,marginTop:18}}>
+              <button onClick={()=>setStep(1)} className="fb" style={{padding:"14px 18px",borderRadius:4,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Ajustar</button>
+              <button onClick={()=>setStep(3)} className="fb" style={{flex:1,padding:"14px",borderRadius:4,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Fechar orçamento →</button>
+            </div>
+          </>)}
+
+          {step===3&&(<>
+            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quase lá! Com seus dados, nossa equipe formula o <strong style={{color:T.ink}}>contrato para assinatura online</strong> e confirma os detalhes:</div>
+            <span className="fm" style={lab}>Nome completo *</span>
+            <input className="fb" style={inp} value={cad.nome} onChange={e=>setC("nome",e.target.value)} placeholder="Seu nome"/>
+            <span className="fm" style={lab}>CPF ou CNPJ *</span>
+            <input className="fb" style={inp} value={cad.doc} onChange={e=>setC("doc",e.target.value)} placeholder="000.000.000-00" inputMode="numeric"/>
+            <span className="fm" style={lab}>E-mail *</span>
+            <input type="email" className="fb" style={inp} value={cad.email} onChange={e=>setC("email",e.target.value)} placeholder="voce@email.com"/>
+            <span className="fm" style={lab}>WhatsApp (com DDD) *</span>
+            <input className="fb" style={inp} value={cad.zap} onChange={e=>setC("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
+            <span className="fm" style={lab}>Empresa (se corporativo)</span>
+            <input className="fb" style={inp} value={cad.empresa} onChange={e=>setC("empresa",e.target.value)} placeholder="Opcional"/>
+            <span className="fm" style={lab}>Observações</span>
+            <textarea className="fb" rows={2} style={{...inp,resize:"vertical"}} value={cad.obs} onChange={e=>setC("obs",e.target.value)} placeholder="Horário, tema da festa, restrições…"/>
+            <div style={{background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:4,padding:"10px 14px",marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span className="fb" style={{fontSize:12,color:T.inkSoft}}>{ev.convidados} convidados · {ev.data.split("-").reverse().join("/")}</span>
+              <span className="fd" style={{fontSize:18,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
+            </div>
+            <button onClick={enviar} disabled={!ok3} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok3?"#25D366":T.border,color:ok3?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3?"pointer":"not-allowed"}}>💬 Enviar e solicitar contrato</button>
+            <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
+            <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:4,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
+          </>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== FAQ NUTRICIONAL ========== */
 const FAQ=[
   {q:"Posso comer na dieta?",a:"Sim, com equilíbrio! Nossos gelatos não levam açúcar adicionado e são ricos em proteína (whey WPH). Mas atenção: não são alimentos de baixo valor energético — cada sabor tem sua ficha nutricional completa aqui no app, com calorias e macros por porção, pra você encaixar na sua meta."},
@@ -932,7 +1083,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME (LAUNCHER) ========== */
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
   const tiles=[
     {title:"Delivery",sub:"Peça em casa pelo iFood",emoji:"🛵",onClick:onDelivery,bg:"#FBE3E0",bd:"#EFB7B0",fg:T.ink},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
@@ -977,6 +1128,16 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq}){
               </button>
             ))}
           </div>
+
+          {/* Banner Eventos */}
+          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"15px 20px",cursor:"pointer",marginTop:12,animationDelay:"400ms"}}>
+            <span style={{fontSize:32,flexShrink:0}}>🎉</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
+              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Estrutura completa + orçamento online na hora · casamentos, festas e corporativo</div>
+            </div>
+            <span className="fd" style={{fontSize:22,color:"#A9831C",flexShrink:0}}>→</span>
+          </button>
         </div>
       </section>
     </div>
@@ -1354,6 +1515,7 @@ export default function App(){
   const[showParceria,setShowParceria]=useState(false);
   const[showDelivery,setShowDelivery]=useState(false);
   const[showFaq,setShowFaq]=useState(false);
+  const[showEventos,setShowEventos]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -1368,7 +1530,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>setShowPote(true)} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
@@ -1381,6 +1543,7 @@ export default function App(){
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
       {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
+      {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
