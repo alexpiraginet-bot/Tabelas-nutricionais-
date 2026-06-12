@@ -514,7 +514,7 @@ function SejaBento({onClose}){
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
   return(
-    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Seja um revendedor ou franqueado" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Seja um revendedor ou franqueado" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
