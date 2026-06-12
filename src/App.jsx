@@ -1010,6 +1010,19 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
 const VD={kcal:2000,carbs:300,addedSugars:50,protein:50,fat:65,satFat:20,fiber:25,sodium:2000};
 // Arredondamento/formatação pt-BR (vírgula decimal); sódio < 5 mg = não significativo → "0"
 const br=v=>Number.isInteger(v)?String(v):String(v).replace(".",",");
+// Ordem de leitura dos ingredientes: fruta primeiro (gelatos de fruta), depois
+// whey, água e leite — os de maior composição — e por fim o restante (ordem original).
+function orderIngredients(ings){
+  const rank=name=>{
+    const n=name.toLowerCase();
+    if(n.startsWith("polpa")) return 0;
+    if(n.includes("whey")) return 1;
+    if(n==="água"||n==="agua") return 2;
+    if(n.startsWith("leite piracanjuba")) return 3;
+    return 4;
+  };
+  return ings.map((ing,i)=>({ing,i})).sort((a,b)=>rank(a.ing.name)-rank(b.ing.name)||a.i-b.i).map(x=>x.ing);
+}
 function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,compareIds,onToggleCompare}){
   const [protGoal,setProtGoal]=useState(120);
   const product=PRODUCTS.find(p=>p.id===productId);
@@ -1094,17 +1107,6 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                   Contém açúcares próprios dos ingredientes. Este não é um alimento baixo ou reduzido em valor energético.
                 </p>
               )}
-              {product.hasPolyols&&(
-              <div style={{marginTop:16,display:"flex",alignItems:"flex-start",gap:10,background:"#FDF8EC",border:"1px solid #D4B840",borderRadius:3,padding:"12px 14px",textAlign:"left"}}>
-                <span style={{fontSize:18,flexShrink:0,marginTop:1}} aria-hidden="true">⚠️</span>
-                <div>
-                  <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:"#7A6210",marginBottom:4}}>Advertência · Polióis</div>
-                  <div className="fb" style={{fontSize:12.5,color:"#5A4A08",lineHeight:1.55}}>
-                    Contém <strong>polióis</strong> (maltitol e sorbitol), provenientes da {product.ingredients[0].name}. <strong>{AVISO_POLIOL}</strong>
-                  </div>
-                </div>
-              </div>
-              )}
             </div>
             {/* Calculadora */}
             <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
@@ -1175,18 +1177,15 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               </div>
             </div>
             {/* Ingredientes */}
+            {(()=>{const ordered=orderIngredients(product.ingredients);return(
             <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
-              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Leaf size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Ingredientes</h3></div>
-              {product.ingredients.map((ing,i)=>(
-                <div key={i}>
-                  <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:10,padding:"9px 0",borderBottom:i<product.ingredients.length-1?`1px solid ${T.borderSoft}`:"none"}}>
-                    <span className="fb" style={{fontSize:13.5,color:T.ink}}>{ing.name}</span>
-                    <span className="fm" style={{fontSize:11.5,color:T.inkSoft}}>{ing.qty}</span>
-                  </div>
-                  {ing.note&&<div className="fb" style={{fontSize:11,color:T.inkSoft,fontStyle:"italic",borderLeft:`2px solid ${T.pistache}`,paddingLeft:10,marginLeft:4,marginBottom:4,marginTop:2,lineHeight:1.5}}>Composição: {ing.note}</div>}
-                </div>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><Leaf size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Ingredientes</h3></div>
+              <p className="fb" style={{fontSize:13,color:T.ink,lineHeight:1.6}}>{ordered.map(i=>i.name).join(", ")}.</p>
+              {ordered.filter(i=>i.note).map((i,k)=>(
+                <p key={k} className="fb" style={{fontSize:10.5,color:T.inkSoft,fontStyle:"italic",lineHeight:1.5,marginTop:8}}>{i.name}: {i.note}.</p>
               ))}
             </div>
+            );})()}
             {/* Ficha */}
             <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Beaker size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Ficha de produção</h3></div>
