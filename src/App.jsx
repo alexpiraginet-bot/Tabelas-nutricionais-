@@ -561,7 +561,12 @@ function EventosModal({onClose}){
         </div>
         <div style={{padding:22}}>
           {step===1&&(<>
-            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Estrutura completa de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
+            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gridTemplateRows:"76px 76px",gap:8,marginBottom:14}}>
+              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,gridRow:"1 / span 2",border:`1px solid ${T.border}`}}/>
+              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}}/>
+              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}}/>
+            </div>
+            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
             <span className="fm" style={lab}>Data do evento *</span>
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
@@ -1130,8 +1135,8 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           </div>
 
           {/* Banner Eventos */}
-          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"15px 20px",cursor:"pointer",marginTop:12,animationDelay:"400ms"}}>
-            <span style={{fontSize:32,flexShrink:0}}>🎉</span>
+          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"400ms"}}>
+            <img src="/eventos/carrinho-1.jpg" alt="" aria-hidden="true" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}}/>
             <div style={{flex:1,minWidth:0}}>
               <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Estrutura completa + orçamento online na hora · casamentos, festas e corporativo</div>
