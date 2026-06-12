@@ -455,6 +455,27 @@ function SejaParceiro({onClose,onForm}){
         </div>
       </section>
 
+      {/* MODELO DE NEGÓCIO / FRANQUIA */}
+      <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:28,alignItems:"center"}}>
+          <div>
+            <Kicker>Para futuros franqueados</Kicker>
+            <H>Um modelo de negócio para chamar de seu.</H>
+            <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14}}>Mais do que um freezer: um <strong style={{color:cream}}>destino</strong>. Um estande conceito que transforma o gelato proteico em experiência premium — a visão que estamos desenhando para o modelo de franquia Bentô.</p>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:18}}>
+              {["Estande conceito","Alto valor percebido","Experiência de marca"].map(t=>(
+                <span key={t} className="fb" style={{fontSize:12.5,color:cream,border:"1px solid rgba(201,168,106,0.3)",borderRadius:999,padding:"8px 14px"}}>{t}</span>
+              ))}
+            </div>
+            <div className="fb" style={{fontSize:12.5,color:soft,marginTop:18,lineHeight:1.5}}>💡 A <strong style={{color:cream}}>franquia é um projeto futuro</strong>. Registre seu interesse e seja o primeiro a saber quando abrirmos.</div>
+            <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:6,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
+          </div>
+          <div style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+            <img src="/parceria/estande.jpg" alt="Estande conceito Bentô Gelatos — modelo de negócio para franquia" style={{width:"100%",display:"block"}}/>
+          </div>
+        </div>
+      </section>
+
       {/* CTA FINAL */}
       <section style={{...wrap,paddingTop:20,paddingBottom:70}}>
         <div style={{background:"linear-gradient(135deg, rgba(201,168,106,0.16), rgba(124,139,78,0.12))",border:"1px solid rgba(201,168,106,0.3)",borderRadius:14,padding:"40px 28px",textAlign:"center"}}>
