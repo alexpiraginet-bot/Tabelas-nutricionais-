@@ -493,6 +493,46 @@ function SejaParceiro({onClose,onForm}){
   );
 }
 
+/* ========== FAQ NUTRICIONAL ========== */
+const FAQ=[
+  {q:"Posso comer na dieta?",a:"Sim, com equilíbrio! Nossos gelatos não levam açúcar adicionado e são ricos em proteína (whey WPH). Mas atenção: não são alimentos de baixo valor energético — cada sabor tem sua ficha nutricional completa aqui no app, com calorias e macros por porção, pra você encaixar na sua meta."},
+  {q:"Quem tem diabetes pode consumir?",a:"Nossos produtos não têm açúcar adicionado — a doçura vem de polióis e stévia. Porém, contêm carboidratos e açúcares próprios dos ingredientes (frutas, leite). Por isso, a recomendação responsável é: consulte seu médico ou nutricionista e confira a ficha nutricional de cada sabor antes de incluir na sua rotina."},
+  {q:"O que são polióis? Por que o aviso de efeito laxativo?",a:"Polióis (como maltitol e sorbitol) são adoçantes que usamos no lugar do açúcar. São seguros e amplamente utilizados, mas — como todo poliol — em consumo excessivo podem ter efeito laxativo em pessoas sensíveis. Por isso mantemos o aviso nas fichas, por transparência."},
+  {q:"Tem lactose?",a:"A maioria dos sabores contém leite e whey (derivado do leite). Os sorbets de fruta, como Limão Siciliano e Maracujá, não levam leite na receita. Confira o selo 'sem lactose' na ficha de cada sabor aqui no app — é a fonte mais segura."},
+  {q:"Tem glúten?",a:"A grande maioria dos sabores não contém glúten. As exceções são sabores com ingredientes como kadaif ou cookies (ex.: Chocolate Dubai, Cookies & Cream), sempre indicadas na ficha do sabor. Todos os produtos trazem a declaração de alérgenos conforme a RDC 26/2015."},
+  {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey WPH (proteína hidrolisada, de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
+  {q:"Como conservar em casa?",a:"Mantenha sempre no freezer. Para a textura perfeita de gelato, tire alguns minutos antes de consumir e evite descongelar e recongelar — isso preserva a cremosidade e a qualidade do produto."},
+  {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa, pelo iFood — é só tocar no botão Delivery na tela inicial. 🛵"},
+];
+function FaqModal({onClose}){
+  const[open,setOpen]=useState(0);
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Dúvidas frequentes" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:520,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Nutrição · Transparência</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Dúvidas frequentes ❓</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:"14px 18px 20px"}}>
+          {FAQ.map((f,i)=>(
+            <div key={i} style={{borderBottom:i<FAQ.length-1?`1px solid ${T.borderSoft}`:"none"}}>
+              <button onClick={()=>setOpen(open===i?-1:i)} aria-expanded={open===i} className="fb" style={{width:"100%",textAlign:"left",background:"none",border:"none",padding:"14px 4px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,cursor:"pointer"}}>
+                <span className="fd" style={{fontSize:16.5,color:open===i?T.pistacheDark:T.ink,lineHeight:1.25}}>{f.q}</span>
+                <span className="fd" style={{fontSize:20,color:T.pistacheDark,flexShrink:0,transform:open===i?"rotate(45deg)":"none",transition:"transform .2s"}}>+</span>
+              </button>
+              {open===i&&<p className="fb fade" style={{fontSize:13.5,color:T.inkSoft,lineHeight:1.6,padding:"0 4px 16px",margin:0}}>{f.a}</p>}
+            </div>
+          ))}
+          <p className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Conteúdo informativo — não substitui orientação de médico ou nutricionista.<br/>Ainda com dúvida? Chame a gente no WhatsApp (27) 99915-9995.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== DELIVERY (IFOOD) ========== */
 const LOJAS=[
   {id:"praia-do-canto",nome:"Praia do Canto",bairro:"Praia do Canto · Vitória-ES",lat:-20.2947,lng:-40.2925,
@@ -892,11 +932,12 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME (LAUNCHER) ========== */
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq}){
   const tiles=[
     {title:"Delivery",sub:"Peça em casa pelo iFood",emoji:"🛵",onClick:onDelivery,bg:"#FBE3E0",bd:"#EFB7B0",fg:T.ink},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
+    {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",emoji:"❓",onClick:onFaq,bg:"#E3EEF3",bd:"#B7D3E0",fg:T.ink},
     {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
     {title:"Stranger Gelatos",sub:"Nosso joguinho arcade",emoji:"🎮",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink},
   ];
@@ -1312,6 +1353,7 @@ export default function App(){
   const[showRevenda,setShowRevenda]=useState(false);
   const[showParceria,setShowParceria]=useState(false);
   const[showDelivery,setShowDelivery]=useState(false);
+  const[showFaq,setShowFaq]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -1326,7 +1368,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>setShowPote(true)} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
@@ -1338,6 +1380,7 @@ export default function App(){
       {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
+      {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
