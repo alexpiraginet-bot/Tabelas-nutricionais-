@@ -1110,22 +1110,22 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
         <div style={{width:"100%",marginTop:22}}>
           {/* Botão principal: Tabelas */}
-          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:16,textAlign:"left",background:"#E9F0D8",border:"1px solid #CBD9A6",borderRadius:14,padding:"18px 20px",cursor:"pointer",animationDelay:"120ms"}}>
+          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#E9F0D8",border:"1px solid #CBD9A6",borderRadius:14,padding:"11px 18px",cursor:"pointer",animationDelay:"120ms"}}>
             <div style={{display:"flex",gap:2,flexShrink:0}}>
-              <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={56} id="hg"/>
-              <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={48} id="hp"/>
+              <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={46} id="hg"/>
+              <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,marginBottom:3}}>Comece por aqui</div>
-              <div className="fd" style={{fontSize:"clamp(20px,3.4vw,26px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
-              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:3,lineHeight:1.35}}>Gelatos, picolés, monte seu pote e o quiz “qual é o meu sabor”.</div>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,marginBottom:2}}>Comece por aqui</div>
+              <div className="fd" style={{fontSize:"clamp(19px,3.2vw,24px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
+              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Gelatos, picolés, monte seu pote e quiz de sabores.</div>
             </div>
-            <span className="fd" style={{fontSize:26,color:T.pistacheDark,flexShrink:0}}>→</span>
+            <span className="fd" style={{fontSize:24,color:T.pistacheDark,flexShrink:0}}>→</span>
           </button>
 
-          {/* Demais funções */}
+          {/* Linha 1 de funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
-            {tiles.map((t,i)=>(
+            {tiles.slice(0,2).map((t,i)=>(
               <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${160+i*45}ms`}}>
                 <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
                 <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
@@ -1135,7 +1135,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           </div>
 
           {/* Banner Eventos */}
-          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"400ms"}}>
+          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms"}}>
             <img src="/eventos/carrinho-1.jpg" alt="" aria-hidden="true" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}}/>
             <div style={{flex:1,minWidth:0}}>
               <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
@@ -1143,6 +1143,17 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             </div>
             <span className="fd" style={{fontSize:22,color:"#A9831C",flexShrink:0}}>→</span>
           </button>
+
+          {/* Demais funções */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
+            {tiles.slice(2).map((t,i)=>(
+              <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${250+i*45}ms`}}>
+                <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
+                <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
+                <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
     </div>
