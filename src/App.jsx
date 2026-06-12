@@ -1627,6 +1627,19 @@ function ContratoPage({data:d}){
     dl(`evento-bento-${date}.ics`,ics,"text/calendar");
   };
   const exportJSON=()=>dl(`evento-bento-${(d.data||"").replace(/\//g,"-")}.json`,JSON.stringify(d,null,2),"application/json");
+  const avisarEquipe=()=>{
+    const msg=["🎉 *EVENTO CONFIRMADO — Bentô*",
+      `📅 ${d.data}   📍 ${d.local}`,
+      `👥 ${d.convidados} convidados · ${d.tipo}`,
+      `🍨 até ${d.sabores} sabores · ${d.rend}`,
+      `🧑‍🍳 ${d.promotoras} promotora${d.promotoras>1?"s":""} (uniformizada${d.promotoras>1?"s":""})`,
+      d.km!=null?`🚚 ~${d.km} km · referência loja ${d.loja} (ida e volta)`:"🚚 logística a confirmar",
+      d.pers&&d.pers.length?`✨ ${d.pers.join(", ")}`:"",
+      `💰 Total: ${money(d.total)}`,
+      `👤 ${d.nome} · ${d.zap}`].filter(Boolean).join("\n");
+    if(navigator.share){navigator.share({title:"Evento Bentô",text:msg}).catch(()=>{});}
+    else{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");}
+  };
   return(
     <div style={{minHeight:"100vh",background:"#54594A",padding:"24px 8px",fontFamily:"'DM Sans',system-ui,sans-serif"}}>
       <style>{`
@@ -1644,6 +1657,7 @@ function ContratoPage({data:d}){
         <button onClick={()=>window.print()} style={{background:"#C9A86A",border:"none",borderRadius:6,padding:"12px 20px",fontSize:14,fontWeight:700,cursor:"pointer"}}>🖨️ Imprimir / Salvar PDF</button>
         <button onClick={exportICS} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>📅 Agenda (.ics)</button>
         <button onClick={exportJSON} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>⬇️ Dados (JSON)</button>
+        <button onClick={avisarEquipe} style={{background:"#1FA855",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>📣 Avisar equipe</button>
         <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
         <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · campos amarelos editáveis. <strong>Fluxo de assinatura:</strong> a Bentô assina primeiro (conferência) e, em seguida, o cliente. Modelo automático — recomendamos validação jurídica.</span>
       </div>
