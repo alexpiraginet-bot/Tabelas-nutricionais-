@@ -496,17 +496,45 @@ function SejaParceiro({onClose,onForm}){
 /* ========== EVENTOS ========== */
 const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Copinhos & colheres com a marca","Outra personalização"];
 const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
-function calcEvento(g,tipo="Mix (gelatos + picolés)"){
+const EV_KM_RATE=2.0;     // R$/km rodado (combustível + deslocamento + tempo, média)
+const EV_ROTA=1.3;        // fator linha reta → rota real
+const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
+const EV_CARRINHO=200;    // R$ personalização do carrinho
+function evHaversine(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+async function evGeocode(text){
+  const parts=text.split(/[-–—,\/·]/).map(t=>t.trim()).filter(Boolean);
+  const tries=[...new Set([text.trim(),...parts,parts[0]+" ES",parts[parts.length-1]+" ES"])];
+  for(const t of tries){
+    try{
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(t)}`);
+      const j=await r.json();
+      if(j&&j[0]){
+        const la=+j[0].lat,lo=+j[0].lon;
+        let best=null;
+        for(const s of LOJAS){const km=evHaversine(la,lo,s.lat,s.lng);if(!best||km<best.km)best={km,loja:s.nome};}
+        return{ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja};
+      }
+    }catch(e){}
+  }
+  return{ok:false};
+}
+function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
   const n=Math.max(1,Number(g)||0);
   let rend;
   if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
   else if(tipo==="Picolés") rend=`~${n*2} picolés Bistrô · 2 por pessoa`;
   else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
+  const base=n*27;                                                        // R$ 27 por pessoa
+  const potinhos=pers.includes("Potinhos personalizados")?n*2*EV_POTINHO:0; // 2 potinhos/pessoa
+  const carrinho=pers.includes("Carrinho personalizado")?EV_CARRINHO:0;
+  const persACombinar=pers.filter(p=>p!=="Potinhos personalizados"&&p!=="Carrinho personalizado");
+  const logistica=km!=null?Math.round(km*2*EV_KM_RATE):null;              // ida e volta × R$/km
   return{
     sabores:n>=150?6:Math.max(2,Math.round(n*6/150)),   // até 6 sabores (150+); proporcional abaixo
-    rend,                                                // rendimento conforme o tipo escolhido
+    rend,
     promotoras:n>300?2:1,                                // até 2 promotoras acima de 300
-    total:n*27,                                          // R$ 27 por pessoa
+    base,potinhos,carrinho,persACombinar,logistica,
+    total:base+potinhos+carrinho+(logistica||0),
     corporativo:n>300,
   };
 }
@@ -517,8 +545,16 @@ function EventosModal({onClose}){
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
   const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
-  const q=calcEvento(ev.convidados,ev.tipo);
+  const[geo,setGeo]=useState(null);   // {ok,km,loja} após geocodificar o local
+  const[busy,setBusy]=useState(false);
+  const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null);
   const nConv=Number(ev.convidados)||0;
+  const verOrcamento=async()=>{
+    setBusy(true);
+    setGeo(await evGeocode(ev.local));
+    setBusy(false);
+    setStep(2);
+  };
   const menor=nConv>0&&nConv<70;
   const ok1=ev.data&&ev.local.trim()&&nConv>=70;
   const waMenor=()=>{
@@ -545,10 +581,15 @@ function EventosModal({onClose}){
       `*Produtos:* ${ev.tipo}`,
       `*Sabores:* até ${q.sabores}`,
       `*Rendimento:* ${q.rend}`,
-      `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,
-      ev.pers.length>0&&`*Personalização (a combinar):* ${ev.pers.join(", ")}`,
+      `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,"",
+      "*— Orçamento online —*",
+      `*Serviço (R$ 27 × ${ev.convidados}):* ${fmtBRL(q.base)}`,
+      geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`:"*Logística:* a confirmar",
+      q.potinhos>0&&`*Potinhos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
+      q.carrinho>0&&`*Personalização do carrinho:* ${fmtBRL(q.carrinho)}`,
+      q.persACombinar.length>0&&`*A combinar:* ${q.persACombinar.join(", ")}`,
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
-      `*Estimativa online:* ${fmtBRL(q.total)} (R$ 27/pessoa)`,
+      `*Total estimado:* ${fmtBRL(q.total)}`,
       cad.obs.trim()&&`*Observações:* ${cad.obs.trim()}`,"",
       "_Solicito a formulação do contrato para assinatura online._",
     ].filter(Boolean);
@@ -610,7 +651,7 @@ function EventosModal({onClose}){
                 <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
-              <button onClick={()=>setStep(2)} disabled={!ok1} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1?T.pistacheDark:T.border,color:ok1?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1?"pointer":"not-allowed"}}>Ver meu orçamento →</button>
+              <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Calculando logística…":"Ver meu orçamento →"}</button>
               {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha data, local e ao menos 70 convidados.</div>}
             </>)}
           </>)}
@@ -623,17 +664,29 @@ function EventosModal({onClose}){
               <Row l="Sabores inclusos" v={`até ${q.sabores}`}/>
               <Row l="Rendimento" v={q.rend}/>
               <Row l="Equipe" v={`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`}/>
-              {ev.pers.length>0&&<Row l="Personalização" v="a combinar ✨"/>}
+              <Row l={`Serviço (R$ 27 × ${ev.convidados})`} v={fmtBRL(q.base)}/>
+              {geo&&geo.ok
+                ? <Row l={`Logística · ~${geo.km} km da Bentô ${geo.loja} (ida e volta)`} v={fmtBRL(q.logistica)}/>
+                : <Row l="Logística (deslocamento)" v="a confirmar"/>}
+              {q.potinhos>0&&<Row l={`Potinhos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
+              {q.carrinho>0&&<Row l="Personalização do carrinho" v={fmtBRL(q.carrinho)}/>}
+              {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
-                <span className="fb" style={{fontSize:13,color:T.inkSoft}}>Estimativa (R$ 27/pessoa)</span>
+                <span className="fb" style={{fontSize:13,color:T.inkSoft}}>Total estimado</span>
                 <span className="fd" style={{fontSize:28,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
               </div>
             </div>
+            {geo&&!geo.ok&&(
+              <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>📍 Não conseguimos localizar o endereço para calcular a logística — confirmamos o deslocamento no fechamento. Dica: volte e inclua bairro e cidade no local.</div>
+            )}
+            {geo&&geo.ok&&(
+              <div className="fb" style={{marginTop:10,fontSize:11.5,color:T.inkSoft,lineHeight:1.5}}>🚚 Logística estimada a partir da nossa loja mais próxima (Bentô {geo.loja}), incluindo combustível e deslocamento médios.</div>
+            )}
             {q.corporativo&&(
               <div className="fb" style={{marginTop:12,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:4,padding:"11px 14px",fontSize:12.5,color:T.ink,lineHeight:1.5}}>🏢 <strong>Evento corporativo com mais de 300 pessoas?</strong> Você tem condições especiais — o valor final pode ficar ainda melhor no fechamento.</div>
             )}
-            {ev.pers.length>0&&(
-              <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>✨ Personalização escolhida: {ev.pers.join(", ")} — valores combinados diretamente com nossa equipe.</div>
+            {q.persACombinar.length>0&&(
+              <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>✨ {q.persACombinar.join(", ")}: valores combinados diretamente com nossa equipe.</div>
             )}
             <div className="fb" style={{marginTop:10,fontSize:11,color:T.inkSoft,lineHeight:1.5,fontStyle:"italic"}}>Estimativa online sujeita a confirmação de data, logística e proposta final em contrato.</div>
             <div style={{display:"flex",gap:8,marginTop:18}}>
