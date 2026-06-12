@@ -496,11 +496,15 @@ function SejaParceiro({onClose,onForm}){
 /* ========== EVENTOS ========== */
 const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Copinhos & colheres com a marca","Outra personalização"];
 const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
-function calcEvento(g){
+function calcEvento(g,tipo="Mix (gelatos + picolés)"){
   const n=Math.max(1,Number(g)||0);
+  let rend;
+  if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
+  else if(tipo==="Picolés") rend=`~${n*2} picolés Bistrô · 2 por pessoa`;
+  else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
   return{
     sabores:n>=150?6:Math.max(2,Math.round(n*6/150)),   // até 6 sabores (150+); proporcional abaixo
-    litros:Math.round(n*0.15),                           // ~150 ml por pessoa
+    rend,                                                // rendimento conforme o tipo escolhido
     promotoras:n>300?2:1,                                // até 2 promotoras acima de 300
     total:n*27,                                          // R$ 27 por pessoa
     corporativo:n>300,
@@ -513,8 +517,17 @@ function EventosModal({onClose}){
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
   const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
-  const q=calcEvento(ev.convidados);
-  const ok1=ev.data&&ev.local.trim()&&Number(ev.convidados)>=20;
+  const q=calcEvento(ev.convidados,ev.tipo);
+  const nConv=Number(ev.convidados)||0;
+  const menor=nConv>0&&nConv<70;
+  const ok1=ev.data&&ev.local.trim()&&nConv>=70;
+  const waMenor=()=>{
+    const l=["*Evento Bentô — até 70 convidados* 🎉","Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
+      ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
+      ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
+      nConv>0&&`*Convidados:* ${nConv}`].filter(Boolean);
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank");
+  };
   const ok3=cad.nome.trim()&&cad.doc.trim().length>=11&&cad.email.includes("@")&&cad.zap.replace(/\D/g,"").length>=10;
   const enviar=()=>{
     const linhas=[
@@ -531,7 +544,7 @@ function EventosModal({onClose}){
       `*Convidados:* ${ev.convidados}`,
       `*Produtos:* ${ev.tipo}`,
       `*Sabores:* até ${q.sabores}`,
-      `*Volume estimado:* ~${q.litros} L (150 ml/pessoa)`,
+      `*Rendimento:* ${q.rend}`,
       `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,
       ev.pers.length>0&&`*Personalização (a combinar):* ${ev.pers.join(", ")}`,
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
@@ -571,10 +584,10 @@ function EventosModal({onClose}){
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
             <input className="fb" style={inp} value={ev.local} onChange={e=>setE("local",e.target.value)} placeholder="Ex.: Vitória — Cerimonial X"/>
-            <span className="fm" style={lab}>Quantidade de convidados *</span>
-            <input type="number" min={20} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value)} inputMode="numeric"/>
+            <span className="fm" style={lab}>Quantidade de convidados * (mín. 70)</span>
+            <input type="number" min={70} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value)} inputMode="numeric"/>
             <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
-              {[50,100,150,300,500].map(n=>(
+              {[70,100,150,300,500].map(n=>(
                 <button key={n} onClick={()=>setE("convidados",n)} className="fm" style={{fontSize:10,padding:"6px 12px",borderRadius:999,border:`1px solid ${Number(ev.convidados)===n?T.pistacheDark:T.border}`,background:Number(ev.convidados)===n?T.pistacheDark:"transparent",color:Number(ev.convidados)===n?T.surface:T.inkSoft,cursor:"pointer"}}>{n}</button>
               ))}
             </div>
@@ -590,8 +603,16 @@ function EventosModal({onClose}){
                 <button key={p} onClick={()=>togglePers(p)} className="fb" style={{fontSize:12,padding:"9px 12px",borderRadius:999,border:`1px solid ${ev.pers.includes(p)?T.pistacheDark:T.border}`,background:ev.pers.includes(p)?"#EFF5E5":"transparent",color:T.ink,cursor:"pointer"}}>{ev.pers.includes(p)?"✓ ":""}{p}</button>
               ))}
             </div>
-            <button onClick={()=>setStep(2)} disabled={!ok1} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1?T.pistacheDark:T.border,color:ok1?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1?"pointer":"not-allowed"}}>Ver meu orçamento →</button>
-            {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha data, local e ao menos 20 convidados.</div>}
+            {menor?(
+              <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:6,padding:"16px"}}>
+                <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de 70 convidados?</div>
+                <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online é para eventos a partir de <strong>70 pessoas</strong>. Para grupos menores temos <strong>outras possibilidades de serviço</strong> — fale com a gente que montamos algo sob medida. 💛</div>
+                <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
+              </div>
+            ):(<>
+              <button onClick={()=>setStep(2)} disabled={!ok1} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1?T.pistacheDark:T.border,color:ok1?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1?"pointer":"not-allowed"}}>Ver meu orçamento →</button>
+              {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha data, local e ao menos 70 convidados.</div>}
+            </>)}
           </>)}
 
           {step===2&&(<>
@@ -600,7 +621,7 @@ function EventosModal({onClose}){
               <Row l="Convidados" v={ev.convidados}/>
               <Row l="Produtos" v={ev.tipo}/>
               <Row l="Sabores inclusos" v={`até ${q.sabores}`}/>
-              <Row l="Volume estimado" v={`~${q.litros} L (150 ml/pessoa)`}/>
+              <Row l="Rendimento" v={q.rend}/>
               <Row l="Equipe" v={`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`}/>
               {ev.pers.length>0&&<Row l="Personalização" v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
