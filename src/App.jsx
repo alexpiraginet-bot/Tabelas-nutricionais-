@@ -1640,7 +1640,7 @@ function ContratoPage({data:d}){
           <div style={{fontSize:11,letterSpacing:"0.18em",marginTop:4}}>GELATERIA PARA EVENTOS · BENTÔ GELATOS</div>
         </div>
         <div style={{marginTop:18,fontSize:11,lineHeight:1.6}}>
-          <strong>CONTRATADA:</strong> <Ed>BENTÔ GELATOS — [razão social], CNPJ [00.000.000/0000-00]</Ed>, com sede em <Ed>Vitória — ES</Ed>, WhatsApp (27) 99915-9995, e-mail <Ed>[e-mail da loja]</Ed>.<br/>
+          <strong>CONTRATADA:</strong> ABB GELATERIA LTDA (nome fantasia <strong>Bentô Gelateria</strong>), CNPJ 61.590.463/0001-45, com sede na R. Joaquim Lírio, 455, Quiosque 02, Praia do Canto, Vitória — ES, CEP 29.055-460, WhatsApp (27) 99915-9995, e-mail bentogalateria@gmail.com.<br/>
           <strong>CONTRATANTE:</strong> {d.nome}, CPF/CNPJ {d.doc}{d.empresa?<> , representando <strong>{d.empresa}</strong></>:null}, e-mail {d.email}, WhatsApp {d.zap}.
         </div>
         <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, incluindo carrinho Bentô, produtos e equipe, a realizar-se em <strong>{d.data}</strong>, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
@@ -1670,7 +1670,7 @@ function ContratoPage({data:d}){
         <Clause n="8ª" t="DISPOSIÇÕES GERAIS">Casos de força maior serão tratados conforme a legislação vigente. Fica eleito o foro da Comarca de <strong>Vitória — ES</strong> para dirimir quaisquer controvérsias oriundas deste contrato.</Clause>
         <div style={{marginTop:30,fontSize:11}}>Vitória — ES, <Ed>{hoje}</Ed>.</div>
         <div style={{display:"flex",gap:40,marginTop:46}}>
-          {[["CONTRATADA","Bentô Gelatos"],["CONTRATANTE",d.nome]].map(([t,n])=>(
+          {[["CONTRATADA","ABB Gelateria Ltda · Bentô Gelateria"],["CONTRATANTE",d.nome]].map(([t,n])=>(
             <div key={t} style={{flex:1,textAlign:"center"}}>
               <div style={{borderTop:"1px solid #1a1a1a",paddingTop:6,fontSize:10.5}}><strong>{t}</strong><br/>{n}</div>
             </div>
