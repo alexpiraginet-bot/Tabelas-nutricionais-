@@ -493,6 +493,62 @@ function SejaParceiro({onClose,onForm}){
   );
 }
 
+/* ========== DELIVERY (IFOOD) ========== */
+const LOJAS=[
+  {id:"praia-do-canto",nome:"Praia do Canto",bairro:"Praia do Canto · Vitória-ES",lat:-20.2947,lng:-40.2925,
+   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share",
+   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Praia do Canto Vitória ES")},
+  {id:"jardim-camburi",nome:"Jardim Camburi",bairro:"Jardim Camburi · Vitória-ES",lat:-20.2547,lng:-40.2670,
+   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share",
+   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Jardim Camburi Vitória ES")},
+];
+function DeliveryModal({onClose}){
+  const[near,setNear]=useState(null); // id da loja mais próxima
+  const[geoMsg,setGeoMsg]=useState("");
+  const locate=()=>{
+    if(!navigator.geolocation){setGeoMsg("Seu navegador não permite localização — escolha pela lista.");return;}
+    setGeoMsg("Localizando…");
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const{latitude:la,longitude:lo}=pos.coords;
+      const d=s=>Math.hypot(s.lat-la,(s.lng-lo)*Math.cos(la*Math.PI/180));
+      const best=[...LOJAS].sort((a,b)=>d(a)-d(b))[0];
+      setNear(best.id);setGeoMsg("");
+    },()=>setGeoMsg("Não foi possível obter sua localização — escolha pela lista."),{timeout:8000});
+  };
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Delivery Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Delivery · iFood</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Peça em casa 🛵</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:14}}>Temos duas lojas em Vitória. Escolha a mais perto de você — ou deixe a gente descobrir:</div>
+          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:4,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>📍 Qual loja está mais perto de mim?</button>
+          {geoMsg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,textAlign:"center",marginBottom:6}}>{geoMsg}</div>}
+          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:10}}>
+            {LOJAS.map(l=>(
+              <div key={l.id} style={{border:`1.5px solid ${near===l.id?T.pistacheDark:T.border}`,background:near===l.id?"#EFF5E5":T.bg,borderRadius:6,padding:"16px 16px 14px",position:"relative"}}>
+                {near===l.id&&<span className="fm" style={{position:"absolute",top:-9,left:14,fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"3px 10px"}}>⭐ Mais próxima de você</span>}
+                <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
+                <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
+                <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
+                  <a href={l.ifood} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir no iFood</a>
+                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:4,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Área e taxa de entrega são calculadas pelo iFood conforme seu endereço.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
 const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 function SejaBento({onClose}){
@@ -836,8 +892,9 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
 }
 
 /* ========== HOME (LAUNCHER) ========== */
-function Home({onTabelas,onCardapio,onPitch,onParceria}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery}){
   const tiles=[
+    {title:"Delivery",sub:"Peça em casa pelo iFood",emoji:"🛵",onClick:onDelivery,bg:"#FBE3E0",bd:"#EFB7B0",fg:T.ink},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
     {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
@@ -1254,6 +1311,7 @@ export default function App(){
   const[showCardapio,setShowCardapio]=useState(false);
   const[showRevenda,setShowRevenda]=useState(false);
   const[showParceria,setShowParceria]=useState(false);
+  const[showDelivery,setShowDelivery]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
@@ -1268,7 +1326,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>setShowPote(true)} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
@@ -1279,9 +1337,11 @@ export default function App(){
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
       {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
+      {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          <button onClick={()=>setShowDelivery(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:2,padding:"7px 12px"}}>🛵 Delivery</button>
           <button onClick={()=>setShowCardapio(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
           <button onClick={()=>setShowParceria(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
           <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
