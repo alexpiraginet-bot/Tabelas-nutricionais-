@@ -1698,7 +1698,7 @@ export default function App(){
     }catch{return null;}
   });
   const[privacidade]=useState(()=>{try{return new URLSearchParams(window.location.search).has("privacidade");}catch{return false;}});
-  const[view,setView]=useState("home");
+  const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
   const[showQuiz,setShowQuiz]=useState(false);
