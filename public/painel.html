@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Bentô · Painel de acessos</title>
+<style>
+  :root{
+    --bg:#0c0f0a; --panel:#141a10; --panel2:#1b2215; --line:#2b3522;
+    --ink:#eef3e6; --soft:#9fb089; --pist:#b8c97a; --pistD:#8fa050;
+    --gold:#e3c46a; --red:#e0695f; --blue:#7fb5d8;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  body{background-image:radial-gradient(900px 500px at 80% -10%,rgba(184,201,122,.10),transparent 60%),
+    radial-gradient(700px 500px at -10% 110%,rgba(127,181,216,.08),transparent 60%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:22px 18px 60px}
+  .mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .dot{width:40px;height:40px;border-radius:50%;background:conic-gradient(from 200deg,var(--pist),var(--pistD),var(--gold),var(--pist));
+    display:flex;align-items:center;justify-content:center;color:#0c0f0a;font-weight:800;font-size:15px;letter-spacing:-.5px}
+  .brand h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.02em}
+  .brand .sub{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--soft);margin-top:2px}
+  .meta{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--soft)}
+  .live{display:inline-flex;align-items:center;gap:6px}
+  .blip{width:8px;height:8px;border-radius:50%;background:var(--pist);box-shadow:0 0 0 0 rgba(184,201,122,.7);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(184,201,122,.6)}70%{box-shadow:0 0 0 9px rgba(184,201,122,0)}100%{box-shadow:0 0 0 0 rgba(184,201,122,0)}}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--soft);border-radius:8px;padding:7px 12px;font-size:11px;cursor:pointer}
+  button.ghost:hover{border-color:var(--pistD);color:var(--ink)}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:14px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);border-radius:14px;padding:16px 16px}
+  .kpi .lab{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+  .kpi .val{font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:6px;line-height:1}
+  .kpi .val small{font-size:13px;font-weight:600;color:var(--soft)}
+  .kpi .hint{font-size:11px;color:var(--soft);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .accent-pist{color:var(--pist)} .accent-gold{color:var(--gold)} .accent-blue{color:var(--blue)}
+  .grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:14px}
+  @media(max-width:820px){.grid2{grid-template-columns:1fr}}
+  .card h3{margin:0 0 12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);font-weight:700}
+  .chartbox{position:relative;height:300px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:700}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tag{display:inline-block;font-size:9px;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;border:1px solid var(--line);color:var(--soft)}
+  .tag.conv{color:var(--gold);border-color:rgba(227,196,106,.4)}
+  .bar{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--pistD),var(--pist));}
+  .barwrap{background:#222b1a;border-radius:4px;overflow:hidden;width:100%}
+  /* Login */
+  .gate{position:fixed;inset:0;background:rgba(8,10,7,.92);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px;max-width:360px;width:100%;text-align:center}
+  .gate input{width:100%;margin-top:14px;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:#0e120b;color:var(--ink);font-size:15px;outline:none}
+  .gate input:focus{border-color:var(--pistD)}
+  .gate button{width:100%;margin-top:12px;padding:12px;border-radius:10px;border:none;background:var(--pist);color:#0c0f0a;font-weight:800;font-size:14px;cursor:pointer}
+  .err{color:var(--red);font-size:12px;margin-top:10px;min-height:16px}
+  .empty{color:var(--soft);font-size:13px;text-align:center;padding:30px}
+  a.docs{color:var(--pist);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div class="box">
+    <div class="dot" style="margin:0 auto 8px">B</div>
+    <div style="font-weight:700;font-size:16px">Painel Bentô</div>
+    <div style="font-size:11px;color:var(--soft);letter-spacing:.28em;text-transform:uppercase;margin-top:4px">Acesso restrito</div>
+    <input id="key" type="password" placeholder="Senha do painel" autocomplete="current-password" />
+    <button id="enter">Entrar</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="head">
+    <div class="brand">
+      <div class="dot">B</div>
+      <div>
+        <h1>Bentô · Painel de acessos</h1>
+        <div class="sub">Functional Nutrition</div>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="live"><span class="blip"></span> ao vivo</span>
+      <span id="updated" class="mono"></span>
+      <button class="ghost" id="refresh">Atualizar</button>
+      <button class="ghost" id="logout">Sair</button>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="card kpi"><div class="lab">Cliques (total)</div><div class="val" id="kTotal">—</div><div class="hint" id="kTotalHint">desde o início</div></div>
+    <div class="card kpi"><div class="lab">Hoje</div><div class="val accent-pist" id="kHoje">—</div><div class="hint">cliques nas últimas 24h (SP)</div></div>
+    <div class="card kpi"><div class="lab">Conversões (total)</div><div class="val accent-gold" id="kConv">—</div><div class="hint">iFood, orçamento, revenda, quiz…</div></div>
+    <div class="card kpi"><div class="lab">Botão campeão</div><div class="val accent-blue" id="kTop" style="font-size:20px">—</div><div class="hint" id="kTopHint"></div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Cliques por dia · últimos 14 dias</h3>
+      <div class="chartbox"><canvas id="lineChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Acesso × Conversão (total)</h3>
+      <div class="chartbox"><canvas id="donut"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h3>Ranking de botões (total)</h3>
+    <div class="chartbox" style="height:360px"><canvas id="barChart"></canvas></div>
+  </div>
+
+  <div class="card">
+    <h3>Todos os eventos</h3>
+    <div style="overflow:auto">
+      <table id="tbl">
+        <thead><tr><th>Evento</th><th>Tipo</th><th class="num">Hoje</th><th class="num">Total</th><th style="width:34%">Proporção</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" style="display:none">Ainda sem cliques registrados. Assim que alguém usar o site, os dados aparecem aqui. 🍨</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const $ = (s) => document.querySelector(s);
+const KEYSTORE = "bento:panelkey";
+let charts = {};
+
+function isConv(name){ return /^(Conversão|Sabor)\b/.test(name) || name.indexOf("Conversão")===0; }
+function fmt(n){ return (n||0).toLocaleString("pt-BR"); }
+
+async function load(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/stats?key=" + encodeURIComponent(key), { cache:"no-store" });
+  if (r.status === 401){ openGate("Senha incorreta."); throw new Error("401"); }
+  if (!r.ok){ const j = await r.json().catch(()=>({})); throw new Error(j.error || ("HTTP "+r.status)); }
+  return r.json();
+}
+
+function render(d){
+  const names = Object.keys(d.totals||{});
+  const totals = d.totals||{}; const series = d.series||{}; const days = d.days||[];
+  const lastIdx = days.length - 1;
+
+  const grandTotal = names.reduce((s,n)=>s+(totals[n]||0),0);
+  const hoje = names.reduce((s,n)=>s+((series[n]&&series[n][lastIdx])||0),0);
+  const convTotal = names.filter(isConv).reduce((s,n)=>s+(totals[n]||0),0);
+  const ranked = names.slice().sort((a,b)=>(totals[b]||0)-(totals[a]||0));
+
+  $("#kTotal").textContent = fmt(grandTotal);
+  $("#kHoje").textContent = fmt(hoje);
+  $("#kConv").textContent = fmt(convTotal);
+  if (ranked.length){ $("#kTop").textContent = ranked[0]; $("#kTopHint").textContent = fmt(totals[ranked[0]]) + " cliques"; }
+  else { $("#kTop").textContent = "—"; $("#kTopHint").textContent = ""; }
+
+  // tabela
+  const tb = $("#tbl tbody"); tb.innerHTML = "";
+  const max = Math.max(1, ...ranked.map(n=>totals[n]||0));
+  ranked.forEach(n=>{
+    const tr = document.createElement("tr");
+    const pct = Math.round((totals[n]||0)/max*100);
+    const today = (series[n]&&series[n][lastIdx])||0;
+    tr.innerHTML = `<td>${escapeHtml(n)}</td>
+      <td>${isConv(n)?'<span class="tag conv">conversão</span>':'<span class="tag">acesso</span>'}</td>
+      <td class="num">${fmt(today)}</td>
+      <td class="num">${fmt(totals[n]||0)}</td>
+      <td><div class="barwrap"><div class="bar" style="width:${pct}%"></div></div></td>`;
+    tb.appendChild(tr);
+  });
+  $("#empty").style.display = ranked.length ? "none" : "block";
+
+  // chart: linha por dia (total)
+  const lineData = days.map((_,i)=> names.reduce((s,n)=>s+((series[n]&&series[n][i])||0),0));
+  drawLine(days, lineData);
+
+  // donut acesso x conversao
+  const acessoTotal = grandTotal - convTotal;
+  drawDonut(acessoTotal, convTotal);
+
+  // bar ranking (top 14)
+  const top = ranked.slice(0,14);
+  drawBar(top.map(n=>n), top.map(n=>totals[n]||0), top.map(isConv));
+
+  $("#updated").textContent = "atualizado " + new Date(d.updatedAt||Date.now()).toLocaleTimeString("pt-BR");
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const CSS = getComputedStyle(document.documentElement);
+const C = (v)=>CSS.getPropertyValue(v).trim();
+
+function drawLine(labels, data){
+  const ctx = $("#lineChart");
+  charts.line && charts.line.destroy();
+  const g = ctx.getContext("2d").createLinearGradient(0,0,0,300);
+  g.addColorStop(0,"rgba(184,201,122,.42)"); g.addColorStop(1,"rgba(184,201,122,0)");
+  charts.line = new Chart(ctx,{type:"line",
+    data:{labels:labels.map(d=>d.slice(5)),datasets:[{data,fill:true,backgroundColor:g,borderColor:C("--pist"),
+      borderWidth:2,tension:.35,pointRadius:3,pointBackgroundColor:C("--pist")}]},
+    options:baseOpts({y:true})});
+}
+function drawBar(labels, data, conv){
+  const ctx = $("#barChart");
+  charts.bar && charts.bar.destroy();
+  charts.bar = new Chart(ctx,{type:"bar",
+    data:{labels,datasets:[{data,borderRadius:6,
+      backgroundColor:conv.map(c=>c?C("--gold"):C("--pistD")),
+      hoverBackgroundColor:conv.map(c=>c?C("--gold"):C("--pist"))}]},
+    options:{...baseOpts({x:true}),indexAxis:"y"}});
+}
+function drawDonut(acesso, conv){
+  const ctx = $("#donut");
+  charts.donut && charts.donut.destroy();
+  charts.donut = new Chart(ctx,{type:"doughnut",
+    data:{labels:["Acesso","Conversão"],datasets:[{data:[acesso,conv],
+      backgroundColor:[C("--pistD"),C("--gold")],borderColor:C("--panel2"),borderWidth:3}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"62%",
+      plugins:{legend:{labels:{color:C("--soft"),font:{size:12}},position:"bottom"}}}});
+}
+function baseOpts(axes){
+  const grid = "rgba(255,255,255,.06)";
+  return {responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:"#0e120b",borderColor:C("--line"),borderWidth:1,titleColor:C("--ink"),bodyColor:C("--ink")}},
+    scales:{
+      x:{grid:{color:axes.x?grid:"transparent",drawTicks:false},ticks:{color:C("--soft"),font:{size:11}}},
+      y:{grid:{color:axes.y?grid:"transparent",drawTicks:false},ticks:{color:C("--soft"),font:{size:11},precision:0},beginAtZero:true}
+    }};
+}
+
+function openGate(msg){ $("#app").style.display="none"; $("#gate").style.display="flex"; $("#gateErr").textContent=msg||""; $("#key").focus(); }
+function closeGate(){ $("#gate").style.display="none"; $("#app").style.display="block"; }
+
+async function refresh(){
+  try{ const d = await load(); closeGate(); render(d); }
+  catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
+}
+
+$("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim()); refresh(); };
+$("#key").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#enter").click(); });
+$("#refresh").onclick = refresh;
+$("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); openGate(""); };
+
+// início
+if (localStorage.getItem(KEYSTORE)) refresh(); else openGate("");
+setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 30000);
+</script>
+</body>
+</html>
