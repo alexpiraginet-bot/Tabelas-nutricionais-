@@ -3,6 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- QR antigo das Tabelas (projeto Vercel extinto: project-my3gq) -> domínio central, direto nas Tabelas -->
+    <script>
+      if (location.hostname === "project-my3gq.vercel.app") {
+        location.replace("https://bentogelateria.com/?tabela" + (location.hash || ""));
+      }
+    </script>
     <meta name="description" content="Bentô Gelatos — gelato com propósito. Zero açúcar adicionado, rico em proteína, rótulo limpo. Sabores, cardápio, fichas nutricionais e parceria, tudo em um só lugar." />
     <meta name="theme-color" content="#1F2317" />
 
