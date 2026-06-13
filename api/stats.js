@@ -1,8 +1,20 @@
 // Lê os contadores do Redis e devolve um resumo para o painel privado.
 // Protegido por senha (PANEL_KEY). GET /api/stats?key=SENHA
 
-const KV_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const KV_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+// Detecta a REST API do Redis automaticamente, qualquer que seja o prefixo escolhido
+// no painel da Vercel (KV_, UPSTASH_REDIS_, STORAGE_, etc.).
+function findKV() {
+  let url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  let token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) {
+    for (const k of Object.keys(process.env)) {
+      if (!url && /REST_API_URL$/.test(k)) url = process.env[k];
+      if (!token && /REST_API_TOKEN$/.test(k) && !/READ_ONLY/.test(k)) token = process.env[k];
+    }
+  }
+  return { url, token };
+}
+const { url: KV_URL, token: KV_TOKEN } = findKV();
 const PANEL_KEY = process.env.PANEL_KEY;
 
 async function cmd(args) {
