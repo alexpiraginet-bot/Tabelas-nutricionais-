@@ -494,7 +494,7 @@ function SejaParceiro({onClose,onForm}){
 }
 
 /* ========== EVENTOS ========== */
-const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Copinhos & colheres com a marca","Outra personalização"];
+const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Outra personalização"];
 const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
 const EV_KM_RATE=2.0;     // R$/km rodado (combustível + deslocamento + tempo, média)
 const EV_ROTA=1.3;        // fator linha reta → rota real
@@ -1602,6 +1602,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 
 /* ========== APP ========== */
 /* ========== CONTRATO AUTOMÁTICO (uso interno) ========== */
+const CONTROLE_URL="https://bento-os-seven.vercel.app/"; // Bentô OS · Controle de Produção
 function ContratoPage({data:d}){
   const hoje=new Date().toLocaleDateString("pt-BR");
   const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
@@ -1627,6 +1628,10 @@ function ContratoPage({data:d}){
     dl(`evento-bento-${date}.ics`,ics,"text/calendar");
   };
   const exportJSON=()=>dl(`evento-bento-${(d.data||"").replace(/\//g,"-")}.json`,JSON.stringify(d,null,2),"application/json");
+  const enviarControle=()=>{
+    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    window.open(`${CONTROLE_URL}?evento=${b64}`,"_blank");
+  };
   const avisarEquipe=()=>{
     const msg=["🎉 *EVENTO CONFIRMADO — Bentô*",
       `📅 ${d.data}   📍 ${d.local}`,
@@ -1658,6 +1663,7 @@ function ContratoPage({data:d}){
         <button onClick={exportICS} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>📅 Agenda (.ics)</button>
         <button onClick={exportJSON} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>⬇️ Dados (JSON)</button>
         <button onClick={avisarEquipe} style={{background:"#1FA855",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>📣 Avisar equipe</button>
+        <button onClick={enviarControle} style={{background:"#3A4528",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#F1ECDD",cursor:"pointer"}}>🏭 Enviar p/ Controle Indústria</button>
         <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
         <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · campos amarelos editáveis. <strong>Fluxo de assinatura:</strong> a Bentô assina primeiro (conferência) e, em seguida, o cliente. Modelo automático — recomendamos validação jurídica.</span>
       </div>
