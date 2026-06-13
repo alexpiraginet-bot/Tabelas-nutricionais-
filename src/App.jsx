@@ -573,14 +573,21 @@ function EventosModal({onClose}){
   const[busy,setBusy]=useState(false);
   const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null);
   const nConv=Number(ev.convidados)||0;
+  const zapOk=cad.zap.replace(/\D/g,"").length>=10;
+  // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
+  const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true});}catch{}};
   const verOrcamento=async()=>{
     setBusy(true);
-    setGeo(await evGeocode(ev.local));
+    const g=await evGeocode(ev.local);
+    setGeo(g);
     setBusy(false);
+    const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
+    tk("Lead · Orçamento gerado");
+    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,pers:ev.pers,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null});
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
-  const ok1=ev.data&&ev.local.trim()&&nConv>=70;
+  const ok1=ev.data&&ev.local.trim()&&nConv>=70&&zapOk;
   const waMenor=()=>{
     const l=["*Evento Bentô — até 70 convidados* 🎉","Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
@@ -630,6 +637,7 @@ function EventosModal({onClose}){
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     tk("Conversão · Orçamento de evento");
+    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
@@ -658,6 +666,9 @@ function EventosModal({onClose}){
               <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
             </div>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
+            <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
+            <input className="fb" style={inp} value={cad.zap} onChange={e=>setC("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
+            <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Usamos só para te enviar este orçamento e combinar os detalhes do evento. 💛</div>
             <span className="fm" style={lab}>Data do evento *</span>
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
@@ -689,7 +700,7 @@ function EventosModal({onClose}){
               </div>
             ):(<>
               <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Calculando logística…":"Ver meu orçamento →"}</button>
-              {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha data, local e ao menos 70 convidados.</div>}
+              {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
             </>)}
           </>)}
 
