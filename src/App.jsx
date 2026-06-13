@@ -1249,11 +1249,11 @@ function Tile({t,delay=0}){
 /* ========== HOME (LAUNCHER) ========== */
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
   const tiles=[
-    {title:"Delivery",sub:"Peça em casa pelo iFood",emoji:"🛵",onClick:onDelivery,bg:"#FBE3E0",bd:"#EFB7B0",fg:T.ink},
-    {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
-    {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
+    {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64"},
+    {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
+    {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 30%",bd:"#4a5a3a"},
     {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
-    {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
+    {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 40%",bd:"#3a2e22"},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",emoji:"❓",onClick:onFaq,bg:"#E3EEF3",bd:"#B7D3E0",fg:T.ink},
   ];
   return(
