@@ -1,6 +1,12 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
+import { Analytics } from "@vercel/analytics/react";
+import { track } from "@vercel/analytics";
+
+// Rastreio de cliques (Vercel Web Analytics — eventos personalizados, sem custo extra/cookies de terceiros).
+// tk("nome do botão") registra o clique; a 2ª chamada opcional executa a ação original.
+const tk = (name, fn) => { try { track(name); } catch {} if (typeof fn === "function") fn(); };
 
 const T = {
   bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
@@ -1225,7 +1231,7 @@ function GameArt({size=38}){
 function Tile({t,delay=0}){
   if(t.img){
     return(
-      <button onClick={t.onClick} className="hl rise" style={{position:"relative",overflow:"hidden",width:"100%",border:`1px solid ${t.bd||"#0d0a16"}`,borderRadius:12,padding:0,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+      <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{position:"relative",overflow:"hidden",width:"100%",border:`1px solid ${t.bd||"#0d0a16"}`,borderRadius:12,padding:0,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
         <img src={t.img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:t.imgPos||"center"}}/>
         <div style={{position:"absolute",inset:0,background:t.overlay||"linear-gradient(180deg,rgba(13,10,22,.12) 0%,rgba(13,10,22,.46) 52%,rgba(13,10,22,.88) 100%)"}}/>
         <div style={{position:"relative",minHeight:122,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,padding:"16px 12px"}}>
@@ -1237,7 +1243,7 @@ function Tile({t,delay=0}){
     );
   }
   return(
-    <button onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+    <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
       {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
       <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
       <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
@@ -1269,7 +1275,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
         <div style={{width:"100%",marginTop:22}}>
           {/* Botão principal: Tabelas */}
-          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:14,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
+          <button onClick={()=>tk("Tabelas Nutricionais",onTabelas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:14,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
             <div style={{display:"flex",gap:2,flexShrink:0}}>
               <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={46} id="hg"/>
               <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
@@ -1290,7 +1296,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           </div>
 
           {/* Banner Eventos */}
-          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
+          <button onClick={()=>tk("Nos leve para seu evento",onEventos)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
             <img src="/eventos/carrinho-1-thumb.webp" alt="" aria-hidden="true" loading="lazy" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
             <div style={{flex:1,minWidth:0}}>
               <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#A9831C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>⚡ Orçamento na hora</span>
@@ -1727,15 +1733,16 @@ export default function App(){
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button onClick={()=>setShowDelivery(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:2,padding:"7px 12px"}}>🛵 Delivery</button>
-          <button onClick={()=>setShowCardapio(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
-          <button onClick={()=>setShowParceria(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
-          <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
-          <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
+          <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:2,padding:"7px 12px"}}>🛵 Delivery</button>
+          <button onClick={()=>tk("Rodapé · Cardápio",()=>setShowCardapio(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
+          <button onClick={()=>tk("Rodapé · Seja Bentô",()=>setShowParceria(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
+          <button onClick={()=>tk("Rodapé · Conheça a Bentô",()=>setShowPitch(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
+          <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
           <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Privacidade</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
       </footer>
+      <Analytics/>
     </div>
   );
 }
