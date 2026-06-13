@@ -112,6 +112,17 @@
   </div>
 
   <div class="card" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🎉 Orçamentos de eventos — leads</span><span id="leadsCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
+    <div style="overflow:auto">
+      <table id="leadsTbl">
+        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th class="num">Convid.</th><th>Evento</th><th class="num">Total</th><th>Etapa</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="leadsEmpty" style="display:none">Nenhum orçamento ainda. Quando alguém gerar um orçamento de evento, o contato aparece aqui na hora. 🎉</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
     <h3>Ranking de botões (total)</h3>
     <div class="chartbox" style="height:360px"><canvas id="barChart"></canvas></div>
   </div>
@@ -271,8 +282,38 @@ function openGate(msg){
 function closeGate(){ $("#gate").style.display="none"; $("#app").style.display="block"; }
 function afterLogin(){ $("#faceEnable").style.display = (waOK && !localStorage.getItem(CREDSTORE)) ? "inline-block" : "none"; }
 
+async function loadLeads(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/leads?key=" + encodeURIComponent(key), { cache:"no-store" });
+  if(!r.ok) return;
+  renderLeads(await r.json());
+}
+function renderLeads(d){
+  const leads = (d && d.leads) || [];
+  $("#leadsCount").textContent = d && d.total ? (d.total + " no total") : "";
+  const tb = $("#leadsTbl tbody"); tb.innerHTML = "";
+  leads.forEach(l=>{
+    const dig = String(l.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+    const evento = [l.data, l.local].filter(Boolean).join(" · ");
+    const stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
+      <td>${escapeHtml(l.nome||"—")}</td>
+      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(l.phone)}</a>`:escapeHtml(l.phone||"—")}</td>
+      <td class="num">${l.convidados||"—"}</td>
+      <td>${escapeHtml(evento||"—")}</td>
+      <td class="num">${total}</td>
+      <td>${stageTag}</td>`;
+    tb.appendChild(tr);
+  });
+  $("#leadsEmpty").style.display = leads.length ? "none" : "block";
+}
+
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
