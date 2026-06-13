@@ -1264,7 +1264,7 @@ function Tile({t,delay=0}){
 }
 
 /* ========== HOME (LAUNCHER) ========== */
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onCulpa,onGLP1}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
   const tiles=[
     {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64",badge:"🗺️ Peça agora pelo iFood e nos encontre",badgeBg:"#EA1D2C"},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
@@ -1299,20 +1299,6 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             <span className="fd" style={{fontSize:24,color:T.pistacheDark,flexShrink:0}}>→</span>
           </button>
 
-          {/* Destaques nutricionais (inteligência da marca) */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
-            <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A 0%,#34412480 60%,#222B1A 100%)",backgroundColor:"#222B1A",border:"1px solid #3A472A",borderRadius:14,padding:"14px 16px",cursor:"pointer",animationDelay:"140ms",boxShadow:"0 10px 28px -18px rgba(34,43,26,.8)"}}>
-              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#B8C97A"}}>Inteligência nutricional</div>
-              <div className="fd" style={{fontSize:18,color:"#fff",lineHeight:1.1,marginTop:4}}>Sem culpa-ômetro 🍦</div>
-              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.78)",marginTop:3,lineHeight:1.3}}>Quanto açúcar você economiza vs sorvete comum</div>
-            </button>
-            <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238 0%,#3E2F5880 60%,#2A2238 100%)",backgroundColor:"#2A2238",border:"1px solid #463A5F",borderRadius:14,padding:"14px 16px",cursor:"pointer",animationDelay:"185ms",boxShadow:"0 10px 28px -18px rgba(42,34,56,.8)"}}>
-              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#D9C7F2"}}>Tabelas em foco</div>
-              <div className="fd" style={{fontSize:18,color:"#fff",lineHeight:1.1,marginTop:4}}>Tá na caneta? 💉</div>
-              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.78)",marginTop:3,lineHeight:1.3}}>Proteína em porção pequena pra quem usa GLP-1</div>
-            </button>
-          </div>
-
           {/* Linha 1 de funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
             {tiles.slice(0,2).map((t,i)=>(
@@ -1344,7 +1330,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 }
 
 /* ========== TABELAS (HUB DE PRODUTOS/FERRAMENTAS) ========== */
-function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack}){
+function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack,onCulpa,onGLP1}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   const tools=[
@@ -1372,6 +1358,28 @@ function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack}){
               <span className="fd" style={{fontSize:22,color:T.pistacheDark,flexShrink:0}}>→</span>
             </button>
           ))}
+        </div>
+
+        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>✦ Inteligência nutricional</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
+          <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A,#3A472A)",border:"1px solid #3A472A",borderRadius:10,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+            <span style={{fontSize:34,flexShrink:0}}>🍦</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#B8C97A"}}>Compare & compartilhe</div>
+              <div className="fd" style={{fontSize:19,color:"#fff",lineHeight:1.1,marginTop:3}}>Sem culpa-ômetro</div>
+              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.8)",marginTop:3,lineHeight:1.3}}>Quanto açúcar você economiza vs sorvete comum</div>
+            </div>
+            <span className="fd" style={{fontSize:20,color:"#B8C97A",flexShrink:0}}>→</span>
+          </button>
+          <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238,#3E2F58)",border:"1px solid #463A5F",borderRadius:10,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+            <span style={{fontSize:34,flexShrink:0}}>💉</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#D9C7F2"}}>Para quem usa GLP-1</div>
+              <div className="fd" style={{fontSize:19,color:"#fff",lineHeight:1.1,marginTop:3}}>Tá na caneta?</div>
+              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.8)",marginTop:3,lineHeight:1.3}}>Proteína em porção pequena pra pouco apetite</div>
+            </div>
+            <span className="fd" style={{fontSize:20,color:"#D9C7F2",flexShrink:0}}>→</span>
+          </button>
         </div>
 
         <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>⚡ Mais ricos em proteína</div>
@@ -1918,8 +1926,8 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
-      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
+      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}}/>}
