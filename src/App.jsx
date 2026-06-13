@@ -1264,7 +1264,7 @@ function Tile({t,delay=0}){
 }
 
 /* ========== HOME (LAUNCHER) ========== */
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onCulpa,onGLP1}){
   const tiles=[
     {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64",badge:"🗺️ Peça agora pelo iFood e nos encontre",badgeBg:"#EA1D2C"},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
@@ -1298,6 +1298,20 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             </div>
             <span className="fd" style={{fontSize:24,color:T.pistacheDark,flexShrink:0}}>→</span>
           </button>
+
+          {/* Destaques nutricionais (inteligência da marca) */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
+            <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A 0%,#34412480 60%,#222B1A 100%)",backgroundColor:"#222B1A",border:"1px solid #3A472A",borderRadius:14,padding:"14px 16px",cursor:"pointer",animationDelay:"140ms",boxShadow:"0 10px 28px -18px rgba(34,43,26,.8)"}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#B8C97A"}}>Inteligência nutricional</div>
+              <div className="fd" style={{fontSize:18,color:"#fff",lineHeight:1.1,marginTop:4}}>Sem culpa-ômetro 🍦</div>
+              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.78)",marginTop:3,lineHeight:1.3}}>Quanto açúcar você economiza vs sorvete comum</div>
+            </button>
+            <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238 0%,#3E2F5880 60%,#2A2238 100%)",backgroundColor:"#2A2238",border:"1px solid #463A5F",borderRadius:14,padding:"14px 16px",cursor:"pointer",animationDelay:"185ms",boxShadow:"0 10px 28px -18px rgba(42,34,56,.8)"}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#D9C7F2"}}>Tabelas em foco</div>
+              <div className="fd" style={{fontSize:18,color:"#fff",lineHeight:1.1,marginTop:4}}>Tá na caneta? 💉</div>
+              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.78)",marginTop:3,lineHeight:1.3}}>Proteína em porção pequena pra quem usa GLP-1</div>
+            </button>
+          </div>
 
           {/* Linha 1 de funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
@@ -1690,6 +1704,181 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
 const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
 
+/* ========== SEM CULPA-ÔMETRO ========== */
+// Referência: sorvete de massa tradicional (média de mercado), por 100 g.
+const SORVETE_REF = { kcal:207, sugars:21, protein:3.5 };
+function Linha({rotulo, bento, comum, unidade}){
+  const max=Math.max(bento,comum,0.001);
+  const pb=Math.round(bento/max*100), pc=Math.round(comum/max*100);
+  const row=(nome,val,w,cor,strong)=>(
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
+      <span style={{width:58,fontSize:11,color:strong?T.pistacheDark:T.inkSoft,fontWeight:strong?700:500}}>{nome}</span>
+      <div style={{flex:1,background:"#EDE4CF",borderRadius:6,height:18,overflow:"hidden"}}>
+        <div style={{width:w+"%",height:"100%",background:cor,transition:"width .6s cubic-bezier(.2,.8,.2,1)"}}/>
+      </div>
+      <span style={{width:70,textAlign:"right",fontSize:12,fontWeight:strong?700:500,color:strong?T.ink:T.inkSoft}}>{val.toFixed(1)}{unidade}</span>
+    </div>
+  );
+  return(
+    <div style={{marginBottom:16}}>
+      <div className="fm" style={{fontSize:11,letterSpacing:".1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:7}}>{rotulo}</div>
+      {row("Bentô",bento,pb,"linear-gradient(90deg,#8FA050,#5C6B3A)",true)}
+      {row("Comum",comum,pc,"#C9A98F",false)}
+    </div>
+  );
+}
+function CulpaModal({onClose,onDelivery}){
+  useModal(onClose);
+  const gelatos = PRODUCTS.filter(p=>p.category==="gelato");
+  const per100 = (k)=> gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
+  const bSug=per100("sugars"), bProt=per100("protein"), bKcal=per100("kcal");
+  const cubos = Math.max(0, Math.round((SORVETE_REF.sugars - bSug)/4)); // 1 torrão ≈ 4 g
+  const protMais = Math.max(0, bProt - SORVETE_REF.protein);
+
+  function gerarImagem(){
+    return new Promise((resolve)=>{
+      const c=document.createElement("canvas"); c.width=1080; c.height=1350; const x=c.getContext("2d");
+      const g=x.createLinearGradient(0,0,0,1350); g.addColorStop(0,"#222B1A"); g.addColorStop(1,"#0E120B"); x.fillStyle=g; x.fillRect(0,0,1080,1350);
+      x.textAlign="center";
+      x.fillStyle="#B8C97A"; x.font="700 52px Georgia, serif"; x.fillText("BENTÔ", 540, 150);
+      x.fillStyle="#9FB089"; x.font="600 26px Helvetica"; x.fillText("S E M   C U L P A - Ô M E T R O", 540, 200);
+      x.fillStyle="#fff"; x.font="800 230px Helvetica"; x.fillText("−"+cubos, 540, 560);
+      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar a cada 100 g", 540, 625);
+      x.fillStyle="#E3C46A"; x.font="800 180px Helvetica"; x.fillText("+"+protMais.toFixed(0)+"g", 540, 900);
+      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("de proteína vs sorvete comum", 540, 965);
+      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Gelato com propósito", 540, 1190);
+      x.fillStyle="#9FB089"; x.font="500 30px Helvetica"; x.fillText("bentogelateria.com", 540, 1245);
+      c.toBlob(b=>resolve(b),"image/png");
+    });
+  }
+  const msg = `Gelato da Bentô tem ~${cubos} torrões de açúcar a MENOS e +${protMais.toFixed(0)}g de proteína a cada 100 g vs sorvete comum. 🍦`;
+  const url = "https://bentogelateria.com";
+  async function compartilhar(){
+    tk("Compartilhar · Sem culpa-ômetro");
+    try{
+      const blob = await gerarImagem();
+      const file = blob && new File([blob],"bento-sem-culpa.png",{type:"image/png"});
+      if(file && navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file],text:msg+" "+url}); return; }
+    }catch{}
+    try{ if(navigator.share){ await navigator.share({title:"Bentô — sem culpa",text:msg,url}); return; } }catch{}
+    try{ await navigator.clipboard.writeText(msg+" "+url); alert("Texto copiado! Cole no seu story ou conversa. 🍦"); }catch{ alert(msg+" "+url); }
+  }
+  async function baixar(){
+    tk("Baixar imagem · Sem culpa-ômetro");
+    const blob = await gerarImagem(); if(!blob) return;
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="bento-sem-culpa.png"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  }
+
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Sem culpa-ômetro" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:460,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:"linear-gradient(135deg,#222B1A,#3A472A)",padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:"#B8C97A",textTransform:"uppercase"}}>Inteligência nutricional</div>
+            <div className="fd" style={{fontSize:20,color:"#fff",marginTop:2}}>Sem culpa-ômetro 🍦</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.14)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo gelato funcional da Bentô — média da nossa linha, por 100 g:</div>
+
+          <div style={{display:"flex",gap:10,marginBottom:18}}>
+            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:30,color:T.pistacheDark,lineHeight:1}}>−{cubos}</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>torrões de açúcar 🧊</div>
+            </div>
+            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:30,color:"#1A4FAA",lineHeight:1}}>+{protMais.toFixed(0)}g</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>de proteína 💪</div>
+            </div>
+            <div style={{flex:1,background:"#F6EEDD",border:"1px solid #E0CBA0",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:30,color:"#A9831C",lineHeight:1}}>0g</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>açúcar adicionado 🚫</div>
+            </div>
+          </div>
+
+          <Linha rotulo="Açúcares (g / 100 g)" bento={bSug} comum={SORVETE_REF.sugars} unidade="g"/>
+          <Linha rotulo="Proteína (g / 100 g)" bento={bProt} comum={SORVETE_REF.protein} unidade="g"/>
+          <Linha rotulo="Calorias (kcal / 100 g)" bento={bKcal} comum={SORVETE_REF.kcal} unidade=""/>
+
+          <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
+            <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📲 Compartilhar no story</button>
+            <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:8,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>⬇️ Baixar imagem</button>
+          </div>
+          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Provar sem culpa — pedir no iFood</button>
+
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g). Valores Bentô calculados da nossa linha de gelatos.</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========== ALIADO DA CANETA (análogos de GLP-1) ========== */
+function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
+  useModal(onClose);
+  const top = PRODUCTS.filter(p=>p.category==="gelato").slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,6);
+  const maxP = top.length?top[0].nutrition.protein:1;
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Aliado de quem usa GLP-1" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:"linear-gradient(135deg,#2A2238,#3E2F58)",padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:"#D9C7F2",textTransform:"uppercase"}}>Tabelas em foco</div>
+            <div className="fd" style={{fontSize:20,color:"#fff",marginTop:2}}>Aliado de quem usa a caneta 💉</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.14)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0}}><X size={16}/></button>
+        </div>
+        <div style={{padding:22}}>
+          <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:8,lineHeight:1.55}}>Análogos de <strong>GLP-1</strong> (como semaglutida e tirzepatida) reduzem o apetite. Comendo menos, fica difícil bater a <strong>proteína do dia</strong> — e é ela que protege a sua <strong>massa magra</strong>.</div>
+          <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:16,lineHeight:1.55}}>O Bentô resolve isso: <strong>muita proteína numa porção pequena</strong>, fácil de comer mesmo sem fome, com <strong>zero açúcar adicionado</strong>.</div>
+
+          <div style={{display:"flex",gap:10,marginBottom:18}}>
+            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:26,color:"#1A4FAA",lineHeight:1}}>até {maxP}g</div>
+              <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>proteína / bola</div>
+            </div>
+            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:26,color:T.pistacheDark,lineHeight:1}}>0</div>
+              <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>açúcar adicionado</div>
+            </div>
+            <div style={{flex:1,background:"#F4EEF8",border:"1px solid #D9C7F2",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:26,color:"#6A3DA8",lineHeight:1}}>60g</div>
+              <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>porção fácil de comer</div>
+            </div>
+          </div>
+
+          <div className="fm" style={{fontSize:11,letterSpacing:".12em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>Ranking de proteína</div>
+          <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:18}}>
+            {top.map(p=>(
+              <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{display:"flex",alignItems:"center",gap:10,textAlign:"left",background:T.bg,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",cursor:"pointer"}}>
+                <span style={{fontSize:22,flexShrink:0}}>{p.emoji}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div className="fd" style={{fontSize:14,color:T.ink,lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</div>
+                  <div style={{background:"#E6EAD8",borderRadius:5,height:7,overflow:"hidden",marginTop:5}}><div style={{width:Math.round(p.nutrition.protein/maxP*100)+"%",height:"100%",background:"linear-gradient(90deg,#8FA050,#5C6B3A)"}}/></div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0}}>
+                  <div className="fd" style={{fontSize:16,color:"#1A4FAA",lineHeight:1}}>{p.nutrition.protein}g</div>
+                  <div className="fb" style={{fontSize:9,color:T.inkSoft}}>{p.portionLabel}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            <button onClick={onTabelas} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📋 Ver todas as tabelas</button>
+            <button onClick={onDelivery} className="fb" style={{flex:1,minWidth:150,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Pedir no iFood</button>
+          </div>
+
+          <div style={{background:"#FBF4E6",border:"1px solid #E8D9B5",borderRadius:10,padding:"12px 14px",marginTop:14}}>
+            <div className="fb" style={{fontSize:11,color:"#7A5E1C",lineHeight:1.5}}>⚠️ Conteúdo informativo sobre nutrição — <strong>não é conselho médico</strong> e não substitui o acompanhamento do seu médico ou nutricionista. O uso de medicamentos deve ser sempre orientado por um profissional de saúde.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
     try{
@@ -1710,6 +1899,8 @@ export default function App(){
   const[showParceria,setShowParceria]=useState(false);
   const[showDelivery,setShowDelivery]=useState(false);
   const[showFaq,setShowFaq]=useState(false);
+  const[showCulpa,setShowCulpa]=useState(false);
+  const[showGLP1,setShowGLP1]=useState(false);
   const[showEventos,setShowEventos]=useState(false);
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
@@ -1727,7 +1918,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
@@ -1740,6 +1931,8 @@ export default function App(){
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
       {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
+      {showCulpa&&<CulpaModal onClose={()=>setShowCulpa(false)} onDelivery={()=>{setShowCulpa(false);setShowDelivery(true);}}/>}
+      {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);setShowDelivery(true);}}/>}
       {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
