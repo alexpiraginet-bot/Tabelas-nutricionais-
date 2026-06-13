@@ -1253,7 +1253,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
     {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 30%",bd:"#4a5a3a"},
     {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
-    {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 40%",bd:"#3a2e22"},
+    {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 22%",bd:"#2f3a24"},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",onClick:onFaq,img:"/tiles/duvidas.webp",imgPos:"center 35%",bd:"#4a5142"},
   ];
   return(
@@ -1269,13 +1269,13 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
         <div style={{width:"100%",marginTop:22}}>
           {/* Botão principal: Tabelas */}
-          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#E9F0D8",border:"1px solid #CBD9A6",borderRadius:14,padding:"11px 18px",cursor:"pointer",animationDelay:"120ms"}}>
+          <button onClick={onTabelas} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:14,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
             <div style={{display:"flex",gap:2,flexShrink:0}}>
               <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={46} id="hg"/>
               <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,marginBottom:2}}>Comece por aqui</div>
+              <div className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:5}}>Comece por aqui</div>
               <div className="fd" style={{fontSize:"clamp(19px,3.2vw,24px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Gelatos, picolés, monte seu pote e quiz de sabores.</div>
             </div>
@@ -1290,9 +1290,10 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           </div>
 
           {/* Banner Eventos */}
-          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms"}}>
+          <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
             <img src="/eventos/carrinho-1-thumb.webp" alt="" aria-hidden="true" loading="lazy" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
             <div style={{flex:1,minWidth:0}}>
+              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#A9831C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>⚡ Orçamento na hora</span>
               <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Estrutura completa + orçamento online na hora · casamentos, festas e corporativo</div>
             </div>
