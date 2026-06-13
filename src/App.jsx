@@ -4,9 +4,17 @@ import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFr
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 
-// Rastreio de cliques (Vercel Web Analytics — eventos personalizados, sem custo extra/cookies de terceiros).
-// tk("nome do botão") registra o clique; a 2ª chamada opcional executa a ação original.
-const tk = (name, fn) => { try { track(name); } catch {} if (typeof fn === "function") fn(); };
+// Rastreio de cliques. Registra no Vercel Web Analytics (oficial) e no nosso painel próprio (/api/ev → Redis).
+// tk("nome do botão", fn?) registra o clique e, se passado, executa a ação original.
+const tk = (name, fn) => {
+  try { track(name); } catch {}
+  try {
+    const body = JSON.stringify({ n: name });
+    if (navigator.sendBeacon) navigator.sendBeacon("/api/ev", body);
+    else fetch("/api/ev", { method: "POST", body, keepalive: true });
+  } catch {}
+  if (typeof fn === "function") fn();
+};
 
 const T = {
   bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
@@ -578,6 +586,7 @@ function EventosModal({onClose}){
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
       ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
       nConv>0&&`*Convidados:* ${nConv}`].filter(Boolean);
+    tk("Conversão · Evento (até 70)");
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -620,6 +629,7 @@ function EventosModal({onClose}){
       "_Solicito a formulação do contrato para assinatura online._","",
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
+    tk("Conversão · Orçamento de evento");
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
@@ -839,7 +849,7 @@ function DeliveryModal({onClose}){
                 <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
                 <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
                 <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-                  <a href={l.ifood} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir no iFood</a>
+                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir no iFood</a>
                   <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:4,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
                 </div>
               </div>
@@ -869,6 +879,7 @@ function SejaBento({onClose}){
       form.ponto&&`*Ponto comercial:* ${form.ponto}`,
       form.msg.trim()&&`*Mensagem:* ${form.msg.trim()}`,
     ].filter(Boolean);
+    tk("Conversão · Revenda/Franquia");
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
@@ -1706,7 +1717,7 @@ export default function App(){
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
-  const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p)setCat(p.category);setProd(id);setView("detail");},[]);
+  const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);}setProd(id);setView("detail");},[]);
   const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
@@ -1717,10 +1728,10 @@ export default function App(){
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
       {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
-      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>setShowPote(true)} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
+      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{setShowQuiz(false);openProd(id);}}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
