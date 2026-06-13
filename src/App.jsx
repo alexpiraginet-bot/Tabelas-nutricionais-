@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
+import { salvarEventoNaAgenda, AGENDA_CLOUD_ON } from "./sharedAgenda.js";
 
 const T = {
   bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
@@ -1604,6 +1605,13 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 /* ========== CONTRATO AUTOMÁTICO (uso interno) ========== */
 function ContratoPage({data:d}){
   const hoje=new Date().toLocaleDateString("pt-BR");
+  const[agenda,setAgenda]=useState({busy:false,reason:null}); // status do "Salvar na Agenda do Bentô OS"
+  const salvarAgenda=async()=>{
+    setAgenda({busy:true,reason:null});
+    const r=await salvarEventoNaAgenda(d);
+    setAgenda({busy:false,reason:r.ok?r.reason:r.reason});
+  };
+  const agendaMsg={saved:"✓ Evento salvo na agenda do Bentô OS.",updated:"✓ Evento atualizado na agenda do Bentô OS.",offline:"Sincronização desligada: configure o Supabase (mesmo do Bentô OS) para salvar na agenda.",baddate:"Defina a data do evento antes de salvar.",error:"Não consegui salvar agora. Verifique a conexão e tente de novo."}[agenda.reason];
   const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
     <span contentEditable suppressContentEditableWarning spellCheck={false}
       style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
@@ -1658,7 +1666,9 @@ function ContratoPage({data:d}){
         <button onClick={exportICS} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>📅 Agenda (.ics)</button>
         <button onClick={exportJSON} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>⬇️ Dados (JSON)</button>
         <button onClick={avisarEquipe} style={{background:"#1FA855",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>📣 Avisar equipe</button>
+        <button onClick={salvarAgenda} disabled={agenda.busy} title={AGENDA_CLOUD_ON?"Grava este evento no calendário interno do Bentô OS":"Configure o Supabase (mesmo do Bentô OS) para habilitar"} style={{background:"#5B3FA8",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:agenda.busy?"default":"pointer",opacity:agenda.busy?0.7:1}}>{agenda.busy?"Salvando…":"🗓️ Salvar na Agenda do Bentô OS"}</button>
         <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
+        {agendaMsg&&<span style={{color:agenda.reason==="saved"||agenda.reason==="updated"?"#BFE3B0":"#F0D08A",fontSize:12,flexBasis:"100%",fontWeight:600}}>{agendaMsg}</span>}
         <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · campos amarelos editáveis. <strong>Fluxo de assinatura:</strong> a Bentô assina primeiro (conferência) e, em seguida, o cliente. Modelo automático — recomendamos validação jurídica.</span>
       </div>
       <div className="ct-wrap"><div className="ct-sheet">
