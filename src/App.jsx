@@ -97,6 +97,10 @@ function useModal(onClose){
   },[onClose]);
 }
 
+// Placeholder para fotos que falharem ao carregar (evita ícone de imagem quebrada)
+const IMG_FB="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23EAE3CE'/%3E%3Ctext x='40' y='52' font-size='34' text-anchor='middle'%3E%F0%9F%8D%A8%3C/text%3E%3C/svg%3E";
+const onImgErr=e=>{if(!e.currentTarget.dataset.fb){e.currentTarget.dataset.fb="1";e.currentTarget.src=IMG_FB;}};
+
 /* ========== QUIZ ========== */
 function QuizModal({onClose,onResult}){
   useModal(onClose);
@@ -275,10 +279,7 @@ const CARDAPIO = [
 function CardapioDigital({onClose}){
   const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist=T.pistache;
   const [c,setC]=useState(0);
-  useEffect(()=>{
-    const h=e=>{if(e.key==="Escape")onClose();};
-    window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
-  },[onClose]);
+  useModal(onClose);
   const cat=CARDAPIO[c];
   const grid="radial-gradient(rgba(201,168,106,0.10) 1px, transparent 1px)";
   return (
@@ -302,7 +303,7 @@ function CardapioDigital({onClose}){
           {cat.items.map(it=>(
             <div key={it.name} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",border:"1px solid rgba(201,168,106,0.2)",borderRadius:8,background:"rgba(255,255,255,0.02)"}}>
               {it.img
-                ? <div style={{width:62,height:62,borderRadius:8,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}}/></div>
+                ? <div style={{width:62,height:62,borderRadius:8,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}} onError={onImgErr} /></div>
                 : <div style={{width:62,height:62,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}>{cat.emoji}</div>}
               <div style={{flex:1,minWidth:0}}>
                 <div className="fb" style={{fontSize:15,color:cream,fontWeight:500,lineHeight:1.2}}>{it.name}</div>
@@ -345,7 +346,7 @@ const PARC_PASSOS=[
 ];
 function SejaParceiro({onClose,onForm}){
   const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist="#8B9D5A",soft="#A9AB96";
-  useEffect(()=>{const h=e=>{if(e.key==="Escape")onClose();};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[onClose]);
+  useModal(onClose);
   const grid="radial-gradient(rgba(201,168,106,0.08) 1px, transparent 1px)";
   const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto. 🍨");
   const Kicker=({children})=>(<div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:gold,textTransform:"uppercase",marginBottom:12}}>{children}</div>);
@@ -371,7 +372,7 @@ function SejaParceiro({onClose,onForm}){
             </div>
           </div>
           <div className="rise" style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
-            <img src="/parceria/freezer.jpg" alt="Freezer Bentô personalizado em um ponto de venda" style={{width:"100%",display:"block"}}/>
+            <img src="/parceria/freezer.jpg" alt="Freezer Bentô personalizado em um ponto de venda" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
       </section>
@@ -411,7 +412,7 @@ function SejaParceiro({onClose,onForm}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginTop:26}}>
           {PARC_PRODUTOS.map(p=>(
             <div key={p.n} style={{...card,padding:0,overflow:"hidden"}}>
-              <img src={p.img} alt={p.n} style={{width:"100%",height:170,objectFit:"cover",display:"block"}}/>
+              <img src={p.img} alt={p.n} style={{width:"100%",height:170,objectFit:"cover",display:"block"}} onError={onImgErr} />
               <div style={{padding:"18px 20px"}}>
                 <div className="fd" style={{fontSize:20,color:cream}}>{p.n}</div>
                 <div className="fb" style={{fontSize:13,color:soft,marginTop:6,lineHeight:1.45}}>{p.papel}</div>
@@ -471,7 +472,7 @@ function SejaParceiro({onClose,onForm}){
             <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:6,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
           </div>
           <div style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
-            <img src="/parceria/estande.jpg" alt="Estande conceito Bentô Gelatos — modelo de negócio para franquia" style={{width:"100%",display:"block"}}/>
+            <img src="/parceria/estande.jpg" alt="Estande conceito Bentô Gelatos — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
       </section>
@@ -502,21 +503,29 @@ const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
 const EV_CARRINHO=200;    // R$ personalização do carrinho
 function evHaversine(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
 async function evGeocode(text){
-  const parts=text.split(/[-–—,\/·]/).map(t=>t.trim()).filter(Boolean);
-  const tries=[...new Set([text.trim(),...parts,parts[0]+" ES",parts[parts.length-1]+" ES"])];
+  const base=(text||"").trim();
+  if(!base) return{ok:false};
+  try{const c=sessionStorage.getItem("bento:geo:"+base.toLowerCase());if(c)return JSON.parse(c);}catch{}
+  const parts=base.split(/[-–—,\/·]/).map(t=>t.trim()).filter(Boolean);
+  const tries=[...new Set([base, parts.at(-1)?parts.at(-1)+" ES":"", parts[0]||""].filter(Boolean))].slice(0,3);
+  let res={ok:false};
   for(const t of tries){
     try{
-      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(t)}`);
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(t)}`,
+        {headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
+      if(!r.ok) continue;            // 429/403 etc. → tenta a próxima variação
       const j=await r.json();
       if(j&&j[0]){
         const la=+j[0].lat,lo=+j[0].lon;
         let best=null;
         for(const s of LOJAS){const km=evHaversine(la,lo,s.lat,s.lng);if(!best||km<best.km)best={km,loja:s.nome};}
-        return{ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja};
+        res={ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja};
+        break;
       }
-    }catch(e){}
+    }catch(e){ /* timeout/rede: tenta próxima; se todas falharem, retorna ok:false */ }
   }
-  return{ok:false};
+  try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{}
+  return res;
 }
 function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
   const n=Math.max(1,Number(g)||0);
@@ -539,6 +548,7 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
   };
 }
 function EventosModal({onClose}){
+  useModal(onClose);
   const[step,setStep]=useState(1);
   const[ev,setEv]=useState({data:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
   const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:""});
@@ -562,9 +572,11 @@ function EventosModal({onClose}){
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
       ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
       nConv>0&&`*Convidados:* ${nConv}`].filter(Boolean);
-    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank");
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank","noopener,noreferrer");
   };
-  const ok3=cad.nome.trim()&&cad.doc.trim().length>=11&&cad.email.includes("@")&&cad.zap.replace(/\D/g,"").length>=10;
+  const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
+  const docOk=d2=>[11,14].includes(d2.replace(/\D/g,"").length);
+  const ok3=cad.nome.trim()&&docOk(cad.doc)&&emailOk(cad.email)&&cad.zap.replace(/\D/g,"").length>=10;
   const enviar=()=>{
     // link interno: abre o contrato pré-preenchido para a equipe revisar e gerar o PDF
     const payload={nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
@@ -602,7 +614,7 @@ function EventosModal({onClose}){
       "_Solicito a formulação do contrato para assinatura online._","",
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
-    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank");
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
@@ -625,9 +637,9 @@ function EventosModal({onClose}){
         <div style={{padding:22}}>
           {step===1&&(<>
             <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gridTemplateRows:"76px 76px",gap:8,marginBottom:14}}>
-              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,gridRow:"1 / span 2",border:`1px solid ${T.border}`}}/>
-              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}}/>
-              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}}/>
+              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,gridRow:"1 / span 2",border:`1px solid ${T.border}`}} onError={onImgErr} />
+              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
+              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
             </div>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
             <span className="fm" style={lab}>Data do evento *</span>
@@ -635,7 +647,7 @@ function EventosModal({onClose}){
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
             <input className="fb" style={inp} value={ev.local} onChange={e=>setE("local",e.target.value)} placeholder="Ex.: Vitória — Cerimonial X"/>
             <span className="fm" style={lab}>Quantidade de convidados * (mín. 70)</span>
-            <input type="number" min={70} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value)} inputMode="numeric"/>
+            <input type="number" min={70} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value===""?"":Number(e.target.value))} inputMode="numeric"/>
             <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
               {[70,100,150,300,500].map(n=>(
                 <button key={n} onClick={()=>setE("convidados",n)} className="fm" style={{fontSize:10,padding:"6px 12px",borderRadius:999,border:`1px solid ${Number(ev.convidados)===n?T.pistacheDark:T.border}`,background:Number(ev.convidados)===n?T.pistacheDark:"transparent",color:Number(ev.convidados)===n?T.surface:T.inkSoft,cursor:"pointer"}}>{n}</button>
@@ -744,6 +756,7 @@ const FAQ=[
   {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa, pelo iFood — é só tocar no botão Delivery na tela inicial. 🛵"},
 ];
 function FaqModal({onClose}){
+  useModal(onClose);
   const[open,setOpen]=useState(0);
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Dúvidas frequentes" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
@@ -782,6 +795,7 @@ const LOJAS=[
    maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Jardim Camburi Vitória ES")},
 ];
 function DeliveryModal({onClose}){
+  useModal(onClose);
   const[near,setNear]=useState(null); // id da loja mais próxima
   const[geoMsg,setGeoMsg]=useState("");
   const locate=()=>{
@@ -831,6 +845,7 @@ function DeliveryModal({onClose}){
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
 const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 function SejaBento({onClose}){
+  useModal(onClose);
   const[form,setForm]=useState({interesse:"Revenda",nome:"",zap:"",cidade:"",ponto:"",msg:""});
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim();
@@ -844,7 +859,7 @@ function SejaBento({onClose}){
       form.ponto&&`*Ponto comercial:* ${form.ponto}`,
       form.msg.trim()&&`*Mensagem:* ${form.msg.trim()}`,
     ].filter(Boolean);
-    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank");
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
@@ -1106,10 +1121,11 @@ function PitchDeck({onClose,onCatalog}){
   const n=slides.length;
   const [i,setI]=useState(0);
   const go=useCallback(d=>setI(v=>Math.max(0,Math.min(n-1,v+d))),[n]);
+  useModal(onClose);
   useEffect(()=>{
-    const h=e=>{if(e.key==="ArrowRight"||e.key===" "){e.preventDefault();go(1);}else if(e.key==="ArrowLeft")go(-1);else if(e.key==="Escape")onClose();};
+    const h=e=>{if(e.key==="ArrowRight"||e.key===" "){e.preventDefault();go(1);}else if(e.key==="ArrowLeft")go(-1);};
     window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
-  },[go,onClose]);
+  },[go]);
   const tx=useRef(null);
   const grid="radial-gradient(rgba(201,168,106,0.10) 1px, transparent 1px)";
   return (
@@ -1207,7 +1223,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
   ];
   return(
     <div className="fade">
-      <section style={{minHeight:"calc(100svh - 78px)",maxWidth:880,margin:"0 auto",padding:"18px 20px 26px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",textAlign:"center"}}>
+      <section style={{minHeight:"calc(100svh - 64px)",maxWidth:880,margin:"0 auto",padding:"16px 20px 28px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
         <div className="rise"><BentoLogo size={78}/></div>
         <h1 className="fd rise" style={{fontSize:"clamp(26px,5vw,46px)",lineHeight:1.05,color:T.ink,marginTop:12,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
@@ -1245,7 +1261,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
           {/* Banner Eventos */}
           <button onClick={onEventos} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"#F3E7CD",border:"1px solid #DCC494",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms"}}>
-            <img src="/eventos/carrinho-1.jpg" alt="" aria-hidden="true" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}}/>
+            <img src="/eventos/carrinho-1.jpg" alt="" aria-hidden="true" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
             <div style={{flex:1,minWidth:0}}>
               <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Estrutura completa + orçamento online na hora · casamentos, festas e corporativo</div>
@@ -1646,18 +1662,20 @@ function ContratoPage({data:d}){
   const money=v=>typeof v==="number"?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}):v;
   const dl=(name,text,mime)=>{const b=new Blob([text],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);};
   const exportICS=()=>{
-    const [dd,mm,yy]=(d.data||"").split("/");if(!dd)return;
-    const date=`${yy}${(mm||"").padStart(2,"0")}${(dd||"").padStart(2,"0")}`;
+    const [dd,mm,yy]=(d.data||"").split("/");if(!dd||!mm||!yy){alert("Data do evento inválida — não foi possível gerar o .ics.");return;}
+    const date=`${yy}${mm.padStart(2,"0")}${dd.padStart(2,"0")}`;
+    const end=new Date(Number(yy),Number(mm)-1,Number(dd)+1); // all-day: DTEND = dia seguinte
+    const dateEnd=`${end.getFullYear()}${String(end.getMonth()+1).padStart(2,"0")}${String(end.getDate()).padStart(2,"0")}`;
     const stamp=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
     const esc=s=>String(s||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n");
     const desc=[`Contratante: ${d.nome} (${d.zap})`,`Convidados: ${d.convidados}`,`Produtos: ${d.tipo} - ate ${d.sabores} sabores`,`Equipe: ${d.promotoras} promotora(s)`,d.km!=null?`Logistica: ~${d.km} km - ref. Bento ${d.loja}`:"",`Total: ${money(d.total)}`].filter(Boolean).join("\\n");
-    const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Bento Gelateria//Eventos//PT","CALSCALE:GREGORIAN","BEGIN:VEVENT",`UID:ev-${date}-${Date.now()}@bentogelateria.com`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${date}`,`DTEND;VALUE=DATE:${date}`,`SUMMARY:Evento Bento - ${esc(d.nome)} (${d.convidados} pax)`,`LOCATION:${esc(d.local)}`,`DESCRIPTION:${desc}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
+    const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Bento Gelateria//Eventos//PT","CALSCALE:GREGORIAN","BEGIN:VEVENT",`UID:ev-${date}-${Date.now()}@bentogelateria.com`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${date}`,`DTEND;VALUE=DATE:${dateEnd}`,`SUMMARY:Evento Bento - ${esc(d.nome)} (${d.convidados} pax)`,`LOCATION:${esc(d.local)}`,`DESCRIPTION:${desc}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
     dl(`evento-bento-${date}.ics`,ics,"text/calendar");
   };
   const exportJSON=()=>dl(`evento-bento-${(d.data||"").replace(/\//g,"-")}.json`,JSON.stringify(d,null,2),"application/json");
   const enviarControle=()=>{
     const b64=btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-    window.open(`${CONTROLE_URL}?evento=${b64}`,"_blank");
+    window.open(`${CONTROLE_URL}?evento=${b64}`,"_blank","noopener,noreferrer");
   };
   const avisarEquipe=()=>{
     const msg=["🎉 *EVENTO CONFIRMADO — Bentô*",
@@ -1670,7 +1688,7 @@ function ContratoPage({data:d}){
       `💰 Total: ${money(d.total)}`,
       `👤 ${d.nome} · ${d.zap}`].filter(Boolean).join("\n");
     if(navigator.share){navigator.share({title:"Evento Bentô",text:msg}).catch(()=>{});}
-    else{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank");}
+    else{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank","noopener,noreferrer");}
   };
   return(
     <div style={{minHeight:"100vh",background:"#54594A",padding:"24px 8px",fontFamily:"'DM Sans',system-ui,sans-serif"}}>
