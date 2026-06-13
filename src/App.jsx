@@ -1219,15 +1219,42 @@ function GameArt({size=38}){
   );
 }
 
+/* ========== BOTÃO DE FUNÇÃO (Tile) ==========
+   Suporta dois estilos: padrão (ícone/emoji + texto) e a variante
+   "preenchida com imagem" (t.img) — fundo full-bleed + função em destaque ao centro. */
+function Tile({t,delay=0}){
+  if(t.img){
+    return(
+      <button onClick={t.onClick} className="hl rise" style={{position:"relative",overflow:"hidden",width:"100%",border:`1px solid ${t.bd||"#0d0a16"}`,borderRadius:12,padding:0,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+        <img src={t.img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:t.imgPos||"center"}}/>
+        <div style={{position:"absolute",inset:0,background:t.overlay||"linear-gradient(180deg,rgba(13,10,22,.12) 0%,rgba(13,10,22,.46) 52%,rgba(13,10,22,.88) 100%)"}}/>
+        <div style={{position:"relative",minHeight:122,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,padding:"16px 12px"}}>
+          <div className="fd" style={{fontSize:19,lineHeight:1.05,color:"#fff",textAlign:"center",letterSpacing:"-0.01em",textShadow:t.glow?`0 0 18px ${t.glow}, 0 2px 10px rgba(0,0,0,.75)`:"0 2px 10px rgba(0,0,0,.75)"}}>{t.title}</div>
+          <div className="fb" style={{fontSize:11,lineHeight:1.3,color:"rgba(255,255,255,.92)",textAlign:"center",textShadow:"0 1px 6px rgba(0,0,0,.75)"}}>{t.sub}</div>
+          {t.badge&&<span className="fm" style={{marginTop:2,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:t.badgeBg||"#6B4FA0",borderRadius:999,padding:"3px 11px",boxShadow:"0 2px 10px rgba(0,0,0,.45)"}}>{t.badge}</span>}
+        </div>
+      </button>
+    );
+  }
+  return(
+    <button onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+      {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
+      <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
+      <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
+      {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
+    </button>
+  );
+}
+
 /* ========== HOME (LAUNCHER) ========== */
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
   const tiles=[
-    {title:"Delivery",sub:"Peça em casa pelo iFood",emoji:"🛵",onClick:onDelivery,bg:"#FBE3E0",bd:"#EFB7B0",fg:T.ink},
-    {title:"Cardápio",sub:"Linha completa com fotos e preços",emoji:"📋",onClick:onCardapio,bg:"#F6ECD8",bd:"#E3CCA0",fg:T.ink},
-    {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
-    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",art:<GameArt size={38}/>,onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink,badge:"🎁 Prêmios em desconto"},
-    {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
-    {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",emoji:"❓",onClick:onFaq,bg:"#E3EEF3",bd:"#B7D3E0",fg:T.ink},
+    {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64"},
+    {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
+    {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 30%",bd:"#4a5a3a"},
+    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
+    {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 40%",bd:"#3a2e22"},
+    {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",onClick:onFaq,img:"/tiles/duvidas.webp",imgPos:"center 35%",bd:"#4a5142"},
   ];
   return(
     <div className="fade">
@@ -1258,12 +1285,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           {/* Linha 1 de funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
             {tiles.slice(0,2).map((t,i)=>(
-              <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${160+i*45}ms`}}>
-                {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
-                <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
-                <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
-                {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
-              </button>
+              <Tile key={t.title} t={t} delay={160+i*45}/>
             ))}
           </div>
 
@@ -1280,12 +1302,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           {/* Demais funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
             {tiles.slice(2).map((t,i)=>(
-              <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${250+i*45}ms`}}>
-                {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
-                <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
-                <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
-                {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
-              </button>
+              <Tile key={t.title} t={t} delay={250+i*45}/>
             ))}
           </div>
         </div>
