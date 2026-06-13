@@ -67,6 +67,8 @@
     <div class="dot" style="margin:0 auto 8px">B</div>
     <div style="font-weight:700;font-size:16px">Painel Bentô</div>
     <div style="font-size:11px;color:var(--soft);letter-spacing:.28em;text-transform:uppercase;margin-top:4px">Acesso restrito</div>
+    <button id="face" style="display:none;width:100%;margin-top:16px;padding:13px;border-radius:10px;border:none;background:var(--pist);color:#0c0f0a;font-weight:800;font-size:15px;cursor:pointer">🙂 Entrar com Face ID</button>
+    <div id="orsep" style="display:none;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);margin:14px 0 -2px">ou com a senha</div>
     <input id="key" type="password" placeholder="Senha do painel" autocomplete="current-password" />
     <button id="enter">Entrar</button>
     <div class="err" id="gateErr"></div>
@@ -85,6 +87,7 @@
     <div class="meta">
       <span class="live"><span class="blip"></span> ao vivo</span>
       <span id="updated" class="mono"></span>
+      <button class="ghost" id="faceEnable" style="display:none">🙂 Ativar Face ID</button>
       <button class="ghost" id="refresh">Atualizar</button>
       <button class="ghost" id="logout">Sair</button>
     </div>
@@ -129,7 +132,34 @@
 <script>
 const $ = (s) => document.querySelector(s);
 const KEYSTORE = "bento:panelkey";
+const CREDSTORE = "bento:cred";
 let charts = {};
+
+// ---- Face ID / Touch ID (WebAuthn, passkey de plataforma) ----
+const waOK = !!(window.PublicKeyCredential && navigator.credentials && location.protocol === "https:");
+const b64u = {
+  enc: (b) => btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""),
+  dec: (s) => { s = s.replace(/-/g,"+").replace(/_/g,"/"); const bin = atob(s); const u = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer; },
+};
+async function faceRegister(){
+  const cred = await navigator.credentials.create({ publicKey: {
+    challenge: crypto.getRandomValues(new Uint8Array(32)),
+    rp: { name: "Bentô Painel", id: location.hostname },
+    user: { id: crypto.getRandomValues(new Uint8Array(16)), name: "painel-bento", displayName: "Painel Bentô" },
+    pubKeyCredParams: [{ type:"public-key", alg:-7 }, { type:"public-key", alg:-257 }],
+    authenticatorSelection: { authenticatorAttachment:"platform", userVerification:"required", residentKey:"preferred" },
+    timeout: 60000, attestation: "none",
+  }});
+  localStorage.setItem(CREDSTORE, b64u.enc(cred.rawId));
+}
+async function faceLogin(){
+  const id = localStorage.getItem(CREDSTORE);
+  await navigator.credentials.get({ publicKey: {
+    challenge: crypto.getRandomValues(new Uint8Array(32)), timeout: 60000,
+    userVerification: "required", rpId: location.hostname,
+    allowCredentials: id ? [{ type:"public-key", id: b64u.dec(id) }] : [],
+  }});
+}
 
 function isConv(name){ return /^(Conversão|Sabor)\b/.test(name) || name.indexOf("Conversão")===0; }
 function fmt(n){ return (n||0).toLocaleString("pt-BR"); }
@@ -231,21 +261,36 @@ function baseOpts(axes){
     }};
 }
 
-function openGate(msg){ $("#app").style.display="none"; $("#gate").style.display="flex"; $("#gateErr").textContent=msg||""; $("#key").focus(); }
+function openGate(msg){
+  $("#app").style.display="none"; $("#gate").style.display="flex"; $("#gateErr").textContent=msg||"";
+  const hasCred = waOK && !!localStorage.getItem(CREDSTORE);
+  $("#face").style.display = hasCred ? "block" : "none";
+  $("#orsep").style.display = hasCred ? "block" : "none";
+  if(!hasCred) $("#key").focus();
+}
 function closeGate(){ $("#gate").style.display="none"; $("#app").style.display="block"; }
+function afterLogin(){ $("#faceEnable").style.display = (waOK && !localStorage.getItem(CREDSTORE)) ? "inline-block" : "none"; }
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
 $("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim()); refresh(); };
 $("#key").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#enter").click(); });
+$("#face").onclick = async ()=>{ try{ await faceLogin(); $("#gateErr").textContent=""; refresh(); }catch{ $("#gateErr").textContent="Face ID cancelado — use a senha abaixo."; } };
+$("#faceEnable").onclick = async ()=>{
+  try{ await faceRegister(); $("#faceEnable").style.display="none";
+    alert("Face ID ativado neste aparelho. ✅ Da próxima vez é só tocar em ‘Entrar com Face ID’."); }
+  catch(e){ alert("Não consegui ativar o Face ID aqui: "+((e&&e.message)||e)); }
+};
 $("#refresh").onclick = refresh;
-$("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); openGate(""); };
+$("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.removeItem(CREDSTORE); openGate(""); };
 
-// início
-if (localStorage.getItem(KEYSTORE)) refresh(); else openGate("");
+// início: com Face ID configurado, sempre exige a biometria; senão, mantém o atalho pela senha salva.
+if (waOK && localStorage.getItem(CREDSTORE)) openGate("");
+else if (localStorage.getItem(KEYSTORE)) refresh();
+else openGate("");
 setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 30000);
 </script>
 </body>
