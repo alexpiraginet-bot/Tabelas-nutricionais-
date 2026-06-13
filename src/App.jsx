@@ -1178,7 +1178,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",emoji:"❓",onClick:onFaq,bg:"#E3EEF3",bd:"#B7D3E0",fg:T.ink},
     {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
-    {title:"Stranger Gelatos",sub:"Nosso joguinho arcade",emoji:"🎮",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink},
+    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",emoji:"🎮",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink,badge:"🎁 Prêmios em desconto"},
   ];
   return(
     <div className="fade">
@@ -1213,6 +1213,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
                 <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
                 <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
                 <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
+                {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
               </button>
             ))}
           </div>
@@ -1234,6 +1235,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
                 <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
                 <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
                 <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
+                {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
               </button>
             ))}
           </div>
