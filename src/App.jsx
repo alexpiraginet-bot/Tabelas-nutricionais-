@@ -1170,6 +1170,31 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
   );
 }
 
+/* ========== ARTE DO JOGO (Stranger Things × Mario) ========== */
+function GameArt({size=38}){
+  return(
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="gaGlow" cx="50%" cy="38%" r="62%"><stop offset="0" stopColor="#E63946" stopOpacity="0.45"/><stop offset="1" stopColor="#E63946" stopOpacity="0"/></radialGradient>
+        <linearGradient id="gaBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#1e1430"/><stop offset="1" stopColor="#0d0a16"/></linearGradient>
+      </defs>
+      <rect width="48" height="48" rx="9" fill="url(#gaBg)"/>
+      <rect width="48" height="48" rx="9" fill="url(#gaGlow)"/>
+      <circle cx="9" cy="9" r="0.9" fill="#ff5d6c"/><circle cx="40" cy="7" r="0.7" fill="#ffd2d6"/><circle cx="33" cy="13" r="0.6" fill="#ff5d6c"/><circle cx="14" cy="31" r="0.6" fill="#ff8d97" opacity="0.7"/><circle cx="44" cy="18" r="0.6" fill="#ff8d97" opacity="0.6"/>
+      <rect x="6" y="9" width="11" height="11" rx="1.5" fill="#F2C14E" stroke="#9c6b16" strokeWidth="1.2"/>
+      <text x="11.5" y="18" fontSize="9" fontFamily="monospace" fontWeight="700" fill="#7a4d0a" textAnchor="middle">?</text>
+      <circle cx="8.2" cy="11.2" r="0.6" fill="#9c6b16"/><circle cx="14.8" cy="11.2" r="0.6" fill="#9c6b16"/><circle cx="8.2" cy="17.8" r="0.6" fill="#9c6b16"/><circle cx="14.8" cy="17.8" r="0.6" fill="#9c6b16"/>
+      <rect x="33" y="28" width="10" height="12" fill="#3FA34D"/><rect x="31.5" y="25.5" width="13" height="4.6" rx="1" fill="#4FBF5D" stroke="#2C7A3D" strokeWidth="0.8"/><rect x="35" y="29" width="1.8" height="11" fill="#2C7A3D" opacity="0.5"/>
+      <rect x="20.6" y="34" width="2.4" height="7" rx="1" fill="#C9A86A"/>
+      <rect x="16" y="20" width="11.6" height="16" rx="4" fill="#E63946" stroke="#8c1f2b" strokeWidth="1"/>
+      <rect x="18" y="22.5" width="2.8" height="6" rx="1.4" fill="#ff8d97" opacity="0.8"/>
+      <circle cx="20" cy="27" r="1.5" fill="#fff"/><circle cx="24" cy="27" r="1.5" fill="#fff"/><circle cx="20.3" cy="27.2" r="0.75" fill="#17101f"/><circle cx="24.3" cy="27.2" r="0.75" fill="#17101f"/>
+      <rect x="0" y="40" width="48" height="8" fill="#3a241f"/>
+      <g stroke="#21130f" strokeWidth="0.8"><line x1="0" y1="44" x2="48" y2="44"/><line x1="6" y1="40" x2="6" y2="44"/><line x1="18" y1="40" x2="18" y2="44"/><line x1="30" y1="40" x2="30" y2="44"/><line x1="42" y1="40" x2="42" y2="44"/><line x1="12" y1="44" x2="12" y2="48"/><line x1="24" y1="44" x2="24" y2="48"/><line x1="36" y1="44" x2="36" y2="48"/></g>
+    </svg>
+  );
+}
+
 /* ========== HOME (LAUNCHER) ========== */
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
   const tiles=[
@@ -1178,7 +1203,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",emoji:"✦",onClick:onPitch,bg:T.ink,bd:T.ink,fg:T.bg},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",emoji:"❓",onClick:onFaq,bg:"#E3EEF3",bd:"#B7D3E0",fg:T.ink},
     {title:"Seja um parceiro",sub:"Revenda & franquia",emoji:"🤝",onClick:onParceria,bg:"#E1F1E6",bd:"#A9D7B6",fg:T.ink},
-    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",emoji:"🎮",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink,badge:"🎁 Prêmios em desconto"},
+    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",art:<GameArt size={38}/>,onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),bg:"#ECE7F3",bd:"#CFC3E2",fg:T.ink,badge:"🎁 Prêmios em desconto"},
   ];
   return(
     <div className="fade">
@@ -1210,7 +1235,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
             {tiles.slice(0,2).map((t,i)=>(
               <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${160+i*45}ms`}}>
-                <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
+                {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
                 <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
                 <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
                 {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
@@ -1232,7 +1257,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
             {tiles.slice(2).map((t,i)=>(
               <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${250+i*45}ms`}}>
-                <span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>
+                {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
                 <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
                 <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
                 {t.badge&&<span className="fm" style={{marginTop:5,fontSize:9,letterSpacing:"0.04em",fontWeight:700,color:"#fff",background:"#6B4FA0",borderRadius:999,padding:"3px 10px"}}>{t.badge}</span>}
