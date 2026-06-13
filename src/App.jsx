@@ -551,7 +551,7 @@ function EventosModal({onClose}){
   useModal(onClose);
   const[step,setStep]=useState(1);
   const[ev,setEv]=useState({data:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
-  const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:""});
+  const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:"",consent:false});
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
   const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
@@ -576,7 +576,7 @@ function EventosModal({onClose}){
   };
   const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
   const docOk=d2=>[11,14].includes(d2.replace(/\D/g,"").length);
-  const ok3=cad.nome.trim()&&docOk(cad.doc)&&emailOk(cad.email)&&cad.zap.replace(/\D/g,"").length>=10;
+  const ok3=cad.nome.trim()&&docOk(cad.doc)&&emailOk(cad.email)&&cad.zap.replace(/\D/g,"").length>=10&&cad.consent;
   const enviar=()=>{
     // link interno: abre o contrato pré-preenchido para a equipe revisar e gerar o PDF
     const payload={nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
@@ -734,6 +734,10 @@ function EventosModal({onClose}){
               <span className="fb" style={{fontSize:12,color:T.inkSoft}}>{ev.convidados} convidados · {ev.data.split("-").reverse().join("/")}</span>
               <span className="fd" style={{fontSize:18,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
             </div>
+            <label style={{display:"flex",gap:9,alignItems:"flex-start",marginTop:16,cursor:"pointer"}}>
+              <input type="checkbox" checked={cad.consent} onChange={e=>setC("consent",e.target.checked)} style={{marginTop:3,accentColor:T.pistacheDark,width:16,height:16,flexShrink:0}}/>
+              <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato e elaboração do orçamento/contrato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
+            </label>
             <button onClick={enviar} disabled={!ok3} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok3?"#25D366":T.border,color:ok3?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3?"pointer":"not-allowed"}}>💬 Enviar e solicitar contrato</button>
             <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
             <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:4,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
@@ -846,9 +850,9 @@ function DeliveryModal({onClose}){
 const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 function SejaBento({onClose}){
   useModal(onClose);
-  const[form,setForm]=useState({interesse:"Revenda",nome:"",zap:"",cidade:"",ponto:"",msg:""});
+  const[form,setForm]=useState({interesse:"Revenda",nome:"",zap:"",cidade:"",ponto:"",msg:"",consent:false});
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
-  const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim();
+  const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim()&&form.consent;
   const enviar=()=>{
     const linhas=[
       "*Nova solicitação — Seja Bentô* 🍨",
@@ -896,7 +900,11 @@ function SejaBento({onClose}){
           </div>
           <span className="fm" style={lab}>Mensagem (opcional)</span>
           <textarea className="fb" rows={3} style={{...inp,resize:"vertical"}} value={form.msg} onChange={e=>set("msg",e.target.value)} placeholder="Conte um pouco sobre você, sua experiência ou sua região…"/>
-          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:18,padding:"14px",borderRadius:4,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <label style={{display:"flex",gap:9,alignItems:"flex-start",marginTop:16,cursor:"pointer"}}>
+            <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} style={{marginTop:3,accentColor:T.pistacheDark,width:16,height:16,flexShrink:0}}/>
+            <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
+          </label>
+          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             💬 Enviar pelo WhatsApp
           </button>
           <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta — é só confirmar o envio.</div>
@@ -1645,6 +1653,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 
 /* ========== APP ========== */
 const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
+const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
 
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
@@ -1653,6 +1662,7 @@ export default function App(){
       return p?JSON.parse(decodeURIComponent(escape(atob(p.replace(/-/g,"+").replace(/_/g,"/"))))):null;
     }catch{return null;}
   });
+  const[privacidade]=useState(()=>{try{return new URLSearchParams(window.location.search).has("privacidade");}catch{return false;}});
   const[view,setView]=useState("home");
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -1677,6 +1687,7 @@ export default function App(){
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
   if(contrato) return(<><GStyle/><Suspense fallback={null}><ContratoPage data={contrato}/></Suspense></>);
+  if(privacidade) return(<><GStyle/><Suspense fallback={null}><PrivacidadePage/></Suspense></>);
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
@@ -1703,6 +1714,7 @@ export default function App(){
           <button onClick={()=>setShowParceria(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
           <button onClick={()=>setShowPitch(true)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
+          <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Privacidade</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
       </footer>
