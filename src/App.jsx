@@ -116,7 +116,7 @@ const IMG_FB="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewB
 const onImgErr=e=>{if(!e.currentTarget.dataset.fb){e.currentTarget.dataset.fb="1";e.currentTarget.src=IMG_FB;}};
 
 /* ========== QUIZ ========== */
-function QuizModal({onClose,onResult}){
+function QuizModal({onClose,onResult,onDelivery}){
   useModal(onClose);
   const [step,setStep]=useState(0);const [ans,setAns]=useState([]);const [done,setDone]=useState(false);const [result,setResult]=useState(null);
   const pick=(val)=>{
@@ -174,6 +174,7 @@ function QuizModal({onClose,onResult}){
                 ))}
               </div>
               <button onClick={()=>{onClose();onResult(result.id);}} style={{width:"100%",padding:"13px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>Ver ficha completa →</button>
+              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:4,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Pedir agora no iFood</button>}
               <button onClick={()=>{setStep(0);setAns([]);setDone(false);setResult(null);}} style={{width:"100%",marginTop:8,padding:"10px 0",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:4,fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>Refazer quiz</button>
             </div>
           )}
@@ -699,7 +700,7 @@ function EventosModal({onClose}){
                 <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
-              <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Calculando logística…":"Ver meu orçamento →"}</button>
+              <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
               {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
             </>)}
           </>)}
@@ -860,7 +861,7 @@ function DeliveryModal({onClose}){
                 <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
                 <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
                 <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir no iFood</a>
+                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir agora no iFood</a>
                   <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:4,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
                 </div>
               </div>
@@ -944,7 +945,7 @@ function SejaBento({onClose}){
 
 /* ========== MONTE SEU POTE ========== */
 const CUPS=[{id:"P",label:"Pote P",g:120},{id:"M",label:"Pote M",g:170}];
-function PoteBuilder({onClose}){
+function PoteBuilder({onClose,onDelivery}){
   useModal(onClose);
   const gelatos=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
   const [cup,setCup]=useState("P");
@@ -1028,6 +1029,7 @@ function PoteBuilder({onClose}){
             ))}
           </div>
           <p className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:12,lineHeight:1.5,textAlign:"center"}}>Referência padrão: 100 g · valores calculados proporcionalmente para o pote de {g} g.</p>
+          {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Monte seu pote",onDelivery)} className="fb" style={{width:"100%",marginTop:14,padding:"13px 14px",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:6,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Montar de verdade — pedir no iFood</button>}
         </div>
       </div>
     </div>
@@ -1301,7 +1303,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
         </h1>
         <p className="fb rise" style={{maxWidth:440,margin:"8px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.55,animationDelay:"100ms"}}>
-          Zero açúcar adicionado · rico em proteína · rótulo limpo.
+          Sabor de sobremesa, ficha de suplemento. Zero açúcar adicionado · rico em proteína · rótulo limpo.
         </p>
 
         <div style={{width:"100%",marginTop:22}}>
@@ -1312,7 +1314,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
               <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:5}}>Comece por aqui</div>
+              <div className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:5}}>A sobremesa que você pode repetir</div>
               <div className="fd" style={{fontSize:"clamp(19px,3.2vw,24px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Gelatos, picolés, monte seu pote e quiz de sabores.</div>
             </div>
@@ -1950,9 +1952,9 @@ export default function App(){
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
-      {showPote&&<PoteBuilder onClose={()=>setShowPote(false)}/>}
+      {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
       {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
