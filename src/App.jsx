@@ -267,9 +267,10 @@ const CARDAPIO = [
     { name:"Tamanho P", info:"120 g · 1–2 sabores · p/ viagem", price:"23,90", img:"/cardapio/gelato-p.jpg" },
   ]},
   { cat:"Shakes", emoji:"🥤", items:[
-    { name:"Shake Morango c/ Maracujá", info:"Whey True Vanilla + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
-    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
-    { name:"Shake Dark Chocolate", info:"Whey hidrolisado + chocolate zero", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
+    { name:"Shake Morango c/ Maracujá", info:"Whey True Yummy Milk + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
+    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g de fruta", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
+    { name:"Shake Açaí com Banana", info:"Whey de Coco True + 100 g açaí + 100 g banana", price:"37,90", img:null },
+    { name:"Shake Choco Power", info:"Whey True Dark Chocolate + cacau 100%", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
     { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90", img:"/cardapio/milkshake-pistache.jpg" },
     { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90", img:"/cardapio/milkshake-doce-leite.jpg" },
   ]},
@@ -1487,7 +1488,7 @@ function ShakeCard({s,delay}){
     </div>
   );
 }
-function ShakesPage({onBack}){
+function ShakesPage({onBack,onDelivery}){
   return(
     <div className="fade">
       <div style={{maxWidth:1152,margin:"0 auto",padding:"28px 24px 0"}}>
@@ -1500,6 +1501,11 @@ function ShakesPage({onBack}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
           {SHAKES.map((s,i)=><ShakeCard key={s.id} s={s} delay={i*45}/>)}
         </div>
+        {onDelivery&&(
+          <div style={{marginTop:22,display:"flex",justifyContent:"center"}}>
+            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:"#EA1D2C",color:"#fff",border:"none",borderRadius:6,padding:"14px 26px",fontSize:15,fontWeight:700,cursor:"pointer"}}>🛵 Pedir um shake no iFood</button>
+          </div>
+        )}
         <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey True (truesource/vivatrue, por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
       </div>
     </div>
@@ -2037,7 +2043,7 @@ export default function App(){
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
       {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
-      {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")}/>}
+      {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}}/>}
