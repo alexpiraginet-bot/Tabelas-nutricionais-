@@ -28,7 +28,7 @@ const DECK_URL = "/Bento-Functional-Nutrition.pdf";
 
 
 function BentoLogo({size=120}){
-  return <img src="/bento-logo.webp" alt="Bentô Functional Nutrition" width={size} height={size} fetchpriority="high" style={{display:"block",borderRadius:"50%"}}/>;
+  return <img src="/bento-logo.webp" alt="Bentô Functional Nutrition" width={size} height={size} fetchpriority="high" decoding="async" style={{display:"block",borderRadius:"50%"}}/>;
 }
 
 function GelatoSVG({p,size=200,id}){
@@ -45,7 +45,7 @@ function ProductArt({product,size}){
   // Foto por convenção (/sabores/<id>.jpg); se faltar, cai para a arte SVG.
   const [err,setErr]=useState(false);
   const src=product.image||`/sabores/${product.id}.jpg`;
-  if(src&&!err) return <img src={src} alt={product.name} loading="lazy" onError={()=>setErr(true)} style={{width:size,height:size,objectFit:"cover",borderRadius:4,background:T.bgWarm}}/>;
+  if(src&&!err) return <img src={src} alt={product.name} loading="lazy" decoding="async" width={size} height={size} onError={()=>setErr(true)} style={{width:size,height:size,objectFit:"cover",borderRadius:4,background:T.bgWarm}}/>;
   return product.category==="gelato"?<GelatoSVG p={product.palette} size={size} id={product.id}/>:<PicoleSVG p={product.palette} size={size} id={product.id}/>;
 }
 
