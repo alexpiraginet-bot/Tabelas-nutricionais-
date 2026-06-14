@@ -1733,6 +1733,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 /* ========== APP ========== */
 const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
 const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
+const TermosPage = lazy(() => import("./TermosPage.jsx"));
 
 /* ========== SEM CULPA-ÔMETRO ========== */
 // Referência: sorvete de massa tradicional (média de mercado), por 100 g.
@@ -1917,6 +1918,7 @@ export default function App(){
     }catch{return null;}
   });
   const[privacidade]=useState(()=>{try{return new URLSearchParams(window.location.search).has("privacidade");}catch{return false;}});
+  const[termos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("termos");}catch{return false;}});
   const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -1944,6 +1946,7 @@ export default function App(){
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
   if(contrato) return(<><GStyle/><Suspense fallback={null}><ContratoPage data={contrato}/></Suspense></>);
   if(privacidade) return(<><GStyle/><Suspense fallback={null}><PrivacidadePage/></Suspense></>);
+  if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
@@ -1973,8 +1976,12 @@ export default function App(){
           <button onClick={()=>tk("Rodapé · Conheça a Bentô",()=>setShowPitch(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
           <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Privacidade</a>
+          <a href="/?termos=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Termos</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
+        <div style={{width:"100%",borderTop:`1px solid ${T.border}`,paddingTop:12,marginTop:4}}>
+          <p className="fb" style={{fontSize:10,color:T.inkSoft,lineHeight:1.5,margin:0,textAlign:"center"}}>© {new Date().getFullYear()} ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45. Todos os direitos reservados. Conteúdo, layout e marca protegidos (Leis 9.610/98 e 9.279/96); cópia ou reprodução proibida. Veja os <a href="/?termos=1" style={{color:T.pistacheDark,textDecoration:"underline"}}>Termos</a>.</p>
+        </div>
       </footer>
       <Analytics/>
     </div>
