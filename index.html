@@ -10,7 +10,7 @@
         location.replace("https://bentogelateria.com/");
       }
     </script>
-    <meta name="description" content="Bentô Gelatos — gelato com propósito. Zero açúcar adicionado, rico em proteína, rótulo limpo. Sabores, cardápio, fichas nutricionais e parceria, tudo em um só lugar." />
+    <meta name="description" content="Gelato e picolé proteico sem açúcar adicionado em Vitória-ES. Opções low-carb e para diabéticos, rótulo limpo. Lojas na Praia do Canto e Jardim Camburi — peça no iFood." />
     <meta name="theme-color" content="#1F2317" />
 
     <!-- Open Graph (WhatsApp, Instagram, LinkedIn preview) -->
@@ -30,15 +30,74 @@
     <link rel="canonical" href="https://bentogelateria.com" />
 
     <!-- Identidade oficial -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/bento-logo.png" />
     <link rel="apple-touch-icon" href="/bento-logo.png" />
 
-    <title>Bentô Gelatos — Gelato com propósito</title>
+    <title>Sorvete Sem Açúcar em Vitória ES | Gelato Proteico — Bentô Gelatos</title>
 
     <!-- Fontes no head: descoberta antecipada, evita FOUT do @import em runtime -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- SEO local: estabelecimentos (Google Maps / busca local) -->
+    <script type="application/ld+json">
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "IceCreamShop",
+        "@id": "https://bentogelateria.com/#praia-do-canto",
+        "name": "Bentô Gelatos — Praia do Canto",
+        "image": "https://bentogelateria.com/og3.jpg",
+        "url": "https://bentogelateria.com",
+        "telephone": "+55-27-99915-9995",
+        "email": "bentogelateria@gmail.com",
+        "priceRange": "$$",
+        "servesCuisine": ["Gelato", "Sorvete sem açúcar", "Picolé proteico"],
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "R. Joaquim Lírio, 455, Quiosque 02",
+          "addressLocality": "Vitória",
+          "addressRegion": "ES",
+          "postalCode": "29055-460",
+          "addressCountry": "BR"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": -20.2947, "longitude": -40.2925 },
+        "areaServed": [
+          { "@type": "Place", "name": "Praia do Canto, Vitória - ES" },
+          { "@type": "Place", "name": "Vitória - ES" }
+        ],
+        "hasMenu": "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867",
+        "sameAs": ["https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867"]
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "IceCreamShop",
+        "@id": "https://bentogelateria.com/#jardim-camburi",
+        "name": "Bentô Gelatos — Jardim Camburi",
+        "image": "https://bentogelateria.com/og3.jpg",
+        "url": "https://bentogelateria.com",
+        "telephone": "+55-27-99915-9995",
+        "email": "bentogelateria@gmail.com",
+        "priceRange": "$$",
+        "servesCuisine": ["Gelato", "Sorvete sem açúcar", "Picolé proteico"],
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Vitória",
+          "addressRegion": "ES",
+          "addressCountry": "BR"
+        },
+        "geo": { "@type": "GeoCoordinates", "latitude": -20.2547, "longitude": -40.2670 },
+        "areaServed": [
+          { "@type": "Place", "name": "Jardim Camburi, Vitória - ES" },
+          { "@type": "Place", "name": "Vitória - ES" }
+        ],
+        "hasMenu": "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a",
+        "sameAs": ["https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a"]
+      }
+    ]
+    </script>
   </head>
   <body>
     <div id="root"></div>
