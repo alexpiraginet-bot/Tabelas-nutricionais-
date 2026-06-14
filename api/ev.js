@@ -54,10 +54,31 @@ async function pipeline(cmds) {
   return r.json();
 }
 
+// Só aceita chamadas vindas do nosso site (bloqueia uso cross-site/curl com Origin alheio).
+function originOk(req) {
+  const o = req.headers.origin || req.headers.referer || "";
+  if (!o) return true; // alguns navegadores omitem em same-origin; não bloquear
+  try { const h = new URL(o).hostname; return h === "bentogelateria.com" || h.endsWith(".bentogelateria.com") || h.endsWith(".vercel.app"); }
+  catch { return true; }
+}
+function ipOf(req) { return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim(); }
+// Rate limit por IP usando o próprio Redis (gratuito).
+async function rateOk(ip, bucket, limit) {
+  if (!ip) return true;
+  try {
+    const k = "rl:" + bucket + ":" + ip;
+    const r = await pipeline([["INCR", k], ["EXPIRE", k, 60]]);
+    const n = Array.isArray(r) ? (r[0] && (r[0].result ?? r[0])) : 0;
+    return Number(n) <= limit;
+  } catch { return true; }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).end(); return; }
   // Banco ainda não configurado: ignora sem erro (o site segue funcionando).
   if (!KV_URL || !KV_TOKEN) { res.status(204).end(); return; }
+  if (!originOk(req)) { res.status(204).end(); return; }
+  if (!(await rateOk(ipOf(req), "ev", 90))) { res.status(204).end(); return; }
   try {
     let body = await readRaw(req);
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
