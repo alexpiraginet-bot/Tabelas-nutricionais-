@@ -50,13 +50,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/bento-logo.png" />
     <link rel="apple-touch-icon" href="/bento-logo.png" />
+    <!-- Logo é o maior elemento acima da dobra (LCP): pré-carrega -->
+    <link rel="preload" as="image" href="/bento-logo.webp" fetchpriority="high" />
 
     <title>Sorvete Sem Açúcar em Vitória ES | Gelato Proteico — Bentô Gelatos</title>
 
-    <!-- Fontes no head: descoberta antecipada, evita FOUT do @import em runtime -->
+    <!-- Fontes: não-bloqueantes (carregam sem travar a primeira pintura), com display=swap -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" /></noscript>
 
     <!-- SEO local: estabelecimentos (Google Maps / busca local) -->
     <script type="application/ld+json">
