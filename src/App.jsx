@@ -269,7 +269,7 @@ const CARDAPIO = [
   { cat:"Shakes", emoji:"🥤", items:[
     { name:"Shake Morango c/ Maracujá", info:"Whey True Yummy Milk + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
     { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g de fruta", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
-    { name:"Shake Açaí com Banana", info:"Whey de Coco True + 100 g açaí + 100 g banana", price:"37,90", img:null },
+    { name:"Shake Açaí com Banana", info:"Whey de Coco True + 100 g açaí + 100 g banana", price:"37,90", img:"/cardapio/acai-banana.jpg" },
     { name:"Shake Choco Power", info:"Whey True Dark Chocolate + cacau 100%", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
     { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90", img:"/cardapio/milkshake-pistache.jpg" },
     { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90", img:"/cardapio/milkshake-doce-leite.jpg" },
