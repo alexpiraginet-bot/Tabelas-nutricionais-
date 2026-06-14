@@ -1439,7 +1439,7 @@ function ShakeCard({s,delay}){
         <div style={{display:"flex",gap:10}}>
           <div style={{flex:1,background:T.bg,borderRadius:6,padding:"10px 8px",textAlign:"center"}}>
             <div className="fd" style={{fontSize:22,color:T.pistacheDark,fontWeight:500,lineHeight:1}}>{s.protein}g</div>
-            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Proteína</div>
+            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Proteína · c/ água</div>
           </div>
           <div style={{flex:2,background:T.bg,borderRadius:6,padding:"10px 12px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
             <div className="fb" style={{fontSize:12,color:T.ink,lineHeight:1.3}}>{s.sub}</div>
@@ -1459,20 +1459,29 @@ function ShakeCard({s,delay}){
           ))}
         </div>
         <div>
-          <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>Calorias por líquido <span style={{color:T.inkSoft}}>· estimativa total</span></div>
-          <table style={{width:"100%",borderCollapse:"collapse"}}>
-            <tbody>
-              {s.liquids.map((l,i)=>(
-                <tr key={i} style={{borderTop:`1px solid ${T.border}`}}>
-                  <td style={{padding:"7px 0"}}>
-                    <div className="fb" style={{fontSize:13,color:T.ink}}>{l.name}</div>
-                    <div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.3}}>{l.note}</div>
-                  </td>
-                  <td className="fm" style={{padding:"7px 0",textAlign:"right",fontSize:13,color:T.ink,fontWeight:500,whiteSpace:"nowrap"}}>~{l.kcal} kcal</td>
+          <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>Tabela nutricional <span style={{color:T.inkSoft}}>· por porção · por líquido</span></div>
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:11.5}}>
+              <thead>
+                <tr>
+                  <th className="fm" style={{textAlign:"left",fontWeight:500,color:T.inkSoft,fontSize:9,letterSpacing:"0.08em",textTransform:"uppercase",padding:"0 6px 6px 0"}}></th>
+                  {s.nutrition.map((n,i)=>(
+                    <th key={i} className="fm" style={{textAlign:"right",fontWeight:500,color:T.ink,fontSize:9.5,letterSpacing:"0.04em",padding:"0 0 6px 6px",whiteSpace:"nowrap"}}>{n.liquid}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {[["Valor energético","kcal","kcal"],["Carboidratos","carb","g"],["Proteínas","prot","g"],["Gorduras totais","fat","g"],["Gord. saturadas","sat","g"],["Fibra alimentar","fiber","g"],["Sódio","na","mg"]].map(([label,key,unit],r)=>(
+                  <tr key={key} style={{borderTop:`1px solid ${T.border}`}}>
+                    <td className="fb" style={{textAlign:"left",color:T.ink,padding:"6px 6px 6px 0"}}>{label}</td>
+                    {s.nutrition.map((n,i)=>(
+                      <td key={i} className="fm" style={{textAlign:"right",color:T.ink,fontWeight:key==="kcal"||key==="prot"?600:400,padding:"6px 0 6px 6px",whiteSpace:"nowrap"}}>{n[key]}{unit==="kcal"?"":unit==="mg"?" mg":" g"}{unit==="kcal"?" kcal":""}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -1485,13 +1494,13 @@ function ShakesPage({onBack}){
         <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6,marginBottom:20,cursor:"pointer"}}><ArrowLeft size={13}/>Voltar</button>
         <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>03 / Linha Proteica</div>
         <h1 className="fd" style={{fontSize:"clamp(36px,5vw,58px)",lineHeight:1,color:T.ink,fontWeight:400,letterSpacing:"-0.02em"}}>Shakes</h1>
-        <p className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,maxWidth:600,lineHeight:1.5}}>Shakes proteicos batidos na hora. Proteína por porção (do whey) e calorias que variam conforme o líquido escolhido.</p>
+        <p className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,maxWidth:620,lineHeight:1.5}}>Shakes proteicos batidos na hora. A tabela mostra os valores por porção para cada opção de líquido — proteína e calorias variam conforme a escolha.</p>
       </div>
       <div style={{maxWidth:1152,margin:"0 auto",padding:"22px 24px 8px"}}>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
           {SHAKES.map((s,i)=><ShakeCard key={s.id} s={s} delay={i*45}/>)}
         </div>
-        <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:760}}>As calorias são <strong>estimativas totais por porção</strong> e variam conforme o líquido (água, leite ou leite de amêndoas) e o tipo de whey. A proteína indicada refere-se ao whey por porção. Valores sujeitos a ajuste conforme o lote dos ingredientes.</p>
+        <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey True (truesource/vivatrue, por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
       </div>
     </div>
   );
