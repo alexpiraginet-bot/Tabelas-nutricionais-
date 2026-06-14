@@ -666,9 +666,9 @@ function EventosModal({onClose}){
               <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
             </div>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
-            <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
+            <span className="fm" style={lab}>Deixe seu WhatsApp (com DDD) *</span>
             <input className="fb" style={inp} value={cad.zap} onChange={e=>setC("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
-            <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Usamos só para te enviar este orçamento e combinar os detalhes do evento. 💛</div>
+            <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Deixe seu contato para a gente te enviar o orçamento e mais informações do evento. Sem compromisso. 💛</div>
             <span className="fm" style={lab}>Data do evento *</span>
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
