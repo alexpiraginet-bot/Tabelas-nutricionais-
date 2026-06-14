@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
-import { PRODUCTS, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
+import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 
@@ -1352,12 +1352,13 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 }
 
 /* ========== TABELAS (HUB DE PRODUTOS/FERRAMENTAS) ========== */
-function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack,onCulpa,onGLP1}){
+function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCulpa,onGLP1}){
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   const tools=[
     {title:"Gelatos",sub:`${counts.gelato} sabores · ficha completa`,onClick:()=>onSelect("gelato"),art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={64} id="tg"/>},
     {title:"Bentôlé",sub:`${counts.bentole} picolés · ficha por sabor`,onClick:()=>onSelect("bentole"),art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={64} id="tp"/>},
+    {title:"Shakes",sub:`${SHAKES.length} shakes proteicos · tabela e ingredientes`,onClick:onShakes,emoji:"🥤"},
     {title:"Monte seu pote",sub:"Combine 2 sabores · calorias e proteína",onClick:onPote,emoji:"🍦"},
     {title:"Qual é o meu sabor?",sub:"Quiz rápido de 3 perguntas",onClick:onQuiz,emoji:"🎯"},
   ];
@@ -1418,6 +1419,80 @@ function TabelasHub({onSelect,onSelectProduct,onPote,onQuiz,onBack,onCulpa,onGLP
           ))}
         </div>
       </section>
+    </div>
+  );
+}
+
+/* ========== SHAKES (linha proteica · só tabela e ingredientes) ========== */
+function ShakeCard({s,delay}){
+  return(
+    <div className="rise hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
+      <div style={{background:s.color.bg,padding:"16px 18px",display:"flex",alignItems:"center",gap:12}}>
+        <span style={{fontSize:34,lineHeight:1}}>{s.emoji}</span>
+        <div style={{flex:1,minWidth:0}}>
+          <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:s.color.ink,opacity:.8}}>{s.code} · Proteico</div>
+          <div className="fd" style={{fontSize:20,color:s.color.ink,lineHeight:1.1,marginTop:2}}>{s.name}</div>
+        </div>
+      </div>
+      <div style={{padding:"16px 18px",display:"flex",flexDirection:"column",gap:16,flex:1}}>
+        <p className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.5,margin:0}}>{s.description}</p>
+        <div style={{display:"flex",gap:10}}>
+          <div style={{flex:1,background:T.bg,borderRadius:6,padding:"10px 8px",textAlign:"center"}}>
+            <div className="fd" style={{fontSize:22,color:T.pistacheDark,fontWeight:500,lineHeight:1}}>{s.protein}g</div>
+            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Proteína</div>
+          </div>
+          <div style={{flex:2,background:T.bg,borderRadius:6,padding:"10px 12px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+            <div className="fb" style={{fontSize:12,color:T.ink,lineHeight:1.3}}>{s.sub}</div>
+            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Preparo {s.prep}</div>
+          </div>
+        </div>
+        <div>
+          <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>Ingredientes</div>
+          {s.ingredients.map((ing,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",gap:10,padding:"6px 0",borderTop:i?`1px solid ${T.border}`:"none"}}>
+              <div style={{minWidth:0}}>
+                <div className="fb" style={{fontSize:13,color:T.ink}}>{ing.name}</div>
+                {ing.note&&<div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.3,marginTop:1}}>{ing.note}</div>}
+              </div>
+              <div className="fm" style={{fontSize:12.5,color:T.ink,fontWeight:500,whiteSpace:"nowrap"}}>{ing.qty}</div>
+            </div>
+          ))}
+        </div>
+        <div>
+          <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>Calorias por líquido <span style={{color:T.inkSoft}}>· estimativa total</span></div>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <tbody>
+              {s.liquids.map((l,i)=>(
+                <tr key={i} style={{borderTop:`1px solid ${T.border}`}}>
+                  <td style={{padding:"7px 0"}}>
+                    <div className="fb" style={{fontSize:13,color:T.ink}}>{l.name}</div>
+                    <div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.3}}>{l.note}</div>
+                  </td>
+                  <td className="fm" style={{padding:"7px 0",textAlign:"right",fontSize:13,color:T.ink,fontWeight:500,whiteSpace:"nowrap"}}>~{l.kcal} kcal</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+function ShakesPage({onBack}){
+  return(
+    <div className="fade">
+      <div style={{maxWidth:1152,margin:"0 auto",padding:"28px 24px 0"}}>
+        <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6,marginBottom:20,cursor:"pointer"}}><ArrowLeft size={13}/>Voltar</button>
+        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:8}}>03 / Linha Proteica</div>
+        <h1 className="fd" style={{fontSize:"clamp(36px,5vw,58px)",lineHeight:1,color:T.ink,fontWeight:400,letterSpacing:"-0.02em"}}>Shakes</h1>
+        <p className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,maxWidth:600,lineHeight:1.5}}>Shakes proteicos batidos na hora. Proteína por porção (do whey) e calorias que variam conforme o líquido escolhido.</p>
+      </div>
+      <div style={{maxWidth:1152,margin:"0 auto",padding:"22px 24px 8px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(300px,1fr))",gap:14}}>
+          {SHAKES.map((s,i)=><ShakeCard key={s.id} s={s} delay={i*45}/>)}
+        </div>
+        <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:760}}>As calorias são <strong>estimativas totais por porção</strong> e variam conforme o líquido (água, leite ou leite de amêndoas) e o tipo de whey. A proteína indicada refere-se ao whey por porção. Valores sujeitos a ajuste conforme o lote dos ingredientes.</p>
+      </div>
     </div>
   );
 }
@@ -1952,7 +2027,8 @@ export default function App(){
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
       {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
-      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
+      {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
+      {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}}/>}

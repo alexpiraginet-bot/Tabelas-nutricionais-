@@ -273,6 +273,71 @@ export const MOOD_META = {
   comfort:    {label:"Comfort",     color:"#7A3A0A",bg:"#F0D5BA",icon:"🫶"},
 };
 
+/* ========== SHAKES (linha proteica · somente tabela e ingredientes) ==========
+   Fonte: fichas técnicas FT-SHAKE (rev. mai/2026). Apenas dados nutricionais e
+   lista de ingredientes — sem passo a passo de preparo. A proteína é por porção
+   (do whey); as calorias são estimativas TOTAIS e variam conforme o líquido. */
+export const SHAKES = [
+  { id:"shake-frutas-vermelhas", code:"FT-SHAKE-01", name:"Shake Frutas Vermelhas", emoji:"🍓",
+    color:{bg:"#FBE3EC",ink:"#A8334A"},
+    description:"Frutas vermelhas batidas na hora com whey True Fior di Latte (isolado e hidrolisado) e o líquido à escolha do cliente.",
+    protein:30, sub:"200 g de frutas vermelhas", prep:"~60 s",
+    ingredients:[
+      {name:"Frutas vermelhas",qty:"200 g"},
+      {name:"Whey True Fior di Latte",qty:"30 g",note:"Isolado e hidrolisado"},
+      {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite integral ou leite de amêndoas"},
+    ],
+    liquids:[
+      {name:"Água",kcal:120,note:"Mais leve · proteína mais pura"},
+      {name:"Leite integral",kcal:200,note:"Mais cremoso · proteína adicional"},
+      {name:"Leite de amêndoas",kcal:140,note:"Sem lactose · sabor suave"},
+    ] },
+  { id:"shake-acai-banana", code:"FT-SHAKE-02", name:"Shake Açaí com Banana", emoji:"🫐",
+    color:{bg:"#E7E0F2",ink:"#5A2DAA"},
+    description:"Açaí e banana congelados batidos com Whey de Coco True. O cliente escolhe o tipo de whey e o líquido base.",
+    protein:30, sub:"100 g açaí + 100 g banana · 4 tipos de whey", prep:"~90 s",
+    ingredients:[
+      {name:"Açaí congelado",qty:"100 g"},
+      {name:"Banana congelada",qty:"100 g"},
+      {name:"Whey de Coco True",qty:"30 g",note:"4 tipos: hidrolisado, tradicional, zero lactose ou vegano"},
+      {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite A2 integral ou leite de amêndoas"},
+    ],
+    liquids:[
+      {name:"Água",kcal:110,note:"Mais leve · proteína concentrada"},
+      {name:"Leite A2 integral",kcal:195,note:"Extra cremoso · caseína A2"},
+      {name:"Leite de amêndoas",kcal:135,note:"Sem lactose · sabor neutro"},
+    ] },
+  { id:"shake-morango-maracuja", code:"FT-SHAKE-03", name:"Shake Morango com Maracujá", emoji:"🍓",
+    color:{bg:"#FCEAD9",ink:"#B5531C"},
+    description:"Morango e maracujá pré-misturados, batidos com whey True Yummy Milk (concentrado e isolado) e o líquido à escolha.",
+    protein:20, sub:"200 g de morango + maracujá", prep:"~60 s",
+    ingredients:[
+      {name:"Morango + maracujá",qty:"200 g",note:"Sementes do maracujá são esperadas"},
+      {name:"Whey True Yummy Milk",qty:"30 g",note:"Concentrado e isolado"},
+      {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite integral ou leite de amêndoas"},
+    ],
+    liquids:[
+      {name:"Água",kcal:110,note:"Mais leve · proteína mais pura"},
+      {name:"Leite integral",kcal:190,note:"Mais cremoso · proteína adicional"},
+      {name:"Leite de amêndoas",kcal:130,note:"Sem lactose · sabor suave"},
+    ] },
+  { id:"shake-choco-power", code:"FT-SHAKE-04", name:"Shake Choco Power", emoji:"🍫",
+    color:{bg:"#E8DED2",ink:"#5C3A1E"},
+    description:"Chocolate intenso: whey True Dark Chocolate + cacau 100% alcalino, batidos com gelo e o líquido à escolha. Sem fruta.",
+    protein:23, sub:"20 g de cacau 100% · sem fruta", prep:"~70 s",
+    ingredients:[
+      {name:"Gelo",qty:"200 g"},
+      {name:"Cacau 100% alcalino",qty:"20 g",note:"1 colher de sopa cheia"},
+      {name:"Whey True Dark Chocolate",qty:"30 g"},
+      {name:"Líquido à escolha",qty:"130 ml",note:"Água, leite integral ou leite de amêndoas"},
+    ],
+    liquids:[
+      {name:"Água",kcal:140,note:"Mais leve · proteína mais pura"},
+      {name:"Leite integral",kcal:210,note:"Mais cremoso · proteína adicional"},
+      {name:"Leite de amêndoas",kcal:160,note:"Sem lactose · sabor suave"},
+    ] },
+];
+
 /* ========== QUIZ ========== */
 export const QUIZ=[
   {q:"O que você está buscando agora?",opts:[{label:"Proteína & resultado",icon:"💪",val:"proteina"},{label:"Algo leve & refrescante",icon:"❄️",val:"refrescante"},{label:"Prazer sem culpa",icon:"😋",val:"indulgente"},{label:"Experiência premium",icon:"👑",val:"premium"}]},
