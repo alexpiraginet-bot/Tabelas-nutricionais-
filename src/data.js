@@ -273,68 +273,72 @@ export const MOOD_META = {
   comfort:    {label:"Comfort",     color:"#7A3A0A",bg:"#F0D5BA",icon:"🫶"},
 };
 
-/* ========== SHAKES (linha proteica · somente tabela e ingredientes) ==========
-   Fonte: fichas técnicas FT-SHAKE (rev. mai/2026). Apenas dados nutricionais e
-   lista de ingredientes — sem passo a passo de preparo. A proteína é por porção
-   (do whey); as calorias são estimativas TOTAIS e variam conforme o líquido. */
+/* ========== SHAKES (linha proteica · tabela nutricional + ingredientes) ==========
+   Lista de ingredientes conforme as fichas técnicas FT-SHAKE (rev. mai/2026).
+   Macros CALCULADOS a partir dos rótulos oficiais do whey True (truesource/
+   vivatrue, por 30 g) somados aos valores TACO/USDA dos demais ingredientes
+   (por 100 g). Sem passo a passo de preparo. Valores por porção, por líquido
+   escolhido — leite integral aprox. 1,03 g/ml. São estimativas de cálculo;
+   podem variar conforme lote, ponto da fruta e marca do líquido.
+   cols da nutrition: kcal · carb(g) · prot(g) · fat(g) · sat(g) · fiber(g) · na(mg) */
 export const SHAKES = [
   { id:"shake-frutas-vermelhas", code:"FT-SHAKE-01", name:"Shake Frutas Vermelhas", emoji:"🍓",
     color:{bg:"#FBE3EC",ink:"#A8334A"},
     description:"Frutas vermelhas batidas na hora com whey True Fior di Latte (isolado e hidrolisado) e o líquido à escolha do cliente.",
-    protein:30, sub:"200 g de frutas vermelhas", prep:"~60 s",
+    sub:"200 g de frutas vermelhas · 30 g de whey", prep:"~60 s", protein:24,
     ingredients:[
       {name:"Frutas vermelhas",qty:"200 g"},
       {name:"Whey True Fior di Latte",qty:"30 g",note:"Isolado e hidrolisado"},
       {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite integral ou leite de amêndoas"},
     ],
-    liquids:[
-      {name:"Água",kcal:120,note:"Mais leve · proteína mais pura"},
-      {name:"Leite integral",kcal:200,note:"Mais cremoso · proteína adicional"},
-      {name:"Leite de amêndoas",kcal:140,note:"Sem lactose · sabor suave"},
+    nutrition:[
+      {liquid:"Água",            kcal:208, carb:23.7, prot:23.7, fat:3.1, sat:1.3, fiber:8.7, na:123},
+      {liquid:"Leite integral",  kcal:302, carb:31.1, prot:28.6, fat:8.1, sat:4.2, fiber:8.7, na:189},
+      {liquid:"Leite de amêndoas",kcal:230, carb:24.1, prot:24.5, fat:4.9, sat:1.5, fiber:8.7, na:213},
     ] },
   { id:"shake-acai-banana", code:"FT-SHAKE-02", name:"Shake Açaí com Banana", emoji:"🫐",
     color:{bg:"#E7E0F2",ink:"#5A2DAA"},
-    description:"Açaí e banana congelados batidos com Whey de Coco True. O cliente escolhe o tipo de whey e o líquido base.",
-    protein:30, sub:"100 g açaí + 100 g banana · 4 tipos de whey", prep:"~90 s",
+    description:"Açaí e banana congelados batidos com Whey de Coco True. O cliente escolhe o tipo de whey e o líquido base. Macros calculados com o whey Coconut hidrolisado/isolado.",
+    sub:"100 g açaí + 100 g banana · 4 tipos de whey", prep:"~90 s", protein:24,
     ingredients:[
       {name:"Açaí congelado",qty:"100 g"},
       {name:"Banana congelada",qty:"100 g"},
       {name:"Whey de Coco True",qty:"30 g",note:"4 tipos: hidrolisado, tradicional, zero lactose ou vegano"},
       {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite A2 integral ou leite de amêndoas"},
     ],
-    liquids:[
-      {name:"Água",kcal:110,note:"Mais leve · proteína concentrada"},
-      {name:"Leite A2 integral",kcal:195,note:"Extra cremoso · caseína A2"},
-      {name:"Leite de amêndoas",kcal:135,note:"Sem lactose · sabor neutro"},
+    nutrition:[
+      {liquid:"Água",            kcal:281, carb:35.0, prot:23.7, fat:7.1,  sat:1.2, fiber:5.1, na:116},
+      {liquid:"Leite A2 integral",kcal:375, carb:42.4, prot:28.6, fat:12.2,sat:4.1, fiber:5.1, na:183},
+      {liquid:"Leite de amêndoas",kcal:304, carb:35.5, prot:24.5, fat:8.9, sat:1.4, fiber:5.1, na:206},
     ] },
   { id:"shake-morango-maracuja", code:"FT-SHAKE-03", name:"Shake Morango com Maracujá", emoji:"🍓",
     color:{bg:"#FCEAD9",ink:"#B5531C"},
-    description:"Morango e maracujá pré-misturados, batidos com whey True Yummy Milk (concentrado e isolado) e o líquido à escolha.",
-    protein:20, sub:"200 g de morango + maracujá", prep:"~60 s",
+    description:"Morango e maracujá pré-misturados, batidos com whey True Yummy Milk (concentrado e isolado) e o líquido à escolha. Cálculo com proporção estimada de 100 g morango + 100 g maracujá.",
+    sub:"200 g de morango + maracujá · 30 g de whey", prep:"~60 s", protein:21,
     ingredients:[
       {name:"Morango + maracujá",qty:"200 g",note:"Sementes do maracujá são esperadas"},
       {name:"Whey True Yummy Milk",qty:"30 g",note:"Concentrado e isolado"},
       {name:"Líquido à escolha",qty:"150 ml",note:"Água, leite integral ou leite de amêndoas"},
     ],
-    liquids:[
-      {name:"Água",kcal:110,note:"Mais leve · proteína mais pura"},
-      {name:"Leite integral",kcal:190,note:"Mais cremoso · proteína adicional"},
-      {name:"Leite de amêndoas",kcal:130,note:"Sem lactose · sabor suave"},
+    nutrition:[
+      {liquid:"Água",            kcal:184, carb:21.7, prot:21.1, fat:2.0, sat:0.2, fiber:2.1, na:72},
+      {liquid:"Leite integral",  kcal:278, carb:29.1, prot:26.0, fat:7.1, sat:3.1, fiber:2.1, na:138},
+      {liquid:"Leite de amêndoas",kcal:206, carb:22.1, prot:21.8, fat:3.8, sat:0.4, fiber:2.1, na:162},
     ] },
   { id:"shake-choco-power", code:"FT-SHAKE-04", name:"Shake Choco Power", emoji:"🍫",
     color:{bg:"#E8DED2",ink:"#5C3A1E"},
     description:"Chocolate intenso: whey True Dark Chocolate + cacau 100% alcalino, batidos com gelo e o líquido à escolha. Sem fruta.",
-    protein:23, sub:"20 g de cacau 100% · sem fruta", prep:"~70 s",
+    sub:"20 g de cacau 100% · sem fruta", prep:"~70 s", protein:26,
     ingredients:[
       {name:"Gelo",qty:"200 g"},
       {name:"Cacau 100% alcalino",qty:"20 g",note:"1 colher de sopa cheia"},
       {name:"Whey True Dark Chocolate",qty:"30 g"},
       {name:"Líquido à escolha",qty:"130 ml",note:"Água, leite integral ou leite de amêndoas"},
     ],
-    liquids:[
-      {name:"Água",kcal:140,note:"Mais leve · proteína mais pura"},
-      {name:"Leite integral",kcal:210,note:"Mais cremoso · proteína adicional"},
-      {name:"Leite de amêndoas",kcal:160,note:"Sem lactose · sabor suave"},
+    nutrition:[
+      {liquid:"Água",            kcal:159, carb:14.1, prot:25.5, fat:4.1, sat:2.4, fiber:8.9, na:107},
+      {liquid:"Leite integral",  kcal:240, carb:20.5, prot:29.7, fat:8.5, sat:4.9, fiber:8.9, na:165},
+      {liquid:"Leite de amêndoas",kcal:178, carb:14.5, prot:26.2, fat:5.7, sat:2.5, fiber:8.9, na:185},
     ] },
 ];
 
