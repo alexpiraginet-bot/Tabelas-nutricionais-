@@ -948,11 +948,20 @@ function PoteBuilder({onClose}){
   useModal(onClose);
   const gelatos=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
   const [cup,setCup]=useState("P");
-  const [aId,setAId]=useState(gelatos[0].id);
-  const [bId,setBId]=useState(gelatos[1].id);
+  const [aId,setAId]=useState(gelatos[0]?.id);
+  const [bId,setBId]=useState(gelatos[1]?.id ?? gelatos[0]?.id);
   const [ratio,setRatio]=useState(50);
   const A=gelatos.find(p=>p.id===aId)||gelatos[0];
   const B=gelatos.find(p=>p.id===bId)||gelatos[1];
+  if(gelatos.length<2) return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Monte seu pote" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:380,width:"100%",padding:24,textAlign:"center",border:`1px solid ${T.border}`}}>
+        <div className="fd" style={{fontSize:18,color:T.ink}}>Em breve 🍦</div>
+        <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:8,lineHeight:1.5}}>Precisamos de pelo menos 2 sabores de gelato para montar seu pote. Volte já já!</div>
+        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"11px 18px",borderRadius:6,border:"none",background:T.pistacheDark,color:"#fff",fontWeight:600,cursor:"pointer"}}>Fechar</button>
+      </div>
+    </div>
+  );
   const g=CUPS.find(c=>c.id===cup).g;
   const gA=Math.round(g*ratio/100), gB=g-gA;
   const per=(p,k)=>p.nutrition[k]/p.serving;       // por grama

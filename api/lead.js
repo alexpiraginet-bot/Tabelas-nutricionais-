@@ -36,9 +36,29 @@ async function pipeline(cmds) {
   return r.json();
 }
 
+// Só aceita chamadas vindas do nosso site.
+function originOk(req) {
+  const o = req.headers.origin || req.headers.referer || "";
+  if (!o) return true;
+  try { const h = new URL(o).hostname; return h === "bentogelateria.com" || h.endsWith(".bentogelateria.com") || h.endsWith(".vercel.app"); }
+  catch { return true; }
+}
+function ipOf(req) { return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim(); }
+async function rateOk(ip, bucket, limit) {
+  if (!ip) return true;
+  try {
+    const k = "rl:" + bucket + ":" + ip;
+    const r = await pipeline([["INCR", k], ["EXPIRE", k, 60]]);
+    const n = Array.isArray(r) ? (r[0] && (r[0].result ?? r[0])) : 0;
+    return Number(n) <= limit;
+  } catch { return true; }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).end(); return; }
   if (!KV_URL || !KV_TOKEN) { res.status(204).end(); return; }
+  if (!originOk(req)) { res.status(204).end(); return; }
+  if (!(await rateOk(ipOf(req), "lead", 8))) { res.status(204).end(); return; }
   try {
     let body = await readRaw(req);
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
@@ -53,7 +73,6 @@ export default async function handler(req, res) {
       phone: semControle(body.phone || ""),
       nome: semControle(body.nome || ""),
       email: semControle(body.email || ""),
-      doc: semControle(body.doc || ""),
       data: semControle(body.data || ""),
       local: semControle(body.local || ""),
       convidados: Number(body.convidados) || 0,

@@ -1,5 +1,17 @@
 // Lista os leads de orçamento para o painel privado. Protegido por senha (PANEL_KEY).
-// GET /api/leads?key=SENHA
+// Envie a senha no header Authorization: Bearer <senha>.
+import crypto from "node:crypto";
+
+function getKey(req) {
+  const h = req.headers.authorization || "";
+  if (h.startsWith("Bearer ")) return h.slice(7);
+  return (req.query && req.query.key ? req.query.key : "").toString();
+}
+function safeEq(a, b) {
+  const ab = Buffer.from(String(a)), bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
 
 function findKV() {
   let url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -28,8 +40,7 @@ async function cmd(args) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (!PANEL_KEY) { res.status(503).json({ error: "PANEL_KEY não configurada no projeto." }); return; }
-  const key = (req.query && req.query.key ? req.query.key : "").toString();
-  if (key !== PANEL_KEY) { res.status(401).json({ error: "Senha incorreta." }); return; }
+  if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
   if (!KV_URL || !KV_TOKEN) { res.status(503).json({ error: "Banco (Redis/KV) não configurado." }); return; }
   try {
     const raw = (await cmd(["LRANGE", "leads", 0, 299])) || [];

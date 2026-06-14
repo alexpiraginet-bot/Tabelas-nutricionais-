@@ -177,7 +177,7 @@ function fmt(n){ return (n||0).toLocaleString("pt-BR"); }
 
 async function load(){
   const key = localStorage.getItem(KEYSTORE) || "";
-  const r = await fetch("/api/stats?key=" + encodeURIComponent(key), { cache:"no-store" });
+  const r = await fetch("/api/stats", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
   if (r.status === 401){ openGate("Senha incorreta."); throw new Error("401"); }
   if (!r.ok){ const j = await r.json().catch(()=>({})); throw new Error(j.error || ("HTTP "+r.status)); }
   return r.json();
@@ -284,7 +284,7 @@ function afterLogin(){ $("#faceEnable").style.display = (waOK && !localStorage.g
 
 async function loadLeads(){
   const key = localStorage.getItem(KEYSTORE) || "";
-  const r = await fetch("/api/leads?key=" + encodeURIComponent(key), { cache:"no-store" });
+  const r = await fetch("/api/leads", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
   if(!r.ok) return;
   renderLeads(await r.json());
 }

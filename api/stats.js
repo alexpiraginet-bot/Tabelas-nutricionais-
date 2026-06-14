@@ -1,5 +1,19 @@
 // Lê os contadores do Redis e devolve um resumo para o painel privado.
-// Protegido por senha (PANEL_KEY). GET /api/stats?key=SENHA
+// Protegido por senha (PANEL_KEY). Envie a senha no header Authorization: Bearer <senha>.
+import crypto from "node:crypto";
+
+// Lê a senha do header Authorization (preferido) ou do ?key= (compatibilidade).
+function getKey(req) {
+  const h = req.headers.authorization || "";
+  if (h.startsWith("Bearer ")) return h.slice(7);
+  return (req.query && req.query.key ? req.query.key : "").toString();
+}
+// Comparação em tempo constante (evita timing attack).
+function safeEq(a, b) {
+  const ab = Buffer.from(String(a)), bb = Buffer.from(String(b));
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
 
 // Detecta a REST API do Redis automaticamente, qualquer que seja o prefixo escolhido
 // no painel da Vercel (KV_, UPSTASH_REDIS_, STORAGE_, etc.).
@@ -53,8 +67,7 @@ function ultimosDias(n) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (!PANEL_KEY) { res.status(503).json({ error: "PANEL_KEY não configurada no projeto." }); return; }
-  const key = (req.query && req.query.key ? req.query.key : "").toString();
-  if (key !== PANEL_KEY) { res.status(401).json({ error: "Senha incorreta." }); return; }
+  if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
   if (!KV_URL || !KV_TOKEN) { res.status(503).json({ error: "Banco (Redis/KV) não configurado." }); return; }
 
   try {
