@@ -51,32 +51,12 @@ def pal(idkey):
     m=re.search(r'id:"'+re.escape(idkey)+r'"[\s\S]{0,400}?palette:\{base:"(#\w+)",mid:"(#\w+)",deep:"(#\w+)",swirl:"(#\w+)",hl:"(#\w+)"\}',SRC)
     return m.groups() if m else None
 PAL_EXTRA={"magnesio":("#F6C66A","#E8A34A","#B5651C","#C9402A","#FFE6B0")}
-def hx(c): c=c.lstrip("#"); return tuple(int(c[i:i+2],16) for i in (0,2,4))
-# silhueta do creme (arte da Bentô) usada como máscara
-_CW,_CH=640,340
-_MASK_SVG=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 36 132 70" width="{_CW}" height="{_CH}"><path d="M 52 100 Q 58 72 78 70 Q 88 50 105 60 Q 118 42 132 58 Q 148 50 158 72 Q 168 80 168 98 Z" fill="#fff"/></svg>'
-_MASK=Image.open(io.BytesIO(cairosvg.svg2png(bytestring=_MASK_SVG.encode()))).convert("L")
-# textura real de gelato (Unsplash, uso comercial) — base para todos os sabores
-_TEX=ImageOps.autocontrast(Image.open("public/portfolio/cream-texture.jpg").convert("L").resize((_CW,_CH)),cutoff=2)
-def _gmap(gray,stops):
-    lr=[];lg=[];lb=[]
-    for i in range(256):
-        t=i/255
-        for j in range(len(stops)-1):
-            p0,c0=stops[j];p1,c1=stops[j+1]
-            if p0<=t<=p1:
-                f=(t-p0)/(p1-p0) if p1>p0 else 0
-                lr.append(int(c0[0]+(c1[0]-c0[0])*f));lg.append(int(c0[1]+(c1[1]-c0[1])*f));lb.append(int(c0[2]+(c1[2]-c0[2])*f));break
-        else:
-            lr.append(stops[-1][1][0]);lg.append(stops[-1][1][1]);lb.append(stops[-1][1][2])
-    return Image.merge("RGB",(gray.point(lr),gray.point(lg),gray.point(lb)))
-os.makedirs("public/portfolio/cream",exist_ok=True)
+# Dollops reais (criados pela Bentô), extraídos com fundo transparente em public/portfolio/dollops/
+DOLLOP={"bentole-pistache-cb":"pistache","bentole-choco-dubai":"choco","bentole-opereta":"opereta",
+        "bentole-snickers":"snickers","bentole-prestigio":"prestigio","bentole-franui":"franui",
+        "chocolate-dubai":"choco","pistache":"pistache","doce-de-leite":"doce","magnesio":"magnesio"}
 def cream(idkey):
-    base,mid,deep,swirl,hl=[hx(c) for c in (PAL_EXTRA.get(idkey) or pal(idkey))]
-    stops=[(0.0,deep),(0.33,mid),(0.66,base),(1.0,hl)]
-    col=_gmap(_TEX,stops).convert("RGBA"); col.putalpha(_MASK)
-    out=f"public/portfolio/cream/{idkey}.png"; col.save(out)
-    return out
+    return f"public/portfolio/dollops/{DOLLOP[idkey]}.png"
 
 PIC=[("Pistache & Choco Branco","10 g proteína · 61 kcal","bentole-pistache-cb",False),
      ("Chocolate Dubai","10 g proteína · 108 kcal","bentole-choco-dubai",False),
@@ -89,16 +69,16 @@ POT=[("Chocolate Dubai","Creme crocante e granela · 12 g prot.","chocolate-duba
      ("Pistache","Pistache mesclado e granela · 10 g prot.","pistache"),
      ("Doce de Leite","Doce de leite e granela · 11 g prot.","doce-de-leite")]
 
-def flavor_cell(base,d,cx,top,creampath,name,spec,cw,soon=False):
-    cwid=int(cw*0.82)
-    h=Image.open(creampath); h=int(h.height*cwid/h.width)
-    # sombra suave
-    sh=Image.new("RGBA",(cwid,40),(0,0,0,0)); ImageDraw.Draw(sh).ellipse([cwid*0.12,6,cwid*0.88,30],fill=(60,60,40,60))
-    sh=sh.filter(ImageFilter.GaussianBlur(6)); base.paste(sh,(cx-cwid//2,top+h-22),sh)
-    paste_png(base,creampath,cx-cwid//2,top,cwid)
-    yy=top+h+18
-    for ln in wrap(d,name,F(SERIFB,27),cw)[:2]:
-        cx_text(d,cx,yy,ln,F(SERIFB,27),INK); yy+=33
+def flavor_cell(base,d,cx,top,creampath,name,spec,cw,soon=False,dh=210):
+    # dollops são teardrops altos: dimensiona pela ALTURA (dh)
+    im=Image.open(creampath); cwid=int(im.width*dh/im.height)
+    # sombra suave sob o creme
+    sh=Image.new("RGBA",(cwid,38),(0,0,0,0)); ImageDraw.Draw(sh).ellipse([cwid*0.18,6,cwid*0.82,28],fill=(60,60,40,55))
+    sh=sh.filter(ImageFilter.GaussianBlur(7)); base.paste(sh,(cx-cwid//2,top+dh-20),sh)
+    r=im.resize((cwid,dh),Image.LANCZOS); base.paste(r,(cx-cwid//2,top),r)
+    yy=top+dh+18
+    for ln in wrap(d,name,F(SERIFB,26),cw)[:2]:
+        cx_text(d,cx,yy,ln,F(SERIFB,26),INK); yy+=32
     yy+=2
     cx_text(d,cx,yy,spec,F(SANSB,19),(150,90,30) if soon else PIST)
 
