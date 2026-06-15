@@ -236,9 +236,9 @@ const PARC_PILARES=[
 const PARC_PUBLICOS=["Lojas de suplementos","Empórios naturais","Academias","Studios de treino","Restaurantes saudáveis","Cafeterias premium","Mercados de alto padrão","Clínicas de estética","Espaços fitness & wellness"];
 
 const PARC_PRODUTOS=[
-  {n:"Picolé Bistrô",papel:"Entrada premium e impulso. O produto que faz o freezer girar.",badge:"Maior giro",img:"/cardapio/pic-p.jpg"},
-  {n:"Picolé Mega",papel:"Indulgência proteica de ticket alto e alto valor percebido.",badge:"Ticket maior",img:"/cardapio/pic-mega.jpg"},
-  {n:"Gelato 140 ml",papel:"O potinho gourmet — a maior margem da linha para o parceiro.",badge:"Até 50% de margem",img:"/cardapio/gelato-m.jpg"},
+  {n:"Picolé Bistrô",papel:"Entrada premium e impulso. O produto que faz o freezer girar.",badge:"Maior giro",img:"/portfolio/heros/pistache-choco-branco.jpg",pos:"center 30%"},
+  {n:"Picolé Mega",papel:"Indulgência proteica de ticket alto e alto valor percebido.",badge:"Ticket maior",img:"/portfolio/heros/snickers.jpg",pos:"center 28%"},
+  {n:"Gelato 140 ml",papel:"O potinho gourmet — a maior margem da linha para o parceiro.",badge:"Até 50% de margem",img:"/portfolio/potes-140.jpg",pos:"center 38%"},
 ];
 
 const PARC_MODELOS=[
@@ -325,7 +325,7 @@ export function SejaParceiro({onClose,onForm}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginTop:26}}>
           {PARC_PRODUTOS.map(p=>(
             <div key={p.n} style={{...card,padding:0,overflow:"hidden"}}>
-              <img src={p.img} alt={p.n} style={{width:"100%",height:170,objectFit:"cover",display:"block"}} onError={onImgErr} />
+              <img src={p.img} alt={p.n} style={{width:"100%",height:170,objectFit:"cover",objectPosition:p.pos||"center",display:"block"}} onError={onImgErr} />
               <div style={{padding:"18px 20px"}}>
                 <div className="fd" style={{fontSize:20,color:cream}}>{p.n}</div>
                 <div className="fb" style={{fontSize:13,color:soft,marginTop:6,lineHeight:1.45}}>{p.papel}</div>
@@ -375,9 +375,9 @@ export function SejaParceiro({onClose,onForm}){
           <div>
             <Kicker>Para futuros franqueados</Kicker>
             <H>Um modelo de negócio para chamar de seu.</H>
-            <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14}}>Mais do que um freezer: um <strong style={{color:cream}}>destino</strong>. Um estande conceito que transforma o gelato proteico em experiência premium — a visão que estamos desenhando para o modelo de franquia Bentô.</p>
+            <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14}}>Mais do que um freezer: um <strong style={{color:cream}}>destino</strong>. Nosso quiosque em shopping transforma o gelato proteico em experiência premium — o modelo de negócio que inspira a franquia Bentô.</p>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:18}}>
-              {["Estande conceito","Alto valor percebido","Experiência de marca"].map(t=>(
+              {["Quiosque premium","Alto valor percebido","Experiência de marca"].map(t=>(
                 <span key={t} className="fb" style={{fontSize:12.5,color:cream,border:"1px solid rgba(201,168,106,0.3)",borderRadius:999,padding:"8px 14px"}}>{t}</span>
               ))}
             </div>
@@ -385,7 +385,7 @@ export function SejaParceiro({onClose,onForm}){
             <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:6,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
           </div>
           <div style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
-            <img src="/parceria/estande.jpg" alt="Estande conceito Bentô Gelatos — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
+            <img src="/parceria/estande.jpg" alt="Quiosque Bentô Gelatos em shopping — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
       </section>
