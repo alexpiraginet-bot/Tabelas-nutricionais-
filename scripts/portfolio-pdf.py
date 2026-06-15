@@ -224,7 +224,7 @@ for i,pp in enumerate(allp):
     if pp["cat"]=="picole":
         pp["hero"]=f"public/portfolio/heros/{slug(pp['name'])}.jpg"
     else:
-        pp["hero"]=f"public/sabores/{GELID[pp['name']]}.jpg"
+        pp["hero"]=f"public/portfolio/potes/{GELID[pp['name']]}.jpg"
     pp["tag"]=("Picolés Bentôlé · " if pp["cat"]=="picole" else "Potes 140 ml · ")+f"{i+1:02d}/{len(allp)}"
     pp["pg"]=f"{i+2:02d} / {total}"
     pages.append(product_page(pp))
