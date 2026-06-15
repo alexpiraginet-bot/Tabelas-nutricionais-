@@ -9,7 +9,7 @@ const PICOLES=[
   {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/sabores/bentole-snickers.jpg"},
   {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/sabores/bentole-prestigio.jpg"},
   {n:"Franuí", d:"Framboesa · choco branco · choco 70% — o mais leve", prot:"1,2 g", kcal:42, img:"/sabores/bentole-franui.jpg"},
-  {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá · funcional (TRUE) · só tamanho P", prot:"funcional", kcal:null, img:null},
+  {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/sabores/bentole-magnesio.jpg"},
 ];
 const POTES=[
   {n:"Chocolate Dubai", d:"Chocolate com creme crocante e granela crocante", prot:"12 g"},
@@ -67,17 +67,25 @@ export default function PortfolioPage(){
           <div style={sectionTag}>01 · Linha Take-Home</div>
           <h2 style={{fontFamily:SERIF,fontSize:"clamp(26px,4vw,40px)",margin:"6px 0 4px",fontWeight:500}}>Picolés Bentôlé</h2>
           <p style={{fontSize:13.5,color:C.soft,marginBottom:18}}>Mini picolés proteicos · tamanhos <strong>P (55 g)</strong> e <strong>G (110 g)</strong> · embalagem individual premium.</p>
-          <img src="/portfolio/picoles-poster.jpg" alt="Linha de picolés Bentôlé" loading="lazy" style={{width:"100%",maxWidth:560,display:"block",margin:"0 auto 22px",borderRadius:12,border:`1px solid ${C.border}`}}/>
+          <figure style={{margin:"0 auto 22px",maxWidth:560}}>
+            <img src="/portfolio/picoles-poster.jpg" alt="Linha de picolés Bentôlé" loading="lazy" style={{width:"100%",display:"block",borderRadius:12,border:`1px solid ${C.border}`}}/>
+            <figcaption style={{fontSize:10,color:C.soft,textAlign:"center",marginTop:5,fontStyle:"italic"}}>Imagem meramente ilustrativa</figcaption>
+          </figure>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(232px,1fr))",gap:12}}>
             {PICOLES.map(p=>(
               <div key={p.n} className="pf-card" style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column"}}>
                 {p.img&&<img src={p.img} alt={p.n} loading="lazy" width={232} height={150} style={{width:"100%",height:150,objectFit:"cover"}}/>}
                 <div style={{padding:"12px 14px",flex:1,display:"flex",flexDirection:"column"}}>
+                  <div style={{fontSize:9,color:C.soft,fontStyle:"italic",marginBottom:6}}>Imagem meramente ilustrativa</div>
                   <div style={{fontFamily:SERIF,fontSize:18,lineHeight:1.15}}>{p.n}</div>
                   <div style={{fontSize:12,color:C.soft,marginTop:4,lineHeight:1.4,flex:1}}>{p.d}</div>
                   <div style={{display:"flex",gap:8,marginTop:10,flexWrap:"wrap"}}>
-                    <span style={{fontFamily:MONO,fontSize:11,background:"#E5EBD3",color:C.pist,borderRadius:3,padding:"3px 8px"}}>{p.prot==="funcional"?"funcional":`${p.prot} prot`}</span>
-                    {p.kcal&&<span style={{fontFamily:MONO,fontSize:11,background:C.bg,color:C.soft,borderRadius:3,padding:"3px 8px"}}>{p.kcal} kcal · P</span>}
+                    {p.soon
+                      ? <span style={{fontFamily:MONO,fontSize:11,background:"#F3E2C5",color:"#8A5A1E",borderRadius:3,padding:"3px 8px"}}>Lançamento em breve</span>
+                      : <>
+                          {p.prot&&<span style={{fontFamily:MONO,fontSize:11,background:"#E5EBD3",color:C.pist,borderRadius:3,padding:"3px 8px"}}>{p.prot} prot</span>}
+                          {p.kcal&&<span style={{fontFamily:MONO,fontSize:11,background:C.bg,color:C.soft,borderRadius:3,padding:"3px 8px"}}>{p.kcal} kcal · P</span>}
+                        </>}
                   </div>
                 </div>
               </div>
@@ -91,7 +99,10 @@ export default function PortfolioPage(){
           <div style={sectionTag}>02 · Linha Vitrine</div>
           <h2 style={{fontFamily:SERIF,fontSize:"clamp(26px,4vw,40px)",margin:"6px 0 4px",fontWeight:500}}>Potes Selados 140 ml</h2>
           <p style={{fontSize:13.5,color:C.soft,marginBottom:18}}>Gelato proteico em pote selado de 140 ml — pronto para vitrine, take-home e delivery.</p>
-          <img src="/portfolio/potes-140.jpg" alt="Potes selados de 140 ml" loading="lazy" style={{width:"100%",maxWidth:620,display:"block",margin:"0 auto 22px",borderRadius:12,border:`1px solid ${C.border}`}}/>
+          <figure style={{margin:"0 auto 22px",maxWidth:620}}>
+            <img src="/portfolio/potes-140.jpg" alt="Potes selados de 140 ml" loading="lazy" style={{width:"100%",display:"block",borderRadius:12,border:`1px solid ${C.border}`}}/>
+            <figcaption style={{fontSize:10,color:C.soft,textAlign:"center",marginTop:5,fontStyle:"italic"}}>Imagem meramente ilustrativa</figcaption>
+          </figure>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:12}}>
             {POTES.map(p=>(
               <div key={p.n} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 16px"}}>

@@ -58,16 +58,18 @@ def cell(base,d,x,y,cw,ch,name,sabor,specs,desc,photo,accent):
         ImageDraw.Draw(mask).rounded_rectangle([0,0,cw,ph],14,fill=255); base.paste(blk,(x,y),mask)
         center2=x+cw/2
         t="BENTÔ"; f=F(SERIFB,40); d.text((center2-d.textlength(t,font=f)/2,y+ph/2-46),t,font=f,fill=(255,255,255))
-        t2="funcional"; f2=F(SANS,22); d.text((center2-d.textlength(t2,font=f2)/2,y+ph/2+8),t2,font=f2,fill=(255,255,255))
-    yy=y+ph+22
+        t2="LANÇAMENTO EM BREVE"; f2=F(SANSB,20); d.text((center2-d.textlength(t2,font=f2)/2,y+ph/2+8),t2,font=f2,fill=(255,255,255))
+    d.text((x,y+ph+6),"Imagem meramente ilustrativa",font=F(SANS,15),fill=(155,153,138))
+    yy=y+ph+32
     for ln in wrap(d,name,F(SERIFB,32),cw)[:2]:
         d.text((x,yy),ln,font=F(SERIFB,32),fill=INK); yy+=40
     d.line([(x,yy+2),(x+64,yy+2)],fill=GOLD,width=3); yy+=20
-    d.text((x,yy),sabor,font=F(SANS,21),fill=PIST); yy+=34
-    for ln in wrap(d,specs,F(SANSB,22),cw)[:2]:
-        d.text((x,yy),ln,font=F(SANSB,22),fill=INK); yy+=30
+    if sabor: d.text((x,yy),sabor,font=F(SANS,21),fill=PIST); yy+=34
+    if specs:
+        for ln in wrap(d,specs,F(SANSB,22),cw)[:2]:
+            d.text((x,yy),ln,font=F(SANSB,22),fill=INK); yy+=30
     yy+=6
-    para(d,x,yy,desc,F(SANS,20),SOFT,cw,28,maxlines=6)
+    if desc: para(d,x,yy,desc,F(SANS,20),SOFT,cw,28,maxlines=6)
 
 # ---------- conteúdo ----------
 PIC=[
@@ -95,10 +97,9 @@ PIC=[
       specs="1,2 g proteína · 42 kcal · 7,7 g de fibra",
       desc="Framboesa real, colágeno e cobertura dupla de chocolate. O mais leve e frutado da linha — apenas 42 kcal.",
       photo="public/sabores/bentole-franui.jpg"),
- dict(name="Magnésio + Inositol Relief 3.0",sabor="Picolé funcional · apenas tamanho P (55 g)",
-      specs="Tangerina com Maracujá · com whey True",
-      desc="Picolé funcional com magnésio e inositol (Relief 3.0). Bem-estar e relaxamento em formato sobremesa, sem açúcar adicionado.",
-      photo=None,accent=(214,138,58)),
+ dict(name="Magnésio + Inositol Relief 3.0",sabor="Lançamento em breve",
+      specs="",desc="",
+      photo="public/sabores/bentole-magnesio.jpg",accent=(214,138,58)),
 ]
 POTES=[
  dict(name="Chocolate Dubai",sabor="Pote selado · 140 ml",specs="12 g proteína · sem açúcar adicionado",
@@ -144,6 +145,7 @@ pim,d=page(); header(pim,d,"Linha Vitrine — Potes 140 ml","04 · Potes")
 d.text((90,180),"Gelato proteico em",font=F(SERIFB,40),fill=INK)
 d.text((90,232),"pote selado de 140 ml.",font=F(SERIFB,40),fill=INK)
 cover_img(pim,"public/portfolio/potes-140.jpg",90,300,W-180,360,16)
+d.text((90,666),"Imagem meramente ilustrativa",font=F(SANS,16),fill=(155,153,138))
 yy=700
 for it in POTES:
     rrect(d,[90,yy,W-90,yy+260],14,fill=SURF,outline=LINE,width=2)
