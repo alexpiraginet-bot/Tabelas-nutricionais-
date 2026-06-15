@@ -72,6 +72,15 @@ function readRaw(req) {
   });
 }
 const isDate = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s);
+const isTime = (s) => /^\d{2}:\d{2}$/.test(s);
+// HGETALL retorna [campo1, valor1, campo2, valor2, ...] -> [{date, hora}]
+function toItems(flat) {
+  const out = [];
+  for (let i = 0; i + 1 < (flat || []).length; i += 2) {
+    if (isDate(flat[i])) out.push({ date: flat[i], hora: isTime(flat[i + 1]) ? flat[i + 1] : "" });
+  }
+  return out.sort((a, b) => (a.date + a.hora).localeCompare(b.date + b.hora));
+}
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
@@ -85,14 +94,14 @@ export default async function handler(req, res) {
         // checagem pública de uma data
         if (!originOk(req)) { res.status(200).json({ booked: false }); return; }
         if (!(await rateOk(ipOf(req), 40))) { res.status(200).json({ booked: false }); return; }
-        const m = isDate(d) ? await cmd(["SISMEMBER", "booked:dates", d]) : 0;
+        const m = isDate(d) ? await cmd(["HEXISTS", "booked", d]) : 0;
         res.status(200).json({ booked: Number(m) === 1 });
         return;
       }
       // listagem para o painel
       if (!authed) { res.status(401).json({ error: "Senha incorreta." }); return; }
-      const dates = (await cmd(["SMEMBERS", "booked:dates"])) || [];
-      res.status(200).json({ ok: true, dates: dates.filter(isDate).sort() });
+      const items = toItems(await cmd(["HGETALL", "booked"]));
+      res.status(200).json({ ok: true, items });
       return;
     }
 
@@ -101,11 +110,12 @@ export default async function handler(req, res) {
       let body = await readRaw(req);
       if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
       const date = String((body && body.date) || "").trim();
+      const hora = String((body && body.hora) || "").trim();
       if (!isDate(date)) { res.status(400).json({ error: "Data inválida." }); return; }
-      if (body.action === "remove") await cmd(["SREM", "booked:dates", date]);
-      else await cmd(["SADD", "booked:dates", date]);
-      const dates = (await cmd(["SMEMBERS", "booked:dates"])) || [];
-      res.status(200).json({ ok: true, dates: dates.filter(isDate).sort() });
+      if (body.action === "remove") await cmd(["HDEL", "booked", date]);
+      else await cmd(["HSET", "booked", date, isTime(hora) ? hora : "reservado"]);
+      const items = toItems(await cmd(["HGETALL", "booked"]));
+      res.status(200).json({ ok: true, items });
       return;
     }
 

@@ -127,6 +127,7 @@
       <span>📅 Datas reservadas (eventos confirmados)</span>
       <span style="display:flex;gap:8px;align-items:center">
         <input id="bookDate" type="date" style="background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px" />
+        <input id="bookTime" type="time" title="Horário previsto de início (opcional)" style="background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px" />
         <button class="ghost" id="bookAdd">Reservar data</button>
       </span>
     </h3>
@@ -309,10 +310,10 @@ function renderLeads(d){
     const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
     const quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
     const total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-    const evento = [l.data, l.local, l.tipo].filter(Boolean).join(" · ");
+    const evento = [l.data, l.hora?("⏰ "+l.hora):"", l.local, l.tipo].filter(Boolean).join(" · ");
     const stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
     const orc = l.link ? `<a class="docs" href="${escapeHtml(l.link)}" target="_blank" rel="noopener">📄 Abrir</a>` : "—";
-    const res = l.data ? ` · <a href="#" class="resBook" data-d="${escapeHtml(l.data)}" style="color:var(--gold);text-decoration:none">reservar</a>` : "";
+    const res = l.data ? ` · <a href="#" class="resBook" data-d="${escapeHtml(l.data)}" data-h="${escapeHtml(l.hora||"")}" style="color:var(--gold);text-decoration:none">reservar</a>` : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
       <td>${escapeHtml(l.nome||"—")}</td>
@@ -324,7 +325,7 @@ function renderLeads(d){
       <td>${orc}</td>`;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll(".resBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("add", a.getAttribute("data-d")); });
+  tb.querySelectorAll(".resBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("add", a.getAttribute("data-d"), a.getAttribute("data-h")); });
   $("#leadsEmpty").style.display = leads.length ? "none" : "block";
 }
 
@@ -333,24 +334,25 @@ async function loadBooked(){
   const key = localStorage.getItem(KEYSTORE) || "";
   const r = await fetch("/api/booked", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
   if(!r.ok) return;
-  const j = await r.json(); renderBooked((j && j.dates) || []);
+  const j = await r.json(); renderBooked((j && j.items) || []);
 }
-function renderBooked(dates){
+function renderBooked(items){
   const box = $("#bookedList"); box.innerHTML = "";
-  dates.forEach(d=>{
+  items.forEach(it=>{
+    const t = (it.hora && it.hora!=="reservado") ? (" · início "+it.hora) : "";
     const chip = document.createElement("span");
     chip.className = "tag conv"; chip.style.cssText = "font-size:12px;padding:6px 10px;display:inline-flex;align-items:center;gap:8px";
-    chip.innerHTML = `📅 ${fmtDateBR(d)} <a href="#" class="rmBook" data-d="${escapeHtml(d)}" style="color:var(--red);text-decoration:none;font-weight:700">✕</a>`;
+    chip.innerHTML = `📅 ${fmtDateBR(it.date)}${t} <a href="#" class="rmBook" data-d="${escapeHtml(it.date)}" style="color:var(--red);text-decoration:none;font-weight:700">✕</a>`;
     box.appendChild(chip);
   });
   box.querySelectorAll(".rmBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("remove", a.getAttribute("data-d")); });
-  $("#bookedEmpty").style.display = dates.length ? "none" : "block";
+  $("#bookedEmpty").style.display = items.length ? "none" : "block";
 }
-async function bookAction(action, date){
+async function bookAction(action, date, hora){
   if(!date) return;
   const key = localStorage.getItem(KEYSTORE) || "";
-  const r = await fetch("/api/booked", { method:"POST", headers:{ Authorization:"Bearer "+key, "Content-Type":"application/json" }, body: JSON.stringify({ action, date }) });
-  if(r.ok){ const j = await r.json(); renderBooked((j && j.dates) || []); }
+  const r = await fetch("/api/booked", { method:"POST", headers:{ Authorization:"Bearer "+key, "Content-Type":"application/json" }, body: JSON.stringify({ action, date, hora: hora||"" }) });
+  if(r.ok){ const j = await r.json(); renderBooked((j && j.items) || []); }
   else alert("Não consegui salvar a data (verifique a senha do painel).");
 }
 
@@ -367,7 +369,7 @@ $("#faceEnable").onclick = async ()=>{
     alert("Face ID ativado neste aparelho. ✅ Da próxima vez é só tocar em ‘Entrar com Face ID’."); }
   catch(e){ alert("Não consegui ativar o Face ID aqui: "+((e&&e.message)||e)); }
 };
-$("#bookAdd").onclick = ()=>{ const d = $("#bookDate").value; if(d) bookAction("add", d); else alert("Escolha uma data."); };
+$("#bookAdd").onclick = ()=>{ const d = $("#bookDate").value; if(d) bookAction("add", d, $("#bookTime").value); else alert("Escolha uma data."); };
 $("#refresh").onclick = refresh;
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.removeItem(CREDSTORE); openGate(""); };
 

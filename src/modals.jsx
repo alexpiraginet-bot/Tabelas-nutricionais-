@@ -472,7 +472,7 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
 export function EventosModal({onClose}){
   useModal(onClose);
   const[step,setStep]=useState(1);
-  const[ev,setEv]=useState({data:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
+  const[ev,setEv]=useState({data:"",hora:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
   const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:"",consent:false});
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
@@ -487,7 +487,7 @@ export function EventosModal({onClose}){
   const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true});}catch{}};
   // Monta o orçamento completo + link interno (?contrato=) que a ContratoPage renderiza como PDF
   const mkPayload=(qq,gg)=>({nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
-    data:ev.data?ev.data.split("-").reverse().join("/"):"",local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
+    data:ev.data?ev.data.split("-").reverse().join("/"):"",hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
     sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,pers:ev.pers,persAC:qq.persACombinar,
     base:qq.base,logistica:qq.logistica,km:gg&&gg.ok?gg.km:null,loja:gg&&gg.ok?gg.loja:null,
     potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim()});
@@ -502,7 +502,7 @@ export function EventosModal({onClose}){
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
     const link2=mkLink(mkPayload(q2,g));
     tk("Lead · Orçamento gerado");
-    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,...orcFields(q2,g,link2)});
+    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,...orcFields(q2,g,link2)});
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
@@ -510,6 +510,7 @@ export function EventosModal({onClose}){
   const waMenor=()=>{
     const l=["*Evento Bentô — até 70 convidados* 🎉","Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
+      ev.hora&&`*Horário previsto:* ${ev.hora}`,
       ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
       nConv>0&&`*Convidados:* ${nConv}`].filter(Boolean);
     tk("Conversão · Evento (até 70)");
@@ -533,6 +534,7 @@ export function EventosModal({onClose}){
       cad.empresa.trim()&&`*Empresa:* ${cad.empresa.trim()}`,"",
       "*— Dados do evento —*",
       `*Data:* ${ev.data.split("-").reverse().join("/")}`,
+      ev.hora&&`*Horário previsto para início:* ${ev.hora}`,
       `*Local:* ${ev.local.trim()}`,
       `*Convidados:* ${ev.convidados}`,
       `*Produtos:* ${ev.tipo}`,
@@ -552,7 +554,7 @@ export function EventosModal({onClose}){
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     tk("Conversão · Orçamento de evento");
-    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
+    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   // Antes de fechar: checa se a data já tem evento reservado (bloqueio suave, não trava o negócio)
@@ -598,6 +600,8 @@ export function EventosModal({onClose}){
             <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Deixe seu contato para a gente te enviar o orçamento e mais informações do evento. Sem compromisso. 💛</div>
             <span className="fm" style={lab}>Data do evento *</span>
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
+            <span className="fm" style={lab}>Horário previsto para início</span>
+            <input type="time" className="fb" style={inp} value={ev.hora} onChange={e=>setE("hora",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
             <input className="fb" style={inp} value={ev.local} onChange={e=>setE("local",e.target.value)} placeholder="Ex.: Vitória — Cerimonial X"/>
             <span className="fm" style={lab}>Quantidade de convidados * (mín. 70)</span>

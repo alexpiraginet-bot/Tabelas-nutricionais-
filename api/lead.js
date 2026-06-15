@@ -75,6 +75,7 @@ export default async function handler(req, res) {
       nome: semControle(body.nome || ""),
       email: semControle(body.email || ""),
       data: semControle(body.data || ""),
+      hora: semControle(body.hora || ""),
       local: semControle(body.local || ""),
       convidados: Number(body.convidados) || 0,
       tipo: semControle(body.tipo || ""),
