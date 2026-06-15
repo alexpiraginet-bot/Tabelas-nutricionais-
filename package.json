@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "npm run fichas && vite build",
     "preview": "vite preview",
+    "lint": "eslint src/",
     "fichas": "node scripts/generate-fichas.mjs",
     "menu": "node scripts/menu-poster.mjs"
   },
@@ -21,6 +22,8 @@
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^10.5.0",
+    "globals": "^17.6.0",
     "sharp": "^0.33.5",
     "vite": "^5.4.1"
   }
