@@ -3,13 +3,13 @@ const C={bg:"#EAE3CE",surface:"#FBF8EE",ink:"#1F2317",soft:"#5A5E4E",pist:"#5C6B
 const SERIF="'Fraunces',Georgia,serif", SANS="'DM Sans',system-ui,sans-serif", MONO="'JetBrains Mono',ui-monospace,monospace";
 
 const PICOLES=[
-  {n:"Pistache & Choco Branco", d:"Recheio + cobertura + pistaches inteiros", prot:"10 g", kcal:61, img:"/sabores/bentole-pistache-cb.jpg"},
-  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · stracciatella", prot:"10 g", kcal:108, img:"/sabores/bentole-choco-dubai.jpg"},
-  {n:"Opereta", d:"Chocolate branco Latissimo · castanhas", prot:"9,9 g", kcal:86, img:"/sabores/bentole-opereta.jpg"},
-  {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/sabores/bentole-snickers.jpg"},
-  {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/sabores/bentole-prestigio.jpg"},
-  {n:"Franuí", d:"Framboesa · choco branco · choco 70% — o mais leve", prot:"1,2 g", kcal:42, img:"/sabores/bentole-franui.jpg"},
-  {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/sabores/bentole-magnesio.jpg"},
+  {n:"Pistache & Choco Branco", d:"Recheio + cobertura + pistaches inteiros", prot:"10 g", kcal:61, img:"/portfolio/heros/pistache-choco-branco.jpg"},
+  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · stracciatella", prot:"10 g", kcal:108, img:"/portfolio/heros/chocolate-dubai.jpg"},
+  {n:"Opereta", d:"Chocolate branco Latissimo · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
+  {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
+  {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/portfolio/heros/prestigio.jpg"},
+  {n:"Franuí", d:"Framboesa · choco branco · choco 70% — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
+  {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/portfolio/heros/magnesio.jpg"},
 ];
 const POTES=[
   {n:"Chocolate Dubai", d:"Chocolate com creme crocante e granela crocante", prot:"12 g"},
@@ -74,7 +74,7 @@ export default function PortfolioPage(){
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(232px,1fr))",gap:12}}>
             {PICOLES.map(p=>(
               <div key={p.n} className="pf-card" style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,overflow:"hidden",display:"flex",flexDirection:"column"}}>
-                {p.img&&<img src={p.img} alt={p.n} loading="lazy" width={232} height={150} style={{width:"100%",height:150,objectFit:"cover"}}/>}
+                {p.img&&<img src={p.img} alt={p.n} loading="lazy" width={232} height={300} style={{width:"100%",height:300,objectFit:"cover",objectPosition:"center 30%"}}/>}
                 <div style={{padding:"12px 14px",flex:1,display:"flex",flexDirection:"column"}}>
                   <div style={{fontSize:9,color:C.soft,fontStyle:"italic",marginBottom:6}}>Imagem meramente ilustrativa</div>
                   <div style={{fontFamily:SERIF,fontSize:18,lineHeight:1.15}}>{p.n}</div>
