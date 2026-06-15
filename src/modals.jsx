@@ -479,6 +479,7 @@ export function EventosModal({onClose}){
   const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
   const[geo,setGeo]=useState(null);   // {ok,km,loja} após geocodificar o local
   const[busy,setBusy]=useState(false);
+  const[conflict,setConflict]=useState(false);   // data já reservada → aviso suave
   const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null);
   const nConv=Number(ev.convidados)||0;
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
@@ -517,12 +518,13 @@ export function EventosModal({onClose}){
   const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
   const docOk=d2=>[11,14].includes(d2.replace(/\D/g,"").length);
   const ok3=cad.nome.trim()&&docOk(cad.doc)&&emailOk(cad.email)&&cad.zap.replace(/\D/g,"").length>=10&&cad.consent;
-  const enviar=()=>{
+  const doEnviar=(conflito)=>{
     // link interno: abre o contrato pré-preenchido para a equipe revisar e gerar o PDF
     const payload=mkPayload(q,geo);
     const linkContrato=mkLink(payload);
     const linhas=[
       "*Novo orçamento — Eventos Bentô* 🎉","",
+      conflito&&"⚠️ *Atenção:* esta data pode já ter um evento confirmado. Gostaria de verificar a disponibilidade (outro horário ou formato) para o meu também. 🙏","",
       "*— Dados do contratante —*",
       `*Nome:* ${cad.nome.trim()}`,
       `*CPF/CNPJ:* ${cad.doc.trim()}`,
@@ -552,6 +554,18 @@ export function EventosModal({onClose}){
     tk("Conversão · Orçamento de evento");
     postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
+  };
+  // Antes de fechar: checa se a data já tem evento reservado (bloqueio suave, não trava o negócio)
+  const enviar=async()=>{
+    setBusy(true);
+    let booked=false;
+    try{
+      const r=await fetch(`/api/booked?d=${encodeURIComponent(ev.data)}`,{cache:"no-store"});
+      if(r.ok){ const j=await r.json(); booked=!!(j&&j.booked); }
+    }catch{}
+    setBusy(false);
+    if(booked){ tk("Eventos · Data já reservada"); setConflict(true); return; }
+    doEnviar(false);
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
@@ -678,7 +692,16 @@ export function EventosModal({onClose}){
               <input type="checkbox" checked={cad.consent} onChange={e=>setC("consent",e.target.checked)} style={{marginTop:3,accentColor:T.pistacheDark,width:16,height:16,flexShrink:0}}/>
               <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato e elaboração do orçamento/contrato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
             </label>
-            <button onClick={enviar} disabled={!ok3} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok3?"#25D366":T.border,color:ok3?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3?"pointer":"not-allowed"}}>💬 Enviar e solicitar contrato</button>
+            {conflict?(
+              <div style={{marginTop:14,background:"#F2E2C5",border:"1px solid #D9BD8A",borderRadius:6,padding:"14px 16px"}}>
+                <div className="fb" style={{fontSize:13.5,color:"#7A5320",fontWeight:600,lineHeight:1.4}}>⚠️ Já temos um evento confirmado nessa data.</div>
+                <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário ou formato</strong>. Fale com a gente que verificamos a disponibilidade pro seu evento também! 💛</div>
+                <button onClick={()=>doEnviar(true)} className="fb" style={{width:"100%",marginTop:12,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar com a equipe sobre a data</button>
+                <button onClick={()=>{setConflict(false);setStep(1);}} className="fb" style={{width:"100%",marginTop:8,padding:"11px",borderRadius:4,border:`1px solid ${T.border}`,background:"transparent",color:T.inkSoft,fontSize:13,cursor:"pointer"}}>📅 Escolher outra data</button>
+              </div>
+            ):(
+              <button onClick={enviar} disabled={!ok3||busy} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok3&&!busy?"#25D366":T.border,color:ok3&&!busy?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3&&!busy?"pointer":"not-allowed"}}>{busy?"Verificando disponibilidade…":"💬 Enviar e solicitar contrato"}</button>
+            )}
             <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
             <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:4,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
           </>)}
