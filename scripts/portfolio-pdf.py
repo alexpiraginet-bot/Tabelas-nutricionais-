@@ -111,60 +111,50 @@ pages.append(c)
 def product_page(p):
     im,d=page()
     line="PICOLÉ PROTEICO · BENTÔLÉ" if p["cat"]=="picole" else "POTE SELADO · GELATO 140 ML"
-    note="Valores por unidade · tamanho P (~55 g)" if p["cat"]=="picole" else "Valores por porção de referência (60 g)"
+    note="Por unidade · tamanho P (~55 g)" if p["cat"]=="picole" else "Por porção de referência (60 g)"
     d.text((90,86),p["tag"],font=F(SANSB,21),fill=INK)
     fb=F(SANSB,19); d.text((W-90-tw(d,line,fb),92),line,font=fb,fill=GOLD)
     d.line([(90,140),(W-90,140)],fill=LINE,width=2)
-    dots_arc(d,W-86,250,110,100,250,6,GOLD,4)
-    ny=180
-    for ln in wrap(d,p["name"],F(SERIFB,64),580)[:2]:
-        d.text((90,ny),ln,font=F(SERIFB,64),fill=INK); ny+=74
-    d.text((92,ny+2),p["sub"],font=F(SANS,25),fill=PIST); ny+=58
-    ny=para(d,90,ny+18,p["desc"],F(SANS,23),SOFT,560,33,5)
-    # ficha (card)
-    cx0,cw0,cy0=90,560,656
-    rows=len(p["specs"]) if not p["soon"] else 0
-    ch0=(136+66+7*31+30) if p["soon"] else (136+rows*46+24+30+92+28)
-    rrect(d,[cx0,cy0,cx0+cw0,cy0+ch0],16,fill=SURF,outline=LINE,width=2)
-    d.text((cx0+30,cy0+28),"Lançamento" if p["soon"] else "Ficha do produto",font=F(SANSB,26),fill=PIST)
-    d.line([(cx0+30,cy0+74),(cx0+30+60,cy0+74)],fill=GOLD,width=3)
-    if not p["soon"]:
-        d.text((cx0+30,cy0+90),note,font=F(SANS,18),fill=(150,148,134))
-    ry=cy0+136
+    dots_arc(d,W-86,250,108,100,250,6,GOLD,4)
+    # lockup (nome + sub)
+    ny=192
+    for ln in wrap(d,p["name"],F(SERIFB,60),540)[:2]:
+        d.text((90,ny),ln,font=F(SERIFB,60),fill=INK); ny+=70
+    d.text((92,ny+2),p["sub"],font=F(SANS,24),fill=PIST); ny+=64
     if p["soon"]:
-        d.text((cx0+30,ry),"Lançamento em breve",font=F(SERIFB,34),fill=INK); ry+=66
-        para(d,cx0+30,ry,p["teaser"],F(SANS,22),SOFT,cw0-60,31,7)
+        d.text((90,ny),"Lançamento em breve",font=F(SERIFB,36),fill=GOLD); ny+=70
+        para(d,90,ny,p["teaser"],F(SANS,23),SOFT,540,33,7)
     else:
-        for lab,val in p["specs"]:
-            d.text((cx0+30,ry),lab,font=F(SANS,22),fill=SOFT)
-            vf=F(SANSB,24); d.text((cx0+cw0-30-tw(d,val,vf),ry-2),val,font=vf,fill=INK)
-            ry+=46; d.line([(cx0+30,ry-10),(cx0+cw0-30,ry-10)],fill=(233,227,212),width=1)
-        ry+=16
-        d.text((cx0+30,ry),"PRINCIPAIS INGREDIENTES",font=F(SANSB,16),fill=PIST); ry+=28
-        para(d,cx0+30,ry,ING.get(p["name"],""),F(SANS,20),INK,cw0-60,28,3)
-    # creme do sabor (dollop)
-    rcx=700+225; dh=540; im2=Image.open(p["dollop"]); w2=int(im2.width*dh/im2.height); dtop=206
-    sh=Image.new("RGBA",(w2,46),(0,0,0,0)); ImageDraw.Draw(sh).ellipse([w2*0.2,10,w2*0.8,36],fill=(60,60,40,55))
-    sh=sh.filter(ImageFilter.GaussianBlur(8)); im.paste(sh,(rcx-w2//2,dtop+dh-24),sh)
-    rr=im2.resize((w2,dh),Image.LANCZOS); im.paste(rr,(rcx-w2//2,dtop),rr)
-    cx_text(d,rcx,dtop+dh+18,"O creme do sabor",F(SERIFB,24),INK)
-    # caixinha do produto (card)
-    bx0,by0,bx1,by1=700,818,1150,1600
-    rrect(d,[bx0,by0,bx1,by1],16,fill=(255,255,255),outline=LINE,width=2)
-    boxp=f"public/portfolio/boxes/{p['box']}.png"
-    if os.path.exists(boxp):
-        im3=Image.open(boxp).convert("RGBA"); pad=34
-        s=min((bx1-bx0-2*pad)/im3.width,(by1-by0-2*pad)/im3.height); nw,nh=int(im3.width*s),int(im3.height*s)
-        im3=im3.resize((nw,nh),Image.LANCZOS); im.paste(im3,(bx0+(bx1-bx0-nw)//2,by0+(by1-by0-nh)//2),im3)
+        sp=dict(p["specs"])
+        d.text((90,ny),f'{sp["Proteína"]} de proteína',font=F(SERIFB,38),fill=INK)
+        d.text((92,ny+54),f'{sp["Valor energético"]} · açúcar adicionado {sp["Açúcar adicionado"]} · {sp["Fibra alimentar"]} de fibra',font=F(SANS,21),fill=INK); ny+=104
+        szk="Tamanhos" if "Tamanhos" in sp else "Formato"
+        d.text((90,ny),f'{szk}: {sp[szk]}',font=F(SANS,21),fill=SOFT); ny+=34
+        d.text((90,ny),sp["Restrições"],font=F(SANS,21),fill=SOFT); ny+=30
+        d.text((90,ny),note,font=F(SANS,16),fill=(150,148,134)); ny+=46
+        ny=para(d,90,ny,p["desc"],F(SANS,22),SOFT,540,32,4)+16
+        d.text((90,ny),"PRINCIPAIS INGREDIENTES",font=F(SANSB,16),fill=PIST); ny+=28
+        para(d,90,ny,ING.get(p["name"],""),F(SANS,20),INK,540,28,3)
+    # visual principal (direita): hero shot
+    rx0,ry0,rx1,ry1=636,236,1162,1296
+    hero=p.get("hero")
+    if hero and os.path.exists(hero):
+        v=Image.open(hero).convert("RGB")
+        s=min((rx1-rx0)/v.width,(ry1-ry0)/v.height); nw,nh=int(v.width*s),int(v.height*s)
+        v=v.resize((nw,nh),Image.LANCZOS); im.paste(v,(rx0+(rx1-rx0-nw)//2,ry0+(ry1-ry0-nh)//2))
+        cap_y=ry0+(ry1-ry0+nh)//2+16
     else:
-        mx,my=(bx0+bx1)//2,(by0+by1)//2
-        cx_text(d,mx,my-22,"Imagem da caixa",F(SERIFB,28),SOFT); cx_text(d,mx,my+24,"(P e G) em breve",F(SANS,22),(150,148,134))
-    cx_text(d,(bx0+bx1)//2,by1+12,"Imagem meramente ilustrativa",F(SANS,15),fill=(150,148,134))
-    # frase de marca (preenche canto inferior esquerdo)
-    d.text((90,1510),"“Sabor de sobremesa,",font=F(SERIFB,30),fill=INK)
-    d.text((90,1552),"ficha de suplemento.”",font=F(SERIFB,30),fill=PIST)
+        cap_y=ry1+16
+    cx_text(d,(rx0+rx1)//2,cap_y,"Imagem meramente ilustrativa",F(SANS,15),(150,148,134))
+    # "o creme do sabor" (dollop) — preenche o canto inferior esquerdo
+    lcx=350; dd=Image.open(p["dollop"]).convert("RGBA"); dh1=372; w1=int(dd.width*dh1/dd.height); dtop=946
+    sh=Image.new("RGBA",(w1,46),(0,0,0,0)); ImageDraw.Draw(sh).ellipse([w1*0.2,10,w1*0.8,36],fill=(60,60,40,52))
+    sh=sh.filter(ImageFilter.GaussianBlur(8)); im.paste(sh,(lcx-w1//2,dtop+dh1-22),sh)
+    im.paste(dd.resize((w1,dh1),Image.LANCZOS),(lcx-w1//2,dtop),dd.resize((w1,dh1),Image.LANCZOS))
+    cx_text(d,lcx,dtop+dh1+20,"O creme do sabor",F(SERIFB,24),INK)
+    cx_text(d,lcx,dtop+dh1+54,"imagem meramente ilustrativa",F(SANS,14),(150,148,134))
     d.text((90,H-52),"bentogelateria.com",font=F(SANS,20),fill=GOLD)
-    pg=p["pg"]; d.text((W-90-tw(d,pg,F(SANS,20)),H-52),pg,font=F(SANS,20),fill=SOFT)
+    d.text((W-90-tw(d,p["pg"],F(SANS,20)),H-52),p["pg"],font=F(SANS,20),fill=SOFT)
     return im
 
 SZ=("Tamanhos","P 55 g · G 110 g")
@@ -227,9 +217,14 @@ def slug(s):
     return re.sub(r"[^a-z0-9]+","-",s).strip("-")
 allp=[{**x,"cat":"picole"} for x in PICOLES]+[{**x,"cat":"pote"} for x in POTES]
 total=len(allp)+2
+GELID={"Chocolate Dubai":"chocolate-dubai","Pistache":"pistache","Doce de Leite":"doce-de-leite"}
 for i,pp in enumerate(allp):
     pp["soon"]=pp.get("soon",False)
     pp["box"]=("pote-" if pp["cat"]=="pote" else "")+slug(pp["name"])
+    if pp["cat"]=="picole":
+        pp["hero"]=f"public/portfolio/heros/{slug(pp['name'])}.jpg"
+    else:
+        pp["hero"]=f"public/sabores/{GELID[pp['name']]}.jpg"
     pp["tag"]=("Picolés Bentôlé · " if pp["cat"]=="picole" else "Potes 140 ml · ")+f"{i+1:02d}/{len(allp)}"
     pp["pg"]=f"{i+2:02d} / {total}"
     pages.append(product_page(pp))
