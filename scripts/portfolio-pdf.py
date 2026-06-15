@@ -2,8 +2,8 @@
 # Catálogo editorial premium da Bentô (estilo revista). Gera public/portfolio-bento.pdf.
 # - "Sabor como creme" gerado por SVG (arte da marca) com a paleta real de cada sabor.
 # - Capa com as caixas em pedestal (poster), páginas de produto, contracapa com QR.
-import re, os, math, cairosvg, qrcode
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+import re, os, io, math, cairosvg, qrcode
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 W,H=1240,1754
 BG=(239,233,219); SURF=(251,248,238); INK=(31,35,23); SOFT=(96,100,84)
@@ -51,20 +51,31 @@ def pal(idkey):
     m=re.search(r'id:"'+re.escape(idkey)+r'"[\s\S]{0,400}?palette:\{base:"(#\w+)",mid:"(#\w+)",deep:"(#\w+)",swirl:"(#\w+)",hl:"(#\w+)"\}',SRC)
     return m.groups() if m else None
 PAL_EXTRA={"magnesio":("#F6C66A","#E8A34A","#B5651C","#C9402A","#FFE6B0")}
-def cream_svg(base,mid,deep,swirl,hl):
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 36 132 70" width="640" height="339">
-<defs><radialGradient id="c" cx="40%" cy="26%" r="88%">
-<stop offset="0%" stop-color="{hl}"/><stop offset="34%" stop-color="{base}"/>
-<stop offset="80%" stop-color="{mid}"/><stop offset="100%" stop-color="{deep}"/></radialGradient></defs>
-<path d="M 52 100 Q 58 72 78 70 Q 88 50 105 60 Q 118 42 132 58 Q 148 50 158 72 Q 168 80 168 98 Z" fill="url(#c)"/>
-<path d="M 65 88 Q 85 70 110 75 Q 130 68 148 82" fill="none" stroke="{hl}" stroke-width="3" stroke-linecap="round" opacity="0.55"/>
-<path d="M 72 92 Q 92 82 112 92 Q 132 84 152 92" fill="none" stroke="{swirl}" stroke-width="2.3" stroke-linecap="round" opacity="0.78"/>
-<circle cx="92" cy="84" r="2.1" fill="{swirl}" opacity="0.65"/><circle cx="128" cy="78" r="1.6" fill="{swirl}" opacity="0.55"/></svg>'''
+def hx(c): c=c.lstrip("#"); return tuple(int(c[i:i+2],16) for i in (0,2,4))
+# silhueta do creme (arte da Bentô) usada como máscara
+_CW,_CH=640,340
+_MASK_SVG=f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="44 36 132 70" width="{_CW}" height="{_CH}"><path d="M 52 100 Q 58 72 78 70 Q 88 50 105 60 Q 118 42 132 58 Q 148 50 158 72 Q 168 80 168 98 Z" fill="#fff"/></svg>'
+_MASK=Image.open(io.BytesIO(cairosvg.svg2png(bytestring=_MASK_SVG.encode()))).convert("L")
+# textura real de gelato (Unsplash, uso comercial) — base para todos os sabores
+_TEX=ImageOps.autocontrast(Image.open("public/portfolio/cream-texture.jpg").convert("L").resize((_CW,_CH)),cutoff=2)
+def _gmap(gray,stops):
+    lr=[];lg=[];lb=[]
+    for i in range(256):
+        t=i/255
+        for j in range(len(stops)-1):
+            p0,c0=stops[j];p1,c1=stops[j+1]
+            if p0<=t<=p1:
+                f=(t-p0)/(p1-p0) if p1>p0 else 0
+                lr.append(int(c0[0]+(c1[0]-c0[0])*f));lg.append(int(c0[1]+(c1[1]-c0[1])*f));lb.append(int(c0[2]+(c1[2]-c0[2])*f));break
+        else:
+            lr.append(stops[-1][1][0]);lg.append(stops[-1][1][1]);lb.append(stops[-1][1][2])
+    return Image.merge("RGB",(gray.point(lr),gray.point(lg),gray.point(lb)))
 os.makedirs("public/portfolio/cream",exist_ok=True)
 def cream(idkey):
-    p=PAL_EXTRA.get(idkey) or pal(idkey)
-    out=f"public/portfolio/cream/{idkey}.png"
-    cairosvg.svg2png(bytestring=cream_svg(*p).encode(),write_to=out,background_color="rgba(0,0,0,0)")
+    base,mid,deep,swirl,hl=[hx(c) for c in (PAL_EXTRA.get(idkey) or pal(idkey))]
+    stops=[(0.0,deep),(0.33,mid),(0.66,base),(1.0,hl)]
+    col=_gmap(_TEX,stops).convert("RGBA"); col.putalpha(_MASK)
+    out=f"public/portfolio/cream/{idkey}.png"; col.save(out)
     return out
 
 PIC=[("Pistache & Choco Branco","10 g proteína · 61 kcal","bentole-pistache-cb",False),
