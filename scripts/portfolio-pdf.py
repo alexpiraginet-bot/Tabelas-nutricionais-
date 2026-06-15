@@ -2,7 +2,7 @@
 # Catálogo editorial premium da Bentô (estilo revista). Gera public/portfolio-bento.pdf.
 # - "Sabor como creme" gerado por SVG (arte da marca) com a paleta real de cada sabor.
 # - Capa com as caixas em pedestal (poster), páginas de produto, contracapa com QR.
-import re, os, io, math, cairosvg, qrcode
+import re, os, io, math, unicodedata, cairosvg, qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 W,H=1240,1754
@@ -44,6 +44,8 @@ def img_cover(base,path,x,y,w,h,r=16):
 def paste_png(base,path,x,y,w):
     im=Image.open(path).convert("RGBA"); h=int(im.height*w/im.width); im=im.resize((w,h),Image.LANCZOS)
     base.paste(im,(x,y),im); return h
+def rrect(d,box,r,fill=None,outline=None,width=1):
+    d.rounded_rectangle(box,radius=r,fill=fill,outline=outline,width=width)
 
 # ---------- paletas + geração dos cremes ----------
 SRC=open("src/data.js").read()
@@ -105,48 +107,135 @@ para(d,90,1410,"A Bentô transforma proteína em sobremesa — sem açúcar adic
 lbl="PORTFÓLIO · PARCEIROS"; d.text((W-90-tw(d,lbl,F(SANSB,22)),1620),lbl,font=F(SANSB,22),fill=GOLD)
 pages.append(c)
 
-# ============ PICOLÉS ============
-p,d=page()
-d.text((90,90),"Proteína em forma de sobremesa.",font=F(SANSB,28),fill=INK)
-d.text((90,150),"BENTÔLÉ",font=F(SERIFB,86),fill=INK)
-d.text((96,258),"picolés proteicos · take-home",font=F(SANS,30),fill=PIST)
-dots_arc(d,W-110,250,120,90,270,7,GOLD,5)
-para(d,90,330,"Mini picolés proteicos com whey WPH, sem açúcar adicionado e rótulo limpo. Disponíveis nos tamanhos P (55 g) e G (110 g) — o picolé proteico mais desejado, agora na sua vitrine.",F(SANS,23),SOFT,1060,32,3)
-d.text((90,470),"Sabores",font=F(SERIFB,40),fill=INK)
-d.line([(92,524),(92+64,524)],fill=GOLD,width=3)
-# grade de cremes 4 + 3
-creams={k:cream(k) for (_,_,k,_) in PIC}
-gx=90; cw=(W-180)//4; row1=PIC[:4]; row2=PIC[4:]
-for i,(name,spec,k,soon) in enumerate(row1):
-    flavor_cell(p,d,gx+cw//2+i*cw,580,creams[k],name,spec,cw,soon)
-gx2=(W-3*cw)//2
-for i,(name,spec,k,soon) in enumerate(row2):
-    flavor_cell(p,d,gx2+cw//2+i*cw,990,creams[k],name,spec,cw,soon)
-d.text((90,1560),"Cores e cremes ilustrativos dos sabores · imagem meramente ilustrativa.",font=F(SANS,18),fill=(150,148,134))
-pages.append(p)
+# ============ UMA PÁGINA POR PRODUTO ============
+def product_page(p):
+    im,d=page()
+    line="PICOLÉ PROTEICO · BENTÔLÉ" if p["cat"]=="picole" else "POTE SELADO · GELATO 140 ML"
+    note="Por unidade · tamanho P (~55 g)" if p["cat"]=="picole" else "Por porção de referência (60 g)"
+    d.text((90,86),p["tag"],font=F(SANSB,21),fill=INK)
+    fb=F(SANSB,19); d.text((W-90-tw(d,line,fb),92),line,font=fb,fill=GOLD)
+    d.line([(90,140),(W-90,140)],fill=LINE,width=2)
+    dots_arc(d,W-86,250,108,100,250,6,GOLD,4)
+    # lockup (nome + sub)
+    ny=192
+    for ln in wrap(d,p["name"],F(SERIFB,60),540)[:2]:
+        d.text((90,ny),ln,font=F(SERIFB,60),fill=INK); ny+=70
+    d.text((92,ny+2),p["sub"],font=F(SANS,24),fill=PIST); ny+=64
+    if p["soon"]:
+        d.text((90,ny),"Lançamento em breve",font=F(SERIFB,36),fill=GOLD); ny+=70
+        para(d,90,ny,p["teaser"],F(SANS,23),SOFT,540,33,7)
+    else:
+        sp=dict(p["specs"])
+        d.text((90,ny),f'{sp["Proteína"]} de proteína',font=F(SERIFB,38),fill=INK)
+        d.text((92,ny+54),f'{sp["Valor energético"]} · açúcar adicionado {sp["Açúcar adicionado"]} · {sp["Fibra alimentar"]} de fibra',font=F(SANS,21),fill=INK); ny+=104
+        szk="Tamanhos" if "Tamanhos" in sp else "Formato"
+        d.text((90,ny),f'{szk}: {sp[szk]}',font=F(SANS,21),fill=SOFT); ny+=34
+        d.text((90,ny),sp["Restrições"],font=F(SANS,21),fill=SOFT); ny+=30
+        d.text((90,ny),note,font=F(SANS,16),fill=(150,148,134)); ny+=46
+        ny=para(d,90,ny,p["desc"],F(SANS,22),SOFT,540,32,4)+16
+        d.text((90,ny),"PRINCIPAIS INGREDIENTES",font=F(SANSB,16),fill=PIST); ny+=28
+        para(d,90,ny,ING.get(p["name"],""),F(SANS,20),INK,540,28,3)
+    # visual principal (direita): hero shot
+    rx0,ry0,rx1,ry1=636,236,1162,1296
+    hero=p.get("hero")
+    if hero and os.path.exists(hero):
+        v=Image.open(hero).convert("RGB")
+        s=min((rx1-rx0)/v.width,(ry1-ry0)/v.height); nw,nh=int(v.width*s),int(v.height*s)
+        v=v.resize((nw,nh),Image.LANCZOS); im.paste(v,(rx0+(rx1-rx0-nw)//2,ry0+(ry1-ry0-nh)//2))
+        cap_y=ry0+(ry1-ry0+nh)//2+16
+    else:
+        cap_y=ry1+16
+    cx_text(d,(rx0+rx1)//2,cap_y,"Imagem meramente ilustrativa",F(SANS,15),(150,148,134))
+    # "o creme do sabor" (dollop) — preenche o canto inferior esquerdo
+    lcx=350; dd=Image.open(p["dollop"]).convert("RGBA"); dh1=372; w1=int(dd.width*dh1/dd.height); dtop=946
+    sh=Image.new("RGBA",(w1,46),(0,0,0,0)); ImageDraw.Draw(sh).ellipse([w1*0.2,10,w1*0.8,36],fill=(60,60,40,52))
+    sh=sh.filter(ImageFilter.GaussianBlur(8)); im.paste(sh,(lcx-w1//2,dtop+dh1-22),sh)
+    im.paste(dd.resize((w1,dh1),Image.LANCZOS),(lcx-w1//2,dtop),dd.resize((w1,dh1),Image.LANCZOS))
+    cx_text(d,lcx,dtop+dh1+20,"O creme do sabor",F(SERIFB,24),INK)
+    cx_text(d,lcx,dtop+dh1+54,"imagem meramente ilustrativa",F(SANS,14),(150,148,134))
+    d.text((90,H-52),"bentogelateria.com",font=F(SANS,20),fill=GOLD)
+    d.text((W-90-tw(d,p["pg"],F(SANS,20)),H-52),p["pg"],font=F(SANS,20),fill=SOFT)
+    return im
 
-# ============ POTES ============
-p,d=page()
-d.text((90,90),"Gelato premium, direto na vitrine.",font=F(SANSB,28),fill=INK)
-d.text((90,150),"POTES 140 ml",font=F(SERIFB,82),fill=INK)
-d.text((96,256),"gelato proteico selado · pronto pra vender",font=F(SANS,30),fill=PIST)
-para(d,90,330,"Gelato proteico em pote selado de 140 ml — sem açúcar adicionado, com 10 a 12 g de proteína. Perfeito para vitrine, take-home e delivery.",F(SANS,23),SOFT,1060,32,3)
-img_cover(p,"public/portfolio/potes-140.jpg",90,450,W-180,360,16)
-d.text((90,820),"Imagem meramente ilustrativa",font=F(SANS,16),fill=(150,148,134))
-d.text((90,900),"Sabores",font=F(SERIFB,40),fill=INK); d.line([(92,954),(92+64,954)],fill=GOLD,width=3)
-creamsP={k:cream(k) for (_,_,k) in POT}
-cw=(W-180)//3
-for i,(name,spec,k) in enumerate(POT):
-    flavor_cell(p,d,90+cw//2+i*cw,1010,creamsP[k],name,spec,cw,False)
-pages.append(p)
+SZ=("Tamanhos","P 55 g · G 110 g")
+PICOLES=[
+ dict(name="Pistache & Choco Branco",sub="Recheio, cobertura e pistaches inteiros",
+   desc="Pasta de pistache selecionada com recheio, cobertura de chocolate branco e pistaches inteiros. O campeão da linha: 10 g de proteína com apenas 61 kcal por unidade.",
+   dollop="public/portfolio/dollops/pistache.png",photo="public/sabores/bentole-pistache-cb.jpg",
+   specs=[("Proteína","10 g"),("Valor energético","61 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","3,7 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
+ dict(name="Chocolate Dubai",sub="Cacau, pistache, kadaif e stracciatella",
+   desc="A tendência do Dubai em mini picolé proteico: cacau escuro, creme de pistache, stracciatella e kadaif crocante.",
+   dollop="public/portfolio/dollops/choco.png",photo="public/sabores/bentole-choco-dubai.jpg",
+   specs=[("Proteína","10 g"),("Valor energético","108 kcal"),("Açúcar adicionado","0,1 g"),("Fibra alimentar","1,5 g"),SZ,("Restrições","Contém glúten e lactose")]),
+ dict(name="Opereta",sub="Chocolate branco Latissimo e castanhas",
+   desc="Chocolate branco Latissimo com castanhas selecionadas. Elegante, crocante e sofisticado — 9,9 g de proteína por unidade.",
+   dollop="public/portfolio/dollops/opereta.png",photo="public/sabores/bentole-opereta.jpg",
+   specs=[("Proteína","9,9 g"),("Valor energético","86 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,2 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
+ dict(name="Snickers",sub="Amendoim, doce de leite e chocolate 70%",
+   desc="Inspirado no clássico, em versão proteica: amendoim real, doce de leite zero açúcar e chocolate 70%.",
+   dollop="public/portfolio/dollops/snickers.png",photo="public/sabores/bentole-snickers.jpg",
+   specs=[("Proteína","9,6 g"),("Valor energético","95 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,5 g"),SZ,("Restrições","Sem glúten · sem lactose")]),
+ dict(name="Prestígio",sub="Coco cremoso e cobertura de chocolate",
+   desc="O clássico Prestígio reinventado em mini picolé proteico: coco cremoso com cobertura de chocolate, sem açúcar adicionado.",
+   dollop="public/portfolio/dollops/prestigio.png",photo="public/sabores/bentole-prestigio.jpg",
+   specs=[("Proteína","8 g"),("Valor energético","91 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","1 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
+ dict(name="Franuí",sub="Framboesa, chocolate branco e chocolate 70%",
+   desc="O mais leve e frutado da linha: framboesa real, colágeno e cobertura dupla de chocolate — apenas 42 kcal por unidade.",
+   dollop="public/portfolio/dollops/franui.png",photo="public/sabores/bentole-franui.jpg",
+   specs=[("Proteína","1,2 g"),("Valor energético","42 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","7,7 g"),SZ,("Restrições","Sem glúten · sem lactose")]),
+ dict(name="Magnésio + Inositol Relief 3.0",sub="Tangerina com Maracujá · funcional",
+   desc="Picolé funcional da linha Relief 3.0, em parceria com a True.",soon=True,
+   teaser="Em breve na linha Bentôlé: um picolé funcional de Tangerina com Maracujá, com magnésio e inositol. Disponível no tamanho P (55 g). Informações nutricionais completas no lançamento.",
+   dollop="public/portfolio/dollops/magnesio.png",photo="public/sabores/bentole-magnesio.jpg"),
+]
+POTES=[
+ dict(name="Chocolate Dubai",sub="Creme crocante e granela crocante",
+   desc="O Dubai em pote selado de 140 ml: chocolate com creme crocante e granela. Pronto para vitrine, take-home e delivery.",
+   dollop="public/portfolio/dollops/choco.png",photo="public/sabores/chocolate-dubai.jpg",
+   specs=[("Proteína","12 g"),("Valor energético","162 kcal"),("Açúcar adicionado","0,1 g"),("Fibra alimentar","2,5 g"),("Formato","Pote selado · 140 ml"),("Restrições","Contém glúten e lactose")]),
+ dict(name="Pistache",sub="Pistache mesclado e granela",
+   desc="Pasta de pistache italiana selecionada, sabor intenso e cor natural, em pote selado de 140 ml.",
+   dollop="public/portfolio/dollops/pistache.png",photo="public/sabores/pistache.jpg",
+   specs=[("Proteína","10 g"),("Valor energético","130 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0 g"),("Formato","Pote selado · 140 ml"),("Restrições","Contém glúten · sem lactose")]),
+ dict(name="Doce de Leite",sub="Doce de leite mesclado e granela",
+   desc="O sabor afetivo brasileiro, zero açúcar adicionado, com whey WPH — em pote selado de 140 ml.",
+   dollop="public/portfolio/dollops/doce.png",photo="public/sabores/doce-de-leite.jpg",
+   specs=[("Proteína","11 g"),("Valor energético","138 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,2 g"),("Formato","Pote selado · 140 ml"),("Restrições","Sem glúten · sem lactose")]),
+]
+ING={
+ "Pistache & Choco Branco":"Pasta de pistache italiana selecionada, whey WPH, cobertura de chocolate branco zero, pistaches inteiros e leite.",
+ "Chocolate Dubai":"Whey WPH, cacau, creme de pistache, stracciatella zero, kadaif crocante e leite.",
+ "Opereta":"Whey WPH, chocolate branco, castanhas selecionadas e leite.",
+ "Snickers":"Whey WPH, pasta de amendoim, doce de leite zero açúcar, chocolate 70% e leite.",
+ "Prestígio":"Whey WPH, leite de coco, coco ralado e cobertura de chocolate ao leite zero.",
+ "Franuí":"Framboesa real, colágeno hidrolisado e cobertura dupla de chocolate (branco e 70% zero).",
+ "Pistache":"Pasta de pistache italiana selecionada, whey WPH e leite.",
+ "Doce de Leite":"Doce de leite zero açúcar, whey WPH e leite.",
+}
+def slug(s):
+    s=unicodedata.normalize("NFKD",s).encode("ascii","ignore").decode().lower()
+    return re.sub(r"[^a-z0-9]+","-",s).strip("-")
+allp=[{**x,"cat":"picole"} for x in PICOLES]+[{**x,"cat":"pote"} for x in POTES]
+total=len(allp)+2
+GELID={"Chocolate Dubai":"chocolate-dubai","Pistache":"pistache","Doce de Leite":"doce-de-leite"}
+for i,pp in enumerate(allp):
+    pp["soon"]=pp.get("soon",False)
+    pp["box"]=("pote-" if pp["cat"]=="pote" else "")+slug(pp["name"])
+    if pp["cat"]=="picole":
+        pp["hero"]=f"public/portfolio/heros/{slug(pp['name'])}.jpg"
+    else:
+        pp["hero"]=f"public/sabores/{GELID[pp['name']]}.jpg"
+    pp["tag"]=("Picolés Bentôlé · " if pp["cat"]=="picole" else "Potes 140 ml · ")+f"{i+1:02d}/{len(allp)}"
+    pp["pg"]=f"{i+2:02d} / {total}"
+    pages.append(product_page(pp))
 
 # ============ CONTRACAPA ============
 b,d=page()
 qr=qrcode.QRCode(box_size=10,border=1); qr.add_data("https://bentogelateria.com/?portfolio=1"); qr.make()
 qimg=qr.make_image(fill_color=(31,35,23),back_color=(255,255,255)).convert("RGB")
-rrect=Image.new("RGB",(280,280),(196,168,130)); rrect.paste(qimg.resize((230,230)),(25,25))
+qbox=Image.new("RGB",(280,280),(196,168,130)); qbox.paste(qimg.resize((230,230)),(25,25))
 m=Image.new("L",(280,280),0); ImageDraw.Draw(m).rounded_rectangle([0,0,280,280],22,fill=255)
-b.paste(rrect,(90,120),m)
+b.paste(qbox,(90,120),m)
 d.text((90,440),"Descubra a nutrição",font=F(SERIFB,46),fill=INK)
 d.text((90,496),"de verdade.",font=F(SERIFB,46),fill=PIST)
 d.line([(92,576),(92+70,576)],fill=GOLD,width=3)
