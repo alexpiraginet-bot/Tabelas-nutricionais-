@@ -484,14 +484,24 @@ export function EventosModal({onClose}){
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
   // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
   const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true});}catch{}};
+  // Monta o orçamento completo + link interno (?contrato=) que a ContratoPage renderiza como PDF
+  const mkPayload=(qq,gg)=>({nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
+    data:ev.data?ev.data.split("-").reverse().join("/"):"",local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
+    sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,pers:ev.pers,persAC:qq.persACombinar,
+    base:qq.base,logistica:qq.logistica,km:gg&&gg.ok?gg.km:null,loja:gg&&gg.ok?gg.loja:null,
+    potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim()});
+  const mkLink=(p)=>"https://bentogelateria.com/?contrato="+btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  // Campos do orçamento a guardar junto do lead (para abrir o PDF completo no painel)
+  const orcFields=(qq,gg,link)=>({link,sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,base:qq.base,logistica:qq.logistica,potinhos:qq.potinhos,carrinho:qq.carrinho,pers:ev.pers});
   const verOrcamento=async()=>{
     setBusy(true);
     const g=await evGeocode(ev.local);
     setGeo(g);
     setBusy(false);
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
+    const link2=mkLink(mkPayload(q2,g));
     tk("Lead · Orçamento gerado");
-    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,pers:ev.pers,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null});
+    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,...orcFields(q2,g,link2)});
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
@@ -509,13 +519,8 @@ export function EventosModal({onClose}){
   const ok3=cad.nome.trim()&&docOk(cad.doc)&&emailOk(cad.email)&&cad.zap.replace(/\D/g,"").length>=10&&cad.consent;
   const enviar=()=>{
     // link interno: abre o contrato pré-preenchido para a equipe revisar e gerar o PDF
-    const payload={nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
-      data:ev.data.split("-").reverse().join("/"),local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
-      sabores:q.sabores,rend:q.rend,promotoras:q.promotoras,pers:ev.pers,persAC:q.persACombinar,
-      base:q.base,logistica:q.logistica,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,
-      potinhos:q.potinhos,carrinho:q.carrinho,total:q.total};
-    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(payload)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
-    const linkContrato=`https://bentogelateria.com/?contrato=${b64}`;
+    const payload=mkPayload(q,geo);
+    const linkContrato=mkLink(payload);
     const linhas=[
       "*Novo orçamento — Eventos Bentô* 🎉","",
       "*— Dados do contratante —*",
@@ -545,7 +550,7 @@ export function EventosModal({onClose}){
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     tk("Conversão · Orçamento de evento");
-    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null});
+    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};

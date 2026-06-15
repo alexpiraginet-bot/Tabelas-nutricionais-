@@ -19,12 +19,13 @@ function readRaw(req) {
   if (req.body !== undefined && req.body !== null) return Promise.resolve(req.body);
   return new Promise((resolve) => {
     let d = "";
-    req.on("data", (c) => { d += c; if (d.length > 8192) d = d.slice(0, 8192); });
+    req.on("data", (c) => { d += c; if (d.length > 16384) d = d.slice(0, 16384); });
     req.on("end", () => resolve(d));
     req.on("error", () => resolve(""));
   });
 }
-function semControle(s){ let o=""; for(const ch of String(s)) if(ch.codePointAt(0)>=32) o+=ch; return o.slice(0,120); }
+function clean(s, max){ let o=""; for(const ch of String(s)) if(ch.codePointAt(0)>=32) o+=ch; return o.slice(0, max); }
+function semControle(s){ return clean(s, 120); }
 
 async function pipeline(cmds) {
   const r = await fetch(KV_URL + "/pipeline", {
@@ -80,6 +81,19 @@ export default async function handler(req, res) {
       total: Number(body.total) || 0,
       km: body.km == null ? null : Number(body.km),
       loja: semControle(body.loja || ""),
+      // Orçamento completo (para abrir/imprimir o PDF no painel) + detalhes do evento
+      doc: semControle(body.doc || ""),
+      empresa: semControle(body.empresa || ""),
+      obs: clean(body.obs || "", 500),
+      sabores: Number(body.sabores) || 0,
+      rend: semControle(body.rend || ""),
+      promotoras: Number(body.promotoras) || 0,
+      base: Number(body.base) || 0,
+      logistica: body.logistica == null ? null : Number(body.logistica),
+      potinhos: Number(body.potinhos) || 0,
+      carrinho: Number(body.carrinho) || 0,
+      pers: Array.isArray(body.pers) ? body.pers.slice(0, 8).map((x) => semControle(x)) : [],
+      link: clean(body.link || "", 6000),
     };
     await pipeline([
       ["LPUSH", "leads", JSON.stringify(lead)],

@@ -115,7 +115,7 @@
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🎉 Orçamentos de eventos — leads</span><span id="leadsCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div style="overflow:auto">
       <table id="leadsTbl">
-        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th class="num">Convid.</th><th>Evento</th><th class="num">Total</th><th>Etapa</th></tr></thead>
+        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th class="num">Convid.</th><th>Evento</th><th class="num">Total</th><th>Etapa</th><th>Orçamento</th></tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -297,8 +297,9 @@ function renderLeads(d){
     const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
     const quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
     const total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-    const evento = [l.data, l.local].filter(Boolean).join(" · ");
+    const evento = [l.data, l.local, l.tipo].filter(Boolean).join(" · ");
     const stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
+    const orc = l.link ? `<a class="docs" href="${escapeHtml(l.link)}" target="_blank" rel="noopener">📄 Abrir</a>` : "—";
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
       <td>${escapeHtml(l.nome||"—")}</td>
@@ -306,7 +307,8 @@ function renderLeads(d){
       <td class="num">${l.convidados||"—"}</td>
       <td>${escapeHtml(evento||"—")}</td>
       <td class="num">${total}</td>
-      <td>${stageTag}</td>`;
+      <td>${stageTag}</td>
+      <td>${orc}</td>`;
     tb.appendChild(tr);
   });
   $("#leadsEmpty").style.display = leads.length ? "none" : "block";
