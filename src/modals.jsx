@@ -281,6 +281,7 @@ export function SejaParceiro({onClose,onForm}){
             <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:24}}>
               <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:6,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
               <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:6,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 WhatsApp direto</a>
+              <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:6,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>📄 Ver portfólio</a>
             </div>
           </div>
           <div className="rise" style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>

@@ -673,6 +673,7 @@ const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
 const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
 
 const TermosPage = lazy(() => import("./TermosPage.jsx"));
+const PortfolioPage = lazy(() => import("./PortfolioPage.jsx"));
 
 /* ========== SEM CULPA-ÔMETRO ========== */
 // Referência: sorvete de massa tradicional (média de mercado), por 100 g.
@@ -686,6 +687,7 @@ export default function App(){
   });
   const[privacidade]=useState(()=>{try{return new URLSearchParams(window.location.search).has("privacidade");}catch{return false;}});
   const[termos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("termos");}catch{return false;}});
+  const[portfolio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("portfolio");}catch{return false;}});
   const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -714,6 +716,7 @@ export default function App(){
   if(contrato) return(<><GStyle/><Suspense fallback={null}><ContratoPage data={contrato}/></Suspense></>);
   if(privacidade) return(<><GStyle/><Suspense fallback={null}><PrivacidadePage/></Suspense></>);
   if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);
+  if(portfolio) return(<><GStyle/><Suspense fallback={null}><PortfolioPage/></Suspense></>);
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
@@ -747,6 +750,7 @@ export default function App(){
           <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
           <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Privacidade</a>
           <a href="/?termos=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Termos</a>
+          <a href="/?portfolio=1" onClick={()=>tk("Rodapé · Portfólio")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>📄 Portfólio</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
         <div style={{width:"100%",borderTop:`1px solid ${T.border}`,paddingTop:12,marginTop:4}}>
