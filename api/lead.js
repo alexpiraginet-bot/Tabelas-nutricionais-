@@ -1,6 +1,7 @@
 // Captura de lead de orçamento de eventos no Redis (Upstash / Vercel KV) via REST.
 // Recebe os dados do orçamento + WhatsApp e guarda numa lista para o painel.
 // Endpoint público de escrita; nunca quebra a experiência (erros respondem 204).
+import { sendTelegram, esc } from "../lib/telegram.js";
 
 function findKV() {
   let url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
@@ -101,6 +102,23 @@ export default async function handler(req, res) {
       ["LTRIM", "leads", 0, 999],
       ["INCR", "leads:count"],
     ]);
+    // Notificação na hora (Telegram) — best-effort, não atrapalha a resposta
+    try {
+      const dig = String(lead.phone).replace(/\D/g, "");
+      const wa = "https://wa.me/" + (dig.length <= 11 ? "55" : "") + dig;
+      const brl = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      const msg = [
+        `🎉 <b>Novo orçamento de evento</b>${lead.stage === "contrato" ? " — pediu CONTRATO" : ""}`,
+        `👤 ${esc(lead.nome || "—")} · ${esc(lead.phone)}`,
+        (lead.data || lead.hora) ? `📅 ${esc(lead.data)}${lead.hora ? ` ⏰ ${esc(lead.hora)}` : ""}` : "",
+        lead.local ? `📍 ${esc(lead.local)}` : "",
+        `👥 ${lead.convidados || "—"} convidados · ${esc(lead.tipo || "—")}`,
+        lead.total ? `💰 ${brl(lead.total)}` : "",
+        lead.link ? `📄 <a href="${esc(lead.link)}">Abrir orçamento</a>` : "",
+        `💬 <a href="${wa}">Responder no WhatsApp</a>`,
+      ].filter(Boolean).join("\n");
+      await sendTelegram(msg);
+    } catch {}
     res.status(204).end();
   } catch {
     res.status(204).end();
