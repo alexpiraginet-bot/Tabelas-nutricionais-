@@ -123,6 +123,18 @@
   </div>
 
   <div class="card" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>📅 Datas reservadas (eventos confirmados)</span>
+      <span style="display:flex;gap:8px;align-items:center">
+        <input id="bookDate" type="date" style="background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px" />
+        <button class="ghost" id="bookAdd">Reservar data</button>
+      </span>
+    </h3>
+    <div id="bookedList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    <div class="empty" id="bookedEmpty" style="display:none;padding:14px">Nenhuma data reservada. Ao confirmar um evento, reserve a data aqui (ou pelo link “reservar” na tabela acima) — o site passa a avisar quem tentar fechar nessa data. 📅</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
     <h3>Ranking de botões (total)</h3>
     <div class="chartbox" style="height:360px"><canvas id="barChart"></canvas></div>
   </div>
@@ -300,22 +312,50 @@ function renderLeads(d){
     const evento = [l.data, l.local, l.tipo].filter(Boolean).join(" · ");
     const stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
     const orc = l.link ? `<a class="docs" href="${escapeHtml(l.link)}" target="_blank" rel="noopener">📄 Abrir</a>` : "—";
+    const res = l.data ? ` · <a href="#" class="resBook" data-d="${escapeHtml(l.data)}" style="color:var(--gold);text-decoration:none">reservar</a>` : "";
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
       <td>${escapeHtml(l.nome||"—")}</td>
       <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(l.phone)}</a>`:escapeHtml(l.phone||"—")}</td>
       <td class="num">${l.convidados||"—"}</td>
-      <td>${escapeHtml(evento||"—")}</td>
+      <td>${escapeHtml(evento||"—")}${res}</td>
       <td class="num">${total}</td>
       <td>${stageTag}</td>
       <td>${orc}</td>`;
     tb.appendChild(tr);
   });
+  tb.querySelectorAll(".resBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("add", a.getAttribute("data-d")); });
   $("#leadsEmpty").style.display = leads.length ? "none" : "block";
 }
 
+function fmtDateBR(d){ const p=String(d).split("-"); return p.length===3 ? (p[2]+"/"+p[1]+"/"+p[0]) : d; }
+async function loadBooked(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/booked", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  const j = await r.json(); renderBooked((j && j.dates) || []);
+}
+function renderBooked(dates){
+  const box = $("#bookedList"); box.innerHTML = "";
+  dates.forEach(d=>{
+    const chip = document.createElement("span");
+    chip.className = "tag conv"; chip.style.cssText = "font-size:12px;padding:6px 10px;display:inline-flex;align-items:center;gap:8px";
+    chip.innerHTML = `📅 ${fmtDateBR(d)} <a href="#" class="rmBook" data-d="${escapeHtml(d)}" style="color:var(--red);text-decoration:none;font-weight:700">✕</a>`;
+    box.appendChild(chip);
+  });
+  box.querySelectorAll(".rmBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("remove", a.getAttribute("data-d")); });
+  $("#bookedEmpty").style.display = dates.length ? "none" : "block";
+}
+async function bookAction(action, date){
+  if(!date) return;
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/booked", { method:"POST", headers:{ Authorization:"Bearer "+key, "Content-Type":"application/json" }, body: JSON.stringify({ action, date }) });
+  if(r.ok){ const j = await r.json(); renderBooked((j && j.dates) || []); }
+  else alert("Não consegui salvar a data (verifique a senha do painel).");
+}
+
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
@@ -327,6 +367,7 @@ $("#faceEnable").onclick = async ()=>{
     alert("Face ID ativado neste aparelho. ✅ Da próxima vez é só tocar em ‘Entrar com Face ID’."); }
   catch(e){ alert("Não consegui ativar o Face ID aqui: "+((e&&e.message)||e)); }
 };
+$("#bookAdd").onclick = ()=>{ const d = $("#bookDate").value; if(d) bookAction("add", d); else alert("Escolha uma data."); };
 $("#refresh").onclick = refresh;
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.removeItem(CREDSTORE); openGate(""); };
 
