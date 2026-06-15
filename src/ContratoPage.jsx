@@ -34,7 +34,7 @@ export default function ContratoPage({data:d}){
   };
   const avisarEquipe=()=>{
     const msg=["🎉 *EVENTO CONFIRMADO — Bentô*",
-      `📅 ${d.data}   📍 ${d.local}`,
+      `📅 ${d.data}${d.hora?`  ⏰ início ${d.hora}`:""}   📍 ${d.local}`,
       `👥 ${d.convidados} convidados · ${d.tipo}`,
       `🍨 até ${d.sabores} sabores · ${d.rend}`,
       `🧑‍🍳 ${d.promotoras} promotora${d.promotoras>1?"s":""} (uniformizada${d.promotoras>1?"s":""})`,
@@ -76,7 +76,7 @@ export default function ContratoPage({data:d}){
           <strong>CONTRATADA:</strong> ABB GELATERIA LTDA (nome fantasia <strong>Bentô Gelateria</strong>), CNPJ 61.590.463/0001-45, com sede na R. Joaquim Lírio, 455, Quiosque 02, Praia do Canto, Vitória — ES, CEP 29.055-460, WhatsApp (27) 99915-9995, e-mail bentogelateria@gmail.com.<br/>
           <strong>CONTRATANTE:</strong> {d.nome}, CPF/CNPJ {d.doc}{d.empresa?<> , representando <strong>{d.empresa}</strong></>:null}, e-mail {d.email}, WhatsApp {d.zap}.
         </div>
-        <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, incluindo carrinho Bentô, produtos e equipe, a realizar-se em <strong>{d.data}</strong>, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
+        <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, incluindo carrinho Bentô, produtos e equipe, a realizar-se em <strong>{d.data}</strong>{d.hora?<> com início previsto às <strong>{d.hora}</strong></>:null}, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
         <Clause n="2ª" t="DETALHAMENTO DO SERVIÇO">
           Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}). Equipe: <strong>{d.promotoras} promotora{d.promotoras>1?"s":""}</strong> uniformizada{d.promotoras>1?"s":""} e treinada{d.promotoras>1?"s":""}. {d.pers&&d.pers.length>0?<>Personalização contratada: <strong>{d.pers.join(", ")}</strong>. </>:null}
           Duração do serviço: <Ed>[definir horário de início e término]</Ed>.
