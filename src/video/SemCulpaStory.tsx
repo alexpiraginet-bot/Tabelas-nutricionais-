@@ -44,7 +44,7 @@ const Bars: React.FC<{
         <span style={{ fontFamily: SANS, fontSize: 30, fontWeight: 600 }}>{unit}</span>
       </div>
       <div style={{ height: H, display: "flex", alignItems: "flex-end" }}>
-        <div style={{ width: 190, height: h, background: fill, borderRadius: "20px 20px 0 0" }} />
+        <div style={{ width: 190, height: Math.max(8, h), background: fill, borderRadius: "20px 20px 0 0" }} />
       </div>
       <div
         style={{
@@ -148,7 +148,7 @@ export const SemCulpaStory: React.FC = () => {
         <TransitionSeries.Sequence durationInFrames={95}><SHook /></TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={fade()} />
         <TransitionSeries.Sequence durationInFrames={130}>
-          <Metric tag="Açúcar / 100 g" title="3× menos açúcar" bento={6.7} comum={21} unit="g" bentoWins note="0 g de açúcar adicionado" />
+          <Metric tag="Açúcar adicionado / 100 g" title="Zero açúcar adicionado" bento={0} comum={20} unit="g" dec={0} bentoWins note="só o natural do leite/fruta" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={sr()} />
         <TransitionSeries.Sequence durationInFrames={130}>

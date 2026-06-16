@@ -684,9 +684,9 @@ function TabelasIntro({onClose}){
   const per100=(k)=>gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
   const ref={kcal:207,sugars:21,protein:3.5};
   const data=[
-    {l:"Açúcar · g por 100 g",bento:per100("sugars"),comum:ref.sugars,dec:1,note:"3× menos · 0 g adicionado"},
+    {l:"Açúcar adicionado · g por 100 g",bento:0,comum:20,dec:0,note:"zero açúcar adicionado · só o natural do leite/fruta"},
     {l:"Proteína · g por 100 g",bento:per100("protein"),comum:ref.protein,dec:1,note:"quase 4× mais · whey WPH"},
-    {l:"Calorias · kcal por 100 g",bento:per100("kcal"),comum:ref.kcal,dec:0,note:"parecidas — mas sem açúcar"},
+    {l:"Calorias · kcal por 100 g",bento:per100("kcal"),comum:ref.kcal,dec:0,note:"parecidas — mas sem açúcar adicionado"},
   ];
   const reduce=useMemo(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}},[]);
   const[go,setGo]=useState(reduce);
