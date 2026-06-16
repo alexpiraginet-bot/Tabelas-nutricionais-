@@ -146,6 +146,7 @@ export const StepBadge: React.FC<{ n: number }> = ({ n }) => (
 );
 
 export const gap = (n: number) => <div style={{ height: n }} />;
+<<<<<<< HEAD
 
 // Contador genérico (até "to"), com casas decimais opcionais.
 export const Num: React.FC<{ to: number; delay?: number; dur?: number; dec?: number }> = ({ to, delay = 0, dur = 1, dec = 0 }) => {
@@ -156,3 +157,5 @@ export const Num: React.FC<{ to: number; delay?: number; dur?: number; dec?: num
   const v = to * eased;
   return <>{v.toLocaleString("pt-BR", { minimumFractionDigits: dec, maximumFractionDigits: dec })}</>;
 };
+=======
+>>>>>>> origin/main
