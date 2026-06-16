@@ -48,18 +48,27 @@ export const Rise: React.FC<{ delay?: number; y?: number; children: React.ReactN
   return <div style={{ opacity, transform: `translateY(${ty}px)`, width: "100%" }}>{children}</div>;
 };
 
+// Marca d'água da logo (presente em toda cena).
+export const Brand: React.FC = () => (
+  <Img
+    src={staticFile("bento-logo.webp")}
+    style={{ position: "absolute", top: 64, left: "50%", transform: "translateX(-50%)", width: 104, height: 104, borderRadius: "50%" }}
+  />
+);
+
 export const Scene: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <AbsoluteFill
     style={{
       background: C.bg,
       backgroundImage: "radial-gradient(900px 700px at 80% 0%, rgba(196,168,130,0.18), transparent 60%)",
       fontFamily: SANS,
-      padding: "120px 80px",
+      padding: "200px 80px 120px",
       justifyContent: "center",
       alignItems: "center",
       textAlign: "center",
     }}
   >
+    <Brand />
     {children}
   </AbsoluteFill>
 );
