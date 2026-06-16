@@ -63,7 +63,7 @@ const S3: React.FC = () => (
     <Field label="Data" value="12/09/2026" delay={12} />
     <Field label="Horário previsto" value="19:00" delay={18} />
     <Field label="Local" value="Vitória — ES" delay={24} />
-    <Field label="Convidados" value="150" delay={30} />
+    <Field label="Convidados" value="70" delay={30} />
   </Scene>
 );
 
@@ -100,9 +100,9 @@ const S5: React.FC = () => (
       <div style={{ background: C.ink, borderRadius: 30, padding: "46px 52px", width: 780, margin: "0 auto" }}>
         <div style={{ fontFamily: SANS, fontSize: 28, letterSpacing: 4, textTransform: "uppercase", color: C.gold }}>Seu orçamento</div>
         <div style={{ fontFamily: SERIF, fontSize: 130, color: "#fff", fontWeight: 600, marginTop: 8, lineHeight: 1 }}>
-          <Money to={4050} delay={16} />
+          <Money to={1890} delay={16} />
         </div>
-        <div style={{ fontFamily: SANS, fontSize: 30, color: "#B8C97A", marginTop: 12 }}>estimado · serviço + logística calculada</div>
+        <div style={{ fontFamily: SANS, fontSize: 30, color: "#B8C97A", marginTop: 12 }}>valor de referência · a partir de 70 convidados</div>
       </div>
     </Rise>
   </Scene>
