@@ -698,11 +698,11 @@ export default function App(){
   const[showCardapio,setShowCardapio]=useState(false);
   const[showRevenda,setShowRevenda]=useState(false);
   const[showParceria,setShowParceria]=useState(false);
-  const[showDelivery,setShowDelivery]=useState(false);
+  const[showDelivery,setShowDelivery]=useState(()=>{try{return new URLSearchParams(window.location.search).has("delivery");}catch{return false;}});
   const[showFaq,setShowFaq]=useState(false);
   const[showCulpa,setShowCulpa]=useState(false);
   const[showGLP1,setShowGLP1]=useState(false);
-  const[showEventos,setShowEventos]=useState(false);
+  const[showEventos,setShowEventos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("eventos");}catch{return false;}});
   const[compareIds,setCmpIds]=useState([]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
