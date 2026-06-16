@@ -52,19 +52,25 @@ const Rise: React.FC<{ delay?: number; y?: number; children: React.ReactNode }> 
   return <div style={{ opacity, transform: `translateY(${ty}px)`, width: "100%" }}>{children}</div>;
 };
 
-const Scene: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+const Scene: React.FC<{ children: React.ReactNode; mark?: boolean }> = ({ children, mark = true }) => (
   <AbsoluteFill
     style={{
       background: C.bg,
       backgroundImage:
         "radial-gradient(900px 700px at 80% 0%, rgba(196,168,130,0.18), transparent 60%)",
       fontFamily: SANS,
-      padding: "120px 80px",
+      padding: mark ? "200px 80px 120px" : "120px 80px",
       justifyContent: "center",
       alignItems: "center",
       textAlign: "center",
     }}
   >
+    {mark && (
+      <Img
+        src={staticFile("bento-logo.webp")}
+        style={{ position: "absolute", top: 64, left: "50%", transform: "translateX(-50%)", width: 104, height: 104, borderRadius: "50%" }}
+      />
+    )}
     {children}
   </AbsoluteFill>
 );
@@ -141,7 +147,7 @@ const Shot: React.FC<{ src: string; w: number; h: number }> = ({ src, w, h }) =>
 const gap = (n: number) => <div style={{ height: n }} />;
 
 const SIntro: React.FC = () => (
-  <Scene>
+  <Scene mark={false}>
     <Rise>
       <Img src={staticFile("bento-logo.webp")} style={{ width: 280, height: 280, borderRadius: "50%", margin: "0 auto" }} />
     </Rise>
@@ -286,7 +292,7 @@ const SOutro: React.FC = () => {
   const pulse = spring({ frame: frame - 26, fps, config: { damping: 9, mass: 0.6 } });
   const scale = interpolate(pulse, [0, 1], [0.9, 1]);
   return (
-    <Scene>
+    <Scene mark={false}>
       <Rise>
         <Img src={staticFile("bento-logo.webp")} style={{ width: 220, height: 220, borderRadius: "50%", margin: "0 auto" }} />
       </Rise>
