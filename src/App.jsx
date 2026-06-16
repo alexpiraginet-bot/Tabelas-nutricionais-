@@ -680,13 +680,13 @@ const PortfolioPage = lazy(() => import("./PortfolioPage.jsx"));
 
 // Intro "Sem culpa" ao entrar nas Tabelas: comparativo Bentô × sorvete comum (números reais, 1x por sessão).
 function TabelasIntro({onClose}){
-  const gelatos=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
-  const per100=(k)=>gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
-  const ref={kcal:207,sugars:21,protein:3.5};
+  // Comparação no nosso best-seller (Pistache), por PORÇÃO real de 60 g — números reais.
+  const pis=useMemo(()=>PRODUCTS.find(p=>p.id==="pistache"),[]);
+  const s=pis.serving/100; // sorvete comum (média de mercado, por 100 g) reescalado p/ a mesma porção
+  const ref={kcal:Math.round(207*s),sugars:Math.round(21*s),protein:3.5*s};
   const data=[
-    {l:"Açúcar adicionado · g por 100 g",bento:0,comum:20,dec:0,note:"zero açúcar adicionado · só o natural do leite/fruta"},
-    {l:"Proteína · g por 100 g",bento:per100("protein"),comum:ref.protein,dec:1,note:"quase 4× mais · whey WPH"},
-    {l:"Calorias · kcal por 100 g",bento:per100("kcal"),comum:ref.kcal,dec:0,note:"parecidas — mas sem açúcar adicionado"},
+    {l:"Açúcar adicionado · por porção",bento:pis.nutrition.addedSugars,comum:ref.sugars,dec:0,note:"zero açúcar adicionado · só o natural do leite/fruta"},
+    {l:"Proteína · por porção",bento:pis.nutrition.protein,comum:ref.protein,dec:1,note:"quase 5× mais · whey WPH"},
   ];
   const reduce=useMemo(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}},[]);
   const[go,setGo]=useState(reduce);
@@ -703,7 +703,7 @@ function TabelasIntro({onClose}){
           <button onClick={onClose} className="fm" style={{background:"none",border:"none",color:T.inkSoft,fontSize:12,cursor:"pointer",letterSpacing:"0.08em"}}>Pular ✕</button>
         </div>
         <h2 className="fd" style={{fontSize:30,color:T.ink,margin:"2px 0 4px",lineHeight:1.1,fontWeight:500}}>Bentô <span style={{color:T.pistacheDark}}>×</span> sorvete comum</h2>
-        <p className="fb" style={{fontSize:13.5,color:T.inkSoft,marginBottom:18,lineHeight:1.45}}>A mesma sobremesa, outra ficha. Por 100 g, na média dos nossos gelatos:</p>
+        <p className="fb" style={{fontSize:13.5,color:T.inkSoft,marginBottom:18,lineHeight:1.45}}>A mesma sobremesa, outra ficha. No nosso Pistache (best-seller), por porção de {pis.portionLabel}:</p>
         {data.map((m,i)=>(
           <div key={m.l} style={{marginBottom:16}}>
             <div className="fm" style={{fontSize:10.5,letterSpacing:"0.1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>{m.l}</div>
@@ -717,8 +717,12 @@ function TabelasIntro({onClose}){
             <div className="fb" style={{fontSize:11.5,color:T.pistacheDark,marginTop:4,fontWeight:600}}>{m.note}</div>
           </div>
         ))}
+        <div style={{display:"flex",alignItems:"center",gap:12,background:T.bg,border:`1px solid ${T.borderSoft}`,borderRadius:10,padding:"12px 14px",marginTop:2,marginBottom:6}}>
+          <div className="fd" style={{fontSize:30,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{pis.nutrition.kcal} kcal</div>
+          <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {pis.nutrition.protein} g de proteína.</div>
+        </div>
         <button onClick={onClose} className="fb" style={{width:"100%",marginTop:8,padding:"14px",borderRadius:6,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Ver as fichas →</button>
-        <p className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.4}}>Valores médios dos gelatos · sorvete comum como referência de mercado.</p>
+        <p className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.4}}>Bentô Pistache (porção de {pis.portionLabel}) · sorvete comum como referência de mercado, na mesma porção.</p>
       </div>
     </div>
   );
