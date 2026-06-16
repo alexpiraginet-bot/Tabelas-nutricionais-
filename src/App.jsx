@@ -678,6 +678,52 @@ const PortfolioPage = lazy(() => import("./PortfolioPage.jsx"));
 /* ========== SEM CULPA-ÔMETRO ========== */
 // Referência: sorvete de massa tradicional (média de mercado), por 100 g.
 
+// Intro "Sem culpa" ao entrar nas Tabelas: comparativo Bentô × sorvete comum (números reais, 1x por sessão).
+function TabelasIntro({onClose}){
+  const gelatos=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
+  const per100=(k)=>gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
+  const ref={kcal:207,sugars:21,protein:3.5};
+  const data=[
+    {l:"Açúcar · g por 100 g",bento:per100("sugars"),comum:ref.sugars,dec:1,note:"3× menos · 0 g adicionado"},
+    {l:"Proteína · g por 100 g",bento:per100("protein"),comum:ref.protein,dec:1,note:"quase 4× mais · whey WPH"},
+    {l:"Calorias · kcal por 100 g",bento:per100("kcal"),comum:ref.kcal,dec:0,note:"parecidas — mas sem açúcar"},
+  ];
+  const reduce=useMemo(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}},[]);
+  const[go,setGo]=useState(reduce);
+  useEffect(()=>{if(reduce)return;const t=setTimeout(()=>setGo(true),90);return()=>clearTimeout(t);},[reduce]);
+  const Bar=({val,max,color,delay})=>{const pct=Math.max(4,Math.round(val/max*100));return(
+    <div style={{flex:1,background:T.borderSoft,borderRadius:8,height:24,overflow:"hidden"}}>
+      <div style={{height:"100%",width:(go?pct:4)+"%",background:color,borderRadius:8,transition:reduce?"none":`width .9s cubic-bezier(.2,.8,.2,1) ${delay}s`}}/>
+    </div>);};
+  return(
+    <div className="fade" role="dialog" aria-modal="true" aria-label="Bentô comparado ao sorvete comum" onClick={onClose} style={{position:"fixed",inset:0,zIndex:250,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:14,maxWidth:560,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,padding:"24px 24px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+          <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",textTransform:"uppercase",color:T.pistacheDark}}>Sem culpa</div>
+          <button onClick={onClose} className="fm" style={{background:"none",border:"none",color:T.inkSoft,fontSize:12,cursor:"pointer",letterSpacing:"0.08em"}}>Pular ✕</button>
+        </div>
+        <h2 className="fd" style={{fontSize:30,color:T.ink,margin:"2px 0 4px",lineHeight:1.1,fontWeight:500}}>Bentô <span style={{color:T.pistacheDark}}>×</span> sorvete comum</h2>
+        <p className="fb" style={{fontSize:13.5,color:T.inkSoft,marginBottom:18,lineHeight:1.45}}>A mesma sobremesa, outra ficha. Por 100 g, na média dos nossos gelatos:</p>
+        {data.map((m,i)=>(
+          <div key={m.l} style={{marginBottom:16}}>
+            <div className="fm" style={{fontSize:10.5,letterSpacing:"0.1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>{m.l}</div>
+            {[["Bentô",m.bento,"linear-gradient(90deg,#8FA050,#5C6B3A)",true],["Comum",m.comum,"#C9A98F",false]].map(([nome,val,color,strong],j)=>(
+              <div key={nome} style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+                <span className="fm" style={{width:54,fontSize:11,color:strong?T.pistacheDark:T.inkSoft,fontWeight:strong?700:500}}>{nome}</span>
+                <Bar val={val} max={Math.max(m.bento,m.comum)} color={color} delay={i*0.12+j*0.08}/>
+                <span className="fb" style={{width:62,textAlign:"right",fontSize:13,fontWeight:strong?700:500,color:strong?T.ink:T.inkSoft}}>{val.toLocaleString("pt-BR",{minimumFractionDigits:m.dec,maximumFractionDigits:m.dec})}</span>
+              </div>
+            ))}
+            <div className="fb" style={{fontSize:11.5,color:T.pistacheDark,marginTop:4,fontWeight:600}}>{m.note}</div>
+          </div>
+        ))}
+        <button onClick={onClose} className="fb" style={{width:"100%",marginTop:8,padding:"14px",borderRadius:6,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Ver as fichas →</button>
+        <p className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.4}}>Valores médios dos gelatos · sorvete comum como referência de mercado.</p>
+      </div>
+    </div>
+  );
+}
+
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
     try{
@@ -704,6 +750,8 @@ export default function App(){
   const[showGLP1,setShowGLP1]=useState(false);
   const[showEventos,setShowEventos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("eventos");}catch{return false;}});
   const[compareIds,setCmpIds]=useState([]);
+  const[tabIntro,setTabIntro]=useState(()=>{try{return !sessionStorage.getItem("bento:tabIntro");}catch{return true;}});
+  const fecharTabIntro=useCallback(()=>{setTabIntro(false);try{sessionStorage.setItem("bento:tabIntro","1");}catch{}},[]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
@@ -723,6 +771,7 @@ export default function App(){
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
       {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
+      {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
