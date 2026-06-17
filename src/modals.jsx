@@ -1181,11 +1181,13 @@ function Linha({rotulo, bento, comum, unidade}){
 
 export function CulpaModal({onClose,onDelivery}){
   useModal(onClose);
-  const gelatos = PRODUCTS.filter(p=>p.category==="gelato");
-  const per100 = (k)=> gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
-  const bSug=per100("sugars"), bProt=per100("protein"), bKcal=per100("kcal");
-  const cubos = Math.max(0, Math.round((SORVETE_REF.sugars - bSug)/4)); // 1 torrão ≈ 4 g
-  const protMais = Math.max(0, bProt - SORVETE_REF.protein);
+  // Comparação no best-seller (Pistache), por PORÇÃO real de 60 g — números reais.
+  const pis = PRODUCTS.find(p=>p.id==="pistache");
+  const sc = pis.serving/100; // sorvete comum (por 100 g) reescalado p/ a mesma porção
+  const cSug=SORVETE_REF.sugars*sc, cProt=SORVETE_REF.protein*sc, cKcal=Math.round(SORVETE_REF.kcal*sc);
+  const bSug=pis.nutrition.addedSugars, bProt=pis.nutrition.protein, bKcal=pis.nutrition.kcal;
+  const cubos = Math.max(0, Math.round((cSug - bSug)/4)); // 1 torrão ≈ 4 g
+  const protMais = Math.max(0, bProt - cProt);
 
   function gerarImagem(){
     return new Promise((resolve)=>{
@@ -1195,15 +1197,15 @@ export function CulpaModal({onClose,onDelivery}){
       x.fillStyle="#B8C97A"; x.font="700 52px Georgia, serif"; x.fillText("BENTÔ", 540, 150);
       x.fillStyle="#9FB089"; x.font="600 26px Helvetica"; x.fillText("S E M   C U L P A - Ô M E T R O", 540, 200);
       x.fillStyle="#fff"; x.font="800 230px Helvetica"; x.fillText("−"+cubos, 540, 560);
-      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar a cada 100 g", 540, 625);
+      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar adicionado por porção", 540, 625);
       x.fillStyle="#E3C46A"; x.font="800 180px Helvetica"; x.fillText("+"+protMais.toFixed(0)+"g", 540, 900);
       x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("de proteína vs sorvete comum", 540, 965);
-      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Gelato com propósito", 540, 1190);
+      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Pistache · "+bKcal+" kcal por porção", 540, 1190);
       x.fillStyle="#9FB089"; x.font="500 30px Helvetica"; x.fillText("bentogelateria.com", 540, 1245);
       c.toBlob(b=>resolve(b),"image/png");
     });
   }
-  const msg = `Gelato da Bentô tem ~${cubos} torrões de açúcar a MENOS e +${protMais.toFixed(0)}g de proteína a cada 100 g vs sorvete comum. 🍦`;
+  const msg = `No nosso Pistache: ~${cubos} torrões de açúcar adicionado a MENOS, +${protMais.toFixed(0)}g de proteína e só ${bKcal} kcal por porção vs sorvete comum. 🍦`;
   const url = "https://bentogelateria.com";
   async function compartilhar(){
     tk("Compartilhar · Sem culpa-ômetro");
@@ -1232,7 +1234,7 @@ export function CulpaModal({onClose,onDelivery}){
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.14)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0}}><X size={16}/></button>
         </div>
         <div style={{padding:22}}>
-          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo gelato funcional da Bentô — média da nossa linha, por 100 g:</div>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo nosso Pistache (best-seller) — por porção de {pis.portionLabel}:</div>
 
           <div style={{display:"flex",gap:10,marginBottom:18}}>
             <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
@@ -1244,14 +1246,18 @@ export function CulpaModal({onClose,onDelivery}){
               <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>de proteína 💪</div>
             </div>
             <div style={{flex:1,background:"#F6EEDD",border:"1px solid #E0CBA0",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
-              <div className="fd" style={{fontSize:30,color:"#A9831C",lineHeight:1}}>0g</div>
-              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>açúcar adicionado 🚫</div>
+              <div className="fd" style={{fontSize:30,color:"#A9831C",lineHeight:1}}>{bKcal}</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>kcal por porção 🍃</div>
             </div>
           </div>
 
-          <Linha rotulo="Açúcares (g / 100 g)" bento={bSug} comum={SORVETE_REF.sugars} unidade="g"/>
-          <Linha rotulo="Proteína (g / 100 g)" bento={bProt} comum={SORVETE_REF.protein} unidade="g"/>
-          <Linha rotulo="Calorias (kcal / 100 g)" bento={bKcal} comum={SORVETE_REF.kcal} unidade=""/>
+          <Linha rotulo="Açúcar adicionado (g / porção)" bento={bSug} comum={cSug} unidade="g"/>
+          <Linha rotulo="Proteína (g / porção)" bento={bProt} comum={cProt} unidade="g"/>
+
+          <div style={{display:"flex",alignItems:"center",gap:10,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"12px 14px",marginBottom:4}}>
+            <div className="fd" style={{fontSize:26,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{bKcal} kcal</div>
+            <div className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {bProt} g de proteína. <span style={{color:T.inkSoft}}>(comum ≈ {cKcal} kcal)</span></div>
+          </div>
 
           <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
             <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📲 Compartilhar no story</button>
@@ -1259,7 +1265,7 @@ export function CulpaModal({onClose,onDelivery}){
           </div>
           <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Provar sem culpa — pedir no iFood</button>
 
-          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g). Valores Bentô calculados da nossa linha de gelatos.</div>
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. Bentô Pistache (porção de {pis.portionLabel}, da nossa ficha). “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g), na mesma porção.</div>
         </div>
       </div>
     </div>
