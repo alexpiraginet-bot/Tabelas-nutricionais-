@@ -149,7 +149,7 @@ export default function ContratoPage({data:d}){
             <div style={{fontWeight:700,letterSpacing:"0.04em",marginBottom:3}}>DADOS PARA PAGAMENTO</div>
             Titular: <strong>ABB GELATERIA LTDA</strong><br/>
             <strong>Pix (CNPJ):</strong> 61.590.463/0002-26<br/>
-            Banco: <Ed>Sicoob</Ed> · Agência: <strong>3010</strong> · Conta corrente: <strong>292.558-3</strong>
+            Banco: <strong>Sicoob</strong> · Agência: <strong>3010</strong> · Conta corrente: <strong>292.558-3</strong>
             <div className="noprint" style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:9}}>
               <button onClick={()=>copyTxt(pixKey,"Chave Pix (CNPJ)")} style={{background:"#C9A86A",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📋 Copiar chave Pix</button>
               <button onClick={()=>copyTxt(pixCode(),"Pix Copia e Cola")} style={{background:"#3A4528",color:"#F1ECDD",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📲 Copiar Pix Copia e Cola</button>
