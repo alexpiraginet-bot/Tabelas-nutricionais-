@@ -10,6 +10,21 @@ export default function ContratoPage({data:d}){
   const[motivo,setMotivo]=useState(d.descMotivo||"Desconto comercial");
   const descV=Math.min(subtotal,Math.max(0,Number(desc)||0));
   const total=Math.max(0,subtotal-descV);
+  const entrada=Math.round(total/2), saldo=total-entrada;   // sinal 50% + saldo 50%
+  // Pix (filial) — chave = CNPJ. Gera um "Pix Copia e Cola" (BR Code EMV) estático, sem valor.
+  const pixKey="61590463000226";
+  const emv=(id,v)=>id+String(v.length).padStart(2,"0")+v;
+  const crc16=(s)=>{let c=0xFFFF;for(let i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(let j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;}return c.toString(16).toUpperCase().padStart(4,"0");};
+  const pixCode=()=>{
+    const mai=emv("26",emv("00","BR.GOV.BCB.PIX")+emv("01",pixKey));
+    const body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("58","BR")+emv("59","ABB GELATERIA LTDA")+emv("60","VITORIA")+emv("62",emv("05","***"))+"6304";
+    return body+crc16(body);
+  };
+  const copyTxt=async(txt,label)=>{
+    try{ await navigator.clipboard.writeText(txt); }
+    catch{ const t=document.createElement("textarea");t.value=txt;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch{}document.body.removeChild(t); }
+    alert(label+" copiado! ✅");
+  };
   const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
     <span contentEditable suppressContentEditableWarning spellCheck={false}
       style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
@@ -69,6 +84,7 @@ export default function ContratoPage({data:d}){
           .ed{background:transparent!important;border-bottom:none!important}
           .descInput,.descMotivo{background:transparent!important;border-bottom:none!important}
           .ct-desc-zero{display:none!important}
+          .noprint{display:none!important}
           @page{margin:22mm 18mm}
         }
       `}</style>
@@ -121,7 +137,26 @@ export default function ContratoPage({data:d}){
           </table>
           <div className="ct-bar" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>Para preços negociados, ajuste o <strong>desconto</strong> (em R$) — o total recalcula sozinho. Deixe em 0 se não houver. Some o valor à descrição se preferir percentual.</div>
         </Clause>
-        <Clause n="4ª" t="PAGAMENTO"><Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante até 5 (cinco) dias úteis antes da data do evento, via Pix ou transferência bancária.</Ed></Clause>
+        <Clause n="4ª" t="PAGAMENTO">
+          <Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante (os 50% remanescentes) até 7 (sete) dias antes da data do evento. Pagamentos via Pix ou transferência bancária, conforme os dados abaixo.</Ed>
+          <table style={{width:"100%",borderCollapse:"collapse",marginTop:8,fontSize:11}}>
+            <tbody>
+              <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Entrada (sinal · 50%) — na assinatura</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(entrada)}</td></tr>
+              <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Saldo (50%) — até 7 dias antes do evento</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(saldo)}</td></tr>
+            </tbody>
+          </table>
+          <div style={{marginTop:8,border:"1px solid #C9A86A",borderRadius:6,padding:"10px 12px",fontSize:11,lineHeight:1.7,background:"#FCFAF2"}}>
+            <div style={{fontWeight:700,letterSpacing:"0.04em",marginBottom:3}}>DADOS PARA PAGAMENTO</div>
+            Titular: <strong>ABB GELATERIA LTDA</strong><br/>
+            <strong>Pix (CNPJ):</strong> 61.590.463/0002-26<br/>
+            Banco: <Ed>Sicoob</Ed> · Agência: <strong>3010</strong> · Conta corrente: <strong>292.558-3</strong>
+            <div className="noprint" style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:9}}>
+              <button onClick={()=>copyTxt(pixKey,"Chave Pix (CNPJ)")} style={{background:"#C9A86A",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📋 Copiar chave Pix</button>
+              <button onClick={()=>copyTxt(pixCode(),"Pix Copia e Cola")} style={{background:"#3A4528",color:"#F1ECDD",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📲 Copiar Pix Copia e Cola</button>
+            </div>
+            <div className="noprint" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>O “Pix Copia e Cola” já leva titular e chave — é só colar no app do banco e digitar o valor (entrada ou saldo).</div>
+          </div>
+        </Clause>
         <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
         <Clause n="6ª" t="OBRIGAÇÕES DO CONTRATANTE">Garantir acesso ao local com antecedência mínima de <Ed>[2 horas]</Ed> para montagem; disponibilizar ponto de energia elétrica <Ed>[220V]</Ed> próximo ao local de instalação; informar com antecedência alterações de data, local ou número de convidados.</Clause>
         <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></Clause>
