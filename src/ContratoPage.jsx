@@ -1,8 +1,15 @@
 // Contrato automático de eventos (uso interno). Carregado sob demanda (lazy)
 // apenas quando a URL traz ?contrato=<base64> — fica fora do bundle inicial.
+import { useState } from "react";
 const CONTROLE_URL="https://bento-os-seven.vercel.app/"; // Bentô OS · Controle de Produção
 export default function ContratoPage({data:d}){
   const hoje=new Date().toLocaleDateString("pt-BR");
+  const subtotal=Number(d.total)||0;
+  // Desconto negociado (editável pela equipe ao emitir o contrato) — recalcula o total na hora.
+  const[desc,setDesc]=useState(Math.max(0,Number(d.desconto)||0));
+  const[motivo,setMotivo]=useState(d.descMotivo||"Desconto comercial");
+  const descV=Math.min(subtotal,Math.max(0,Number(desc)||0));
+  const total=Math.max(0,subtotal-descV);
   const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
     <span contentEditable suppressContentEditableWarning spellCheck={false}
       style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
@@ -23,13 +30,14 @@ export default function ContratoPage({data:d}){
     const dateEnd=`${end.getFullYear()}${String(end.getMonth()+1).padStart(2,"0")}${String(end.getDate()).padStart(2,"0")}`;
     const stamp=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
     const esc=s=>String(s||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n");
-    const desc=[`Contratante: ${d.nome} (${d.zap})`,`Convidados: ${d.convidados}`,`Produtos: ${d.tipo} - ate ${d.sabores} sabores`,`Equipe: ${d.promotoras} promotora(s)`,d.km!=null?`Logistica: ~${d.km} km - ref. Bento ${d.loja}`:"",`Total: ${money(d.total)}`].filter(Boolean).join("\\n");
+    const desc=[`Contratante: ${d.nome} (${d.zap})`,`Convidados: ${d.convidados}`,`Produtos: ${d.tipo} - ate ${d.sabores} sabores`,`Equipe: ${d.promotoras} promotora(s)`,d.km!=null?`Logistica: ~${d.km} km - ref. Bento ${d.loja}`:"",descV>0?`Subtotal: ${money(subtotal)} | Desconto: -${money(descV)}`:"",`Total: ${money(total)}`].filter(Boolean).join("\\n");
     const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Bento Gelateria//Eventos//PT","CALSCALE:GREGORIAN","BEGIN:VEVENT",`UID:ev-${date}-${Date.now()}@bentogelateria.com`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${date}`,`DTEND;VALUE=DATE:${dateEnd}`,`SUMMARY:Evento Bento - ${esc(d.nome)} (${d.convidados} pax)`,`LOCATION:${esc(d.local)}`,`DESCRIPTION:${desc}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
     dl(`evento-bento-${date}.ics`,ics,"text/calendar");
   };
-  const exportJSON=()=>dl(`evento-bento-${(d.data||"").replace(/\//g,"-")}.json`,JSON.stringify(d,null,2),"application/json");
+  const dWithDesc=()=>({...d,desconto:descV,descMotivo:motivo,subtotal,total});
+  const exportJSON=()=>dl(`evento-bento-${(d.data||"").replace(/\//g,"-")}.json`,JSON.stringify(dWithDesc(),null,2),"application/json");
   const enviarControle=()=>{
-    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+    const b64=btoa(unescape(encodeURIComponent(JSON.stringify(dWithDesc())))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
     window.open(`${CONTROLE_URL}?evento=${b64}`,"_blank","noopener,noreferrer");
   };
   const avisarEquipe=()=>{
@@ -40,7 +48,8 @@ export default function ContratoPage({data:d}){
       `🧑‍🍳 ${d.promotoras} promotora${d.promotoras>1?"s":""} (uniformizada${d.promotoras>1?"s":""})`,
       d.km!=null?`🚚 ~${d.km} km · referência loja ${d.loja} (ida e volta)`:"🚚 logística a confirmar",
       d.pers&&d.pers.length?`✨ ${d.pers.join(", ")}`:"",
-      `💰 Total: ${money(d.total)}`,
+      descV>0?`🏷️ ${motivo}: -${money(descV)} (de ${money(subtotal)})`:"",
+      `💰 Total: ${money(total)}`,
       `👤 ${d.nome} · ${d.zap}`].filter(Boolean).join("\n");
     if(navigator.share){navigator.share({title:"Evento Bentô",text:msg}).catch(()=>{});}
     else{window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,"_blank","noopener,noreferrer");}
@@ -49,12 +58,17 @@ export default function ContratoPage({data:d}){
     <div style={{minHeight:"100vh",background:"#54594A",padding:"24px 8px",fontFamily:"'DM Sans',system-ui,sans-serif"}}>
       <style>{`
         .ct-sheet{max-width:760px;margin:0 auto;background:#fff;color:#1a1a1a;padding:56px 58px;box-shadow:0 20px 60px -20px rgba(0,0,0,.5)}
+        .descInput{width:78px;text-align:right;font:inherit;color:#1a1a1a;background:#FFF7D6;border:none;border-bottom:1px dashed #C9A86A;padding:1px 3px;outline:none;-moz-appearance:textfield}
+        .descInput::-webkit-outer-spin-button,.descInput::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+        .descMotivo{width:100%;font:inherit;color:#1a1a1a;background:#FFF7D6;border:none;border-bottom:1px dashed #C9A86A;padding:1px 3px;outline:none}
         @media print{
           body *{visibility:visible}
           .ct-bar{display:none!important}
           .ct-wrap{padding:0!important;background:#fff!important}
           .ct-sheet{box-shadow:none!important;max-width:none!important;padding:0!important}
           .ed{background:transparent!important;border-bottom:none!important}
+          .descInput,.descMotivo{background:transparent!important;border-bottom:none!important}
+          .ct-desc-zero{display:none!important}
           @page{margin:22mm 18mm}
         }
       `}</style>
@@ -92,9 +106,20 @@ export default function ContratoPage({data:d}){
               ].filter(Boolean).map(([l,v],i)=>(
                 <tr key={i}><td style={{border:"1px solid #999",padding:"6px 10px"}}>{l}</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>{v}</td></tr>
               ))}
-              <tr><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",fontWeight:700}}>TOTAL</td><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",textAlign:"right",fontWeight:700}}>{money(d.total)}</td></tr>
+              <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Subtotal</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>{money(subtotal)}</td></tr>
+              <tr className={"ct-desc"+(descV>0?"":" ct-desc-zero")}>
+                <td style={{border:"1px solid #999",padding:"6px 10px"}}>
+                  <input className="descMotivo" value={motivo} onChange={e=>setMotivo(e.target.value)} aria-label="Descrição do desconto"/>
+                </td>
+                <td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>
+                  −&nbsp;R$&nbsp;<input className="descInput" type="number" min="0" step="1" value={desc}
+                    onChange={e=>setDesc(e.target.value)} aria-label="Valor do desconto em reais"/>
+                </td>
+              </tr>
+              <tr><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",fontWeight:700}}>TOTAL</td><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",textAlign:"right",fontWeight:700,whiteSpace:"nowrap"}}>{money(total)}</td></tr>
             </tbody>
           </table>
+          <div className="ct-bar" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>Para preços negociados, ajuste o <strong>desconto</strong> (em R$) — o total recalcula sozinho. Deixe em 0 se não houver. Some o valor à descrição se preferir percentual.</div>
         </Clause>
         <Clause n="4ª" t="PAGAMENTO"><Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante até 5 (cinco) dias úteis antes da data do evento, via Pix ou transferência bancária.</Ed></Clause>
         <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
