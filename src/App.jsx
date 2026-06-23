@@ -28,11 +28,11 @@ function GStyle(){return(<style>{`
 @keyframes fade{from{opacity:0}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .hl{transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s,border-color .2s}
-.hl:hover{transform:translateY(-3px);border-color:${T.pistacheDark};box-shadow:0 16px 40px -18px rgba(31,35,23,.22)}
+.hl:hover{transform:translateY(-3px);border-color:${T.accent};box-shadow:0 18px 44px -20px rgba(70,88,58,.30)}
 .hd{background-image:linear-gradient(90deg,${T.border} 50%,transparent 0);background-size:6px 1px;background-repeat:repeat-x;height:1px}
 .gn{position:relative}
 .no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
-.gn::after{content:'';position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(31,35,23,.05) 1px,transparent 1px);background-size:3px 3px;opacity:.6;mix-blend-mode:multiply}
+/* superfície premium lisa (textura 'lab' removida no refresh visual) */
 *::-webkit-scrollbar{width:5px}*::-webkit-scrollbar-thumb{background:${T.border};border-radius:99px}
 button{cursor:pointer}
 :focus{outline:none}
@@ -73,12 +73,12 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
           {favorites.length>0&&<span className="fm" aria-label={`${favorites.length} favoritos`} style={{fontSize:9,letterSpacing:"0.18em",color:T.inkSoft,textTransform:"uppercase"}}>❤️ {favorites.length}</span>}
           {compareCount>0&&(
-            <button onClick={onOpenCompare} className="fb" aria-label={`Comparar ${compareCount} sabores`} style={{background:T.bgWarm,color:T.ink,border:`1px solid ${T.border}`,borderRadius:3,padding:"8px 12px",fontSize:12,display:"flex",alignItems:"center",gap:6,position:"relative"}}>
+            <button onClick={onOpenCompare} className="fb" aria-label={`Comparar ${compareCount} sabores`} style={{background:T.bgWarm,color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"9px 15px",fontSize:12,display:"flex",alignItems:"center",gap:6,position:"relative"}}>
               <Scale size={13}/><span className="fm" style={{fontSize:9,letterSpacing:"0.14em"}}>Comparar</span>
               <span style={{position:"absolute",top:-6,right:-6,background:T.pistacheDark,color:T.surface,borderRadius:"50%",width:18,height:18,fontSize:10,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"monospace"}}>{compareCount}</span>
             </button>
           )}
-          <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,padding:"10px 14px",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
+          <button onClick={onQuiz} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"10px 17px",fontSize:12,fontWeight:500,display:"flex",alignItems:"center",gap:6}}>
             <Sparkles size={13}/>Encontre seu sabor
           </button>
         </div>
@@ -120,7 +120,7 @@ function GameArt({size=38}){
 function Tile({t,delay=0}){
   if(t.img){
     return(
-      <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{position:"relative",overflow:"hidden",width:"100%",border:`1px solid ${t.bd||"#0d0a16"}`,borderRadius:12,padding:0,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+      <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{position:"relative",overflow:"hidden",width:"100%",border:`1px solid ${t.bd||"#0d0a16"}`,borderRadius:16,padding:0,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
         <img src={t.img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr} style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:t.imgPos||"center"}}/>
         <div style={{position:"absolute",inset:0,background:t.overlay||"linear-gradient(180deg,rgba(13,10,22,.12) 0%,rgba(13,10,22,.46) 52%,rgba(13,10,22,.88) 100%)"}}/>
         <div style={{position:"relative",minHeight:122,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,padding:"16px 12px"}}>
@@ -132,7 +132,7 @@ function Tile({t,delay=0}){
     );
   }
   return(
-    <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:12,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
+    <button onClick={()=>tk(t.title,t.onClick)} className="hl rise" style={{background:t.bg,border:`1px solid ${t.bd}`,borderRadius:16,padding:"18px 14px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:7,minHeight:122,cursor:"pointer",animationDelay:`${delay}ms`}}>
       {t.art||<span style={{fontSize:30,lineHeight:1}}>{t.emoji}</span>}
       <div className="fd" style={{fontSize:16,lineHeight:1.1,color:t.fg}}>{t.title}</div>
       <div className="fb" style={{fontSize:11,lineHeight:1.3,color:t.fg===T.bg?`${T.bg}BB`:T.inkSoft}}>{t.sub}</div>
@@ -165,7 +165,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
         <div style={{width:"100%",marginTop:22}}>
           {/* Botão principal: Tabelas */}
-          <button onClick={()=>tk("Tabelas Nutricionais",onTabelas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:14,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
+          <button onClick={()=>tk("Tabelas Nutricionais",onTabelas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:18,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
             <div style={{display:"flex",gap:2,flexShrink:0}}>
               <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={46} id="hg"/>
               <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
@@ -186,8 +186,8 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           </div>
 
           {/* Banner Eventos */}
-          <button onClick={()=>tk("Nos leve para seu evento",onEventos)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:14,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
-            <img src="/eventos/carrinho-1-thumb.webp" alt="" aria-hidden="true" loading="lazy" style={{width:54,height:54,objectFit:"cover",borderRadius:10,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
+          <button onClick={()=>tk("Nos leve para seu evento",onEventos)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:18,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
+            <img src="/eventos/carrinho-1-thumb.webp" alt="" aria-hidden="true" loading="lazy" style={{width:54,height:54,objectFit:"cover",borderRadius:14,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
             <div style={{flex:1,minWidth:0}}>
               <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#A9831C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>⚡ Orçamento na hora</span>
               <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
@@ -230,7 +230,7 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14,marginTop:24}}>
           {tools.map((t,i)=>(
-            <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,padding:"20px",textAlign:"left",display:"flex",alignItems:"center",gap:14,cursor:"pointer",animationDelay:`${i*45}ms`}}>
+            <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px",textAlign:"left",display:"flex",alignItems:"center",gap:14,cursor:"pointer",animationDelay:`${i*45}ms`}}>
               <div style={{width:64,height:64,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{t.art||<span style={{fontSize:38,lineHeight:1}}>{t.emoji}</span>}</div>
               <div style={{flex:1,minWidth:0}}>
                 <div className="fd" style={{fontSize:22,color:T.ink,lineHeight:1.1,letterSpacing:"-0.01em"}}>{t.title}</div>
@@ -243,7 +243,7 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
 
         <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>✦ Inteligência nutricional</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
-          <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A,#3A472A)",border:"1px solid #3A472A",borderRadius:10,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+          <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A,#3A472A)",border:"1px solid #3A472A",borderRadius:14,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
             <span style={{fontSize:34,flexShrink:0}}>🍦</span>
             <div style={{flex:1,minWidth:0}}>
               <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#B8C97A"}}>Compare & compartilhe</div>
@@ -252,7 +252,7 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
             </div>
             <span className="fd" style={{fontSize:20,color:"#B8C97A",flexShrink:0}}>→</span>
           </button>
-          <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238,#3E2F58)",border:"1px solid #463A5F",borderRadius:10,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
+          <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238,#3E2F58)",border:"1px solid #463A5F",borderRadius:14,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
             <span style={{fontSize:34,flexShrink:0}}>💉</span>
             <div style={{flex:1,minWidth:0}}>
               <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#D9C7F2"}}>Para quem usa GLP-1</div>
@@ -266,7 +266,7 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
         <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>⚡ Mais ricos em proteína</div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
           {topProt.map(p=>(
-            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:6,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
+            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
               <ProductArt product={p} size={64}/>
               <div>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>{p.name}</div>
@@ -285,7 +285,7 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
 
 function ShakeCard({s,delay}){
   return(
-    <div className="rise hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:8,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
+    <div className="rise hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
       <div style={{background:s.color.bg,padding:"16px 18px",display:"flex",alignItems:"center",gap:12}}>
         <span style={{fontSize:34,lineHeight:1}}>{s.emoji}</span>
         <div style={{flex:1,minWidth:0}}>
@@ -296,11 +296,11 @@ function ShakeCard({s,delay}){
       <div style={{padding:"16px 18px",display:"flex",flexDirection:"column",gap:16,flex:1}}>
         <p className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.5,margin:0}}>{s.description}</p>
         <div style={{display:"flex",gap:10}}>
-          <div style={{flex:1,background:T.bg,borderRadius:6,padding:"10px 8px",textAlign:"center"}}>
+          <div style={{flex:1,background:T.bg,borderRadius:12,padding:"10px 8px",textAlign:"center"}}>
             <div className="fd" style={{fontSize:22,color:T.pistacheDark,fontWeight:500,lineHeight:1}}>{s.protein}g</div>
             <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Proteína · c/ água</div>
           </div>
-          <div style={{flex:2,background:T.bg,borderRadius:6,padding:"10px 12px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
+          <div style={{flex:2,background:T.bg,borderRadius:12,padding:"10px 12px",display:"flex",flexDirection:"column",justifyContent:"center"}}>
             <div className="fb" style={{fontSize:12,color:T.ink,lineHeight:1.3}}>{s.sub}</div>
             <div className="fm" style={{fontSize:8.5,letterSpacing:"0.14em",color:T.inkSoft,textTransform:"uppercase",marginTop:4}}>Preparo {s.prep}</div>
           </div>
@@ -362,7 +362,7 @@ function ShakesPage({onBack,onDelivery}){
         </div>
         {onDelivery&&(
           <div style={{marginTop:22,display:"flex",justifyContent:"center"}}>
-            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:"#EA1D2C",color:"#fff",border:"none",borderRadius:6,padding:"14px 26px",fontSize:15,fontWeight:700,cursor:"pointer"}}>🛵 Pedir um shake no iFood</button>
+            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:"#EA1D2C",color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,cursor:"pointer"}}>🛵 Pedir um shake no iFood</button>
           </div>
         )}
         <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey True (truesource/vivatrue, por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
@@ -390,7 +390,7 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
             <h1 className="fd" style={{fontSize:"clamp(36px,5vw,58px)",lineHeight:1,color:T.ink,fontWeight:400,letterSpacing:"-0.02em"}}>{meta.title}</h1>
             <p className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6}}>{meta.sub}</p>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:8,background:T.surface,border:`1px solid ${T.border}`,borderRadius:3,padding:"8px 12px",minWidth:190}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"8px 12px",minWidth:190}}>
             <Search size={13} style={{color:T.inkSoft}}/>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar sabor…" className="fb" style={{background:"transparent",border:"none",fontSize:13,color:T.ink,width:"100%"}}/>
           </div>
@@ -398,17 +398,17 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
         <div style={{display:"flex",gap:7,flexWrap:"wrap",marginBottom:10,alignItems:"center"}}>
           <Filter size={12} style={{color:T.inkSoft}}/>
           {[{id:"all",l:"Todos"},{id:"prot9",l:"Proteína ≥ 9g"},{id:"kcal100",l:"< 100 kcal"},{id:"nogluten",l:"Sem glúten"},{id:"nolactose",l:"Sem lactose"}].map(f=>(
-            <button key={f.id} onClick={()=>setFilter(f.id)} className="fm" style={{fontSize:10,letterSpacing:"0.14em",padding:"6px 12px",borderRadius:2,textTransform:"uppercase",background:filter===f.id?T.pistacheDark:"transparent",color:filter===f.id?T.surface:T.inkSoft,border:`1px solid ${filter===f.id?T.pistacheDark:T.border}`}}>{f.l}</button>
+            <button key={f.id} onClick={()=>setFilter(f.id)} className="fm" style={{fontSize:10,letterSpacing:"0.14em",padding:"6px 12px",borderRadius:9,textTransform:"uppercase",background:filter===f.id?T.pistacheDark:"transparent",color:filter===f.id?T.surface:T.inkSoft,border:`1px solid ${filter===f.id?T.pistacheDark:T.border}`}}>{f.l}</button>
           ))}
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:20,alignItems:"center"}}>
-          <button onClick={()=>setMoodF(null)} className="fm" style={{fontSize:9,letterSpacing:"0.14em",padding:"5px 10px",borderRadius:2,textTransform:"uppercase",background:!moodF?T.ink:"transparent",color:!moodF?T.surface:T.inkSoft,border:`1px solid ${!moodF?T.ink:T.border}`}}>Todos os momentos</button>
-          {allMoods.map(m=>{const mm=MOOD_META[m];if(!mm)return null;const a=moodF===m;return(<button key={m} onClick={()=>setMoodF(a?null:m)} className="fm" style={{fontSize:9,letterSpacing:"0.1em",padding:"5px 10px",borderRadius:2,background:a?mm.bg:"transparent",color:a?mm.color:T.inkSoft,border:`1px solid ${a?mm.color:T.border}`}}>{mm.icon} {mm.label}</button>);})}
+          <button onClick={()=>setMoodF(null)} className="fm" style={{fontSize:9,letterSpacing:"0.14em",padding:"5px 10px",borderRadius:9,textTransform:"uppercase",background:!moodF?T.ink:"transparent",color:!moodF?T.surface:T.inkSoft,border:`1px solid ${!moodF?T.ink:T.border}`}}>Todos os momentos</button>
+          {allMoods.map(m=>{const mm=MOOD_META[m];if(!mm)return null;const a=moodF===m;return(<button key={m} onClick={()=>setMoodF(a?null:m)} className="fm" style={{fontSize:9,letterSpacing:"0.1em",padding:"5px 10px",borderRadius:9,background:a?mm.bg:"transparent",color:a?mm.color:T.inkSoft,border:`1px solid ${a?mm.color:T.border}`}}>{mm.icon} {mm.label}</button>);})}
         </div>
         {compareIds.length>0&&(
-          <div style={{background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:3,padding:"10px 16px",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <div style={{background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:9,padding:"10px 16px",marginBottom:18,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
             <span className="fb" style={{fontSize:13,color:T.ink}}><Scale size={13} style={{display:"inline",marginRight:6}}/>{compareIds.length} sabor{compareIds.length>1?"es":""} para comparar</span>
-            <button onClick={onOpenCompare} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,padding:"7px 14px",fontSize:12,fontWeight:500}}>Comparar agora</button>
+            <button onClick={onOpenCompare} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:9,padding:"7px 14px",fontSize:12,fontWeight:500}}>Comparar agora</button>
           </div>
         )}
       </div>
@@ -426,7 +426,7 @@ function ProductList({category,onBack,onSelectProduct,compareIds,onToggleCompare
 
 function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompare}){
   return(
-    <div className="rise hl" style={{background:T.surface,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:4,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
+    <div className="rise hl" style={{background:T.surface,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:10,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
       <button onClick={onClick} style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,padding:"14px 0 8px",display:"flex",justifyContent:"center",border:"none",width:"100%"}}>
         <ProductArt product={p} size={138}/>
       </button>
@@ -442,8 +442,8 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
         </div>
         <div className="hd" style={{margin:"12px 0"}}/>
         <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={onClick} className="fb" style={{flex:1,padding:"10px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:3,fontSize:12,fontWeight:500}}>Ver ficha completa</button>
-          <button onClick={e=>{e.stopPropagation();onToggleCompare();}} aria-label={inCompare?"Remover da comparação":canCompare?"Adicionar à comparação":"Máximo de 3 sabores"} style={{width:44,height:44,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:3,background:inCompare?T.pistacheDark:"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:inCompare?T.surface:T.inkSoft,opacity:(!inCompare&&!canCompare)?0.4:1}}><Scale size={14}/></button>
+          <button onClick={onClick} className="fb" style={{flex:1,padding:"10px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:9,fontSize:12,fontWeight:500}}>Ver ficha completa</button>
+          <button onClick={e=>{e.stopPropagation();onToggleCompare();}} aria-label={inCompare?"Remover da comparação":canCompare?"Adicionar à comparação":"Máximo de 3 sabores"} style={{width:44,height:44,border:`1px solid ${inCompare?T.pistacheDark:T.border}`,borderRadius:9,background:inCompare?T.pistacheDark:"transparent",display:"flex",alignItems:"center",justifyContent:"center",color:inCompare?T.surface:T.inkSoft,opacity:(!inCompare&&!canCompare)?0.4:1}}><Scale size={14}/></button>
         </div>
         <div style={{display:"flex",gap:5,marginTop:10,flexWrap:"wrap"}}>
           <Chip tone={p.flags.gluten?"warn":"good"}>{p.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
@@ -453,7 +453,7 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
           {p.estimated&&<Chip tone="neutral">Macros Estimados</Chip>}
         </div>
         {lupaFrontal(p).map(l=>(
-          <div key={l} style={{marginTop:8,display:"inline-flex",alignSelf:"flex-start",alignItems:"center",gap:6,background:"#1F2317",color:"#fff",borderRadius:2,padding:"5px 9px"}}>
+          <div key={l} style={{marginTop:8,display:"inline-flex",alignSelf:"flex-start",alignItems:"center",gap:6,background:"#232619",color:"#fff",borderRadius:9,padding:"5px 9px"}}>
             <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",fontWeight:600}}>⬛ ALTO EM {l}</span>
           </div>
         ))}
@@ -501,7 +501,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
       <div style={{maxWidth:1152,margin:"0 auto",padding:"28px 24px 40px"}}>
         <div className="no-print" style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,marginBottom:24,flexWrap:"wrap"}}>
           <button onClick={onBack} className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.inkSoft,textTransform:"uppercase",background:"none",border:"none",display:"flex",alignItems:"center",gap:6}}><ArrowLeft size={13}/>Voltar</button>
-          <button onClick={()=>window.print()} className="fm" style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:3,padding:"9px 16px",display:"flex",alignItems:"center",gap:7}}><Printer size={13}/>Imprimir / PDF</button>
+          <button onClick={()=>window.print()} className="fm" style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:9,padding:"9px 16px",display:"flex",alignItems:"center",gap:7}}><Printer size={13}/>Imprimir / PDF</button>
         </div>
         {/* Cabeçalho visível apenas na impressão */}
         <div className="print-only" style={{display:"none",justifyContent:"space-between",alignItems:"flex-end",borderBottom:`2px solid ${T.ink}`,paddingBottom:10,marginBottom:18}}>
@@ -517,7 +517,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
         <div className="detail-grid print-grid">
           {/* LEFT */}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
-            <div style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:4,padding:26,textAlign:"center",position:"relative"}}>
+            <div style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:10,padding:26,textAlign:"center",position:"relative"}}>
               <div className="no-print" style={{position:"absolute",top:12,right:12,display:"flex",gap:8}}>
                 <button onClick={onToggleFav} style={{background:isFav?"#FFEDED":T.bgWarm,border:`1px solid ${isFav?"#E8A0A0":T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:isFav?"#C04040":T.inkSoft}}><Heart size={14} fill={isFav?"#C04040":"none"}/></button>
                 <button onClick={onToggleCompare} style={{background:inCmp?"#E5EBD3":T.bgWarm,border:`1px solid ${inCmp?T.pistacheDark:T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:inCmp?T.pistacheDark:T.inkSoft}}><Scale size={14}/></button>
@@ -539,7 +539,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               {lupas.length>0&&(
                 <div style={{marginTop:14,display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
                   {lupas.map(l=>(
-                    <div key={l} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#1F2317",color:"#fff",border:"2px solid #1F2317",borderRadius:6,padding:"8px 12px",minWidth:96}}>
+                    <div key={l} style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:"#232619",color:"#fff",border:"2px solid #232619",borderRadius:12,padding:"8px 12px",minWidth:96}}>
                       <span className="fm" style={{fontSize:9,letterSpacing:"0.1em",opacity:0.85}}>ALTO EM</span>
                       <span className="fd" style={{fontSize:13,fontWeight:600,textAlign:"center",lineHeight:1.1}}>{l==="GORDURA SATURADA"?"GORDURA SATURADA":l}</span>
                     </div>
@@ -554,14 +554,14 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               )}
             </div>
             {/* Calculadora */}
-            <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
+            <div className="no-print" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:20}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Target size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Calculadora de proteína</h3></div>
               <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:10}}>Qual é sua meta diária de proteína?</div>
               <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12}}>
                 <input type="range" min={30} max={250} value={protGoal} onChange={e=>setProtGoal(Number(e.target.value))} style={{flex:1,accentColor:T.pistacheDark}}/>
                 <span className="fm" style={{fontSize:13,color:T.ink,minWidth:55}}>{protGoal}g</span>
               </div>
-              <div style={{background:`${T.pistacheDark}18`,border:`1px solid ${T.pistacheDark}40`,borderRadius:4,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+              <div style={{background:`${T.pistacheDark}18`,border:`1px solid ${T.pistacheDark}40`,borderRadius:10,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
                 <span style={{fontSize:28}}>{product.category==="gelato"?"🍨":"🍡"}</span>
                 <div>
                   <div className="fd" style={{fontSize:20,color:T.pistacheDark,fontWeight:500}}>{units} {product.category==="gelato"?"porções":"picolés"}</div>
@@ -573,7 +573,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
           {/* RIGHT */}
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             {/* Tabela */}
-            <div className="gn nutri-print" style={{background:T.surface,border:`1px solid ${T.ink}`,borderRadius:4,overflow:"hidden"}}>
+            <div className="gn nutri-print" style={{background:T.surface,border:`1px solid ${T.ink}`,borderRadius:10,overflow:"hidden"}}>
               <div style={{background:T.ink,color:T.bg,padding:"13px 20px"}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <h3 className="fd" style={{fontSize:20,fontWeight:500}}>Informação Nutricional</h3>
@@ -609,21 +609,21 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               </div>
             </div>
             {/* Alérgicos — RDC 26/2015 */}
-            <div className="nutri-print" style={{background:"#fff",border:`2px solid #1F2317`,borderRadius:4,padding:"14px 18px"}}>
+            <div className="nutri-print" style={{background:"#fff",border:`2px solid #232619`,borderRadius:10,padding:"14px 18px"}}>
               <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",marginBottom:6}}>Informação ao alérgico · RDC 26/2015</div>
-              <div className="fb" style={{fontSize:13,color:"#1F2317",fontWeight:700,lineHeight:1.5,textTransform:"uppercase"}}>
+              <div className="fb" style={{fontSize:13,color:"#232619",fontWeight:700,lineHeight:1.5,textTransform:"uppercase"}}>
                 {allergens.length>0?`Alérgicos: contém ${allergens.join(", ")}.`:"Alérgicos: não contém alérgenos de declaração obrigatória."}
               </div>
               <div className="fb" style={{fontSize:12,color:"#5A4A08",fontWeight:600,lineHeight:1.5,textTransform:"uppercase",marginTop:4}}>
                 Alérgicos: pode conter {PODE_CONTER.join(", ")}.
               </div>
-              <div className="fb" style={{fontSize:13,color:"#1F2317",fontWeight:700,marginTop:8,textTransform:"uppercase"}}>
+              <div className="fb" style={{fontSize:13,color:"#232619",fontWeight:700,marginTop:8,textTransform:"uppercase"}}>
                 {product.flags.gluten?"Contém glúten.":"Não contém glúten."}
               </div>
             </div>
             {/* Ingredientes */}
             {(()=>{const ordered=orderIngredients(product.ingredients);return(
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:20}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}><Leaf size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Ingredientes</h3></div>
               <p className="fb" style={{fontSize:13,color:T.ink,lineHeight:1.6}}>{ordered.map(i=>i.name).join(", ")}.</p>
               {ordered.filter(i=>i.note).map((i,k)=>(
@@ -632,7 +632,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
             </div>
             );})()}
             {/* Ficha */}
-            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:20}}>
+            <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:20}}>
               <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12}}><Beaker size={14} style={{color:T.pistacheDark}}/><h3 className="fm" style={{fontSize:10,letterSpacing:"0.25em",color:T.ink,textTransform:"uppercase"}}>Ficha de produção</h3></div>
               {[{l:"Rendimento",v:product.yield},{l:"Porção",v:product.portionLabel},{l:"Linha",v:product.category==="gelato"?"Gelato (vitrine)":"Picolé Bentôlé"}].map(r=>(
                 <div key={r.l} style={{display:"grid",gridTemplateColumns:"100px 1fr",gap:10,padding:"8px 0",borderBottom:`1px solid ${T.borderSoft}`}}>
@@ -649,7 +649,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
             <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:14}}>Você também pode gostar</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:12}}>
               {similar.map(p=>(
-                <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:4,padding:14,display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
+                <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:14,display:"flex",alignItems:"center",gap:12,textAlign:"left"}}>
                   <ProductArt product={p} size={68}/>
                   <div>
                     <div className="fd" style={{fontSize:15,color:T.ink}}>{p.name}</div>
@@ -692,12 +692,12 @@ function TabelasIntro({onClose}){
   const[go,setGo]=useState(reduce);
   useEffect(()=>{if(reduce)return;const t=setTimeout(()=>setGo(true),90);return()=>clearTimeout(t);},[reduce]);
   const Bar=({val,max,color,delay})=>{const pct=Math.max(4,Math.round(val/max*100));return(
-    <div style={{flex:1,background:T.borderSoft,borderRadius:8,height:24,overflow:"hidden"}}>
-      <div style={{height:"100%",width:(go?pct:4)+"%",background:color,borderRadius:8,transition:reduce?"none":`width .9s cubic-bezier(.2,.8,.2,1) ${delay}s`}}/>
+    <div style={{flex:1,background:T.borderSoft,borderRadius:14,height:24,overflow:"hidden"}}>
+      <div style={{height:"100%",width:(go?pct:4)+"%",background:color,borderRadius:14,transition:reduce?"none":`width .9s cubic-bezier(.2,.8,.2,1) ${delay}s`}}/>
     </div>);};
   return(
     <div className="fade" role="dialog" aria-modal="true" aria-label="Bentô comparado ao sorvete comum" onClick={onClose} style={{position:"fixed",inset:0,zIndex:250,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:14,maxWidth:560,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,padding:"24px 24px"}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:18,maxWidth:560,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,padding:"24px 24px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",textTransform:"uppercase",color:T.pistacheDark}}>Sem culpa</div>
           <button onClick={onClose} className="fm" style={{background:"none",border:"none",color:T.inkSoft,fontSize:12,cursor:"pointer",letterSpacing:"0.08em"}}>Pular ✕</button>
@@ -707,7 +707,7 @@ function TabelasIntro({onClose}){
         {data.map((m,i)=>(
           <div key={m.l} style={{marginBottom:16}}>
             <div className="fm" style={{fontSize:10.5,letterSpacing:"0.1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>{m.l}</div>
-            {[["Bentô",m.bento,"linear-gradient(90deg,#8FA050,#5C6B3A)",true],["Comum",m.comum,"#C9A98F",false]].map(([nome,val,color,strong],j)=>(
+            {[["Bentô",m.bento,"linear-gradient(90deg,#8FA050,#46583A)",true],["Comum",m.comum,"#C9A98F",false]].map(([nome,val,color,strong],j)=>(
               <div key={nome} style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
                 <span className="fm" style={{width:54,fontSize:11,color:strong?T.pistacheDark:T.inkSoft,fontWeight:strong?700:500}}>{nome}</span>
                 <Bar val={val} max={Math.max(m.bento,m.comum)} color={color} delay={i*0.12+j*0.08}/>
@@ -717,11 +717,11 @@ function TabelasIntro({onClose}){
             <div className="fb" style={{fontSize:11.5,color:T.pistacheDark,marginTop:4,fontWeight:600}}>{m.note}</div>
           </div>
         ))}
-        <div style={{display:"flex",alignItems:"center",gap:12,background:T.bg,border:`1px solid ${T.borderSoft}`,borderRadius:10,padding:"12px 14px",marginTop:2,marginBottom:6}}>
+        <div style={{display:"flex",alignItems:"center",gap:12,background:T.bg,border:`1px solid ${T.borderSoft}`,borderRadius:14,padding:"12px 14px",marginTop:2,marginBottom:6}}>
           <div className="fd" style={{fontSize:30,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{pis.nutrition.kcal} kcal</div>
           <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {pis.nutrition.protein} g de proteína.</div>
         </div>
-        <button onClick={onClose} className="fb" style={{width:"100%",marginTop:8,padding:"14px",borderRadius:6,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Ver as fichas →</button>
+        <button onClick={onClose} className="fb" style={{width:"100%",marginTop:8,padding:"14px",borderRadius:12,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Ver as fichas →</button>
         <p className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.4}}>Bentô Pistache (porção de {pis.portionLabel}) · sorvete comum como referência de mercado, na mesma porção.</p>
       </div>
     </div>
@@ -796,14 +796,14 @@ export default function App(){
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:2,padding:"7px 12px"}}>🛵 Delivery</button>
-          <button onClick={()=>tk("Rodapé · Cardápio",()=>setShowCardapio(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:2,padding:"7px 12px"}}>📋 Cardápio</button>
-          <button onClick={()=>tk("Rodapé · Seja Bentô",()=>setShowParceria(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:2,padding:"7px 12px"}}>🤝 Seja Bentô</button>
-          <button onClick={()=>tk("Rodapé · Conheça a Bentô",()=>setShowPitch(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:2,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
-          <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
-          <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Privacidade</a>
-          <a href="/?termos=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>Termos</a>
-          <a href="/?portfolio=1" onClick={()=>tk("Rodapé · Portfólio")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:2,padding:"7px 12px"}}>📄 Portfólio</a>
+          <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:9,padding:"7px 12px"}}>🛵 Delivery</button>
+          <button onClick={()=>tk("Rodapé · Cardápio",()=>setShowCardapio(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:9,padding:"7px 12px"}}>📋 Cardápio</button>
+          <button onClick={()=>tk("Rodapé · Seja Bentô",()=>setShowParceria(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:9,padding:"7px 12px"}}>🤝 Seja Bentô</button>
+          <button onClick={()=>tk("Rodapé · Conheça a Bentô",()=>setShowPitch(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:9,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
+          <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
+          <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Privacidade</a>
+          <a href="/?termos=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Termos</a>
+          <a href="/?portfolio=1" onClick={()=>tk("Rodapé · Portfólio")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>📄 Portfólio</a>
         </div>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>v4.1 · Clean Label</div>
         <div style={{width:"100%",borderTop:`1px solid ${T.border}`,paddingTop:12,marginTop:4}}>
