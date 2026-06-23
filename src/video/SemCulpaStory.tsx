@@ -105,15 +105,39 @@ const Metric: React.FC<{
   </Scene>
 );
 
+// Calorias como fato positivo (porção real), sem barra de comparação.
+const SCal: React.FC = () => (
+  <Scene>
+    <Rise><Tag>Calorias / porção</Tag></Rise>
+    {gap(20)}
+    <Rise delay={5}><Title size={74}>Leve de verdade</Title></Rise>
+    {gap(46)}
+    <Rise delay={10}>
+      <div style={{ fontFamily: SERIF, fontWeight: 600, color: C.pist, fontSize: 200, lineHeight: 1 }}>
+        <Num to={130} delay={10} dec={0} />
+        <span style={{ fontFamily: SANS, fontSize: 64, fontWeight: 700 }}> kcal</span>
+      </div>
+    </Rise>
+    {gap(18)}
+    <Rise delay={16}><Sub>na porção de 60 g do nosso Pistache</Sub></Rise>
+    {gap(34)}
+    <Rise delay={22}>
+      <div style={{ display: "inline-block", background: C.pist, color: "#fff", fontFamily: SANS, fontWeight: 700, fontSize: 40, padding: "20px 38px", borderRadius: 999 }}>
+        sem açúcar adicionado · 10 g de proteína
+      </div>
+    </Rise>
+  </Scene>
+);
+
 const SHook: React.FC = () => (
   <Scene>
     <Rise><Tag>Sem culpa</Tag></Rise>
     {gap(26)}
-    <Rise delay={6}><Shot src="portfolio/heros/snickers.jpg" w={500} h={680} /></Rise>
+    <Rise delay={6}><Shot src="portfolio/heros/pistache-choco-branco.jpg" w={500} h={680} /></Rise>
     {gap(32)}
     <Rise delay={12}><Title size={82}>Bentô x sorvete comum</Title></Rise>
     {gap(18)}
-    <Rise delay={18}><Sub>A mesma sobremesa, outra ficha 👇</Sub></Rise>
+    <Rise delay={18}><Sub>Nosso Pistache, por porção 👇</Sub></Rise>
   </Scene>
 );
 
@@ -148,15 +172,15 @@ export const SemCulpaStory: React.FC = () => {
         <TransitionSeries.Sequence durationInFrames={95}><SHook /></TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={fade()} />
         <TransitionSeries.Sequence durationInFrames={130}>
-          <Metric tag="Açúcar adicionado / 100 g" title="Zero açúcar adicionado" bento={0} comum={20} unit="g" dec={0} bentoWins note="só o natural do leite/fruta" />
+          <Metric tag="Açúcar adicionado / porção" title="Zero açúcar adicionado" bento={0} comum={13} unit="g" dec={0} bentoWins note="só o natural do leite/fruta" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={sr()} />
         <TransitionSeries.Sequence durationInFrames={130}>
-          <Metric tag="Proteína / 100 g" title="Quase 4× mais proteína" bento={13.7} comum={3.5} unit="g" bentoWins note="Whey WPH (alta absorção)" />
+          <Metric tag="Proteína / porção" title="Quase 5× mais proteína" bento={10} comum={2.1} unit="g" dec={1} bentoWins note="Whey WPH (alta absorção)" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={sr()} />
         <TransitionSeries.Sequence durationInFrames={120}>
-          <Metric tag="Calorias / 100 g" title="Calorias parecidas" bento={198} comum={207} unit="" dec={0} note="mas sem açúcar e com proteína" />
+          <SCal />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={fade()} />
         <TransitionSeries.Sequence durationInFrames={105}><SFim /></TransitionSeries.Sequence>

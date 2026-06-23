@@ -14,10 +14,10 @@ export const tk = (name, fn) => {
 
 
 export const T = {
-  bg:"#F1ECDD",bgWarm:"#EAE3CE",surface:"#FBF8EE",
-  ink:"#1F2317",inkSoft:"#5A5E4E",
-  pistache:"#8B9D5A",pistacheDark:"#5C6B3A",
-  border:"#D9D2BD",borderSoft:"#E5DFCB",accent:"#C4A882",
+  bg:"#F6F1E7",bgWarm:"#EFE7D6",surface:"#FFFDF7",
+  ink:"#232619",inkSoft:"#5E6353",
+  pistache:"#7C8C66",pistacheDark:"#46583A",
+  border:"#E4DCC9",borderSoft:"#EFE8D8",accent:"#C9A24A",
 };
 
 // Apresentação institucional da marca (pitch deck no Gamma)
@@ -47,19 +47,19 @@ export function ProductArt({product,size}){
   // Foto por convenção (/sabores/<id>.jpg); se faltar, cai para a arte SVG.
   const [err,setErr]=useState(false);
   const src=product.image||`/sabores/${product.id}.jpg`;
-  if(src&&!err) return <img src={src} alt={product.name} loading="lazy" decoding="async" width={size} height={size} onError={()=>setErr(true)} style={{width:size,height:size,objectFit:"cover",borderRadius:4,background:T.bgWarm}}/>;
+  if(src&&!err) return <img src={src} alt={product.name} loading="lazy" decoding="async" width={size} height={size} onError={()=>setErr(true)} style={{width:size,height:size,objectFit:"cover",borderRadius:10,background:T.bgWarm}}/>;
   return product.category==="gelato"?<GelatoSVG p={product.palette} size={size} id={product.id}/>:<PicoleSVG p={product.palette} size={size} id={product.id}/>;
 }
 
 
 export function MoodChip({mood,small}){
   const m=MOOD_META[mood];if(!m)return null;
-  return(<span style={{fontSize:small?9:10,letterSpacing:"0.1em",padding:small?"3px 7px":"4px 9px",background:m.bg,color:m.color,borderRadius:2,textTransform:"uppercase",whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:4,fontFamily:"'JetBrains Mono',monospace"}}><span>{m.icon}</span>{m.label}</span>);
+  return(<span style={{fontSize:small?9:10,letterSpacing:"0.1em",padding:small?"3px 7px":"4px 9px",background:m.bg,color:m.color,borderRadius:9,textTransform:"uppercase",whiteSpace:"nowrap",display:"inline-flex",alignItems:"center",gap:4,fontFamily:"'JetBrains Mono',monospace"}}><span>{m.icon}</span>{m.label}</span>);
 }
 
 export function Chip({children,tone="neutral"}){
   const t={neutral:{bg:T.bgWarm,color:T.ink,border:T.border},good:{bg:"#E5EBD3",color:T.pistacheDark,border:"#C7D29F"},warn:{bg:"#F2E2C5",color:"#7A5320",border:"#D9BD8A"}}[tone];
-  return(<span style={{fontSize:10,letterSpacing:"0.12em",padding:"4px 8px",background:t.bg,color:t.color,border:`1px solid ${t.border}`,borderRadius:2,textTransform:"uppercase",fontFamily:"'JetBrains Mono',monospace"}}>{children}</span>);
+  return(<span style={{fontSize:10,letterSpacing:"0.12em",padding:"4px 8px",background:t.bg,color:t.color,border:`1px solid ${t.border}`,borderRadius:9,textTransform:"uppercase",fontFamily:"'JetBrains Mono',monospace"}}>{children}</span>);
 }
 
 export function MacroBar({label,value,max,color=T.pistacheDark}){

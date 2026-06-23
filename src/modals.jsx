@@ -23,7 +23,7 @@ export function QuizModal({onClose,onResult,onDelivery}){
   };
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Quiz: qual é o seu Bentô" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",border:`1px solid ${T.border}`,overflow:"hidden"}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",border:`1px solid ${T.border}`,overflow:"hidden"}}>
         <div style={{background:T.ink,padding:"18px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>{done?"Resultado":`Pergunta ${step+1} de ${QUIZ.length}`}</div>
@@ -39,7 +39,7 @@ export function QuizModal({onClose,onResult,onDelivery}){
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
                 {QUIZ[step].opts.map(o=>(
                   <button key={o.val} onClick={()=>pick(o.val)} className="hl fb"
-                    style={{padding:"13px 11px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:4,textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
+                    style={{padding:"13px 11px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:10,textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
                     <span style={{fontSize:22}}>{o.icon}</span>
                     <span style={{fontSize:13,color:T.ink,lineHeight:1.3}}>{o.label}</span>
                   </button>
@@ -54,15 +54,15 @@ export function QuizModal({onClose,onResult,onDelivery}){
               <div className="hd" style={{margin:"14px 0"}}/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:18}}>
                 {[{l:"kcal",v:result.nutrition.kcal},{l:"proteína",v:`${result.nutrition.protein}g`,g:true},{l:"açúc. adic.",v:`${result.nutrition.addedSugars}g`}].map(s=>(
-                  <div key={s.l} style={{textAlign:"center",background:T.bg,borderRadius:4,padding:"10px 6px"}}>
+                  <div key={s.l} style={{textAlign:"center",background:T.bg,borderRadius:10,padding:"10px 6px"}}>
                     <div className="fm" style={{fontSize:9,color:T.inkSoft,letterSpacing:"0.18em",textTransform:"uppercase"}}>{s.l}</div>
                     <div className="fd" style={{fontSize:20,color:s.g?T.pistacheDark:T.ink,fontWeight:500,marginTop:2}}>{s.v}</div>
                   </div>
                 ))}
               </div>
-              <button onClick={()=>{onClose();onResult(result.id);}} style={{width:"100%",padding:"13px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>Ver ficha completa →</button>
-              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:4,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Pedir agora no iFood</button>}
-              <button onClick={()=>{setStep(0);setAns([]);setDone(false);setResult(null);}} style={{width:"100%",marginTop:8,padding:"10px 0",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:4,fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>Refazer quiz</button>
+              <button onClick={()=>{onClose();onResult(result.id);}} style={{width:"100%",padding:"13px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:10,fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>Ver ficha completa →</button>
+              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Pedir agora no iFood</button>}
+              <button onClick={()=>{setStep(0);setAns([]);setDone(false);setResult(null);}} style={{width:"100%",marginTop:8,padding:"10px 0",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:10,fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>Refazer quiz</button>
             </div>
           )}
         </div>
@@ -78,11 +78,11 @@ export function CompareModal({ids,onClose,onViewProduct}){
   const products=ids.map(id=>PRODUCTS.find(p=>p.id===id)).filter(Boolean);
   if(products.length<2)return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" style={{position:"fixed",inset:0,zIndex:100,background:"rgba(31,35,23,0.65)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:360,width:"100%",border:`1px solid ${T.border}`,padding:"28px 24px",textAlign:"center"}}>
+      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:360,width:"100%",border:`1px solid ${T.border}`,padding:"28px 24px",textAlign:"center"}}>
         <Scale size={28} style={{color:T.pistacheDark}}/>
         <div className="fd" style={{fontSize:20,color:T.ink,marginTop:10}}>Selecione 2 ou 3 sabores</div>
         <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>Toque no ícone de balança ⚖️ nos cards para montar a comparação lado a lado.</div>
-        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"10px 20px",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:4,fontSize:13,fontWeight:500}}>Entendi</button>
+        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"10px 20px",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:10,fontSize:13,fontWeight:500}}>Entendi</button>
       </div>
     </div>
   );
@@ -90,7 +90,7 @@ export function CompareModal({ids,onClose,onViewProduct}){
   const best=(k)=>{const vs=products.map(p=>p.nutrition[k]);return(k==="protein"||k==="fiber")?Math.max(...vs):Math.min(...vs);};
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Comparar sabores" style={{position:"fixed",inset:0,zIndex:100,background:"rgba(31,35,23,0.65)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:680,width:"100%",maxHeight:"88dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:680,width:"100%",maxHeight:"88dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"14px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:10}}>
           <span className="fd" style={{fontSize:18,color:T.bg}}>Comparando sabores</span>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
@@ -105,7 +105,7 @@ export function CompareModal({ids,onClose,onViewProduct}){
                     <div style={{display:"flex",justifyContent:"center",marginBottom:6}}><ProductArt product={p} size={64}/></div>
                     <div className="fd" style={{fontSize:15,color:T.ink,lineHeight:1.2}}>{p.name}</div>
                     <div className="fm" style={{fontSize:9,color:T.inkSoft,textTransform:"uppercase",letterSpacing:"0.12em",marginTop:2}}>{p.category==="gelato"?"Gelato":"Bentôlé"} · {p.portionLabel}</div>
-                    <button onClick={()=>{onClose();onViewProduct(p.id);}} className="fm" style={{marginTop:8,fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",background:"transparent",border:`1px solid ${T.border}`,borderRadius:2,padding:"6px 10px",color:T.inkSoft}}>Ver ficha</button>
+                    <button onClick={()=>{onClose();onViewProduct(p.id);}} className="fm" style={{marginTop:8,fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",background:"transparent",border:`1px solid ${T.border}`,borderRadius:9,padding:"6px 10px",color:T.inkSoft}}>Ver ficha</button>
                   </th>
                 ))}
               </tr>
@@ -183,7 +183,7 @@ const CARDAPIO = [
 ];
 
 export function CardapioDigital({onClose}){
-  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist=T.pistache;
+  const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist=T.pistache;
   const [c,setC]=useState(0);
   useModal(onClose);
   const cat=CARDAPIO[c];
@@ -193,7 +193,7 @@ export function CardapioDigital({onClose}){
       style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"26px 26px",display:"flex",flexDirection:"column"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><BentoLogo size={32}/><div><div className="fd" style={{fontSize:17,color:cream,lineHeight:1}}>Cardápio</div><div className="fm" style={{fontSize:8.5,letterSpacing:"0.24em",color:"#9A9C86",textTransform:"uppercase",marginTop:2}}>Digital</div></div></div>
-        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:5,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:11,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
       </div>
       {/* chips de categoria */}
       <div className="no-scrollbar" style={{display:"flex",gap:8,overflowX:"auto",padding:"4px 20px 14px",flexShrink:0}}>
@@ -207,10 +207,10 @@ export function CardapioDigital({onClose}){
       <div key={c} className="rise" style={{flex:1,overflow:"auto",padding:"4px 16px 24px"}}>
         <div style={{maxWidth:640,margin:"0 auto",display:"flex",flexDirection:"column",gap:10}}>
           {cat.items.map(it=>(
-            <div key={it.name} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",border:"1px solid rgba(201,168,106,0.2)",borderRadius:8,background:"rgba(255,255,255,0.02)"}}>
+            <div key={it.name} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",border:"1px solid rgba(201,168,106,0.2)",borderRadius:14,background:"rgba(255,255,255,0.02)"}}>
               {it.img
-                ? <div style={{width:62,height:62,borderRadius:8,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}} onError={onImgErr} /></div>
-                : <div style={{width:62,height:62,borderRadius:8,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}>{cat.emoji}</div>}
+                ? <div style={{width:62,height:62,borderRadius:14,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}} onError={onImgErr} /></div>
+                : <div style={{width:62,height:62,borderRadius:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}>{cat.emoji}</div>}
               <div style={{flex:1,minWidth:0}}>
                 <div className="fb" style={{fontSize:15,color:cream,fontWeight:500,lineHeight:1.2}}>{it.name}</div>
                 <div className="fb" style={{fontSize:12,color:"#A9AB96",marginTop:3,lineHeight:1.35}}>{it.info}</div>
@@ -257,17 +257,17 @@ const PARC_PASSOS=[
 ];
 
 export function SejaParceiro({onClose,onForm}){
-  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist="#8B9D5A",soft="#A9AB96";
+  const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist="#7C8C66",soft="#A9AB96";
   useModal(onClose);
   const grid="radial-gradient(rgba(201,168,106,0.08) 1px, transparent 1px)";
   const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto. 🍨");
   const Kicker=({children})=>(<div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:gold,textTransform:"uppercase",marginBottom:12}}>{children}</div>);
   const H=({children})=>(<h2 className="fd" style={{fontSize:"clamp(24px,4vw,38px)",color:cream,fontWeight:400,lineHeight:1.12,letterSpacing:"-0.02em",margin:0}}>{children}</h2>);
-  const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(201,168,106,0.2)",borderRadius:10,padding:"22px"};
+  const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(201,168,106,0.2)",borderRadius:14,padding:"22px"};
   const wrap={maxWidth:980,margin:"0 auto",padding:"0 22px"};
   return(
     <div className="fade" role="dialog" aria-modal="true" aria-label="Seja um parceiro Bentô" style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"28px 28px",overflow:"auto"}}>
-      <button onClick={onClose} aria-label="Fechar" className="fm" style={{position:"fixed",top:16,right:16,zIndex:10,background:"rgba(24,28,18,0.7)",backdropFilter:"blur(6px)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:6,padding:"9px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>FECHAR</button>
+      <button onClick={onClose} aria-label="Fechar" className="fm" style={{position:"fixed",top:16,right:16,zIndex:10,background:"rgba(24,28,18,0.7)",backdropFilter:"blur(6px)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:12,padding:"9px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>FECHAR</button>
 
       {/* HERO */}
       <section style={{...wrap,paddingTop:64,paddingBottom:40}}>
@@ -279,12 +279,12 @@ export function SejaParceiro({onClose,onForm}){
             <p className="fb" style={{fontSize:16,color:soft,lineHeight:1.6,marginTop:18,maxWidth:560}}>O picolé proteico mais desejado do mercado — e gelatos premium em potinhos — para lojas, academias, empórios e cafeterias que querem <strong style={{color:cream}}>aumentar ticket, desejo e percepção de valor</strong>.</p>
             <div className="fm" style={{fontSize:13,letterSpacing:"0.08em",color:gold,marginTop:16}}>Programa de revenda · margens de 30% a 50%</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:24}}>
-              <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:6,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
-              <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:6,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 WhatsApp direto</a>
-              <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:6,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>📄 Ver portfólio</a>
+              <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:12,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
+              <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 WhatsApp direto</a>
+              <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>📄 Ver portfólio</a>
             </div>
           </div>
-          <div className="rise" style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+          <div className="rise" style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
             <img src="/parceria/freezer.jpg" alt="Freezer Bentô personalizado em um ponto de venda" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
@@ -382,9 +382,9 @@ export function SejaParceiro({onClose,onForm}){
               ))}
             </div>
             <div className="fb" style={{fontSize:12.5,color:soft,marginTop:18,lineHeight:1.5}}>💡 A <strong style={{color:cream}}>franquia é um projeto futuro</strong>. Registre seu interesse e seja o primeiro a saber quando abrirmos.</div>
-            <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:6,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
+            <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:12,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
           </div>
-          <div style={{borderRadius:14,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+          <div style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
             <img src="/parceria/estande.jpg" alt="Quiosque Bentô Gelatos em shopping — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
@@ -392,12 +392,12 @@ export function SejaParceiro({onClose,onForm}){
 
       {/* CTA FINAL */}
       <section style={{...wrap,paddingTop:20,paddingBottom:70}}>
-        <div style={{background:"linear-gradient(135deg, rgba(201,168,106,0.16), rgba(124,139,78,0.12))",border:"1px solid rgba(201,168,106,0.3)",borderRadius:14,padding:"40px 28px",textAlign:"center"}}>
+        <div style={{background:"linear-gradient(135deg, rgba(201,168,106,0.16), rgba(124,139,78,0.12))",border:"1px solid rgba(201,168,106,0.3)",borderRadius:18,padding:"40px 28px",textAlign:"center"}}>
           <H>Vamos conversar?</H>
           <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:12,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>Conte sobre o seu ponto e a sua região. Avaliamos o perfil e montamos a melhor condição para você.</p>
           <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:24}}>
-            <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:6,padding:"15px 28px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Preencher meus dados →</button>
-            <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:6,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 Chamar no WhatsApp</a>
+            <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:12,padding:"15px 28px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Preencher meus dados →</button>
+            <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 Chamar no WhatsApp</a>
           </div>
           <div className="fm" style={{fontSize:12,color:soft,marginTop:22,letterSpacing:"0.06em"}}>WhatsApp (27) 99915-9995 · Instagram @bentogelateria · Vitória-ES</div>
           <div className="fb" style={{fontSize:11.5,color:soft,marginTop:14,maxWidth:520,marginLeft:"auto",marginRight:"auto",lineHeight:1.5}}>💡 Pensando em <strong style={{color:cream}}>franquia</strong>? É um projeto futuro — registre seu interesse no formulário e avisamos você primeiro.</div>
@@ -569,7 +569,7 @@ export function EventosModal({onClose}){
     if(booked){ tk("Eventos · Data já reservada"); setConflict(true); return; }
     doEnviar(false);
   };
-  const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
+  const inp={width:"100%",padding:"11px 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
   const Row=({l,v,strong})=>(
     <div style={{display:"flex",justifyContent:"space-between",gap:10,padding:"9px 0",borderBottom:`1px solid ${T.borderSoft}`}}>
@@ -579,7 +579,7 @@ export function EventosModal({onClose}){
   );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Nos leve para seu evento" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 3</div>
@@ -590,9 +590,9 @@ export function EventosModal({onClose}){
         <div style={{padding:22}}>
           {step===1&&(<>
             <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gridTemplateRows:"76px 76px",gap:8,marginBottom:14}}>
-              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,gridRow:"1 / span 2",border:`1px solid ${T.border}`}} onError={onImgErr} />
-              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
-              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:6,border:`1px solid ${T.border}`}} onError={onImgErr} />
+              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,gridRow:"1 / span 2",border:`1px solid ${T.border}`}} onError={onImgErr} />
+              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`}} onError={onImgErr} />
+              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`}} onError={onImgErr} />
             </div>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
             <span className="fm" style={lab}>Deixe seu WhatsApp (com DDD) *</span>
@@ -614,7 +614,7 @@ export function EventosModal({onClose}){
             <span className="fm" style={lab}>O que servir?</span>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               {["Gelatos","Picolés","Mix (gelatos + picolés)"].map(o=>(
-                <button key={o} onClick={()=>setE("tipo",o)} className="fb" style={{flex:1,minWidth:110,padding:"11px 8px",borderRadius:4,border:`1px solid ${ev.tipo===o?T.pistacheDark:T.border}`,background:ev.tipo===o?T.pistacheDark:"transparent",color:ev.tipo===o?T.surface:T.ink,fontSize:12.5,fontWeight:500,cursor:"pointer"}}>{o}</button>
+                <button key={o} onClick={()=>setE("tipo",o)} className="fb" style={{flex:1,minWidth:110,padding:"11px 8px",borderRadius:10,border:`1px solid ${ev.tipo===o?T.pistacheDark:T.border}`,background:ev.tipo===o?T.pistacheDark:"transparent",color:ev.tipo===o?T.surface:T.ink,fontSize:12.5,fontWeight:500,cursor:"pointer"}}>{o}</button>
               ))}
             </div>
             <span className="fm" style={lab}>Personalização (opcional · custo a combinar)</span>
@@ -624,20 +624,20 @@ export function EventosModal({onClose}){
               ))}
             </div>
             {menor?(
-              <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:6,padding:"16px"}}>
+              <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:12,padding:"16px"}}>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de 70 convidados?</div>
                 <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online é para eventos a partir de <strong>70 pessoas</strong>. Para grupos menores temos <strong>outras possibilidades de serviço</strong> — fale com a gente que montamos algo sob medida. 💛</div>
-                <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
+                <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
-              <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:4,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
+              <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:10,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
               {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
             </>)}
           </>)}
 
           {step===2&&(<>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.25em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:10}}>Seu orçamento online</div>
-            <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:6,padding:"6px 16px 4px"}}>
+            <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:12,padding:"6px 16px 4px"}}>
               <Row l="Convidados" v={ev.convidados}/>
               <Row l="Produtos" v={ev.tipo}/>
               <Row l="Sabores inclusos" v={`até ${q.sabores}`}/>
@@ -662,15 +662,15 @@ export function EventosModal({onClose}){
               <div className="fb" style={{marginTop:10,fontSize:11.5,color:T.inkSoft,lineHeight:1.5}}>🚚 Logística estimada a partir da nossa loja mais próxima (Bentô {geo.loja}), incluindo combustível e deslocamento médios.</div>
             )}
             {q.corporativo&&(
-              <div className="fb" style={{marginTop:12,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:4,padding:"11px 14px",fontSize:12.5,color:T.ink,lineHeight:1.5}}>🏢 <strong>Evento corporativo com mais de 300 pessoas?</strong> Você tem condições especiais — o valor final pode ficar ainda melhor no fechamento.</div>
+              <div className="fb" style={{marginTop:12,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:10,padding:"11px 14px",fontSize:12.5,color:T.ink,lineHeight:1.5}}>🏢 <strong>Evento corporativo com mais de 300 pessoas?</strong> Você tem condições especiais — o valor final pode ficar ainda melhor no fechamento.</div>
             )}
             {q.persACombinar.length>0&&(
               <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>✨ {q.persACombinar.join(", ")}: valores combinados diretamente com nossa equipe.</div>
             )}
             <div className="fb" style={{marginTop:10,fontSize:11,color:T.inkSoft,lineHeight:1.5,fontStyle:"italic"}}>Estimativa online sujeita a confirmação de data, logística e proposta final em contrato.</div>
             <div style={{display:"flex",gap:8,marginTop:18}}>
-              <button onClick={()=>setStep(1)} className="fb" style={{padding:"14px 18px",borderRadius:4,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Ajustar</button>
-              <button onClick={()=>setStep(3)} className="fb" style={{flex:1,padding:"14px",borderRadius:4,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Fechar orçamento →</button>
+              <button onClick={()=>setStep(1)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Ajustar</button>
+              <button onClick={()=>setStep(3)} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Fechar orçamento →</button>
             </div>
           </>)}
 
@@ -688,7 +688,7 @@ export function EventosModal({onClose}){
             <input className="fb" style={inp} value={cad.empresa} onChange={e=>setC("empresa",e.target.value)} placeholder="Opcional"/>
             <span className="fm" style={lab}>Observações</span>
             <textarea className="fb" rows={2} style={{...inp,resize:"vertical"}} value={cad.obs} onChange={e=>setC("obs",e.target.value)} placeholder="Horário, tema da festa, restrições…"/>
-            <div style={{background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:4,padding:"10px 14px",marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <div style={{background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",marginTop:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span className="fb" style={{fontSize:12,color:T.inkSoft}}>{ev.convidados} convidados · {ev.data.split("-").reverse().join("/")}</span>
               <span className="fd" style={{fontSize:18,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
             </div>
@@ -697,17 +697,17 @@ export function EventosModal({onClose}){
               <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato e elaboração do orçamento/contrato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
             </label>
             {conflict?(
-              <div style={{marginTop:14,background:"#F2E2C5",border:"1px solid #D9BD8A",borderRadius:6,padding:"14px 16px"}}>
+              <div style={{marginTop:14,background:"#F2E2C5",border:"1px solid #D9BD8A",borderRadius:12,padding:"14px 16px"}}>
                 <div className="fb" style={{fontSize:13.5,color:"#7A5320",fontWeight:600,lineHeight:1.4}}>⚠️ Já temos um evento confirmado nessa data.</div>
                 <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário ou formato</strong>. Fale com a gente que verificamos a disponibilidade pro seu evento também! 💛</div>
-                <button onClick={()=>doEnviar(true)} className="fb" style={{width:"100%",marginTop:12,padding:"13px",borderRadius:4,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar com a equipe sobre a data</button>
-                <button onClick={()=>{setConflict(false);setStep(1);}} className="fb" style={{width:"100%",marginTop:8,padding:"11px",borderRadius:4,border:`1px solid ${T.border}`,background:"transparent",color:T.inkSoft,fontSize:13,cursor:"pointer"}}>📅 Escolher outra data</button>
+                <button onClick={()=>doEnviar(true)} className="fb" style={{width:"100%",marginTop:12,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar com a equipe sobre a data</button>
+                <button onClick={()=>{setConflict(false);setStep(1);}} className="fb" style={{width:"100%",marginTop:8,padding:"11px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.inkSoft,fontSize:13,cursor:"pointer"}}>📅 Escolher outra data</button>
               </div>
             ):(
-              <button onClick={enviar} disabled={!ok3||busy} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok3&&!busy?"#25D366":T.border,color:ok3&&!busy?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3&&!busy?"pointer":"not-allowed"}}>{busy?"Verificando disponibilidade…":"💬 Enviar e solicitar contrato"}</button>
+              <button onClick={enviar} disabled={!ok3||busy} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok3&&!busy?"#25D366":T.border,color:ok3&&!busy?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3&&!busy?"pointer":"not-allowed"}}>{busy?"Verificando disponibilidade…":"💬 Enviar e solicitar contrato"}</button>
             )}
             <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
-            <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:4,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
+            <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
           </>)}
         </div>
       </div>
@@ -733,7 +733,7 @@ export function FaqModal({onClose}){
   const[open,setOpen]=useState(0);
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Dúvidas frequentes" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:520,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:520,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Nutrição · Transparência</div>
@@ -785,7 +785,7 @@ export function DeliveryModal({onClose}){
   };
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Delivery Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Delivery · iFood</div>
@@ -795,17 +795,17 @@ export function DeliveryModal({onClose}){
         </div>
         <div style={{padding:22}}>
           <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:14}}>Temos duas lojas em Vitória. Escolha a mais perto de você — ou deixe a gente descobrir:</div>
-          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:4,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>📍 Qual loja está mais perto de mim?</button>
+          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>📍 Qual loja está mais perto de mim?</button>
           {geoMsg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,textAlign:"center",marginBottom:6}}>{geoMsg}</div>}
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:10}}>
             {LOJAS.map(l=>(
-              <div key={l.id} style={{border:`1.5px solid ${near===l.id?T.pistacheDark:T.border}`,background:near===l.id?"#EFF5E5":T.bg,borderRadius:6,padding:"16px 16px 14px",position:"relative"}}>
+              <div key={l.id} style={{border:`1.5px solid ${near===l.id?T.pistacheDark:T.border}`,background:near===l.id?"#EFF5E5":T.bg,borderRadius:12,padding:"16px 16px 14px",position:"relative"}}>
                 {near===l.id&&<span className="fm" style={{position:"absolute",top:-9,left:14,fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"3px 10px"}}>⭐ Mais próxima de você</span>}
                 <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
                 <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
                 <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:4,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir agora no iFood</a>
-                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:4,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
+                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:10,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir agora no iFood</a>
+                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:10,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
                 </div>
               </div>
             ))}
@@ -839,11 +839,11 @@ export function SejaBento({onClose}){
     tk("Conversão · Revenda/Franquia");
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
   };
-  const inp={width:"100%",padding:"11px 12px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
+  const inp={width:"100%",padding:"11px 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Seja um revendedor ou franqueado" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Expansão</div>
@@ -856,7 +856,7 @@ export function SejaBento({onClose}){
           <span className="fm" style={lab}>Tenho interesse em</span>
           <div style={{display:"flex",gap:8}}>
             {["Revenda","Franquia (futuro)"].map(o=>(
-              <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:4,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
+              <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
           {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro. 💛</div>}
@@ -869,7 +869,7 @@ export function SejaBento({onClose}){
           <span className="fm" style={lab}>Já possui ponto comercial?</span>
           <div style={{display:"flex",gap:8}}>
             {["Sim","Não","Ainda avaliando"].map(o=>(
-              <button key={o} onClick={()=>set("ponto",form.ponto===o?"":o)} className="fb" style={{flex:1,padding:"10px 6px",borderRadius:4,border:`1px solid ${form.ponto===o?T.pistacheDark:T.border}`,background:form.ponto===o?T.pistacheDark:"transparent",color:form.ponto===o?T.surface:T.ink,fontSize:12.5}}>{o}</button>
+              <button key={o} onClick={()=>set("ponto",form.ponto===o?"":o)} className="fb" style={{flex:1,padding:"10px 6px",borderRadius:10,border:`1px solid ${form.ponto===o?T.pistacheDark:T.border}`,background:form.ponto===o?T.pistacheDark:"transparent",color:form.ponto===o?T.surface:T.ink,fontSize:12.5}}>{o}</button>
             ))}
           </div>
           <span className="fm" style={lab}>Mensagem (opcional)</span>
@@ -878,7 +878,7 @@ export function SejaBento({onClose}){
             <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} style={{marginTop:3,accentColor:T.pistacheDark,width:16,height:16,flexShrink:0}}/>
             <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
           </label>
-          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:4,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             💬 Enviar pelo WhatsApp
           </button>
           <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta — é só confirmar o envio.</div>
@@ -903,10 +903,10 @@ export function PoteBuilder({onClose,onDelivery}){
   const B=gelatos.find(p=>p.id===bId)||gelatos[1];
   if(gelatos.length<2) return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Monte seu pote" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:380,width:"100%",padding:24,textAlign:"center",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:14,maxWidth:380,width:"100%",padding:24,textAlign:"center",border:`1px solid ${T.border}`}}>
         <div className="fd" style={{fontSize:18,color:T.ink}}>Em breve 🍦</div>
         <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:8,lineHeight:1.5}}>Precisamos de pelo menos 2 sabores de gelato para montar seu pote. Volte já já!</div>
-        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"11px 18px",borderRadius:6,border:"none",background:T.pistacheDark,color:"#fff",fontWeight:600,cursor:"pointer"}}>Fechar</button>
+        <button onClick={onClose} className="fb" style={{marginTop:16,padding:"11px 18px",borderRadius:12,border:"none",background:T.pistacheDark,color:"#fff",fontWeight:600,cursor:"pointer"}}>Fechar</button>
       </div>
     </div>
   );
@@ -915,13 +915,13 @@ export function PoteBuilder({onClose,onDelivery}){
   const per=(p,k)=>p.nutrition[k]/p.serving;       // por grama
   const tot=k=>per(A,k)*gA+per(B,k)*gB;            // total no pote
   const Sel=({value,onChange,label})=>(
-    <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label} className="fb" style={{width:"100%",padding:"8px 10px",borderRadius:4,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:13}}>
+    <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label} className="fb" style={{width:"100%",padding:"8px 10px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:13}}>
       {gelatos.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
     </select>
   );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Monte seu pote" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:6,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Calculadora</div>
@@ -933,7 +933,7 @@ export function PoteBuilder({onClose,onDelivery}){
           <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:12}}>Escolha o tamanho e combine 2 sabores. As calorias e a proteína são calculadas para o peso real do pote.</div>
           <div style={{display:"flex",gap:8,marginBottom:18}}>
             {CUPS.map(c=>(
-              <button key={c.id} onClick={()=>setCup(c.id)} className="fb" style={{flex:1,padding:"11px",borderRadius:4,border:`1px solid ${cup===c.id?T.pistacheDark:T.border}`,background:cup===c.id?T.pistacheDark:"transparent",color:cup===c.id?T.surface:T.ink,fontSize:13,fontWeight:500}}>{c.label} · {c.g} g</button>
+              <button key={c.id} onClick={()=>setCup(c.id)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${cup===c.id?T.pistacheDark:T.border}`,background:cup===c.id?T.pistacheDark:"transparent",color:cup===c.id?T.surface:T.ink,fontSize:13,fontWeight:500}}>{c.label} · {c.g} g</button>
             ))}
           </div>
           <div style={{display:"flex",alignItems:"flex-start",gap:10}}>
@@ -956,7 +956,7 @@ export function PoteBuilder({onClose,onDelivery}){
               <span className="fm" style={{fontSize:10,color:T.inkSoft}}>{B.name} {100-ratio}%</span>
             </div>
           </div>
-          <div style={{marginTop:18,background:T.ink,borderRadius:6,padding:"16px 18px",display:"flex",gap:12,alignItems:"center"}}>
+          <div style={{marginTop:18,background:T.ink,borderRadius:12,padding:"16px 18px",display:"flex",gap:12,alignItems:"center"}}>
             <div style={{flex:1,textAlign:"center"}}>
               <div className="fd" style={{fontSize:34,color:T.bg,fontWeight:500,lineHeight:1}}>{Math.round(tot("kcal"))}</div>
               <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.border,textTransform:"uppercase",marginTop:4}}>kcal no pote</div>
@@ -969,14 +969,14 @@ export function PoteBuilder({onClose,onDelivery}){
           </div>
           <div style={{marginTop:10,display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
             {[["Carboidratos",tot("carbs")],["Gorduras",tot("fat")],["Fibras",tot("fiber")]].map(([l,v])=>(
-              <div key={l} style={{background:T.bg,borderRadius:4,padding:"9px 6px",textAlign:"center"}}>
+              <div key={l} style={{background:T.bg,borderRadius:10,padding:"9px 6px",textAlign:"center"}}>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>{v.toFixed(1)}g</div>
                 <div className="fm" style={{fontSize:8,letterSpacing:"0.12em",color:T.inkSoft,textTransform:"uppercase",marginTop:2}}>{l}</div>
               </div>
             ))}
           </div>
           <p className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:12,lineHeight:1.5,textAlign:"center"}}>Referência padrão: 100 g · valores calculados proporcionalmente para o pote de {g} g.</p>
-          {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Monte seu pote",onDelivery)} className="fb" style={{width:"100%",marginTop:14,padding:"13px 14px",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:6,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Montar de verdade — pedir no iFood</button>}
+          {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Monte seu pote",onDelivery)} className="fb" style={{width:"100%",marginTop:14,padding:"13px 14px",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Montar de verdade — pedir no iFood</button>}
         </div>
       </div>
     </div>
@@ -997,7 +997,7 @@ function PitchKicker({n,total,label,gold}){
 
 function PitchStat({v,u,l,gold,cream}){
   return (
-    <div style={{border:"1px solid rgba(196,168,130,0.28)",borderRadius:6,padding:"18px 16px",background:"rgba(255,255,255,0.02)"}}>
+    <div style={{border:"1px solid rgba(196,168,130,0.28)",borderRadius:12,padding:"18px 16px",background:"rgba(255,255,255,0.02)"}}>
       <div className="fm" style={{fontSize:"clamp(30px,5vw,46px)",color:gold,lineHeight:1,fontWeight:500}}>{v}<span style={{fontSize:"0.5em",color:cream,opacity:0.7}}>{u}</span></div>
       <div className="fb" style={{fontSize:12.5,color:cream,opacity:0.72,marginTop:8,lineHeight:1.4}}>{l}</div>
     </div>
@@ -1005,14 +1005,14 @@ function PitchStat({v,u,l,gold,cream}){
 }
 
 export function PitchDeck({onClose,onCatalog}){
-  const ink="#181C12",cream="#F1ECDD",gold="#C9A86A",pist=T.pistache,pistD="#7C8B4E";
+  const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist=T.pistache,pistD="#7C8B4E";
   const G=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
   const B=useMemo(()=>PRODUCTS.filter(p=>p.category==="bentole"),[]);
   const thumbs=useMemo(()=>[G[7],G[6],G[8],G[2],B[0],B[5]].filter(Boolean),[G,B]);
   const H1={fontFamily:"'Fraunces',Georgia,serif",color:cream,fontSize:"clamp(30px,6.2vw,60px)",lineHeight:1.04,letterSpacing:"-0.02em",fontWeight:400};
   const BODY={fontSize:"clamp(14px,2.4vw,18px)",color:cream,opacity:0.8,lineHeight:1.6,maxWidth:640};
   const card=(title,desc)=>(
-    <div key={title} style={{flex:"1 1 180px",minWidth:170,border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px 18px",background:"rgba(255,255,255,0.02)"}}>
+    <div key={title} style={{flex:"1 1 180px",minWidth:170,border:"1px solid rgba(196,168,130,0.25)",borderRadius:12,padding:"18px 18px",background:"rgba(255,255,255,0.02)"}}>
       <div className="fd" style={{fontSize:18,color:gold,marginBottom:8}}>{title}</div>
       <div className="fb" style={{fontSize:13.5,color:cream,opacity:0.72,lineHeight:1.5}}>{desc}</div>
     </div>
@@ -1048,18 +1048,18 @@ export function PitchDeck({onClose,onCatalog}){
       <PitchKicker n={3} total={10} label="Portfólio" gold={gold}/>
       <h1 style={H1}>{PRODUCTS.length} sabores. Duas linhas.</h1>
       <div style={{display:"flex",gap:14,flexWrap:"wrap",marginTop:24}}>
-        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px"}}>
+        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:12,padding:"18px"}}>
           <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",color:gold,textTransform:"uppercase"}}>01 · Vitrine</div>
           <div className="fd" style={{fontSize:26,color:cream,marginTop:4}}>Gelatos <span style={{color:pist}}>· {G.length}</span></div>
           <div className="fb" style={{fontSize:13,color:cream,opacity:0.7,marginTop:6,lineHeight:1.5}}>Cremosos e proteicos. Clássicos e premium (Pistache, Dubai, Doce de Leite) e sorbets funcionais.</div>
         </div>
-        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:6,padding:"18px"}}>
+        <div style={{flex:"1 1 240px",border:"1px solid rgba(196,168,130,0.25)",borderRadius:12,padding:"18px"}}>
           <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",color:gold,textTransform:"uppercase"}}>02 · Take-home</div>
           <div className="fd" style={{fontSize:26,color:cream,marginTop:4}}>Bentôlé <span style={{color:pist}}>· {B.length}</span></div>
           <div className="fb" style={{fontSize:13,color:cream,opacity:0.7,marginTop:6,lineHeight:1.5}}>Mini picolés premium de alta proteína. Leve para onde for.</div>
         </div>
       </div>
-      <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>{thumbs.map(p=><div key={p.id} style={{width:74,height:74,borderRadius:6,overflow:"hidden",border:"1px solid rgba(196,168,130,0.3)"}}><ProductArt product={p} size={74}/></div>)}</div>
+      <div style={{display:"flex",gap:10,marginTop:18,flexWrap:"wrap"}}>{thumbs.map(p=><div key={p.id} style={{width:74,height:74,borderRadius:12,overflow:"hidden",border:"1px solid rgba(196,168,130,0.3)"}}><ProductArt product={p} size={74}/></div>)}</div>
     </div>,
     // 4 — Números
     <div key="s4">
@@ -1109,8 +1109,8 @@ export function PitchDeck({onClose,onCatalog}){
       <h1 style={{...H1,fontSize:"clamp(32px,7vw,64px)"}}>A referência nacional<br/>em sobremesa funcional.</h1>
       <p style={{...BODY,marginTop:20,textAlign:"center"}}>Zero açúcar adicionado. Alta proteína. Rótulo limpo. Sem abrir mão do prazer.</p>
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center",marginTop:34}}>
-        <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:gold,color:ink,border:"none",borderRadius:5,padding:"13px 24px",fontSize:14,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><Printer size={15}/>Baixar PDF</a>
-        <button onClick={onCatalog} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:5,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Explorar catálogo <ChevronRight size={14}/></button>
+        <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:gold,color:ink,border:"none",borderRadius:11,padding:"13px 24px",fontSize:14,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><Printer size={15}/>Baixar PDF</a>
+        <button onClick={onCatalog} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:11,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Explorar catálogo <ChevronRight size={14}/></button>
       </div>
       <div className="fm" style={{fontSize:11,letterSpacing:"0.3em",color:"#9A9C86",marginTop:30,textTransform:"uppercase"}}>Bentô · Functional Nutrition</div>
     </div>,
@@ -1133,7 +1133,7 @@ export function PitchDeck({onClose,onCatalog}){
       {/* topo */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><BentoLogo size={30}/><span className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:"#9A9C86",textTransform:"uppercase"}}>Pitch</span></div>
-        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:5,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:11,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
       </div>
       {/* slide */}
       <div style={{flex:1,overflow:"auto",display:"flex",alignItems:"center",justifyContent:"center",padding:"12px 24px"}}>
@@ -1146,8 +1146,8 @@ export function PitchDeck({onClose,onCatalog}){
         <div style={{display:"flex",gap:7}}>{slides.map((_,k)=><button key={k} onClick={()=>setI(k)} aria-label={`Slide ${k+1}`} style={{width:k===i?22:8,height:8,borderRadius:999,border:"none",background:k===i?gold:"rgba(255,255,255,0.22)",transition:"all .3s",cursor:"pointer"}}/>)}</div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span className="fm" style={{fontSize:12,color:"#9A9C86",minWidth:54,textAlign:"right"}}>{String(i+1).padStart(2,"0")} / {String(n).padStart(2,"0")}</span>
-          <button onClick={()=>go(-1)} disabled={i===0} aria-label="Anterior" style={{background:"transparent",border:`1px solid rgba(201,168,106,${i===0?0.15:0.4})`,color:i===0?"#555":cream,borderRadius:5,width:38,height:34,cursor:i===0?"default":"pointer"}}><ArrowLeft size={15} style={{verticalAlign:"middle"}}/></button>
-          <button onClick={()=>go(1)} disabled={i===n-1} aria-label="Próximo" style={{background:i===n-1?"transparent":gold,border:`1px solid ${gold}`,color:i===n-1?"#555":ink,borderRadius:5,width:38,height:34,cursor:i===n-1?"default":"pointer"}}><ChevronRight size={16} style={{verticalAlign:"middle"}}/></button>
+          <button onClick={()=>go(-1)} disabled={i===0} aria-label="Anterior" style={{background:"transparent",border:`1px solid rgba(201,168,106,${i===0?0.15:0.4})`,color:i===0?"#555":cream,borderRadius:11,width:38,height:34,cursor:i===0?"default":"pointer"}}><ArrowLeft size={15} style={{verticalAlign:"middle"}}/></button>
+          <button onClick={()=>go(1)} disabled={i===n-1} aria-label="Próximo" style={{background:i===n-1?"transparent":gold,border:`1px solid ${gold}`,color:i===n-1?"#555":ink,borderRadius:11,width:38,height:34,cursor:i===n-1?"default":"pointer"}}><ChevronRight size={16} style={{verticalAlign:"middle"}}/></button>
         </div>
       </div>
     </div>
@@ -1164,7 +1164,7 @@ function Linha({rotulo, bento, comum, unidade}){
   const row=(nome,val,w,cor,strong)=>(
     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
       <span style={{width:58,fontSize:11,color:strong?T.pistacheDark:T.inkSoft,fontWeight:strong?700:500}}>{nome}</span>
-      <div style={{flex:1,background:"#EDE4CF",borderRadius:6,height:18,overflow:"hidden"}}>
+      <div style={{flex:1,background:"#EDE4CF",borderRadius:12,height:18,overflow:"hidden"}}>
         <div style={{width:w+"%",height:"100%",background:cor,transition:"width .6s cubic-bezier(.2,.8,.2,1)"}}/>
       </div>
       <span style={{width:70,textAlign:"right",fontSize:12,fontWeight:strong?700:500,color:strong?T.ink:T.inkSoft}}>{val.toFixed(1)}{unidade}</span>
@@ -1173,7 +1173,7 @@ function Linha({rotulo, bento, comum, unidade}){
   return(
     <div style={{marginBottom:16}}>
       <div className="fm" style={{fontSize:11,letterSpacing:".1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:7}}>{rotulo}</div>
-      {row("Bentô",bento,pb,"linear-gradient(90deg,#8FA050,#5C6B3A)",true)}
+      {row("Bentô",bento,pb,"linear-gradient(90deg,#8FA050,#46583A)",true)}
       {row("Comum",comum,pc,"#C9A98F",false)}
     </div>
   );
@@ -1181,11 +1181,13 @@ function Linha({rotulo, bento, comum, unidade}){
 
 export function CulpaModal({onClose,onDelivery}){
   useModal(onClose);
-  const gelatos = PRODUCTS.filter(p=>p.category==="gelato");
-  const per100 = (k)=> gelatos.reduce((s,p)=>s+p.nutrition[k]*100/p.serving,0)/gelatos.length;
-  const bSug=per100("sugars"), bProt=per100("protein"), bKcal=per100("kcal");
-  const cubos = Math.max(0, Math.round((SORVETE_REF.sugars - bSug)/4)); // 1 torrão ≈ 4 g
-  const protMais = Math.max(0, bProt - SORVETE_REF.protein);
+  // Comparação no best-seller (Pistache), por PORÇÃO real de 60 g — números reais.
+  const pis = PRODUCTS.find(p=>p.id==="pistache");
+  const sc = pis.serving/100; // sorvete comum (por 100 g) reescalado p/ a mesma porção
+  const cSug=SORVETE_REF.sugars*sc, cProt=SORVETE_REF.protein*sc, cKcal=Math.round(SORVETE_REF.kcal*sc);
+  const bSug=pis.nutrition.addedSugars, bProt=pis.nutrition.protein, bKcal=pis.nutrition.kcal;
+  const cubos = Math.max(0, Math.round((cSug - bSug)/4)); // 1 torrão ≈ 4 g
+  const protMais = Math.max(0, bProt - cProt);
 
   function gerarImagem(){
     return new Promise((resolve)=>{
@@ -1195,15 +1197,15 @@ export function CulpaModal({onClose,onDelivery}){
       x.fillStyle="#B8C97A"; x.font="700 52px Georgia, serif"; x.fillText("BENTÔ", 540, 150);
       x.fillStyle="#9FB089"; x.font="600 26px Helvetica"; x.fillText("S E M   C U L P A - Ô M E T R O", 540, 200);
       x.fillStyle="#fff"; x.font="800 230px Helvetica"; x.fillText("−"+cubos, 540, 560);
-      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar a cada 100 g", 540, 625);
+      x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar adicionado por porção", 540, 625);
       x.fillStyle="#E3C46A"; x.font="800 180px Helvetica"; x.fillText("+"+protMais.toFixed(0)+"g", 540, 900);
       x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("de proteína vs sorvete comum", 540, 965);
-      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Gelato com propósito", 540, 1190);
+      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Pistache · "+bKcal+" kcal por porção", 540, 1190);
       x.fillStyle="#9FB089"; x.font="500 30px Helvetica"; x.fillText("bentogelateria.com", 540, 1245);
       c.toBlob(b=>resolve(b),"image/png");
     });
   }
-  const msg = `Gelato da Bentô tem ~${cubos} torrões de açúcar a MENOS e +${protMais.toFixed(0)}g de proteína a cada 100 g vs sorvete comum. 🍦`;
+  const msg = `No nosso Pistache: ~${cubos} torrões de açúcar adicionado a MENOS, +${protMais.toFixed(0)}g de proteína e só ${bKcal} kcal por porção vs sorvete comum. 🍦`;
   const url = "https://bentogelateria.com";
   async function compartilhar(){
     tk("Compartilhar · Sem culpa-ômetro");
@@ -1223,7 +1225,7 @@ export function CulpaModal({onClose,onDelivery}){
 
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Sem culpa-ômetro" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:460,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:14,maxWidth:460,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:"linear-gradient(135deg,#222B1A,#3A472A)",padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:"#B8C97A",textTransform:"uppercase"}}>Inteligência nutricional</div>
@@ -1232,34 +1234,38 @@ export function CulpaModal({onClose,onDelivery}){
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.14)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0}}><X size={16}/></button>
         </div>
         <div style={{padding:22}}>
-          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo gelato funcional da Bentô — média da nossa linha, por 100 g:</div>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo nosso Pistache (best-seller) — por porção de {pis.portionLabel}:</div>
 
           <div style={{display:"flex",gap:10,marginBottom:18}}>
-            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:16,padding:"14px 10px",textAlign:"center"}}>
               <div className="fd" style={{fontSize:30,color:T.pistacheDark,lineHeight:1}}>−{cubos}</div>
               <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>torrões de açúcar 🧊</div>
             </div>
-            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
+            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:16,padding:"14px 10px",textAlign:"center"}}>
               <div className="fd" style={{fontSize:30,color:"#1A4FAA",lineHeight:1}}>+{protMais.toFixed(0)}g</div>
               <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>de proteína 💪</div>
             </div>
-            <div style={{flex:1,background:"#F6EEDD",border:"1px solid #E0CBA0",borderRadius:12,padding:"14px 10px",textAlign:"center"}}>
-              <div className="fd" style={{fontSize:30,color:"#A9831C",lineHeight:1}}>0g</div>
-              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>açúcar adicionado 🚫</div>
+            <div style={{flex:1,background:"#F6EEDD",border:"1px solid #E0CBA0",borderRadius:16,padding:"14px 10px",textAlign:"center"}}>
+              <div className="fd" style={{fontSize:30,color:"#A9831C",lineHeight:1}}>{bKcal}</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>kcal por porção 🍃</div>
             </div>
           </div>
 
-          <Linha rotulo="Açúcares (g / 100 g)" bento={bSug} comum={SORVETE_REF.sugars} unidade="g"/>
-          <Linha rotulo="Proteína (g / 100 g)" bento={bProt} comum={SORVETE_REF.protein} unidade="g"/>
-          <Linha rotulo="Calorias (kcal / 100 g)" bento={bKcal} comum={SORVETE_REF.kcal} unidade=""/>
+          <Linha rotulo="Açúcar adicionado (g / porção)" bento={bSug} comum={cSug} unidade="g"/>
+          <Linha rotulo="Proteína (g / porção)" bento={bProt} comum={cProt} unidade="g"/>
+
+          <div style={{display:"flex",alignItems:"center",gap:10,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:16,padding:"12px 14px",marginBottom:4}}>
+            <div className="fd" style={{fontSize:26,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{bKcal} kcal</div>
+            <div className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {bProt} g de proteína. <span style={{color:T.inkSoft}}>(comum ≈ {cKcal} kcal)</span></div>
+          </div>
 
           <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
-            <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📲 Compartilhar no story</button>
-            <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:8,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>⬇️ Baixar imagem</button>
+            <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📲 Compartilhar no story</button>
+            <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>⬇️ Baixar imagem</button>
           </div>
-          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Provar sem culpa — pedir no iFood</button>
+          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Provar sem culpa — pedir no iFood</button>
 
-          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g). Valores Bentô calculados da nossa linha de gelatos.</div>
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. Bentô Pistache (porção de {pis.portionLabel}, da nossa ficha). “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g), na mesma porção.</div>
         </div>
       </div>
     </div>
@@ -1274,7 +1280,7 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
   const maxP = top.length?top[0].nutrition.protein:1;
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Aliado de quem usa GLP-1" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:8,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:14,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:"linear-gradient(135deg,#2A2238,#3E2F58)",padding:"18px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:"#D9C7F2",textTransform:"uppercase"}}>Tabelas em foco</div>
@@ -1287,15 +1293,15 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
           <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:16,lineHeight:1.55}}>O Bentô resolve isso: <strong>muita proteína numa porção pequena</strong>, fácil de comer mesmo sem fome, com <strong>zero açúcar adicionado</strong>.</div>
 
           <div style={{display:"flex",gap:10,marginBottom:18}}>
-            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+            <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
               <div className="fd" style={{fontSize:26,color:"#1A4FAA",lineHeight:1}}>até {maxP}g</div>
               <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>proteína / bola</div>
             </div>
-            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+            <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
               <div className="fd" style={{fontSize:26,color:T.pistacheDark,lineHeight:1}}>0</div>
               <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>açúcar adicionado</div>
             </div>
-            <div style={{flex:1,background:"#F4EEF8",border:"1px solid #D9C7F2",borderRadius:12,padding:"14px 8px",textAlign:"center"}}>
+            <div style={{flex:1,background:"#F4EEF8",border:"1px solid #D9C7F2",borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
               <div className="fd" style={{fontSize:26,color:"#6A3DA8",lineHeight:1}}>60g</div>
               <div className="fb" style={{fontSize:10,color:T.inkSoft,marginTop:4,lineHeight:1.25}}>porção fácil de comer</div>
             </div>
@@ -1304,11 +1310,11 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
           <div className="fm" style={{fontSize:11,letterSpacing:".12em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>Ranking de proteína</div>
           <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:18}}>
             {top.map(p=>(
-              <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{display:"flex",alignItems:"center",gap:10,textAlign:"left",background:T.bg,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 12px",cursor:"pointer"}}>
+              <button key={p.id} onClick={()=>onSelectProduct(p.id)} className="hl" style={{display:"flex",alignItems:"center",gap:10,textAlign:"left",background:T.bg,border:`1px solid ${T.border}`,borderRadius:14,padding:"10px 12px",cursor:"pointer"}}>
                 <span style={{fontSize:22,flexShrink:0}}>{p.emoji}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div className="fd" style={{fontSize:14,color:T.ink,lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</div>
-                  <div style={{background:"#E6EAD8",borderRadius:5,height:7,overflow:"hidden",marginTop:5}}><div style={{width:Math.round(p.nutrition.protein/maxP*100)+"%",height:"100%",background:"linear-gradient(90deg,#8FA050,#5C6B3A)"}}/></div>
+                  <div style={{background:"#E6EAD8",borderRadius:11,height:7,overflow:"hidden",marginTop:5}}><div style={{width:Math.round(p.nutrition.protein/maxP*100)+"%",height:"100%",background:"linear-gradient(90deg,#8FA050,#46583A)"}}/></div>
                 </div>
                 <div style={{textAlign:"right",flexShrink:0}}>
                   <div className="fd" style={{fontSize:16,color:"#1A4FAA",lineHeight:1}}>{p.nutrition.protein}g</div>
@@ -1319,11 +1325,11 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
           </div>
 
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            <button onClick={onTabelas} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📋 Ver todas as tabelas</button>
-            <button onClick={onDelivery} className="fb" style={{flex:1,minWidth:150,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:8,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Pedir no iFood</button>
+            <button onClick={onTabelas} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📋 Ver todas as tabelas</button>
+            <button onClick={onDelivery} className="fb" style={{flex:1,minWidth:150,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Pedir no iFood</button>
           </div>
 
-          <div style={{background:"#FBF4E6",border:"1px solid #E8D9B5",borderRadius:10,padding:"12px 14px",marginTop:14}}>
+          <div style={{background:"#FBF4E6",border:"1px solid #E8D9B5",borderRadius:14,padding:"12px 14px",marginTop:14}}>
             <div className="fb" style={{fontSize:11,color:"#7A5E1C",lineHeight:1.5}}>⚠️ Conteúdo informativo sobre nutrição — <strong>não é conselho médico</strong> e não substitui o acompanhamento do seu médico ou nutricionista. O uso de medicamentos deve ser sempre orientado por um profissional de saúde.</div>
           </div>
         </div>
