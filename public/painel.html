@@ -116,6 +116,17 @@
   </div>
 
   <div class="card" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center"><span>💼 Candidatos às vagas</span><span id="vagasCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
+    <div class="tblscroll">
+      <table id="vagasTbl">
+        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Vaga</th><th>Unidade</th><th>Idade</th><th>Disponib.</th><th>Experiência / Sobre</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="vagasEmpty" style="display:none">Nenhum candidato ainda. Quando alguém se cadastrar em “Trabalhe conosco”, aparece aqui na hora. 💼</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🎉 Orçamentos de eventos — leads</span><span id="leadsCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="tblscroll">
       <table id="leadsTbl">
@@ -360,8 +371,37 @@ async function bookAction(action, date, hora){
   else alert("Não consegui salvar a data (verifique a senha do painel).");
 }
 
+async function loadVagas(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/vaga", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  renderVagas(await r.json());
+}
+function renderVagas(d){
+  const cands = (d && d.candidatos) || [];
+  $("#vagasCount").textContent = d && d.total ? (d.total + " no total") : "";
+  const tb = $("#vagasTbl tbody"); tb.innerHTML = "";
+  cands.forEach(c=>{
+    const dig = String(c.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const quando = new Date(c.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const extra = [c.experiencia, c.sobre].filter(Boolean).join(" · ");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
+      <td>${escapeHtml(c.nome||"—")}</td>
+      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(c.phone)}</a>`:escapeHtml(c.phone||"—")}</td>
+      <td>${escapeHtml(c.cargo||"—")}</td>
+      <td>${escapeHtml(c.unidade||"—")}${c.bairro?` · ${escapeHtml(c.bairro)}`:""}</td>
+      <td class="num">${escapeHtml(c.idade||"—")}</td>
+      <td>${escapeHtml(c.disponibilidade||"—")}</td>
+      <td>${escapeHtml(extra||"—")}</td>`;
+    tb.appendChild(tr);
+  });
+  $("#vagasEmpty").style.display = cands.length ? "none" : "block";
+}
+
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 

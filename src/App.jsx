@@ -143,7 +143,7 @@ function Tile({t,delay=0}){
 
 /* ========== HOME (LAUNCHER) ========== */
 
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
     {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64",badge:"🗺️ Peça agora pelo iFood e nos encontre",badgeBg:"#EA1D2C"},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
@@ -202,6 +202,17 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
               <Tile key={t.title} t={t} delay={250+i*45}/>
             ))}
           </div>
+
+          {/* Banner Vagas — Estamos contratando */}
+          <button onClick={()=>tk("Vagas · Estamos contratando",onVagas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:`linear-gradient(135deg,${T.surface} 0%,${T.bgWarm} 100%)`,border:`1px solid ${T.accent}`,borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:18,padding:"12px 20px 12px 14px",cursor:"pointer",marginTop:12,animationDelay:"430ms",boxShadow:"0 10px 28px -16px rgba(70,88,58,.5)"}}>
+            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>💼</span>
+            <div style={{flex:1,minWidth:0}}>
+              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:4}}>💚 Estamos contratando</span>
+              <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Trabalhe conosco</div>
+              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Vaga de Atendente · Jardim Camburi e Praia do Canto · cadastre seu interesse</div>
+            </div>
+            <span className="fd" style={{fontSize:22,color:T.pistacheDark,flexShrink:0}}>→</span>
+          </button>
         </div>
       </section>
     </div>
@@ -674,6 +685,7 @@ const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
 
 const TermosPage = lazy(() => import("./TermosPage.jsx"));
 const PortfolioPage = lazy(() => import("./PortfolioPage.jsx"));
+const TrabalhePage = lazy(() => import("./TrabalhePage.jsx"));
 
 /* ========== SEM CULPA-ÔMETRO ========== */
 // Referência: sorvete de massa tradicional (média de mercado), por 100 g.
@@ -738,6 +750,7 @@ export default function App(){
   const[privacidade]=useState(()=>{try{return new URLSearchParams(window.location.search).has("privacidade");}catch{return false;}});
   const[termos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("termos");}catch{return false;}});
   const[portfolio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("portfolio");}catch{return false;}});
+  const[vagas]=useState(()=>{try{return new URLSearchParams(window.location.search).has("vagas");}catch{return false;}});
   const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -769,11 +782,12 @@ export default function App(){
   if(privacidade) return(<><GStyle/><Suspense fallback={null}><PrivacidadePage/></Suspense></>);
   if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);
   if(portfolio) return(<><GStyle/><Suspense fallback={null}><PortfolioPage/></Suspense></>);
+  if(vagas) return(<><GStyle/><Suspense fallback={null}><TrabalhePage/></Suspense></>);
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
@@ -799,6 +813,7 @@ export default function App(){
           <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#EA1D2C",borderRadius:9,padding:"7px 12px"}}>🛵 Delivery</button>
           <button onClick={()=>tk("Rodapé · Cardápio",()=>setShowCardapio(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.ink,borderRadius:9,padding:"7px 12px"}}>📋 Cardápio</button>
           <button onClick={()=>tk("Rodapé · Seja Bentô",()=>setShowParceria(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",border:"none",cursor:"pointer",background:"#1FA855",borderRadius:9,padding:"7px 12px"}}>🤝 Seja Bentô</button>
+          <a href="/?vagas" onClick={()=>tk("Rodapé · Vagas")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:"#fff",textTransform:"uppercase",textDecoration:"none",background:T.pistacheDark,borderRadius:9,padding:"7px 12px"}}>💼 Trabalhe conosco</a>
           <button onClick={()=>tk("Rodapé · Conheça a Bentô",()=>setShowPitch(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.surface,textTransform:"uppercase",border:"none",cursor:"pointer",background:T.pistacheDark,borderRadius:9,padding:"7px 12px"}}>✦ Conheça a Bentô</button>
           <a href="/tabela-nutricional.csv" download onClick={()=>tk("Download CSV")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>↓ Tabela nutricional (CSV)</a>
           <a href="/?privacidade=1" className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.inkSoft,textTransform:"uppercase",textDecoration:"none",border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Privacidade</a>
