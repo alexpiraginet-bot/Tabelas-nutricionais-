@@ -1,10 +1,18 @@
 // Página de carreiras "Estamos contratando" (?vagas). Carregada sob demanda (lazy).
 // Cadastro de candidatos: grava em /api/vaga (Redis + Telegram) e oferece atalho no WhatsApp.
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { T, tk, BentoLogo } from "./shared.jsx";
 
 const WHATS = "5527999159995"; // DDI+DDD+número, só dígitos
-const UNIDADES = ["Jardim Camburi", "Praia do Canto", "Tanto faz / as duas"];
+
+// ===== VAGAS ABERTAS (edite aqui para adicionar/trocar funções) =====
+// Cada vaga: { cargo, unidades:[...], desc? }. Para abrir uma vaga rápida sem
+// mexer no código, use o link: /?vagas=NomeDaVaga  (e, opcional, &unidades=A,B)
+const VAGAS = [
+  { cargo: "Atendente", unidades: ["Jardim Camburi", "Praia do Canto"] },
+];
+const TODAS_UNIDADES = ["Jardim Camburi", "Praia do Canto"];
+
 const DISPON = ["Manhã", "Tarde", "Noite", "Integral", "Flexível"];
 const BENEFICIOS = [
   ["🩺", "Plano de saúde"],
@@ -22,20 +30,51 @@ function maskPhone(v) {
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
 }
 
+// Monta a lista de vagas combinando a config fixa + parâmetros da URL.
+function vagasFromURL() {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    const raw = p.get("vagas"); // pode ser "", "1" ou o nome do cargo
+    const cargoParam = (p.get("cargo") || (raw && raw !== "1" ? raw : "")).trim();
+    if (!cargoParam) return VAGAS;
+    const uParam = (p.get("unidades") || "").split(",").map((s) => s.trim()).filter(Boolean);
+    const exists = VAGAS.find((v) => v.cargo.toLowerCase() === cargoParam.toLowerCase());
+    if (exists) {
+      // reordena para a vaga do link aparecer primeiro (pré-selecionada)
+      return [exists, ...VAGAS.filter((v) => v !== exists)];
+    }
+    return [{ cargo: cargoParam, unidades: uParam.length ? uParam : TODAS_UNIDADES }, ...VAGAS];
+  } catch {
+    return VAGAS;
+  }
+}
+
 export default function TrabalhePage() {
-  const [f, setF] = useState({ nome: "", phone: "", cargo: "Atendente", unidade: "", idade: "", bairro: "", disponibilidade: "", experiencia: "", sobre: "", consent: false });
+  const vagas = useMemo(vagasFromURL, []);
+  const [vi, setVi] = useState(0);            // índice da vaga selecionada
+  const vaga = vagas[vi] || vagas[0];
+  const unidadeOpts = useMemo(() => {
+    const u = (vaga.unidades && vaga.unidades.length ? vaga.unidades : TODAS_UNIDADES).slice();
+    return u.length > 1 ? [...u, "Tanto faz / as duas"] : u;
+  }, [vaga]);
+
+  const [f, setF] = useState({ nome: "", phone: "", unidade: "", idade: "", bairro: "", disponibilidade: "", experiencia: "", sobre: "", consent: false });
   const [sent, setSent] = useState(false);
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
+  // ao trocar de vaga, zera a unidade se ela não existir mais nas opções
+  const pickVaga = (i) => { setVi(i); setF((s) => ({ ...s, unidade: "" })); };
+  // unidade efetiva: se a vaga só tem uma, assume-a
+  const unidadeFinal = f.unidade || (unidadeOpts.length === 1 ? unidadeOpts[0] : "");
   const phoneOk = f.phone.replace(/\D/g, "").length >= 10;
-  const ok = f.nome.trim() && phoneOk && f.unidade && f.consent;
+  const ok = f.nome.trim() && phoneOk && unidadeFinal && f.consent;
 
   const resumoWA = () => {
     const l = [
       "*Candidatura — Vagas Bentô* 💼",
-      `*Vaga:* ${f.cargo}`,
+      `*Vaga:* ${vaga.cargo}`,
       `*Nome:* ${f.nome.trim()}`,
       `*WhatsApp:* ${f.phone.trim()}`,
-      f.unidade && `*Unidade:* ${f.unidade}`,
+      unidadeFinal && `*Unidade:* ${unidadeFinal}`,
       f.idade && `*Idade:* ${f.idade}`,
       f.bairro && `*Bairro:* ${f.bairro.trim()}`,
       f.disponibilidade && `*Disponibilidade:* ${f.disponibilidade}`,
@@ -50,7 +89,7 @@ export default function TrabalhePage() {
     tk("Conversão · Candidatura vaga");
     try {
       fetch("/api/vaga", { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
-        body: JSON.stringify({ nome: f.nome.trim(), phone: f.phone.trim(), cargo: f.cargo, unidade: f.unidade, idade: f.idade, bairro: f.bairro.trim(), disponibilidade: f.disponibilidade, experiencia: f.experiencia.trim(), sobre: f.sobre.trim() }) });
+        body: JSON.stringify({ nome: f.nome.trim(), phone: f.phone.trim(), cargo: vaga.cargo, unidade: unidadeFinal, idade: f.idade, bairro: f.bairro.trim(), disponibilidade: f.disponibilidade, experiencia: f.experiencia.trim(), sobre: f.sobre.trim() }) });
     } catch {}
     setSent(true);
   };
@@ -58,6 +97,7 @@ export default function TrabalhePage() {
 
   const lbl = { display: "block", fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: T.inkSoft, marginBottom: 6 };
   const inp = { width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${T.border}`, background: T.surface, color: T.ink, fontSize: 15, fontFamily: "'DM Sans',system-ui,sans-serif", outline: "none" };
+  const unidadesLabel = (vaga.unidades && vaga.unidades.length ? vaga.unidades : TODAS_UNIDADES);
 
   return (
     <div style={{ minHeight: "100dvh", background: T.bg, color: T.ink, fontFamily: "'DM Sans',system-ui,sans-serif", padding: "22px 14px 60px" }}>
@@ -73,14 +113,22 @@ export default function TrabalhePage() {
               <h1 className="fd" style={{ fontFamily: "'Fraunces',Georgia,serif", fontSize: "clamp(34px,9vw,52px)", lineHeight: 0.98, color: T.ink, fontWeight: 600, margin: "8px 0 0", letterSpacing: "-0.01em" }}>
                 Estamos<br />contratando
               </h1>
-              <div className="fd" style={{ fontFamily: "'Fraunces',Georgia,serif", fontStyle: "italic", fontSize: 28, color: T.pistacheDark, marginTop: 12 }}>Atendente</div>
+              <div className="fd" style={{ fontFamily: "'Fraunces',Georgia,serif", fontStyle: "italic", fontSize: 28, color: T.pistacheDark, marginTop: 12 }}>{vaga.cargo}</div>
+              {vagas.length > 1 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", marginTop: 14 }}>
+                  {vagas.map((v, i) => {
+                    const a = i === vi;
+                    return <button key={v.cargo} type="button" onClick={() => pickVaga(i)} className="fb" style={{ padding: "8px 14px", borderRadius: 999, border: `1.5px solid ${a ? T.pistacheDark : T.border}`, background: a ? T.pistacheDark : T.surface, color: a ? "#fff" : T.ink, fontSize: 13, fontWeight: a ? 700 : 500, cursor: "pointer" }}>{v.cargo}</button>;
+                  })}
+                </div>
+              )}
             </div>
 
             {/* unidades + benefícios */}
             <div style={{ marginTop: 24, display: "grid", gap: 16 }}>
               <div>
-                <div style={lbl}>📍 Unidades</div>
-                <div className="fb" style={{ fontSize: 15, color: T.ink }}>Jardim Camburi <span style={{ color: T.accent }}>·</span> Praia do Canto</div>
+                <div style={lbl}>📍 {unidadesLabel.length > 1 ? "Unidades" : "Unidade"}</div>
+                <div className="fb" style={{ fontSize: 15, color: T.ink }}>{unidadesLabel.map((u, i) => <span key={u}>{i > 0 && <span style={{ color: T.accent }}> · </span>}{u}</span>)}</div>
               </div>
               <div>
                 <div style={lbl}>🎁 Benefícios</div>
@@ -99,7 +147,7 @@ export default function TrabalhePage() {
                 <div style={{ fontSize: 46 }}>🎉</div>
                 <h2 className="fd" style={{ fontFamily: "'Fraunces',Georgia,serif", fontSize: 26, color: T.ink, fontWeight: 600, margin: "8px 0 6px" }}>Candidatura recebida!</h2>
                 <p className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, maxWidth: 420, margin: "0 auto" }}>
-                  Obrigado, {f.nome.trim().split(" ")[0]}! Seu cadastro chegou pra gente. Se o perfil casar com a vaga, a equipe entra em contato pelo seu WhatsApp. 💛
+                  Obrigado, {f.nome.trim().split(" ")[0]}! Seu cadastro para <b>{vaga.cargo}</b> chegou pra gente. Se o perfil casar com a vaga, a equipe entra em contato pelo seu WhatsApp. 💛
                 </p>
                 <button onClick={falarWhats} className="fb" style={{ marginTop: 18, background: "#1FA855", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
                 <div style={{ marginTop: 14 }}><a href="/" className="fb" style={{ fontSize: 13, color: T.pistacheDark, textDecoration: "underline" }}>Voltar ao site</a></div>
@@ -122,15 +170,17 @@ export default function TrabalhePage() {
                       <input value={f.idade} onChange={(e) => set("idade", e.target.value.replace(/\D/g, "").slice(0, 2))} inputMode="numeric" placeholder="opcional" style={inp} />
                     </div>
                   </div>
-                  <div>
-                    <label style={lbl}>Unidade de interesse *</label>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {UNIDADES.map((u) => {
-                        const a = f.unidade === u;
-                        return <button key={u} type="button" onClick={() => set("unidade", u)} className="fb" style={{ flex: "1 1 30%", minWidth: 120, padding: "11px 10px", borderRadius: 12, border: `1.5px solid ${a ? T.pistacheDark : T.border}`, background: a ? T.pistacheDark : T.surface, color: a ? "#fff" : T.ink, fontSize: 13, fontWeight: a ? 700 : 500, cursor: "pointer" }}>{u}</button>;
-                      })}
+                  {unidadeOpts.length > 1 && (
+                    <div>
+                      <label style={lbl}>Unidade de interesse *</label>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                        {unidadeOpts.map((u) => {
+                          const a = f.unidade === u;
+                          return <button key={u} type="button" onClick={() => set("unidade", u)} className="fb" style={{ flex: "1 1 30%", minWidth: 120, padding: "11px 10px", borderRadius: 12, border: `1.5px solid ${a ? T.pistacheDark : T.border}`, background: a ? T.pistacheDark : T.surface, color: a ? "#fff" : T.ink, fontSize: 13, fontWeight: a ? 700 : 500, cursor: "pointer" }}>{u}</button>;
+                        })}
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div>
                       <label style={lbl}>Bairro onde mora</label>
