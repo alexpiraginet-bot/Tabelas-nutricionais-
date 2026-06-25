@@ -131,6 +131,10 @@ export default function TrabalhePage() {
                 <div className="fb" style={{ fontSize: 15, color: T.ink }}>{unidadesLabel.map((u, i) => <span key={u}>{i > 0 && <span style={{ color: T.accent }}> · </span>}{u}</span>)}</div>
               </div>
               <div>
+                <div style={lbl}>📅 Dias de trabalho</div>
+                <div className="fb" style={{ fontSize: 15, color: T.ink }}>Terça a domingo <span className="fb" style={{ fontSize: 12.5, color: T.inkSoft }}>(folga às segundas)</span></div>
+              </div>
+              <div>
                 <div style={lbl}>🎁 Benefícios</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
                   {BENEFICIOS.map(([ic, b]) => (
