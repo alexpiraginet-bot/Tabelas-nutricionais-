@@ -116,6 +116,17 @@
   </div>
 
   <div class="card" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🍫 Pré-vendas BentôBytes</span><span id="prevCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
+    <div class="tblscroll">
+      <table id="prevTbl">
+        <thead><tr><th>Quando</th><th>Pedido</th><th>Nome</th><th>WhatsApp</th><th>Sabor</th><th class="num">Qtd</th><th>Retirada</th><th class="num">Total</th><th>Status</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="prevEmpty" style="display:none">Nenhuma pré-venda ainda. Quando alguém comprar o BentôBytes na pré-venda, o pedido aparece aqui na hora. 🍫</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>💼 Candidatos às vagas</span><span id="vagasCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="tblscroll">
       <table id="vagasTbl">
@@ -371,6 +382,36 @@ async function bookAction(action, date, hora){
   else alert("Não consegui salvar a data (verifique a senha do painel).");
 }
 
+async function loadPrevendas(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/prevenda", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  renderPrevendas(await r.json());
+}
+function renderPrevendas(d){
+  const peds = (d && d.pedidos) || [];
+  $("#prevCount").textContent = d && d.total ? (d.total + " no total") : "";
+  const tb = $("#prevTbl tbody"); tb.innerHTML = "";
+  const brl = (n)=> (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  peds.forEach(p=>{
+    const dig = String(p.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const quando = new Date(p.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
+      <td class="mono">${escapeHtml(p.code||"—")}</td>
+      <td>${escapeHtml(p.nome||"—")}</td>
+      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
+      <td>${escapeHtml(p.sabor||"—")}</td>
+      <td class="num">${p.qty||1}</td>
+      <td>${escapeHtml(p.unidade||"—")}</td>
+      <td class="num">${brl(p.total)}</td>
+      <td><span class="tag">${escapeHtml(p.status||"—")}</span></td>`;
+    tb.appendChild(tr);
+  });
+  $("#prevEmpty").style.display = peds.length ? "none" : "block";
+}
+
 async function loadVagas(){
   const key = localStorage.getItem(KEYSTORE) || "";
   const r = await fetch("/api/vaga", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
@@ -401,7 +442,7 @@ function renderVagas(d){
 }
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
