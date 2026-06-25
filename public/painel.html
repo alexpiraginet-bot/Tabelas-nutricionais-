@@ -185,6 +185,21 @@
       <span id="sortDrawn" class="mono" style="color:var(--soft);font-size:11px"></span>
     </div>
     <div id="sortWinners"></div>
+
+    <div style="border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px">
+      <div class="lkgrp" style="margin-top:0">📣 Disparar mensagem / campanha</div>
+      <textarea id="campMsg" rows="3" placeholder="Escreva a mensagem… use {nome} para personalizar. Ex.: Oi {nome}! Saiu o resultado do sorteio BentôBytes 🎁🍫" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:#0e120b;color:var(--ink);font-size:14px;font-family:inherit;resize:vertical;outline:none"></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:9px">
+        <select id="campWho" style="background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 10px;font-size:12px">
+          <option value="all">Todos os inscritos</option>
+          <option value="winners">Só os ganhadores</option>
+        </select>
+        <button id="campCopyMsg" style="background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer">📋 Copiar mensagem</button>
+        <button id="campCopyNums" style="background:var(--pist);border:none;color:#0c0f0a;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:800;cursor:pointer">📋 Copiar números (transmissão)</button>
+      </div>
+      <div style="text-align:left;font-size:11px;color:var(--soft);margin-top:10px;line-height:1.5">Cole os números numa <b style="color:var(--ink)">Lista de Transmissão</b> do WhatsApp Business, ou clique no WhatsApp de cada inscrito abaixo para enviar 1 a 1 (a mensagem acima é aplicada, com {nome} preenchido). Para envio <b style="color:var(--ink)">automático em massa</b>, dá pra integrar a API oficial do WhatsApp Business.</div>
+    </div>
+
     <details style="margin-top:10px">
       <summary class="mono" style="cursor:pointer;color:var(--soft);font-size:11px;letter-spacing:.06em">Ver todos os inscritos</summary>
       <div class="tblscroll" style="margin-top:8px">
@@ -570,19 +585,22 @@ async function loadSorteio(){
   if(!r.ok) return;
   renderSorteio(await r.json());
 }
+var _inscritos = [];
 function renderSorteio(d){
   const ins = (d && d.inscritos) || [];
+  _inscritos = ins;
   $("#sortCount").textContent = (d && d.total) ? (d.total + " inscritos") : "";
   setBadge("bgSorteio", d && d.total ? d.total : ins.length);
   const tb = $("#sortTbl tbody"); tb.innerHTML = "";
   ins.forEach(p=>{
     const dig = String(p.phone||"").replace(/\D/g,"");
     const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const nome1 = escapeHtml((p.nome||"").split(" ")[0]);
     const quando = new Date(p.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
     const tr = document.createElement("tr");
     tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
       <td>${escapeHtml(p.nome||"—")}</td>
-      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
+      <td>${wa?`<a class="docs camp-send" href="${wa}" data-wa="${wa}" data-nome="${nome1}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
       <td>${escapeHtml(p.instagram||"—")}</td>
       <td>${escapeHtml(p.unidade||"—")}</td>`;
     tb.appendChild(tr);
@@ -591,6 +609,23 @@ function renderSorteio(d){
   _winners = (d && d.winners) || [];
   renderWinners(_winners, d && d.drawnAt);
 }
+function campTpl(msg, nome){ return String(msg).replace(/\{nome\}/g, nome||""); }
+function bindCampaign(){
+  // ao clicar no WhatsApp de um inscrito, aplica a mensagem da campanha (com {nome})
+  var tb = $("#sortTbl"); if(tb) tb.addEventListener("click", function(e){
+    var a = e.target.closest ? e.target.closest(".camp-send") : null; if(!a) return;
+    var msg = ($("#campMsg") && $("#campMsg").value.trim()) || "";
+    a.href = msg ? (a.dataset.wa + "?text=" + encodeURIComponent(campTpl(msg, a.dataset.nome))) : a.dataset.wa;
+  });
+  var cm = $("#campCopyMsg"); if(cm) cm.onclick = function(){ var v=($("#campMsg").value||"").trim(); if(!v){ alert("Escreva a mensagem primeiro."); return; } copyLink(v, cm); };
+  var cn = $("#campCopyNums"); if(cn) cn.onclick = function(){
+    var who = ($("#campWho") && $("#campWho").value)==="winners" ? _winners : _inscritos;
+    var nums = (who||[]).map(function(p){ var d=String(p.phone||"").replace(/\D/g,""); return d ? (d.length<=11?"55":"")+d : ""; }).filter(Boolean);
+    if(!nums.length){ alert("Sem contatos nessa seleção ainda."); return; }
+    copyLink(nums.join("\n"), cn);
+  };
+}
+bindCampaign();
 function renderWinners(ws, drawnAt){
   const box = $("#sortWinners"); box.innerHTML = "";
   if(!ws || !ws.length){ $("#sortCopy").style.display="none"; $("#sortDrawn").textContent=""; return; }

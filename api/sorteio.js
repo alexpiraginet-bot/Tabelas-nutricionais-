@@ -128,6 +128,7 @@ export default async function handler(req, res) {
         phone: s120(body.phone || ""),
         instagram: s120(body.instagram || ""),
         unidade: s120(body.unidade || ""),
+        consent: body.consent === true || body.consent === "true" ? 1 : 0,
       };
       await pipeline([["LPUSH", "sorteio", JSON.stringify(reg)], ["LTRIM", "sorteio", 0, 4999], ["INCR", "sorteio:count"]]);
       res.status(200).json({ ok: true, dup: false });
