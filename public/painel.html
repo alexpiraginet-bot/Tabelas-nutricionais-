@@ -44,6 +44,15 @@
   .grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px;margin-bottom:14px}
   @media(max-width:820px){.grid2{grid-template-columns:1fr}}
   .tblscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:16px;padding-bottom:4px}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex-shrink:0;background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--soft);font-size:13px;font-weight:700;padding:9px 15px;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+  .tabs button:hover{color:var(--ink);border-color:var(--pistD)}
+  .tabs button.on{background:var(--pist);border-color:var(--pist);color:#0c0f0a}
+  .tbg{background:rgba(0,0,0,.18);font-size:10px;font-weight:800;border-radius:999px;padding:1px 7px;min-width:16px;text-align:center}
+  .tabs button:not(.on) .tbg{background:var(--pistD);color:#0c0f0a}
+  .tbg:empty{display:none}
+  .pane[hidden]{display:none!important}
   .lkgrp{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:14px 0 7px;font-weight:700}
   .lkgrp:first-child{margin-top:2px}
   .lk{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
@@ -108,14 +117,22 @@
     </div>
   </div>
 
-  <div class="kpis">
+  <nav class="tabs" id="tabs">
+    <button data-t="geral" class="on">📊 Visão geral</button>
+    <button data-t="eventos">🎉 Eventos <span class="tbg" id="bgEventos"></span></button>
+    <button data-t="prevendas">🍫 Pré-vendas <span class="tbg" id="bgPrev"></span></button>
+    <button data-t="vagas">💼 Vagas <span class="tbg" id="bgVagas"></span></button>
+    <button data-t="links">🔗 Links</button>
+  </nav>
+
+  <div class="kpis pane" data-pane="geral">
     <div class="card kpi"><div class="lab">Cliques (total)</div><div class="val" id="kTotal">—</div><div class="hint" id="kTotalHint">desde o início</div></div>
     <div class="card kpi"><div class="lab">Hoje</div><div class="val accent-pist" id="kHoje">—</div><div class="hint">cliques nas últimas 24h (SP)</div></div>
     <div class="card kpi"><div class="lab">Conversões (total)</div><div class="val accent-gold" id="kConv">—</div><div class="hint">iFood, orçamento, revenda, quiz…</div></div>
     <div class="card kpi"><div class="lab">Botão campeão</div><div class="val accent-blue" id="kTop" style="font-size:20px">—</div><div class="hint" id="kTopHint"></div></div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="links" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
       <span>🔗 Links rápidos — para posts e stories</span>
       <span class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0">toque em “copiar” e cole no story</span>
@@ -123,7 +140,7 @@
     <div id="links"></div>
   </div>
 
-  <div class="grid2">
+  <div class="grid2 pane" data-pane="geral">
     <div class="card">
       <h3>Cliques por dia · últimos 14 dias</h3>
       <div class="chartbox"><canvas id="lineChart"></canvas></div>
@@ -134,7 +151,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="prevendas" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🍫 Pré-vendas BentôBytes</span><span id="prevCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="tblscroll">
       <table id="prevTbl">
@@ -145,7 +162,7 @@
     <div class="empty" id="prevEmpty" style="display:none">Nenhuma pré-venda ainda. Quando alguém comprar o BentôBytes na pré-venda, o pedido aparece aqui na hora. 🍫</div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="vagas" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>💼 Candidatos às vagas</span><span id="vagasCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="tblscroll">
       <table id="vagasTbl">
@@ -156,7 +173,7 @@
     <div class="empty" id="vagasEmpty" style="display:none">Nenhum candidato ainda. Quando alguém se cadastrar em “Trabalhe conosco”, aparece aqui na hora. 💼</div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="eventos" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🎉 Orçamentos de eventos — leads</span><span id="leadsCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="tblscroll">
       <table id="leadsTbl">
@@ -167,7 +184,7 @@
     <div class="empty" id="leadsEmpty" style="display:none">Nenhum orçamento ainda. Quando alguém gerar um orçamento de evento, o contato aparece aqui na hora. 🎉</div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="eventos" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
       <span>📅 Datas reservadas (eventos confirmados)</span>
       <span style="display:flex;gap:8px;align-items:center">
@@ -180,12 +197,12 @@
     <div class="empty" id="bookedEmpty" style="display:none;padding:14px">Nenhuma data reservada. Ao confirmar um evento, reserve a data aqui (ou pelo link “reservar” na tabela acima) — o site passa a avisar quem tentar fechar nessa data. 📅</div>
   </div>
 
-  <div class="card" style="margin-bottom:14px">
+  <div class="card pane" data-pane="geral" style="margin-bottom:14px">
     <h3>Ranking de botões (total)</h3>
     <div class="chartbox" style="height:360px"><canvas id="barChart"></canvas></div>
   </div>
 
-  <div class="card">
+  <div class="card pane" data-pane="geral">
     <h3>Todos os eventos</h3>
     <div class="tblscroll">
       <table id="tbl">
@@ -348,7 +365,7 @@ async function loadLeads(){
 }
 function renderLeads(d){
   const leads = (d && d.leads) || [];
-  $("#leadsCount").textContent = d && d.total ? (d.total + " no total") : "";
+  $("#leadsCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgEventos", leads.length);
   const tb = $("#leadsTbl tbody"); tb.innerHTML = "";
   leads.forEach(l=>{
     const dig = String(l.phone||"").replace(/\D/g,"");
@@ -409,7 +426,7 @@ async function loadPrevendas(){
 }
 function renderPrevendas(d){
   const peds = (d && d.pedidos) || [];
-  $("#prevCount").textContent = d && d.total ? (d.total + " no total") : "";
+  $("#prevCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgPrev", peds.length);
   const tb = $("#prevTbl tbody"); tb.innerHTML = "";
   const brl = (n)=> (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   peds.forEach(p=>{
@@ -439,7 +456,7 @@ async function loadVagas(){
 }
 function renderVagas(d){
   const cands = (d && d.candidatos) || [];
-  $("#vagasCount").textContent = d && d.total ? (d.total + " no total") : "";
+  $("#vagasCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgVagas", cands.length);
   const tb = $("#vagasTbl tbody"); tb.innerHTML = "";
   cands.forEach(c=>{
     const dig = String(c.phone||"").replace(/\D/g,"");
@@ -509,6 +526,17 @@ function renderLinks(){
   });
 }
 renderLinks();
+
+// ---- Abas superiores ----
+function setBadge(id,n){ var e=$("#"+id); if(e) e.textContent = n>0 ? String(n) : ""; }
+function showTab(t){
+  document.querySelectorAll(".tabs button").forEach(function(b){ b.classList.toggle("on", b.dataset.t===t); });
+  document.querySelectorAll(".pane").forEach(function(p){ if(p.dataset.pane===t) p.removeAttribute("hidden"); else p.setAttribute("hidden",""); });
+  if(t==="geral"){ setTimeout(function(){ Object.keys(charts||{}).forEach(function(k){ try{charts[k].resize();}catch(e){} }); }, 40); }
+  try{ localStorage.setItem("bento:panelTab", t); }catch(e){}
+}
+document.querySelectorAll(".tabs button").forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
+(function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
 
 async function refresh(){
   try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); }
