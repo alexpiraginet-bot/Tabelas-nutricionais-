@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BentôBytes · Lançamento — Bentô Gelatos</title>
+<meta name="description" content="Chega dia 27/06: BentôBytes, esferas de gelato com cobertura crocante. 13g de proteína, zero adição de açúcar e zero lactose. Adicione o lançamento ao seu calendário.">
+<meta name="theme-color" content="#F4F2EC">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BentôBytes · Lançamento — Bentô Gelatos">
+<meta property="og:description" content="Esferas de gelato com cobertura crocante. 13g de proteína, zero adição de açúcar e zero lactose. Sábado, 27/06, 12h.">
+<meta property="og:image" content="https://bentogelateria.com/bytes/img/hero.jpg">
+<meta property="og:url" content="https://bentogelateria.com/bytes/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/bento-logo.webp">
+<link rel="apple-touch-icon" href="/bento-logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=DM+Sans:wght@400;500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F0E6; --surf:#FFFDF7; --ink:#1A2317; --soft:#5E6353;
+  --pist:#6B8E4E; --pistD:#3F5A2E; --gold:#C9A24A; --line:#E4DCC9; --lineS:#EFE8D8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;
+  background-image:radial-gradient(1000px 600px at 80% -8%,rgba(201,162,74,.10),transparent 60%),radial-gradient(800px 500px at -10% 100%,rgba(107,142,78,.08),transparent 60%)}
+.wrap{max-width:760px;margin:0 auto;padding:0 18px}
+.serif{font-family:'Fraunces',Georgia,serif}
+.mono{font-family:'Space Mono',ui-monospace,monospace}
+.kick{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+
+/* topo */
+.top{display:flex;align-items:center;gap:10px;justify-content:center;padding:26px 0 6px}
+.top img{width:34px;height:34px;border-radius:50%}
+.top b{font-family:'Fraunces',serif;font-weight:600;font-size:15px}
+.top span{font-family:'Space Mono',monospace;font-size:8.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--soft);display:block;margin-top:1px}
+
+/* hero */
+.hero{text-align:center;padding:18px 0 6px}
+.hero h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(46px,13vw,86px);line-height:.92;letter-spacing:-.02em;margin:10px 0 0;color:var(--ink)}
+.hero h1 .by{color:var(--pistD)}
+.hero .tag{max-width:430px;margin:14px auto 0;color:var(--soft);font-size:15px}
+.heroimg{position:relative;margin:22px 0 0;border-radius:22px;overflow:hidden;border:1px solid var(--line);box-shadow:0 40px 90px -50px rgba(63,90,46,.6)}
+.heroimg img{display:block;width:100%;height:auto}
+
+/* countdown */
+.count{margin:26px 0 8px;background:var(--surf);border:1px solid var(--line);border-radius:22px;padding:24px 18px;text-align:center;position:relative}
+.count .frame{position:absolute;inset:9px;border:1px solid rgba(201,162,74,.35);border-radius:15px;pointer-events:none}
+.count .lab{position:relative;font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--soft)}
+.cd{position:relative;display:flex;justify-content:center;gap:10px;margin:16px 0 14px}
+.cd .box{background:var(--bg);border:1px solid var(--lineS);border-radius:14px;padding:12px 6px;min-width:72px;flex:1;max-width:92px}
+.cd .num{font-family:'Space Mono',monospace;font-size:clamp(28px,8vw,40px);font-weight:700;color:var(--pistD);line-height:1;font-variant-numeric:tabular-nums}
+.cd .u{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-top:7px}
+.when{position:relative;font-family:'Fraunces',serif;font-style:italic;font-size:19px;color:var(--ink)}
+.when b{font-style:normal;font-weight:600}
+.live{display:none;position:relative;margin-top:6px}
+.live .big{font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--pistD)}
+.prevenda{margin:12px 0 0;background:linear-gradient(135deg,#FBF3DD,#F3E6BE);border:1px solid var(--gold);border-radius:16px;padding:13px 16px;text-align:center;font-size:13.5px;color:#5C4A1E}
+.prevenda b{color:var(--pistD)}
+.prevenda .tagp{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:3px}
+
+/* selos */
+.pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:22px 0 6px}
+.pill{background:var(--surf);border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--ink)}
+.pill .g{color:var(--gold)}
+.pill.hot{background:var(--pistD);border-color:var(--pistD);color:#fff}
+.pill.hot .g{color:#EBD79A}
+
+/* seções */
+.sec{margin:40px 0 0}
+.sec .h{text-align:center;margin-bottom:18px}
+.sec .h h2{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,6vw,34px);color:var(--ink);letter-spacing:-.01em}
+.sec .h p{color:var(--soft);font-size:14px;margin-top:6px}
+
+/* sabores */
+.flavors{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:620px){.flavors{grid-template-columns:repeat(3,1fr)}}
+.fcard{background:var(--surf);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.fcard .ph{aspect-ratio:4/5;overflow:hidden;background:var(--bg)}
+.fcard .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.fcard .body{padding:15px 16px 18px}
+.fcard .nm{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--ink)}
+.fcard .sb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:3px 0 8px}
+.fcard .ds{font-size:13px;color:var(--soft);line-height:1.5}
+
+/* lojas */
+.stores{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:620px){.stores{grid-template-columns:1fr 1fr}}
+.store{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:18px}
+.store h3{font-family:'Fraunces',serif;font-weight:600;font-size:19px}
+.store .addr{font-family:'Space Mono',monospace;font-size:11px;color:var(--soft);margin:3px 0 14px}
+.btns{display:flex;gap:8px}
+a.btn{flex:1;text-align:center;text-decoration:none;font-size:13px;font-weight:700;padding:12px 8px;border-radius:11px;border:1px solid var(--pistD);transition:transform .15s}
+a.btn:active{transform:scale(.97)}
+a.g{background:var(--pistD);color:#fff}
+a.a{background:transparent;color:var(--pistD)}
+.calhint{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--soft);margin-top:12px;letter-spacing:.04em}
+
+.ft{text-align:center;font-family:'Space Mono',monospace;font-size:10px;color:var(--soft);letter-spacing:.1em;text-transform:uppercase;padding:40px 0 36px}
+.ft a{color:var(--pistD)}
+
+/* pré-venda / checkout */
+.pv{background:var(--surf);border:1px solid var(--line);border-radius:22px;padding:22px 20px;position:relative}
+.pv .frame{position:absolute;inset:9px;border:1px solid rgba(201,162,74,.3);border-radius:15px;pointer-events:none}
+.pvlab{display:block;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:0 0 7px}
+.opt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt button{background:var(--bg);border:1.5px solid var(--lineS);border-radius:14px;padding:8px;cursor:pointer;text-align:center;font-family:inherit}
+.opt button.on{border-color:var(--pistD);background:#fff}
+.opt button img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:9px;display:block}
+.opt button .nm{font-size:11px;font-weight:600;color:var(--ink);margin-top:6px;line-height:1.1}
+.fld{margin-top:14px}
+.fld input,.fld select{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:15px;font-family:inherit;outline:none}
+.qtt{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:fit-content;background:#fff}
+.qtt button{width:46px;height:46px;border:none;background:transparent;font-size:22px;color:var(--pistD);cursor:pointer}
+.qtt span{min-width:46px;text-align:center;font-weight:700;font-size:17px}
+.uni{display:flex;gap:8px}
+.uni button{flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.uni button.on{border-color:var(--pistD);background:var(--pistD);color:#fff}
+.totrow{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 4px}
+.totrow .t1{font-size:13px;color:var(--soft)}
+.totrow .t2{font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--pistD)}
+.cta{width:100%;margin-top:10px;padding:16px;border-radius:999px;border:none;background:var(--pistD);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
+.cta:disabled{background:var(--line);color:var(--soft);cursor:not-allowed}
+.pvnote{font-family:'Space Mono',monospace;font-size:10px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5}
+.pay{text-align:center}
+.pay .qr{width:230px;height:230px;margin:6px auto 0;border:1px solid var(--line);border-radius:16px;background:#fff;padding:10px;display:block}
+.copybox{display:flex;gap:8px;margin-top:12px}
+.copybox input{flex:1;font-family:'Space Mono',monospace;font-size:11px;padding:11px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink);overflow:hidden;text-overflow:ellipsis}
+.copybox button{padding:11px 14px;border:none;border-radius:11px;background:var(--gold);color:#3a2c08;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit}
+.wapp{display:inline-block;width:100%;margin-top:12px;padding:15px;border-radius:999px;background:#1FA855;color:#fff;font-size:15px;font-weight:700;text-decoration:none;text-align:center}
+.closed{text-align:center;padding:8px 4px}
+.closed .big{font-family:'Fraunces',serif;font-style:italic;font-size:22px;color:var(--ink)}
+.sobanner{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;margin:10px 0 0;background:linear-gradient(135deg,var(--pistD),#2C3A22);color:#fff;border:1px solid var(--gold);border-radius:16px;padding:13px 16px;font-size:13.5px;text-decoration:none}
+.sobanner b{color:#EBD79A}
+.sobanner .ar{font-family:'Fraunces',serif;font-size:18px;color:var(--gold)}
+.solist{list-style:none;margin:0 0 14px;padding:0}
+.solist li{font-size:13.5px;color:var(--ink);padding:8px 0;border-bottom:1px solid var(--lineS);display:flex;gap:9px;align-items:flex-start}
+.solist li b{color:var(--pistD)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <img src="/bento-logo.webp" alt="Bentô Gelatos">
+    <div><b>Bentô</b><span>Functional Nutrition</span></div>
+  </div>
+
+  <header class="hero">
+    <div class="kick">Lançamento exclusivo</div>
+    <h1>Bentô<span class="by">Bytes</span></h1>
+    <p class="tag">Esferas de gelato com cobertura crocante. <b>13&nbsp;g de proteína</b>, <b>zero adição de açúcar</b> e <b>zero lactose</b> — a sobremesa que cabe na sua meta, agora em mordidas.</p>
+    <div class="heroimg"><img src="/bytes/img/hero.jpg" alt="BentôBytes nos sabores Opereta, Pistache Perfeito e Chocolate Dubai" fetchpriority="high"></div>
+  </header>
+
+  <section class="count" aria-live="polite">
+    <div class="frame"></div>
+    <div class="lab">Faltam para o lançamento</div>
+    <div class="cd" id="cd">
+      <div class="box"><div class="num" id="d">--</div><div class="u">dias</div></div>
+      <div class="box"><div class="num" id="h">--</div><div class="u">horas</div></div>
+      <div class="box"><div class="num" id="m">--</div><div class="u">min</div></div>
+      <div class="box"><div class="num" id="s">--</div><div class="u">seg</div></div>
+    </div>
+    <div class="when">📍 <b>Sábado, 27 de junho</b> · 12h · nas duas unidades</div>
+    <div class="live" id="live"><div class="big">🎉 É hoje! Já lançamos.</div><div class="when" style="margin-top:6px">Venha provar em primeira mão nas nossas lojas.</div></div>
+  </section>
+
+  <div class="prevenda">
+    <span class="tagp">Antecipe</span>
+    🎟️ <b>Sexta, 26/06</b> — pré-venda &amp; degustação, só na <b>Praia do Canto</b>. Prove antes de todo mundo.
+  </div>
+
+  <a href="#sorteio" class="sobanner">🎁 <b>Concorra a 1 de 10 kits BentôBytes</b> — inscrição grátis <span class="ar">→</span></a>
+
+  <div class="pills">
+    <span class="pill hot"><span class="g">✦</span> Zero adição de açúcar</span>
+    <span class="pill hot"><span class="g">✦</span> Zero lactose</span>
+    <span class="pill"><span class="g">✦</span> 13 g de proteína</span>
+    <span class="pill"><span class="g">✦</span> Cobertura crocante</span>
+    <span class="pill"><span class="g">✦</span> Rótulo limpo</span>
+  </div>
+
+  <section class="sec">
+    <div class="h">
+      <h2>Três sabores para estrear</h2>
+      <p>Casquinha crocante, recheio cremoso de gelato — em mordidas perfeitas.</p>
+    </div>
+    <div class="flavors">
+      <div class="fcard">
+        <div class="ph"><img src="/bytes/img/opereta.jpg" alt="BentôBytes Opereta"></div>
+        <div class="body">
+          <div class="nm">Opereta</div>
+          <div class="sb">Choco branco · castanhas</div>
+          <div class="ds">Gelato de chocolate branco com cobertura crocante e mix de castanhas.</div>
+        </div>
+      </div>
+      <div class="fcard">
+        <div class="ph"><img src="/bytes/img/pistache.jpg" alt="BentôBytes Pistache Perfeito"></div>
+        <div class="body">
+          <div class="nm">Pistache Perfeito</div>
+          <div class="sb">Pistache · pistache</div>
+          <div class="ds">Gelato de pistache cremoso com cobertura crocante de pistache.</div>
+        </div>
+      </div>
+      <div class="fcard">
+        <div class="ph"><img src="/bytes/img/dubai.jpg" alt="BentôBytes Chocolate Dubai"></div>
+        <div class="body">
+          <div class="nm">Chocolate Dubai</div>
+          <div class="sb">Pistache · recheio cremoso</div>
+          <div class="ds">Casca de pistache com recheio de chocolate cremoso — a trend de Dubai em byte.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="sorteio">
+    <div class="h">
+      <h2>Concorra a 1 de 10 kits 🎁</h2>
+      <p>Cada kit traz <b>um potinho de cada sabor</b> — Opereta, Pistache Perfeito e Chocolate Dubai.</p>
+    </div>
+    <div class="pv">
+      <div class="frame"></div>
+      <div id="soForm">
+        <ul class="solist">
+          <li><span>🎟️</span><span><b>10 kits</b> sorteados entre todos os inscritos.</span></li>
+          <li><span>🏪</span><span>Retirada na <b>loja física</b> neste fim de semana ou na próxima.</span></li>
+          <li><span>⏰</span><span>Sorteio <b>amanhã, ao fim do dia</b> — anunciamos os ganhadores.</span></li>
+        </ul>
+        <div class="fld"><span class="pvlab">Nome</span><input id="soNome" placeholder="Nome completo"></div>
+        <div class="fld"><span class="pvlab">WhatsApp</span><input id="soFone" inputmode="tel" placeholder="(27) 99999-9999"></div>
+        <div class="fld"><span class="pvlab">Instagram (opcional)</span><input id="soInsta" placeholder="@seuusuario" autocapitalize="off"></div>
+        <div class="fld">
+          <span class="pvlab">Onde prefere retirar (opcional)</span>
+          <div class="uni" id="soUni">
+            <button type="button" data-u="Praia do Canto">Praia do Canto</button>
+            <button type="button" data-u="Jardim Camburi">Jardim Camburi</button>
+          </div>
+        </div>
+        <label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;margin:6px 0 2px">
+          <input type="checkbox" id="soConsent" style="margin-top:3px;width:17px;height:17px;accent-color:var(--pistD);flex-shrink:0">
+          <span style="font-size:12px;color:var(--soft);line-height:1.45">Autorizo a Bentô a guardar e usar meus dados (nome, WhatsApp e Instagram) para o sorteio, contato e <b>futuras campanhas e novidades</b>, conforme a <a href="https://bentogelateria.com/?privacidade=1" target="_blank" rel="noopener" style="color:var(--pistD)">Política de Privacidade</a>.</span>
+        </label>
+        <button class="cta" id="soSend" disabled>Quero concorrer 🎁</button>
+        <div class="pvnote">Brinde para retirada em loja física — sem entrega. Você pode pedir a remoção dos seus dados quando quiser. 💛</div>
+      </div>
+      <div class="pay" id="soOk" style="display:none">
+        <div style="font-size:46px">🎉</div>
+        <div id="soOkTitle" style="font-family:'Fraunces',serif;font-weight:600;font-size:24px;color:var(--ink);margin:6px 0 4px">Você está concorrendo!</div>
+        <p id="soOkMsg" style="font-size:14px;color:var(--soft);max-width:420px;margin:0 auto">Boa sorte! 💛 O sorteio dos 10 kits é amanhã, ao fim do dia. Se você ganhar, a gente chama no seu WhatsApp para combinar a retirada na loja.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="prevenda">
+    <div class="h">
+      <h2>Pré-venda · retirada na loja</h2>
+      <p>Garanta o seu por <b>R$&nbsp;24,90</b> (preço de pré-lançamento) e retire na loja escolhida.</p>
+    </div>
+    <div class="pv">
+      <div class="frame"></div>
+
+      <!-- antes de abrir -->
+      <div class="closed" id="pvClosed" style="display:none">
+        <div class="pvlab">Pré-venda</div>
+        <div class="big">Abre na sexta, 26/06 🍫</div>
+        <p style="font-size:13px;color:var(--soft);margin-top:8px">Volte amanhã para garantir o seu por R$&nbsp;24,90. Sexta tem também degustação na Praia do Canto.</p>
+      </div>
+
+      <!-- formulário -->
+      <div id="pvForm" style="display:none">
+        <span class="pvlab">1 · Escolha o sabor</span>
+        <div class="opt" id="pvSabores">
+          <button type="button" data-s="Opereta"><img src="/bytes/img/opereta.jpg" alt=""><div class="nm">Opereta</div></button>
+          <button type="button" data-s="Pistache Perfeito"><img src="/bytes/img/pistache.jpg" alt=""><div class="nm">Pistache Perfeito</div></button>
+          <button type="button" data-s="Chocolate Dubai"><img src="/bytes/img/dubai.jpg" alt=""><div class="nm">Chocolate Dubai</div></button>
+        </div>
+
+        <div class="fld">
+          <span class="pvlab">2 · Quantidade</span>
+          <div class="qtt"><button type="button" id="qMinus">−</button><span id="qVal">1</span><button type="button" id="qPlus">+</button></div>
+        </div>
+
+        <div class="fld"><span class="pvlab">3 · Seu nome</span><input id="pvNome" placeholder="Nome completo"></div>
+        <div class="fld"><span class="pvlab">4 · WhatsApp</span><input id="pvFone" inputmode="tel" placeholder="(27) 99999-9999"></div>
+
+        <div class="fld">
+          <span class="pvlab">5 · Retirar em</span>
+          <div class="uni" id="pvUni">
+            <button type="button" data-u="Praia do Canto">Praia do Canto</button>
+            <button type="button" data-u="Jardim Camburi">Jardim Camburi</button>
+          </div>
+        </div>
+
+        <div class="totrow"><span class="t1">Total</span><span class="t2" id="pvTotal">R$ 24,90</span></div>
+        <button class="cta" id="pvPagar" disabled>Gerar Pix e pagar →</button>
+        <div class="pvnote">Pagamento via Pix. Após pagar, toque em “enviar comprovante” para confirmarmos seu pedido. 💛</div>
+      </div>
+
+      <!-- pagamento -->
+      <div class="pay" id="pvPay" style="display:none">
+        <div class="pvlab" style="text-align:center">Pedido <b id="payCode" style="color:var(--pistD)"></b> · pague com Pix</div>
+        <div id="paySum" style="font-size:14px;color:var(--ink);margin:4px 0 2px;font-weight:600"></div>
+        <img class="qr" id="payQr" alt="QR Code Pix" referrerpolicy="no-referrer">
+        <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--soft)">Escaneie no app do banco ou copie o código:</div>
+        <div class="copybox"><input id="payCopia" readonly><button id="payCopiar">Copiar</button></div>
+        <a class="wapp" id="payWapp" href="#" target="_blank" rel="noopener">📲 Já paguei — enviar comprovante</a>
+        <div class="pvnote">Anexe o comprovante na conversa do WhatsApp com o código do pedido. Confirmamos e separamos para retirada.</div>
+        <button type="button" id="payVoltar" style="margin-top:10px;background:none;border:none;color:var(--pistD);font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">← Fazer outro pedido</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="h">
+      <h2>Marque na agenda</h2>
+      <p>Toque para salvar o lançamento no seu calendário e ganhar um lembrete.</p>
+    </div>
+    <div class="stores">
+      <div class="store">
+        <h3>Praia do Canto</h3>
+        <div class="addr">R. Joaquim Lírio, 455</div>
+        <div class="btns">
+          <a class="btn g" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Lan%C3%A7amento%20Bent%C3%B4Bytes%20-%20Bent%C3%B4%20Gelatos&dates=20260627T120000%2F20260627T140000&ctz=America%2FSao_Paulo&details=Lan%C3%A7amento%20oficial%20do%20novo%20Bent%C3%B4Bytes%21%20S%C3%A1bado%2C%2012h.%20Venha%20provar%20em%20primeira%20m%C3%A3o%20na%20nossa%20loja%20Bent%C3%B4%20Gelatos.&location=Bent%C3%B4%20Gelatos%20-%20R.%20Joaquim%20L%C3%ADrio%2C%20455%20-%20Praia%20do%20Canto%2C%20Vit%C3%B3ria%20-%20ES%2C%2029055-460">Google</a>
+          <a class="btn a" href="/bytes/praia-do-canto.ics">iPhone</a>
+        </div>
+      </div>
+      <div class="store">
+        <h3>Jardim Camburi</h3>
+        <div class="addr">R. Silvino Grecco, 800 · Loja 17</div>
+        <div class="btns">
+          <a class="btn g" target="_blank" rel="noopener" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Lan%C3%A7amento%20Bent%C3%B4Bytes%20-%20Bent%C3%B4%20Gelatos&dates=20260627T120000%2F20260627T140000&ctz=America%2FSao_Paulo&details=Lan%C3%A7amento%20oficial%20do%20novo%20Bent%C3%B4Bytes%21%20S%C3%A1bado%2C%2012h.%20Venha%20provar%20em%20primeira%20m%C3%A3o%20na%20nossa%20loja%20Bent%C3%B4%20Gelatos.&location=Bent%C3%B4%20Gelatos%20-%20R.%20Silvino%20Grecco%2C%20800%20-%20Loja%2017%20-%20Jardim%20Camburi%2C%20Vit%C3%B3ria%20-%20ES%2C%2029090-120">Google</a>
+          <a class="btn a" href="/bytes/jardim-camburi.ics">iPhone</a>
+        </div>
+      </div>
+    </div>
+    <div class="calhint">Google = Android/computador · iPhone = Apple/Outlook (arquivo .ics)</div>
+  </section>
+
+  <div class="ft">Bentô Gelatos · ABB Gelateria Ltda · Vitória–ES · <a href="https://bentogelateria.com">bentogelateria.com</a></div>
+
+</div>
+
+<script>
+(function(){
+  var target = new Date("2026-06-27T12:00:00-03:00").getTime();
+  var d=document.getElementById("d"),h=document.getElementById("h"),m=document.getElementById("m"),s=document.getElementById("s");
+  var cd=document.getElementById("cd"),live=document.getElementById("live");
+  var p=function(n){return String(n).padStart(2,"0");};
+  function tick(){
+    var diff=target-Date.now();
+    if(diff<=0){ cd.style.display="none"; live.style.display="block"; return; }
+    var sec=Math.floor(diff/1000);
+    d.textContent=Math.floor(sec/86400);
+    h.textContent=p(Math.floor(sec%86400/3600));
+    m.textContent=p(Math.floor(sec%3600/60));
+    s.textContent=p(sec%60);
+  }
+  tick(); setInterval(tick,1000);
+})();
+
+/* ===== Pré-venda BentôBytes ===== */
+(function(){
+  var PRECO=24.90, WHATS="5527999159995", API="https://bentogelateria.com/api/prevenda";
+  var OPEN=new Date("2026-06-26T00:00:00-03:00").getTime();
+  var forceOpen=/[?&](preview|teste|prevenda)\b/.test(location.search);
+  var $=function(id){return document.getElementById(id);};
+
+  // abre o checkout só a partir de sexta (ou com ?preview)
+  if(forceOpen || Date.now()>=OPEN){ $("pvForm").style.display="block"; }
+  else { $("pvClosed").style.display="block"; return; }
+
+  var st={sabor:"",qty:1,unidade:""};
+  var brl=function(n){return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});};
+  function total(){return PRECO*st.qty;}
+  function refresh(){
+    $("pvTotal").textContent=brl(total());
+    $("pvPagar").disabled=!(st.sabor && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
+  }
+  // sabores
+  $("pvSabores").querySelectorAll("button").forEach(function(b){
+    b.onclick=function(){ st.sabor=b.dataset.s; $("pvSabores").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); refresh(); };
+  });
+  // unidades
+  $("pvUni").querySelectorAll("button").forEach(function(b){
+    b.onclick=function(){ st.unidade=b.dataset.u; $("pvUni").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); refresh(); };
+  });
+  // quantidade
+  $("qMinus").onclick=function(){ st.qty=Math.max(1,st.qty-1); $("qVal").textContent=st.qty; refresh(); };
+  $("qPlus").onclick=function(){ st.qty=Math.min(10,st.qty+1); $("qVal").textContent=st.qty; refresh(); };
+  // máscara telefone
+  $("pvFone").addEventListener("input",function(e){
+    var d=e.target.value.replace(/\D/g,"").slice(0,11),o=d;
+    if(d.length>2)o="("+d.slice(0,2)+") "+d.slice(2);
+    if(d.length>6)o="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
+    if(d.length>2&&d.length<=6)o="("+d.slice(0,2)+") "+d.slice(2);
+    e.target.value=o; refresh();
+  });
+  $("pvNome").addEventListener("input",refresh);
+
+  // Pix copia-e-cola (recalcula o valor)
+  function emv(id,v){return id+String(v.length).padStart(2,"0")+v;}
+  function crc16(s){var c=0xFFFF;for(var i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(var j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;}return c.toString(16).toUpperCase().padStart(4,"0");}
+  function pixCode(amount){
+    var mai=emv("26",emv("00","br.gov.bcb.pix")+emv("01","062533a2-9991-478a-a24b-8b06095bd21b"));
+    var body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("54",amount.toFixed(2))+emv("58","BR")+emv("59","ABB_GELATERIA_LTDA")+emv("60","Vitoria")+emv("61","29055-460")+emv("62",emv("05","BentBytes"))+"6304";
+    return body+crc16(body);
+  }
+
+  $("pvPagar").onclick=function(){
+    var t=total(), code="BB-"+Math.random().toString(36).slice(2,6).toUpperCase();
+    var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:st.sabor,qty:st.qty,unidade:st.unidade,total:t,status:"aguardando pagamento"};
+    // captura no painel (best-effort, não bloqueia)
+    try{ fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},keepalive:true,body:JSON.stringify(ped)}); }catch(e){}
+    // monta pagamento
+    var copia=pixCode(t);
+    $("payCode").textContent=code;
+    $("paySum").textContent=st.sabor+" × "+st.qty+" · retirada "+st.unidade+" · "+brl(t);
+    $("payQr").src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data="+encodeURIComponent(copia);
+    $("payCopia").value=copia;
+    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabor:* "+st.sabor+" × "+st.qty,"*Retirada:* "+st.unidade,"*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
+    $("payWapp").href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(msg);
+    $("pvForm").style.display="none"; $("pvPay").style.display="block";
+    $("pvPay").scrollIntoView({behavior:"smooth",block:"center"});
+  };
+  $("payCopiar").onclick=function(){
+    var v=$("payCopia").value;
+    var done=function(){ $("payCopiar").textContent="Copiado!"; setTimeout(function(){$("payCopiar").textContent="Copiar";},1800); };
+    if(navigator.clipboard){ navigator.clipboard.writeText(v).then(done,function(){$("payCopia").select();done();}); }
+    else { $("payCopia").select(); try{document.execCommand("copy");}catch(e){} done(); }
+  };
+  $("payVoltar").onclick=function(){ $("pvPay").style.display="none"; $("pvForm").style.display="block"; };
+})();
+
+/* ===== Sorteio (10 kits) ===== */
+(function(){
+  var API="https://bentogelateria.com/api/sorteio", $=function(id){return document.getElementById(id);};
+  if(!$("soForm")) return;
+  var st={unidade:""};
+  function ok(){ return $("soNome").value.trim() && $("soFone").value.replace(/\D/g,"").length>=10 && $("soConsent").checked; }
+  function refresh(){ $("soSend").disabled=!ok(); }
+  $("soNome").addEventListener("input",refresh);
+  $("soConsent").addEventListener("change",refresh);
+  $("soFone").addEventListener("input",function(e){
+    var d=e.target.value.replace(/\D/g,"").slice(0,11),o=d;
+    if(d.length>6)o="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
+    else if(d.length>2)o="("+d.slice(0,2)+") "+d.slice(2);
+    e.target.value=o; refresh();
+  });
+  $("soUni").querySelectorAll("button").forEach(function(b){
+    b.onclick=function(){ st.unidade=b.dataset.u; $("soUni").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); };
+  });
+  $("soSend").onclick=function(){
+    if(!ok()) return;
+    $("soSend").disabled=true; var old=$("soSend").textContent; $("soSend").textContent="Enviando…";
+    var ig=$("soInsta").value.trim(); if(ig && ig.charAt(0)!=="@") ig="@"+ig;
+    var data={nome:$("soNome").value.trim(),phone:$("soFone").value.trim(),instagram:ig,unidade:st.unidade,consent:$("soConsent").checked};
+    fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        if(j && j.ok){
+          if(j.dup){ $("soOkTitle").textContent="Você já está participando!"; $("soOkMsg").textContent="Seu número já está na urna 💛 Boa sorte no sorteio de amanhã!"; }
+          $("soForm").style.display="none"; $("soOk").style.display="block";
+          $("soOk").scrollIntoView({behavior:"smooth",block:"center"});
+        } else {
+          alert(j && j.error==="telefone" ? "Confira seu WhatsApp (com DDD)." : "Não consegui inscrever. Tente de novo.");
+          $("soSend").disabled=false; $("soSend").textContent=old;
+        }
+      })
+      .catch(function(){ alert("Sem conexão agora. Tente de novo em instantes."); $("soSend").disabled=false; $("soSend").textContent=old; });
+  };
+})();
+</script>
+</body>
+</html>

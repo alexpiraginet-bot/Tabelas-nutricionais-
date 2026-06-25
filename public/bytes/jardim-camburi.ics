@@ -1,0 +1,27 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Bento Gelatos//BentoBytes//PT-BR
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:bentobytes-jardim-camburi-20260627@bentogelatos
+DTSTAMP:20260624T120000Z
+DTSTART:20260627T150000Z
+DTEND:20260627T170000Z
+SUMMARY:Lançamento BentôBytes - Bentô Gelatos
+DESCRIPTION:Lançamento oficial do novo BentôBytes! Sábado\, 12h. Venha provar em primeira mão na nossa loja Bentô Gelatos.
+LOCATION:Bentô Gelatos - R. Silvino Grecco\, 800 - Loja 17 - Jardim Camburi\, Vitória - ES\, 29090-120
+GEO:-20.2593357;-40.2689271
+STATUS:CONFIRMED
+BEGIN:VALARM
+TRIGGER:-P1D
+ACTION:DISPLAY
+DESCRIPTION:Amanhã é o lançamento do BentôBytes!
+END:VALARM
+BEGIN:VALARM
+TRIGGER:-PT2H
+ACTION:DISPLAY
+DESCRIPTION:Daqui a 2h: lançamento do BentôBytes!
+END:VALARM
+END:VEVENT
+END:VCALENDAR
