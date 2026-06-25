@@ -122,6 +122,7 @@
     <button data-t="eventos">🎉 Eventos <span class="tbg" id="bgEventos"></span></button>
     <button data-t="prevendas">🍫 Pré-vendas <span class="tbg" id="bgPrev"></span></button>
     <button data-t="vagas">💼 Vagas <span class="tbg" id="bgVagas"></span></button>
+    <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
     <button data-t="links">🔗 Links</button>
   </nav>
 
@@ -171,6 +172,29 @@
       </table>
     </div>
     <div class="empty" id="vagasEmpty" style="display:none">Nenhum candidato ainda. Quando alguém se cadastrar em “Trabalhe conosco”, aparece aqui na hora. 💼</div>
+  </div>
+
+  <div class="card pane" data-pane="sorteio" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <span>🎁 Sorteio BentôBytes — 10 kits</span>
+      <span id="sortCount" class="mono" style="color:var(--gold);font-size:13px"></span>
+    </h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <button id="sortDraw" style="background:var(--pist);color:#0c0f0a;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:800;cursor:pointer">🎲 Sortear 10 ganhadores</button>
+      <button id="sortCopy" style="display:none;background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer">📋 Copiar lista p/ postar</button>
+      <span id="sortDrawn" class="mono" style="color:var(--soft);font-size:11px"></span>
+    </div>
+    <div id="sortWinners"></div>
+    <details style="margin-top:10px">
+      <summary class="mono" style="cursor:pointer;color:var(--soft);font-size:11px;letter-spacing:.06em">Ver todos os inscritos</summary>
+      <div class="tblscroll" style="margin-top:8px">
+        <table id="sortTbl">
+          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Instagram</th><th>Retira em</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </details>
+    <div class="empty" id="sortEmpty" style="display:none">Ninguém inscrito ainda. Quando alguém participar do sorteio na página do evento, aparece aqui. 🎁</div>
   </div>
 
   <div class="card pane" data-pane="eventos" style="margin-bottom:14px">
@@ -538,8 +562,76 @@ function showTab(t){
 document.querySelectorAll(".tabs button").forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
 (function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
 
+// ---- Sorteio BentôBytes ----
+var _winners = [];
+async function loadSorteio(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/sorteio", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  renderSorteio(await r.json());
+}
+function renderSorteio(d){
+  const ins = (d && d.inscritos) || [];
+  $("#sortCount").textContent = (d && d.total) ? (d.total + " inscritos") : "";
+  setBadge("bgSorteio", d && d.total ? d.total : ins.length);
+  const tb = $("#sortTbl tbody"); tb.innerHTML = "";
+  ins.forEach(p=>{
+    const dig = String(p.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const quando = new Date(p.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
+      <td>${escapeHtml(p.nome||"—")}</td>
+      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
+      <td>${escapeHtml(p.instagram||"—")}</td>
+      <td>${escapeHtml(p.unidade||"—")}</td>`;
+    tb.appendChild(tr);
+  });
+  $("#sortEmpty").style.display = ins.length ? "none" : "block";
+  _winners = (d && d.winners) || [];
+  renderWinners(_winners, d && d.drawnAt);
+}
+function renderWinners(ws, drawnAt){
+  const box = $("#sortWinners"); box.innerHTML = "";
+  if(!ws || !ws.length){ $("#sortCopy").style.display="none"; $("#sortDrawn").textContent=""; return; }
+  $("#sortCopy").style.display = "inline-block";
+  $("#sortDrawn").textContent = drawnAt ? ("sorteado em " + new Date(drawnAt).toLocaleString("pt-BR")) : "";
+  const head = document.createElement("div"); head.className="lkgrp"; head.textContent="🏆 Ganhadores ("+ws.length+")"; box.appendChild(head);
+  ws.forEach((w,i)=>{
+    const dig = String(w.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const row = document.createElement("div"); row.className="lk";
+    row.innerHTML = '<span class="ico">'+(i+1)+'</span><div class="mid"><div class="nm"></div><div class="u"></div></div>'+
+      '<div class="act">'+(wa?'<a class="open" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':'')+'</div>';
+    row.querySelector(".nm").textContent = (w.nome||"—") + (w.instagram?(" · "+w.instagram):"");
+    row.querySelector(".u").textContent = (w.phone||"") + (w.unidade?(" · "+w.unidade):"");
+    box.appendChild(row);
+  });
+}
+function bindSorteio(){
+  var draw = $("#sortDraw"); if(draw) draw.onclick = async function(){
+    if(!confirm("Sortear 10 ganhadores agora?\\n\\nSe já houve um sorteio, este substitui o anterior.")) return;
+    const key = localStorage.getItem(KEYSTORE) || "";
+    draw.disabled = true; var old = draw.textContent; draw.textContent = "Sorteando…";
+    try{
+      const r = await fetch("/api/sorteio", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key }, body: JSON.stringify({ action:"draw", n:10 }) });
+      const j = await r.json();
+      if(j && j.ok){ _winners = j.winners||[]; renderWinners(_winners, j.drawnAt); alert("🎉 Sorteio concluído: "+_winners.length+" ganhadores!"); }
+      else alert("Não consegui sortear: "+((j&&j.error)||"erro"));
+    }catch(e){ alert("Erro ao sortear."); }
+    draw.disabled = false; draw.textContent = old;
+  };
+  var cp = $("#sortCopy"); if(cp) cp.onclick = function(){
+    var txt = ["🎁 GANHADORES DO SORTEIO BENTÔBYTES 🍫",""]
+      .concat(_winners.map(function(w,i){ return (i+1)+". "+(w.nome||"")+(w.instagram?(" ("+w.instagram+")"):""); }))
+      .concat(["","Parabéns! 💛 Vamos chamar cada um no WhatsApp para combinar a retirada do kit na loja."]).join("\n");
+    copyLink(txt, cp);
+  };
+}
+bindSorteio();
+
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
