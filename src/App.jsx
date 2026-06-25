@@ -164,6 +164,16 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </p>
 
         <div style={{width:"100%",marginTop:22}}>
+          {/* Banner de lançamento BentôBytes → subdomínio de eventos */}
+          <a href="https://eventos.bentogelateria.com" target="_blank" rel="noopener" onClick={()=>tk("Lançamento · BentôBytes")} className="hl rise" style={{textDecoration:"none",width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#16241A 0%,#2C3A22 100%)",border:`1px solid ${T.accent}`,borderRadius:18,padding:"13px 18px",cursor:"pointer",marginBottom:12,boxShadow:"0 12px 30px -16px rgba(20,36,26,.7)"}}>
+            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>🍫</span>
+            <div style={{flex:1,minWidth:0}}>
+              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#16241A",background:T.accent,borderRadius:999,padding:"2px 9px",marginBottom:4}}>✦ Novo · Lançamento</span>
+              <div className="fd" style={{fontSize:"clamp(18px,3.2vw,22px)",color:"#FFFDF7",lineHeight:1.05}}>BentôBytes está chegando</div>
+              <div className="fb" style={{fontSize:12,color:"#D9E0CC",marginTop:2,lineHeight:1.3}}>Sábado 27/06 nas duas lojas · pré-venda sexta na Praia do Canto · veja a contagem regressiva</div>
+            </div>
+            <span className="fd" style={{fontSize:22,color:T.accent,flexShrink:0}}>→</span>
+          </a>
           {/* Botão principal: Tabelas */}
           <button onClick={()=>tk("Tabelas Nutricionais",onTabelas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:18,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
             <div style={{display:"flex",gap:2,flexShrink:0}}>
