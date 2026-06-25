@@ -6,6 +6,14 @@
   "crons": [
     { "path": "/api/daily-report", "schedule": "0 2 * * *" }
   ],
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "eventos.bentogelateria.com" }],
+      "destination": "https://bentogelateria.com/bytes/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
