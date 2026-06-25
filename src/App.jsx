@@ -145,7 +145,6 @@ function Tile({t,delay=0}){
 
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
-    {title:"Delivery",sub:"Peça em casa pelo iFood",onClick:onDelivery,img:"/tiles/delivery.webp",imgPos:"center",bd:"#9c6f64",badge:"🗺️ Peça agora pelo iFood e nos encontre",badgeBg:"#EA1D2C"},
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
     {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 22%",bd:"#2f3a24"},
     {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
@@ -186,6 +185,17 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
               <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Gelatos, picolés, monte seu pote e quiz de sabores.</div>
             </div>
             <span className="fd" style={{fontSize:24,color:T.pistacheDark,flexShrink:0}}>→</span>
+          </button>
+
+          {/* Banner Delivery / Nos encontre (iFood + endereços das lojas) */}
+          <button onClick={()=>tk("Delivery / Nos encontre",onDelivery)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#FBE7E3 0%,#F6D2CB 100%)",border:"1px solid #E79A8E",borderLeft:"4px solid #EA1D2C",borderRadius:18,padding:"12px 20px 12px 14px",cursor:"pointer",marginTop:12,animationDelay:"150ms",boxShadow:"0 10px 28px -16px rgba(234,29,44,.5)"}}>
+            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>🛵</span>
+            <div style={{flex:1,minWidth:0}}>
+              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#EA1D2C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>🗺️ iFood + endereços</span>
+              <div className="fd" style={{fontSize:"clamp(18px,3.2vw,22px)",color:T.ink,lineHeight:1.05}}>Delivery <span style={{color:"#C2384A"}}>/</span> Nos encontre</div>
+              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Peça no iFood ou veja onde estamos — Praia do Canto e Jardim Camburi.</div>
+            </div>
+            <span className="fd" style={{fontSize:22,color:"#EA1D2C",flexShrink:0}}>→</span>
           </button>
 
           {/* Linha 1 de funções */}
