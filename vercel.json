@@ -25,6 +25,13 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
+    },
+    {
+      "source": "/bytes/(.*)\\.ics",
+      "headers": [
+        { "key": "Content-Type", "value": "text/calendar; charset=utf-8" },
+        { "key": "Content-Disposition", "value": "attachment" }
+      ]
     }
   ]
 }
