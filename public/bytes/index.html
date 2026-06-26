@@ -117,6 +117,12 @@ a.a{background:transparent;color:var(--pistD)}
 .qtt{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;width:fit-content;background:#fff}
 .qtt button{width:46px;height:46px;border:none;background:transparent;font-size:22px;color:var(--pistD);cursor:pointer}
 .qtt span{min-width:46px;text-align:center;font-weight:700;font-size:17px}
+.frow{display:flex;align-items:center;gap:11px;padding:8px;border:1px solid var(--lineS);border-radius:13px;margin-bottom:8px;background:var(--bg)}
+.frow img{width:46px;height:46px;object-fit:cover;border-radius:9px;flex-shrink:0}
+.frow .fn{flex:1;font-size:14px;font-weight:600;color:var(--ink);line-height:1.15}
+.qtt.sm button{width:38px;height:38px;font-size:20px}
+.qtt.sm span{min-width:34px;font-size:15px}
+.qtt.sm button:disabled{opacity:.35;cursor:not-allowed}
 .uni{display:flex;gap:8px}
 .uni button{flex:1;padding:12px 8px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
 .uni button.on{border-color:var(--pistD);background:var(--pistD);color:#fff}
@@ -292,18 +298,13 @@ a.a{background:transparent;color:var(--pistD)}
           <div class="soldtrack"><div class="soldfill" id="soldFill"></div></div>
           <div class="soldsub" id="soldSub"></div>
         </div>
-        <span class="pvlab">1 · Escolha o sabor</span>
-        <div class="opt" id="pvSabores">
-          <button type="button" data-s="Opereta"><img src="/bytes/img/opereta.jpg" alt=""><div class="nm">Opereta</div></button>
-          <button type="button" data-s="Pistache Perfeito"><img src="/bytes/img/pistache.jpg" alt=""><div class="nm">Pistache Perfeito</div></button>
-          <button type="button" data-s="Chocolate Dubai"><img src="/bytes/img/dubai.jpg" alt=""><div class="nm">Chocolate Dubai</div></button>
+        <span class="pvlab">1 · Monte sua caixa <span style="text-transform:none;letter-spacing:0;color:var(--pistD)">— até 3 potes (pode 1 de cada)</span></span>
+        <div id="pvSabores">
+          <div class="frow" data-s="Opereta"><img src="/bytes/img/opereta.jpg" alt=""><span class="fn">Opereta</span><div class="qtt sm"><button type="button" class="fminus">−</button><span class="fq">0</span><button type="button" class="fplus">+</button></div></div>
+          <div class="frow" data-s="Pistache Perfeito"><img src="/bytes/img/pistache.jpg" alt=""><span class="fn">Pistache Perfeito</span><div class="qtt sm"><button type="button" class="fminus">−</button><span class="fq">0</span><button type="button" class="fplus">+</button></div></div>
+          <div class="frow" data-s="Chocolate Dubai"><img src="/bytes/img/dubai.jpg" alt=""><span class="fn">Chocolate Dubai</span><div class="qtt sm"><button type="button" class="fminus">−</button><span class="fq">0</span><button type="button" class="fplus">+</button></div></div>
         </div>
-
-        <div class="fld">
-          <span class="pvlab">2 · Quantidade</span>
-          <div class="qtt"><button type="button" id="qMinus">−</button><span id="qVal">1</span><button type="button" id="qPlus">+</button></div>
-          <div class="qnote">Potinho de 70 g (~12 unidades) · <b>limite de 3 por pessoa</b></div>
-        </div>
+        <div class="qnote">Potinho de 70 g (~12 un) · <b>limite de 3 por pessoa</b> · selecionados: <b id="pvSel">0</b>/3</div>
 
         <div class="fld"><span class="pvlab">3 · Seu nome</span><input id="pvNome" placeholder="Nome completo"></div>
         <div class="fld"><span class="pvlab">4 · WhatsApp</span><input id="pvFone" inputmode="tel" placeholder="(27) 99999-9999"></div>
@@ -394,7 +395,7 @@ a.a{background:transparent;color:var(--pistD)}
   if(forceOpen || Date.now()>=OPEN){ $("pvForm").style.display="block"; loadSold(); }
   else { $("pvClosed").style.display="block"; return; }
 
-  var st={sabor:"",qty:1,unidade:""};
+  var st={f:{"Opereta":0,"Pistache Perfeito":0,"Chocolate Dubai":0},unidade:""};
   var _data=null, _soldout=false, _txid="BentBytes";
   function renderSold(j){
     if(!j||!j.cap){ return; }
@@ -411,22 +412,35 @@ a.a{background:transparent;color:var(--pistD)}
   }
   function loadSold(){ fetch(API+"?count=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ renderSold(j); }).catch(function(){}); }
   var brl=function(n){return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});};
-  function total(){return PRECO*st.qty;}
-  function refresh(){
-    $("pvTotal").textContent=brl(total());
-    $("pvPagar").disabled=_soldout||!(st.sabor && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
+  function totalQty(){ var s=0; for(var k in st.f) s+=st.f[k]; return s; }
+  function saboresStr(){ var a=[]; for(var k in st.f){ if(st.f[k]>0) a.push(k+" ×"+st.f[k]); } return a.join(" · "); }
+  function total(){return PRECO*totalQty();}
+  function syncFlavors(){
+    var sum=totalQty();
+    Array.prototype.forEach.call($("pvSabores").querySelectorAll(".frow"),function(row){
+      var name=row.getAttribute("data-s");
+      row.querySelector(".fq").textContent=st.f[name];
+      row.querySelector(".fplus").disabled=(sum>=3);
+      row.querySelector(".fminus").disabled=(st.f[name]<=0);
+    });
+    if($("pvSel")) $("pvSel").textContent=sum;
   }
-  // sabores
-  $("pvSabores").querySelectorAll("button").forEach(function(b){
-    b.onclick=function(){ st.sabor=b.dataset.s; $("pvSabores").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); refresh(); };
+  function refresh(){
+    syncFlavors();
+    if($("pvTotal")) $("pvTotal").textContent=brl(total());
+    $("pvPagar").disabled=_soldout||!(totalQty()>=1 && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
+  }
+  // sabores: quantidade por sabor (total <= 3)
+  Array.prototype.forEach.call($("pvSabores").querySelectorAll(".frow"),function(row){
+    var name=row.getAttribute("data-s");
+    row.querySelector(".fplus").onclick=function(){ if(totalQty()<3){ st.f[name]++; refresh(); } };
+    row.querySelector(".fminus").onclick=function(){ if(st.f[name]>0){ st.f[name]--; refresh(); } };
   });
   // unidades
   $("pvUni").querySelectorAll("button").forEach(function(b){
     b.onclick=function(){ st.unidade=b.dataset.u; $("pvUni").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); refresh(); };
   });
-  // quantidade
-  $("qMinus").onclick=function(){ st.qty=Math.max(1,st.qty-1); $("qVal").textContent=st.qty; refresh(); };
-  $("qPlus").onclick=function(){ st.qty=Math.min(3,st.qty+1); $("qVal").textContent=st.qty; refresh(); };
+  // (quantidade agora é por sabor, acima)
   // máscara telefone
   $("pvFone").addEventListener("input",function(e){
     var d=e.target.value.replace(/\D/g,"").slice(0,11),o=d;
@@ -448,17 +462,17 @@ a.a{background:transparent;color:var(--pistD)}
 
   $("pvPagar").onclick=function(){
     var t=total(), code="BB-"+Math.random().toString(36).slice(2,6).toUpperCase();
-    var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:st.sabor,qty:st.qty,unidade:st.unidade,total:t,status:"aguardando pagamento"};
+    var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:saboresStr(),qty:totalQty(),unidade:st.unidade,total:t,status:"aguardando pagamento"};
     // captura no painel (best-effort, não bloqueia)
     try{ fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},keepalive:true,body:JSON.stringify(ped)}); }catch(e){}
     setTimeout(loadSold,1500);
     // monta pagamento
     var copia=pixCode(t);
     $("payCode").textContent=code;
-    $("paySum").textContent=st.sabor+" × "+st.qty+" · retirada "+st.unidade+" · "+brl(t);
+    $("paySum").textContent=saboresStr()+" · retirada "+st.unidade+" · "+brl(t);
     $("payQr").src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data="+encodeURIComponent(copia);
     $("payCopia").value=copia;
-    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabor:* "+st.sabor+" × "+st.qty,"*Retirada:* "+st.unidade,"*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
+    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade,"*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
     $("payWapp").href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(msg);
     $("pvForm").style.display="none"; $("pvPay").style.display="block";
     $("pvPay").scrollIntoView({behavior:"smooth",block:"center"});
@@ -469,7 +483,7 @@ a.a{background:transparent;color:var(--pistD)}
     if(navigator.clipboard){ navigator.clipboard.writeText(v).then(done,function(){$("payCopia").select();done();}); }
     else { $("payCopia").select(); try{document.execCommand("copy");}catch(e){} done(); }
   };
-  $("payVoltar").onclick=function(){ $("pvPay").style.display="none"; $("pvForm").style.display="block"; };
+  $("payVoltar").onclick=function(){ for(var k in st.f) st.f[k]=0; refresh(); $("pvPay").style.display="none"; $("pvForm").style.display="block"; };
 })();
 
 /* ===== Sorteio (10 kits) ===== */
