@@ -44,6 +44,8 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-
 .hero .tag{max-width:430px;margin:14px auto 0;color:var(--soft);font-size:15px}
 .heroimg{position:relative;margin:22px 0 0;border-radius:22px;overflow:hidden;border:1px solid var(--line);box-shadow:0 40px 90px -50px rgba(63,90,46,.6)}
 .heroimg img{display:block;width:100%;height:auto}
+.heroimg video{display:block;width:100%;height:auto;max-height:64vh;object-fit:cover;background:#0d140d}
+.hbadge{position:absolute;bottom:12px;left:12px;background:rgba(20,36,26,.6);color:#fff;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.06em;padding:5px 10px;border-radius:999px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
 
 /* countdown */
 .count{margin:26px 0 8px;background:var(--surf);border:1px solid var(--line);border-radius:22px;padding:24px 18px;text-align:center;position:relative}
@@ -152,7 +154,10 @@ a.a{background:transparent;color:var(--pistD)}
     <div class="kick">Lançamento exclusivo</div>
     <h1>Bentô<span class="by">Bytes</span></h1>
     <p class="tag">Esferas de gelato com cobertura crocante. <b>13&nbsp;g de proteína</b>, <b>zero adição de açúcar</b> e <b>zero lactose</b> — a sobremesa que cabe na sua meta, agora em mordidas.</p>
-    <div class="heroimg"><img src="/bytes/img/hero.jpg" alt="BentôBytes nos sabores Opereta, Pistache Perfeito e Chocolate Dubai" fetchpriority="high"></div>
+    <div class="heroimg">
+      <video src="/bytes/video/bytes.mp4" poster="/bytes/video/poster.jpg" autoplay muted loop playsinline preload="metadata" aria-label="BentôBytes de pistache"></video>
+      <span class="hbadge">▶ sem som · toque no link abaixo</span>
+    </div>
   </header>
 
   <section class="count" aria-live="polite">
