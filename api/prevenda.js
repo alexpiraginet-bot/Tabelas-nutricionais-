@@ -86,17 +86,23 @@ export default async function handler(req, res) {
   }
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
 
-  // Contador público de escassez: vendidos (base 200 + unidades pedidas no site) de 300.
+  // Contador público de escassez por lotes (base 200 já vendidas + unidades pedidas no site).
+  // Lote 1: 300 un a R$24,90. Esgotou → Lote 2: +300 un a R$26,90. Teto 600.
   if (req.method === "GET" && req.query && req.query.count !== undefined) {
     res.setHeader("Cache-Control", "no-store");
-    const BASE = 200, TOTAL = 300;
+    const BASE = 200, LOTE = 300, LOTES = 2, PRICES = [24.90, 26.90];
+    function pack(u) {
+      const sold = Math.min(LOTE * LOTES, BASE + Math.max(0, u));
+      const soldout = sold >= LOTE * LOTES;
+      const lote = sold <= LOTE ? 1 : 2;
+      const price = PRICES[Math.min(lote, PRICES.length) - 1];
+      const loteSold = lote === 1 ? sold : sold - LOTE;
+      return { ok: true, sold, cap: LOTE * LOTES, lote, price, loteSold, loteTotal: LOTE, loteRemaining: Math.max(0, LOTE - loteSold), soldout };
+    }
     try {
       const u = Number((KV_URL && KV_TOKEN) ? (await cmd(["GET", "prevendas:units"]) || 0) : 0);
-      const sold = Math.min(TOTAL, BASE + Math.max(0, u));
-      res.status(200).json({ ok: true, sold, total: TOTAL, baseline: BASE, remaining: Math.max(0, TOTAL - sold) });
-    } catch {
-      res.status(200).json({ ok: true, sold: BASE, total: TOTAL, baseline: BASE, remaining: TOTAL - BASE });
-    }
+      res.status(200).json(pack(u));
+    } catch { res.status(200).json(pack(0)); }
     return;
   }
 

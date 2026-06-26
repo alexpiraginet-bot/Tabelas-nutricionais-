@@ -272,7 +272,7 @@ a.a{background:transparent;color:var(--pistD)}
   <section class="sec" id="prevenda">
     <div class="h">
       <h2>Pré-venda · retirada na loja</h2>
-      <p>Cada potinho tem <b>70&nbsp;g · ~12 unidades</b> por <b>R$&nbsp;24,90</b> (pré-lançamento). Retirada na loja — <b>máx. 3 por pessoa</b>.</p>
+      <p>Cada potinho tem <b>70&nbsp;g · ~12 unidades</b> a partir de <b>R$&nbsp;24,90</b> (pré-lançamento). Retirada na loja — <b>máx. 3 por pessoa</b>.</p>
     </div>
     <div class="pv">
       <div class="frame"></div>
@@ -288,7 +288,7 @@ a.a{background:transparent;color:var(--pistD)}
       <div id="pvForm" style="display:none">
         <div class="pvscarce">⚡ Edição limitada de lançamento · <b>70&nbsp;g</b> (~12 un) cada · <b>máx. 3 potes por pessoa</b></div>
         <div class="soldbar" id="soldBar" style="display:none">
-          <div class="soldhead"><span>🔥 Pré-venda limitada</span><span id="soldTxt"></span></div>
+          <div class="soldhead"><span id="soldHead">🔥 Pré-venda limitada</span><span id="soldTxt"></span></div>
           <div class="soldtrack"><div class="soldfill" id="soldFill"></div></div>
           <div class="soldsub" id="soldSub"></div>
         </div>
@@ -395,19 +395,26 @@ a.a{background:transparent;color:var(--pistD)}
   else { $("pvClosed").style.display="block"; return; }
 
   var st={sabor:"",qty:1,unidade:""};
-  var _sold=null,_total=300;
-  function renderSold(sold,total){
-    _sold=sold; _total=total; var rem=Math.max(0,total-sold), pct=Math.min(100,Math.round(sold/total*100));
-    $("soldBar").style.display="block"; $("soldTxt").textContent=sold+"/"+total+" vendidos"; $("soldFill").style.width=pct+"%";
-    if(rem<=0){ $("soldSub").textContent="Esgotado! 🙏 obrigada"; if($("pvPagar")){$("pvPagar").disabled=true;$("pvPagar").textContent="Esgotado";} }
-    else { $("soldSub").textContent="Restam só "+rem+" de "+total+" potes 🔥"; }
+  var _data=null, _soldout=false, _txid="BentBytes";
+  function renderSold(j){
+    if(!j||!j.cap){ return; }
+    _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes";
+    $("soldBar").style.display="block";
+    var l2=j.lote>=2;
+    $("soldHead").textContent="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price);
+    $("soldTxt").textContent=j.loteSold+"/"+j.loteTotal;
+    $("soldFill").style.width=Math.min(100,Math.round(j.loteSold/j.loteTotal*100))+"%";
+    if(j.soldout){ $("soldSub").textContent="Tudo esgotado 🙏 obrigada!"; if($("pvPagar"))$("pvPagar").textContent="Esgotado"; }
+    else if(l2){ $("soldSub").textContent="🥈 1º lote esgotado! Agora 2º lote a "+brl(j.price)+" · restam "+j.loteRemaining+" de "+j.loteTotal+" 🔥"; }
+    else { $("soldSub").textContent="Restam só "+j.loteRemaining+" de "+j.loteTotal+" potes 🔥"; }
+    refresh();
   }
-  function loadSold(){ fetch(API+"?count=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ if(j&&j.total) renderSold(j.sold,j.total); }).catch(function(){}); }
+  function loadSold(){ fetch(API+"?count=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ renderSold(j); }).catch(function(){}); }
   var brl=function(n){return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});};
   function total(){return PRECO*st.qty;}
   function refresh(){
     $("pvTotal").textContent=brl(total());
-    $("pvPagar").disabled=!(st.sabor && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
+    $("pvPagar").disabled=_soldout||!(st.sabor && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
   }
   // sabores
   $("pvSabores").querySelectorAll("button").forEach(function(b){
@@ -435,7 +442,7 @@ a.a{background:transparent;color:var(--pistD)}
   function crc16(s){var c=0xFFFF;for(var i=0;i<s.length;i++){c^=s.charCodeAt(i)<<8;for(var j=0;j<8;j++)c=(c&0x8000)?((c<<1)^0x1021)&0xFFFF:(c<<1)&0xFFFF;}return c.toString(16).toUpperCase().padStart(4,"0");}
   function pixCode(amount){
     var mai=emv("26",emv("00","br.gov.bcb.pix")+emv("01","062533a2-9991-478a-a24b-8b06095bd21b"));
-    var body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("54",amount.toFixed(2))+emv("58","BR")+emv("59","ABB_GELATERIA_LTDA")+emv("60","Vitoria")+emv("61","29055-460")+emv("62",emv("05","BentBytes"))+"6304";
+    var body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("54",amount.toFixed(2))+emv("58","BR")+emv("59","ABB_GELATERIA_LTDA")+emv("60","Vitoria")+emv("61","29055-460")+emv("62",emv("05",_txid))+"6304";
     return body+crc16(body);
   }
 
@@ -444,7 +451,7 @@ a.a{background:transparent;color:var(--pistD)}
     var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:st.sabor,qty:st.qty,unidade:st.unidade,total:t,status:"aguardando pagamento"};
     // captura no painel (best-effort, não bloqueia)
     try{ fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},keepalive:true,body:JSON.stringify(ped)}); }catch(e){}
-    if(_sold!=null){ renderSold(Math.min(_total,_sold+st.qty),_total); } setTimeout(loadSold,1800);
+    setTimeout(loadSold,1500);
     // monta pagamento
     var copia=pixCode(t);
     $("payCode").textContent=code;
