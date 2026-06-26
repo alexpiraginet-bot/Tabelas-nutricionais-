@@ -37,6 +37,20 @@
   .bchip b{color:var(--pistD)}
   .bchip.zero{opacity:.45}
   .btot{margin-left:auto;font-size:12px;color:var(--soft);font-weight:800}
+  .stockbox{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:14px}
+  .stockbox summary{cursor:pointer;font-weight:800;font-size:13px;color:var(--pistD)}
+  .strow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 0;border-top:1px solid var(--line)}
+  .strow:first-of-type{border-top:none}
+  .strow .sn{font-size:13px;font-weight:800;min-width:122px}
+  .stin{width:58px;padding:7px;border:1px solid var(--line);border-radius:9px;font-size:15px;text-align:center;background:#fff;color:var(--ink)}
+  .stlbl{font-size:11px;color:var(--soft)}
+  .fitbadge{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:4px 11px;margin-bottom:9px}
+  .fit-ok{background:#EAF4DC;color:#2C7A3D;border:1px solid #BCD89F}
+  .fit-no{background:#FBE6E2;color:#B23A2A;border:1px solid #E7B0A6}
+  .notify{display:block;text-align:center;width:100%;margin-top:8px;background:#1FA855;color:#fff;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none}
+  .rbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#EAF4DC;border:1px solid #BCD89F;border-radius:14px;padding:11px 14px;margin-bottom:14px}
+  .rbar b{color:#2C7A3D;font-size:13px}
+  .rbar button{background:var(--pistD);color:#fff;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer}
   /* gate */
   .gate{position:fixed;inset:0;background:rgba(31,35,23,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
   .gate .box{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;text-align:center}
@@ -70,7 +84,24 @@
       <button class="ghost" id="logout">Sair</button>
     </div>
   </div>
+  <details class="stockbox" id="stockBox">
+    <summary>📦 Estoque para a pré-venda — definir por loja</summary>
+    <div style="margin-top:8px">
+      <div class="strow"><span class="sn">📍 Praia do Canto</span>
+        <span class="stlbl">Opereta</span><input class="stin" id="st_pc_op" type="number" min="0" inputmode="numeric" placeholder="0">
+        <span class="stlbl">Pistache</span><input class="stin" id="st_pc_pi" type="number" min="0" inputmode="numeric" placeholder="0">
+        <span class="stlbl">Dubai</span><input class="stin" id="st_pc_du" type="number" min="0" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="strow"><span class="sn">📍 Jardim Camburi</span>
+        <span class="stlbl">Opereta</span><input class="stin" id="st_jc_op" type="number" min="0" inputmode="numeric" placeholder="0">
+        <span class="stlbl">Pistache</span><input class="stin" id="st_jc_pi" type="number" min="0" inputmode="numeric" placeholder="0">
+        <span class="stlbl">Dubai</span><input class="stin" id="st_jc_du" type="number" min="0" inputmode="numeric" placeholder="0">
+      </div>
+    </div>
+    <div class="stlbl" style="margin-top:8px">Validamos por <b>ordem de recebimento</b>: os mais antigos têm prioridade até o estoque acabar. Deixe 0/vazio para não validar a loja.</div>
+  </details>
   <div id="banner"></div>
+  <div id="readyBar"></div>
   <div id="list"></div>
   <div class="empty" id="empty" style="display:none">Nenhuma pré-venda paga aguardando retirada. 🙌<br>Assim que o admin marcar um pedido como <b>pago</b>, ele aparece aqui na hora.</div>
 </div>
@@ -96,6 +127,24 @@ function parseSabores(sabor, qtyTotal){
   } else if(s.trim()){ out[s.trim()]=(out[s.trim()]||0)+(Number(qtyTotal)||1); }
   return out;
 }
+const SHORT={"Opereta":"Opereta","Pistache Perfeito":"Pistache","Chocolate Dubai":"Dubai"};
+const STOCK_IDS=[
+  ["st_pc_op","Praia do Canto","Opereta"],["st_pc_pi","Praia do Canto","Pistache Perfeito"],["st_pc_du","Praia do Canto","Chocolate Dubai"],
+  ["st_jc_op","Jardim Camburi","Opereta"],["st_jc_pi","Jardim Camburi","Pistache Perfeito"],["st_jc_du","Jardim Camburi","Chocolate Dubai"]
+];
+function loadStock(){ var s={"Praia do Canto":{},"Jardim Camburi":{}}; STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); var v=el?parseInt(el.value,10):NaN; s[m[1]][m[2]]=isNaN(v)?0:Math.max(0,v); }); return s; }
+function stockHasAny(store,stock){ var o=(stock&&stock[store])||{}; return Object.keys(o).some(function(k){return o[k]>0;}); }
+function saveStock(){ try{ localStorage.setItem("bento:estoque", JSON.stringify(loadStock())); }catch(e){} }
+function restoreStock(){ try{ var s=JSON.parse(localStorage.getItem("bento:estoque")||"{}"); STOCK_IDS.forEach(function(m){ var v=s[m[1]]&&s[m[1]][m[2]]; var el=$("#"+m[0]); if(el&&v!=null&&v!==""&&v!==0) el.value=v; }); }catch(e){} }
+function readyMsg(p){ var n=String(p.nome||"").trim().split(" ")[0]; return "Oi "+(n||"")+"! 🍫 Seu pedido BentôBytes da pré-venda ("+(p.code||"")+") já está PRONTO para retirada na nossa loja "+(p.unidade||"")+". Pode vir buscar! 💚"; }
+function copyTxt(txt,label){ try{ navigator.clipboard.writeText(txt); }catch(e){ var a=document.createElement("textarea");a.value=txt;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");}catch(_){}document.body.removeChild(a); } alert((label||"Texto")+" copiado! ✅"); }
+function renderReadyBar(pagos){
+  var box=$("#readyBar"); var ready=pagos.filter(function(p){return p._fit!==false;});
+  if(!ready.length){ box.innerHTML=""; return; }
+  box.innerHTML='<div class="rbar"><b>📣 '+ready.length+' pedido(s) prontos p/ avisar</b><button id="copyNums">📋 Copiar números</button><button id="copyMsg">📋 Copiar mensagem</button></div>';
+  $("#copyNums").onclick=function(){ var nums=ready.map(function(p){var d=String(p.phone||"").replace(/\D/g,"");return d?(d.length<=11?"55":"")+d:"";}).filter(Boolean).join("\n"); copyTxt(nums,"Números dos prontos"); };
+  $("#copyMsg").onclick=function(){ copyTxt("Oi! 🍫 Seu pedido BentôBytes da pré-venda já está PRONTO para retirada na nossa loja. Pode vir buscar! 💚","Mensagem"); };
+}
 function renderBanner(pagos){
   const box=$("#banner");
   if(!pagos.length){ box.innerHTML=""; return; }
@@ -114,10 +163,24 @@ function renderBanner(pagos){
   });
   box.innerHTML=html;
 }
+var _lastData=null;
 function render(d){
+  _lastData=d;
   const pagos = (d && d.pagos) || [];
   pagos.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  // validação de estoque por ordem de recebimento (FIFO)
+  var stock=loadStock();
+  var rem={"Praia do Canto":Object.assign({},stock["Praia do Canto"]),"Jardim Camburi":Object.assign({},stock["Jardim Camburi"])};
+  pagos.forEach(function(p){
+    var store=p.unidade; var pf=parseSabores(p.sabor,p.qty);
+    if(!rem[store] || !stockHasAny(store,stock)){ p._fit=null; p._miss=""; return; }
+    var fits=true, miss=[];
+    for(var fl in pf){ var have=rem[store][fl]||0; if(have<pf[fl]){ fits=false; miss.push((SHORT[fl]||fl)+" -"+(pf[fl]-have)); } }
+    p._fit=fits; p._miss=miss.join(" · ");
+    if(fits){ for(var fl2 in pf){ rem[store][fl2]=(rem[store][fl2]||0)-pf[fl2]; } }
+  });
   renderBanner(pagos);
+  renderReadyBar(pagos);
   $("#count").textContent = pagos.length;
   $("#updated").textContent = "atualizado " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   const box = $("#list"); box.innerHTML = "";
@@ -126,12 +189,15 @@ function render(d){
     const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
     const el = document.createElement("div"); el.className="card";
     el.innerHTML =
-      '<div class="code">'+esc(p.code||"—")+'</div>'
+      (p._fit===true?'<div class="fitbadge fit-ok">✅ Tem estoque — pode liberar</div>':'')
+      +(p._fit===false?'<div class="fitbadge fit-no">⛔ Sem estoque'+(p._miss?' (faltam '+esc(p._miss)+')':'')+'</div>':'')
+      +'<div class="code">'+esc(p.code||"—")+'</div>'
       +'<div class="nome">'+esc(p.nome||"—")+'</div>'
       +'<div class="row"><span class="lab">Sabores</span><span class="sab">'+esc(p.sabor||"—")+'</span></div>'
       +'<div class="row"><span class="lab">Qtd</span>'+(p.qty||1)+' pote(s)</div>'
       +(wa?'<div class="row"><span class="lab">Contato</span><a class="wa" href="'+wa+'" target="_blank" rel="noopener">'+esc(p.phone)+'</a></div>':'')
       +'<div class="uni">📍 '+esc(p.unidade||"—")+'</div>'
+      +((wa && p._fit!==false)?'<a class="notify" href="'+wa+'?text='+encodeURIComponent(readyMsg(p))+'" target="_blank" rel="noopener">📲 Avisar que está pronto</a>':'')
       +'<button class="deliver" data-code="'+esc(p.code||"")+'" data-nome="'+esc(p.nome||"")+'">✅ Entregue · marcar retirado</button>';
     box.appendChild(el);
   });
@@ -158,6 +224,9 @@ $("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim(
 $("#key").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("#enter").click(); });
 $("#refresh").onclick = refresh;
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); location.reload(); };
+// estoque: restaura salvo e revalida ao digitar
+restoreStock();
+STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); if(el) el.addEventListener("input", function(){ saveStock(); if(_lastData) render(_lastData); }); });
 setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 12000);
 if(localStorage.getItem(KEYSTORE)) refresh();
 </script>
