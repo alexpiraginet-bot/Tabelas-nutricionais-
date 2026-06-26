@@ -159,6 +159,7 @@ export default async function handler(req, res) {
       unidade: s120(body.unidade || ""),
       total: Number(body.total) || 0,
       status: s120(body.status || "aguardando pagamento"),
+      ref: s120(body.ref || ""),
     };
     await pipeline([
       ["LPUSH", "prevendas", JSON.stringify(ped)],
@@ -176,6 +177,7 @@ export default async function handler(req, res) {
         `👤 ${esc(ped.nome || "—")} · ${esc(ped.phone)}`,
         `🍨 ${esc(ped.sabor || "—")} × ${ped.qty}`,
         `📍 Retirada: ${esc(ped.unidade || "—")}`,
+        ped.ref ? `🔗 Origem: <b>${esc(ped.ref)}</b>` : "",
         `💰 ${brl(ped.total)} · ${esc(ped.status)}`,
         `📲 <a href="${wa}">Falar / receber comprovante</a>`,
       ].filter(Boolean).join("\n");

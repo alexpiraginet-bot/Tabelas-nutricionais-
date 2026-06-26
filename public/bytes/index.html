@@ -129,6 +129,7 @@ a.a{background:transparent;color:var(--pistD)}
 .totrow{display:flex;justify-content:space-between;align-items:baseline;margin:18px 0 4px}
 .totrow .t1{font-size:13px;color:var(--soft)}
 .totrow .t2{font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--pistD)}
+.torig{text-decoration:line-through;color:var(--soft);font-size:15px;margin-right:9px;font-family:'Fraunces',serif}
 .cta{width:100%;margin-top:10px;padding:16px;border-radius:999px;border:none;background:var(--pistD);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit}
 .cta:disabled{background:var(--line);color:var(--soft);cursor:not-allowed}
 .pvnote{font-family:'Space Mono',monospace;font-size:10px;color:var(--soft);text-align:center;margin-top:10px;line-height:1.5}
@@ -317,7 +318,7 @@ a.a{background:transparent;color:var(--pistD)}
           </div>
         </div>
 
-        <div class="totrow"><span class="t1">Total</span><span class="t2" id="pvTotal">R$ 24,90</span></div>
+        <div class="totrow"><span class="t1">Total</span><span><span class="torig" id="pvTotalOrig"></span><span class="t2" id="pvTotal">R$ 24,90</span></span></div>
         <button class="cta" id="pvPagar" disabled>Gerar Pix e pagar →</button>
         <div class="pvnote">Pagamento via Pix. Após pagar, toque em “enviar comprovante” para confirmarmos seu pedido. 💛</div>
       </div>
@@ -387,6 +388,8 @@ a.a{background:transparent;color:var(--pistD)}
 /* ===== Pré-venda BentôBytes ===== */
 (function(){
   var PRECO=24.90, WHATS="5527999159995", API="https://bentogelateria.com/api/prevenda";
+  var REF=(function(){try{return (new URLSearchParams(location.search).get("ref")||"").replace(/[^\w .-]/g,"").slice(0,40).trim();}catch(e){return "";}})();
+  var PRECO_ORIG=29.90;
   var OPEN=new Date("2026-06-26T00:00:00-03:00").getTime();
   var forceOpen=/[?&](preview|teste|prevenda)\b/.test(location.search);
   var $=function(id){return document.getElementById(id);};
@@ -402,7 +405,7 @@ a.a{background:transparent;color:var(--pistD)}
     _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes";
     $("soldBar").style.display="block";
     var l2=j.lote>=2;
-    $("soldHead").textContent="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price);
+    $("soldHead").innerHTML="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price)+' <s style="color:var(--soft);font-weight:400">de '+brl(29.90)+'</s>';
     $("soldTxt").textContent=j.loteSold+"/"+j.loteTotal;
     $("soldFill").style.width=Math.min(100,Math.round(j.loteSold/j.loteTotal*100))+"%";
     if(j.soldout){ $("soldSub").textContent="Tudo esgotado 🙏 obrigada!"; if($("pvPagar"))$("pvPagar").textContent="Esgotado"; }
@@ -428,6 +431,7 @@ a.a{background:transparent;color:var(--pistD)}
   function refresh(){
     syncFlavors();
     if($("pvTotal")) $("pvTotal").textContent=brl(total());
+    if($("pvTotalOrig")){ var qo=totalQty(); $("pvTotalOrig").textContent = qo>0 ? brl(PRECO_ORIG*qo) : ""; }
     $("pvPagar").disabled=_soldout||!(totalQty()>=1 && st.unidade && $("pvNome").value.trim() && ($("pvFone").value.replace(/\D/g,"").length>=10));
   }
   // sabores: quantidade por sabor (total <= 3)
@@ -462,7 +466,7 @@ a.a{background:transparent;color:var(--pistD)}
 
   $("pvPagar").onclick=function(){
     var t=total(), code="BB-"+Math.random().toString(36).slice(2,6).toUpperCase();
-    var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:saboresStr(),qty:totalQty(),unidade:st.unidade,total:t,status:"aguardando pagamento"};
+    var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:saboresStr(),qty:totalQty(),unidade:st.unidade,total:t,status:"aguardando pagamento",ref:REF};
     // captura no painel (best-effort, não bloqueia)
     try{ fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},keepalive:true,body:JSON.stringify(ped)}); }catch(e){}
     setTimeout(loadSold,1500);
