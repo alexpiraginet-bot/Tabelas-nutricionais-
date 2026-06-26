@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Bentô · Retirada de pré-vendas</title>
+<style>
+  :root{ --bg:#F4F0E6; --surf:#FFFDF7; --ink:#1A2317; --soft:#5E6353; --pist:#6B8E4E; --pistD:#3F5A2E; --gold:#C9A24A; --line:#E4DCC9; }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:640px;margin:0 auto;padding:18px 14px 60px}
+  .head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .head h1{font-size:17px;margin:0;font-weight:800;letter-spacing:.01em}
+  .head .sub{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--soft);margin-top:2px}
+  .meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--soft);flex-wrap:wrap}
+  .blip{width:8px;height:8px;border-radius:50%;background:var(--pist);box-shadow:0 0 0 0 rgba(107,142,78,.6);animation:pulse 1.8s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(107,142,78,.5)}70%{box-shadow:0 0 0 9px rgba(107,142,78,0)}100%{box-shadow:0 0 0 0 rgba(107,142,78,0)}}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--soft);border-radius:8px;padding:7px 12px;font-size:12px;cursor:pointer}
+  .count{background:var(--pistD);color:#fff;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:800}
+  .card{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:12px;box-shadow:0 10px 30px -22px rgba(63,90,46,.5)}
+  .code{font-family:ui-monospace,Menlo,monospace;font-size:26px;font-weight:800;color:var(--pistD);letter-spacing:.02em}
+  .nome{font-size:17px;font-weight:700;margin:2px 0 8px}
+  .row{font-size:14px;color:var(--ink);margin:3px 0}
+  .lab{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin-right:6px}
+  .sab{font-weight:600}
+  .uni{display:inline-block;background:#EEF5E2;border:1px solid #CBD9A6;color:var(--pistD);border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;margin-top:4px}
+  .wa{color:var(--pist);text-decoration:none}
+  .deliver{width:100%;margin-top:13px;background:var(--pistD);color:#fff;border:none;border-radius:11px;padding:14px;font-size:15px;font-weight:800;cursor:pointer}
+  .deliver:active{transform:scale(.99)}
+  .empty{text-align:center;color:var(--soft);font-size:14px;padding:44px 16px;line-height:1.6}
+  /* gate */
+  .gate{position:fixed;inset:0;background:rgba(31,35,23,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .gate .box{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;text-align:center}
+  .gate input{width:100%;margin-top:14px;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:16px;outline:none}
+  .gate button{width:100%;margin-top:12px;padding:13px;border-radius:12px;border:none;background:var(--pistD);color:#fff;font-weight:800;font-size:15px;cursor:pointer}
+  .err{color:#C0392B;font-size:12px;margin-top:10px;min-height:16px}
+</style>
+</head>
+<body>
+<div class="gate" id="gate">
+  <div class="box">
+    <div style="font-weight:800;font-size:18px">🍫 Retirada · Bentô</div>
+    <div style="font-size:11px;color:var(--soft);letter-spacing:.2em;text-transform:uppercase;margin-top:4px">Pré-vendas pagas</div>
+    <input id="key" type="password" placeholder="Senha da loja" autocomplete="current-password" />
+    <button id="enter">Entrar</button>
+    <div class="err" id="gateErr"></div>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <div class="head">
+    <div>
+      <h1>Retirada de pré-vendas 🍫</h1>
+      <div class="sub">Bentô Gelatos</div>
+    </div>
+    <div class="meta">
+      <span class="blip"></span>
+      <span id="updated"></span>
+      <span class="count" id="count">0</span>
+      <button class="ghost" id="refresh">Atualizar</button>
+      <button class="ghost" id="logout">Sair</button>
+    </div>
+  </div>
+  <div id="list"></div>
+  <div class="empty" id="empty" style="display:none">Nenhuma pré-venda paga aguardando retirada. 🙌<br>Assim que o admin marcar um pedido como <b>pago</b>, ele aparece aqui na hora.</div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const KEYSTORE = "bento:lojakey";
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+async function load(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/retirada", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(r.status===401) throw new Error("401");
+  if(!r.ok) throw new Error("Erro "+r.status);
+  return r.json();
+}
+function render(d){
+  const pagos = (d && d.pagos) || [];
+  pagos.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  $("#count").textContent = pagos.length;
+  $("#updated").textContent = "atualizado " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  const box = $("#list"); box.innerHTML = "";
+  pagos.forEach(p=>{
+    const dig = String(p.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const el = document.createElement("div"); el.className="card";
+    el.innerHTML =
+      '<div class="code">'+esc(p.code||"—")+'</div>'
+      +'<div class="nome">'+esc(p.nome||"—")+'</div>'
+      +'<div class="row"><span class="lab">Sabores</span><span class="sab">'+esc(p.sabor||"—")+'</span></div>'
+      +'<div class="row"><span class="lab">Qtd</span>'+(p.qty||1)+' pote(s)</div>'
+      +(wa?'<div class="row"><span class="lab">Contato</span><a class="wa" href="'+wa+'" target="_blank" rel="noopener">'+esc(p.phone)+'</a></div>':'')
+      +'<div class="uni">📍 '+esc(p.unidade||"—")+'</div>'
+      +'<button class="deliver" data-code="'+esc(p.code||"")+'" data-nome="'+esc(p.nome||"")+'">✅ Entregue · marcar retirado</button>';
+    box.appendChild(el);
+  });
+  $("#empty").style.display = pagos.length ? "none" : "block";
+  box.querySelectorAll(".deliver").forEach(b=> b.onclick = ()=> entregar(b));
+}
+async function entregar(b){
+  const code=b.getAttribute("data-code"), nome=b.getAttribute("data-nome");
+  if(!code) return;
+  if(!confirm("Confirmar ENTREGA de "+(nome||code)+"?\n\nPedido "+code+" sai da lista de pendentes.")) return;
+  b.disabled=true; b.textContent="Salvando…";
+  try{
+    const key = localStorage.getItem(KEYSTORE) || "";
+    const r = await fetch("/api/retirada",{ method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key }, body: JSON.stringify({ action:"retirado", code }) });
+    const j = await r.json();
+    if(j && j.ok){ refresh(); } else { alert("Não consegui salvar. Tente de novo."); b.disabled=false; b.textContent="✅ Entregue · marcar retirado"; }
+  }catch(e){ alert("Erro de conexão."); b.disabled=false; b.textContent="✅ Entregue · marcar retirado"; }
+}
+async function refresh(){
+  try{ const d = await load(); $("#gate").style.display="none"; $("#app").style.display="block"; render(d); }
+  catch(e){ if(String(e.message)==="401"){ $("#app").style.display="none"; $("#gate").style.display="flex"; $("#gateErr").textContent="Senha incorreta."; } }
+}
+$("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim()); $("#gateErr").textContent=""; refresh(); };
+$("#key").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("#enter").click(); });
+$("#refresh").onclick = refresh;
+$("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); location.reload(); };
+setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 12000);
+if(localStorage.getItem(KEYSTORE)) refresh();
+</script>
+</body>
+</html>

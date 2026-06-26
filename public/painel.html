@@ -494,7 +494,7 @@ function renderPrevLotes(j){
 }
 function statusSelect(code, cur){
   cur = cur || "aguardando pagamento";
-  var opts = ["aguardando pagamento","pago","cancelado"];
+  var opts = ["aguardando pagamento","pago","retirado","cancelado"];
   if(opts.indexOf(cur)<0) opts.unshift(cur);
   var cls = cur==="pago"?"pago":(cur==="cancelado"?"cancelado":"");
   var o = opts.map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+escapeHtml(x)+'</option>'; }).join("");
@@ -587,6 +587,7 @@ var LINKS = [
   ]],
   ["Outros", [
     ["🎮","Stranger Gelatos (jogo + desconto)", "https://stranger-gelatos.vercel.app/index.html"],
+    ["🏪","Retirada na loja (atendentes)", SITE+"/retirada.html"],
     ["📑","Portfólio em PDF", SITE+"/portfolio-bento.pdf"],
     ["🔒","Política de Privacidade", SITE+"/?privacidade=1"],
     ["📜","Termos de uso", SITE+"/?termos=1"],
