@@ -29,6 +29,14 @@
   .deliver{width:100%;margin-top:13px;background:var(--pistD);color:#fff;border:none;border-radius:11px;padding:14px;font-size:15px;font-weight:800;cursor:pointer}
   .deliver:active{transform:scale(.99)}
   .empty{text-align:center;color:var(--soft);font-size:14px;padding:44px 16px;line-height:1.6}
+  .banner{background:var(--surf);border:1px solid var(--gold);border-radius:16px;padding:14px 16px;margin-bottom:16px;box-shadow:0 10px 30px -22px rgba(201,162,74,.6)}
+  .btitle{font-size:12px;letter-spacing:.04em;font-weight:800;color:var(--pistD);margin-bottom:6px;text-transform:uppercase}
+  .bstore{display:flex;flex-wrap:wrap;align-items:center;gap:7px 9px;padding:10px 0;border-top:1px solid var(--line)}
+  .bname{font-size:14px;font-weight:800;color:var(--ink);min-width:118px}
+  .bchip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700}
+  .bchip b{color:var(--pistD)}
+  .bchip.zero{opacity:.45}
+  .btot{margin-left:auto;font-size:12px;color:var(--soft);font-weight:800}
   /* gate */
   .gate{position:fixed;inset:0;background:rgba(31,35,23,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
   .gate .box{background:var(--surf);border:1px solid var(--line);border-radius:18px;padding:26px 22px;max-width:340px;width:100%;text-align:center}
@@ -62,6 +70,7 @@
       <button class="ghost" id="logout">Sair</button>
     </div>
   </div>
+  <div id="banner"></div>
   <div id="list"></div>
   <div class="empty" id="empty" style="display:none">Nenhuma pré-venda paga aguardando retirada. 🙌<br>Assim que o admin marcar um pedido como <b>pago</b>, ele aparece aqui na hora.</div>
 </div>
@@ -78,9 +87,37 @@ async function load(){
   if(!r.ok) throw new Error("Erro "+r.status);
   return r.json();
 }
+const STORES=["Praia do Canto","Jardim Camburi"];
+const FLAVORS=[["Opereta","Opereta"],["Pistache Perfeito","Pistache"],["Chocolate Dubai","Choco Dubai"]];
+function parseSabores(sabor, qtyTotal){
+  var out={}, s=String(sabor||"");
+  if(/×\s*\d/.test(s)){
+    s.split("·").forEach(function(part){ var m=part.match(/^\s*(.+?)\s*×\s*(\d+)\s*$/); if(m) out[m[1].trim()]=(out[m[1].trim()]||0)+Number(m[2]); });
+  } else if(s.trim()){ out[s.trim()]=(out[s.trim()]||0)+(Number(qtyTotal)||1); }
+  return out;
+}
+function renderBanner(pagos){
+  const box=$("#banner");
+  if(!pagos.length){ box.innerHTML=""; return; }
+  var agg={}; STORES.forEach(function(s){ agg[s]={}; });
+  pagos.forEach(function(p){
+    var store=p.unidade||"Outra"; if(!agg[store]) agg[store]={};
+    var pf=parseSabores(p.sabor,p.qty);
+    for(var fl in pf){ agg[store][fl]=(agg[store][fl]||0)+pf[fl]; }
+  });
+  var stores=STORES.concat(Object.keys(agg).filter(function(s){return STORES.indexOf(s)<0;}));
+  var html='<div class="btitle">📦 Para separar — pré-vendas pagas (ainda sem entrega)</div>';
+  stores.forEach(function(store){
+    var a=agg[store]||{}, tot=0; for(var k in a) tot+=a[k];
+    var chips=FLAVORS.map(function(f){ var c=a[f[0]]||0; return '<span class="bchip'+(c?'':' zero')+'">'+esc(f[1])+': <b>'+c+'</b></span>'; }).join("");
+    html+='<div class="bstore"><span class="bname">📍 '+esc(store)+'</span>'+chips+'<span class="btot">'+tot+' pote(s)</span></div>';
+  });
+  box.innerHTML=html;
+}
 function render(d){
   const pagos = (d && d.pagos) || [];
   pagos.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  renderBanner(pagos);
   $("#count").textContent = pagos.length;
   $("#updated").textContent = "atualizado " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
   const box = $("#list"); box.innerHTML = "";
