@@ -81,10 +81,24 @@ export default async function handler(req, res) {
   if (origin) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   }
   if (req.method === "OPTIONS") { res.status(204).end(); return; }
+
+  // Contador público de escassez: vendidos (base 200 + unidades pedidas no site) de 300.
+  if (req.method === "GET" && req.query && req.query.count !== undefined) {
+    res.setHeader("Cache-Control", "no-store");
+    const BASE = 200, TOTAL = 300;
+    try {
+      const u = Number((KV_URL && KV_TOKEN) ? (await cmd(["GET", "prevendas:units"]) || 0) : 0);
+      const sold = Math.min(TOTAL, BASE + Math.max(0, u));
+      res.status(200).json({ ok: true, sold, total: TOTAL, baseline: BASE, remaining: Math.max(0, TOTAL - sold) });
+    } catch {
+      res.status(200).json({ ok: true, sold: BASE, total: TOTAL, baseline: BASE, remaining: TOTAL - BASE });
+    }
+    return;
+  }
 
   // GET: painel privado lista os pedidos
   if (req.method === "GET") {
@@ -130,6 +144,7 @@ export default async function handler(req, res) {
       ["LPUSH", "prevendas", JSON.stringify(ped)],
       ["LTRIM", "prevendas", 0, 999],
       ["INCR", "prevendas:count"],
+      ["INCRBY", "prevendas:units", qty],
     ]);
     try {
       const dig = String(ped.phone).replace(/\D/g, "");

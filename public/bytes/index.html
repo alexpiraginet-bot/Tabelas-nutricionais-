@@ -138,6 +138,12 @@ a.a{background:transparent;color:var(--pistD)}
 .pvscarce b{color:#EBD79A}
 .qnote{font-size:11.5px;color:var(--soft);margin-top:7px}
 .qnote b{color:var(--pistD)}
+.soldbar{margin:2px 0 16px}
+.soldhead{display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);margin-bottom:6px}
+.soldhead span:last-child{color:var(--pistD);font-weight:700;font-size:12px}
+.soldtrack{height:10px;background:var(--lineS);border-radius:999px;overflow:hidden}
+.soldfill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--pistD));border-radius:999px;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.soldsub{font-size:11.5px;color:var(--pistD);font-weight:700;margin-top:7px;text-align:center}
 .sobanner{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;margin:10px 0 0;background:linear-gradient(135deg,var(--pistD),#2C3A22);color:#fff;border:1px solid var(--gold);border-radius:16px;padding:13px 16px;font-size:13.5px;text-decoration:none}
 .sobanner b{color:#EBD79A}
 .sobanner .ar{font-family:'Fraunces',serif;font-size:18px;color:var(--gold)}
@@ -281,6 +287,11 @@ a.a{background:transparent;color:var(--pistD)}
       <!-- formulário -->
       <div id="pvForm" style="display:none">
         <div class="pvscarce">⚡ Edição limitada de lançamento · <b>70&nbsp;g</b> (~12 un) cada · <b>máx. 3 potes por pessoa</b></div>
+        <div class="soldbar" id="soldBar" style="display:none">
+          <div class="soldhead"><span>🔥 Pré-venda limitada</span><span id="soldTxt"></span></div>
+          <div class="soldtrack"><div class="soldfill" id="soldFill"></div></div>
+          <div class="soldsub" id="soldSub"></div>
+        </div>
         <span class="pvlab">1 · Escolha o sabor</span>
         <div class="opt" id="pvSabores">
           <button type="button" data-s="Opereta"><img src="/bytes/img/opereta.jpg" alt=""><div class="nm">Opereta</div></button>
@@ -380,10 +391,18 @@ a.a{background:transparent;color:var(--pistD)}
   var $=function(id){return document.getElementById(id);};
 
   // abre o checkout só a partir de sexta (ou com ?preview)
-  if(forceOpen || Date.now()>=OPEN){ $("pvForm").style.display="block"; }
+  if(forceOpen || Date.now()>=OPEN){ $("pvForm").style.display="block"; loadSold(); }
   else { $("pvClosed").style.display="block"; return; }
 
   var st={sabor:"",qty:1,unidade:""};
+  var _sold=null,_total=300;
+  function renderSold(sold,total){
+    _sold=sold; _total=total; var rem=Math.max(0,total-sold), pct=Math.min(100,Math.round(sold/total*100));
+    $("soldBar").style.display="block"; $("soldTxt").textContent=sold+"/"+total+" vendidos"; $("soldFill").style.width=pct+"%";
+    if(rem<=0){ $("soldSub").textContent="Esgotado! 🙏 obrigada"; if($("pvPagar")){$("pvPagar").disabled=true;$("pvPagar").textContent="Esgotado";} }
+    else { $("soldSub").textContent="Restam só "+rem+" de "+total+" potes 🔥"; }
+  }
+  function loadSold(){ fetch(API+"?count=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ if(j&&j.total) renderSold(j.sold,j.total); }).catch(function(){}); }
   var brl=function(n){return n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});};
   function total(){return PRECO*st.qty;}
   function refresh(){
@@ -425,6 +444,7 @@ a.a{background:transparent;color:var(--pistD)}
     var ped={code:code,nome:$("pvNome").value.trim(),phone:$("pvFone").value.trim(),sabor:st.sabor,qty:st.qty,unidade:st.unidade,total:t,status:"aguardando pagamento"};
     // captura no painel (best-effort, não bloqueia)
     try{ fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},keepalive:true,body:JSON.stringify(ped)}); }catch(e){}
+    if(_sold!=null){ renderSold(Math.min(_total,_sold+st.qty),_total); } setTimeout(loadSold,1800);
     // monta pagamento
     var copia=pixCode(t);
     $("payCode").textContent=code;
