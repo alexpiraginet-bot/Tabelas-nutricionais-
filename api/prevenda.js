@@ -116,6 +116,10 @@ export default async function handler(req, res) {
       const raw = (await cmd(["LRANGE", "prevendas", 0, 499])) || [];
       const pedidos = raw.map((x) => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean);
       const total = Number(await cmd(["GET", "prevendas:count"]) || pedidos.length);
+      // status editado pela equipe (hash por código do pedido) sobrescreve o original
+      let st = {};
+      try { const flat = (await cmd(["HGETALL", "prevendas:status"])) || []; for (let i = 0; i < flat.length; i += 2) st[flat[i]] = flat[i + 1]; } catch { /* */ }
+      pedidos.forEach((p) => { if (p && p.code && st[p.code]) p.status = st[p.code]; });
       res.status(200).json({ ok: true, updatedAt: Date.now(), total, pedidos });
     } catch (e) {
       res.status(500).json({ error: String((e && e.message) || e) });
@@ -125,12 +129,22 @@ export default async function handler(req, res) {
 
   if (req.method !== "POST") { res.status(405).end(); return; }
   if (!KV_URL || !KV_TOKEN) { res.status(204).end(); return; }
+  let body = await readRaw(req);
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
+  if (!body || typeof body !== "object") body = {};
+
+  // Ação do painel: atualizar o status de um pedido (aguardando/pago/cancelado)
+  if (body.action === "status") {
+    if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
+    const scode = s120(body.code || ""), sstatus = s120(body.status || "");
+    if (!scode) { res.status(400).json({ error: "code" }); return; }
+    try { await cmd(["HSET", "prevendas:status", scode, sstatus]); res.status(200).json({ ok: true }); }
+    catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
+    return;
+  }
+
   if (!(await rateOk(ipOf(req), "prevenda", 12))) { res.status(204).end(); return; }
   try {
-    let body = await readRaw(req);
-    if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
-    if (!body || typeof body !== "object") body = {};
-
     const phoneDigits = String(body.phone || "").replace(/\D/g, "");
     if (phoneDigits.length < 10) { res.status(204).end(); return; }
 

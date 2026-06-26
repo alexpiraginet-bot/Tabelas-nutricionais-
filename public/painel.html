@@ -53,6 +53,9 @@
   .tabs button:not(.on) .tbg{background:var(--pistD);color:#0c0f0a}
   .tbg:empty{display:none}
   .pane[hidden]{display:none!important}
+  .stsel{background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:11px;font-family:inherit;cursor:pointer;max-width:170px}
+  .stsel.pago{border-color:var(--pist);color:var(--pist);font-weight:700}
+  .stsel.cancelado{border-color:var(--red);color:var(--red)}
   .lkgrp{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin:14px 0 7px;font-weight:700}
   .lkgrp:first-child{margin-top:2px}
   .lk{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
@@ -489,6 +492,27 @@ function renderPrevLotes(j){
     + '</div>'
     + '<div style="margin-top:8px;font-size:12px;color:var(--soft)">💰 Receita do site: <b style="color:var(--pist)">'+prevBRL(rev1+rev2)+'</b> · Vendido: <b style="color:var(--ink)">'+j.sold+'/'+j.cap+'</b>'+(j.soldout?' · <b style="color:var(--gold)">ESGOTADO</b>':'')+'</div>';
 }
+function statusSelect(code, cur){
+  cur = cur || "aguardando pagamento";
+  var opts = ["aguardando pagamento","pago","cancelado"];
+  if(opts.indexOf(cur)<0) opts.unshift(cur);
+  var cls = cur==="pago"?"pago":(cur==="cancelado"?"cancelado":"");
+  var o = opts.map(function(x){ return '<option'+(x===cur?' selected':'')+'>'+escapeHtml(x)+'</option>'; }).join("");
+  return '<select class="stsel '+cls+'" data-code="'+escapeHtml(code||"")+'" onchange="setPrevStatus(this)"'+(code?"":" disabled")+'>'+o+'</select>';
+}
+async function setPrevStatus(el){
+  var code=el.getAttribute("data-code"), status=el.value;
+  if(!code) return;
+  el.className="stsel "+(status==="pago"?"pago":(status==="cancelado"?"cancelado":""));
+  el.disabled=true;
+  try{
+    var key=localStorage.getItem(KEYSTORE)||"";
+    var r=await fetch("/api/prevenda",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"status",code:code,status:status})});
+    var j=await r.json();
+    if(!(j&&j.ok)) alert("Não consegui salvar o status (confira a senha do painel).");
+  }catch(e){ alert("Erro de conexão ao salvar status."); }
+  el.disabled=false;
+}
 function renderPrevendas(d){
   const peds = (d && d.pedidos) || [];
   $("#prevCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgPrev", peds.length);
@@ -507,7 +531,7 @@ function renderPrevendas(d){
       <td class="num">${p.qty||1}</td>
       <td>${escapeHtml(p.unidade||"—")}</td>
       <td class="num">${brl(p.total)}</td>
-      <td><span class="tag">${escapeHtml(p.status||"—")}</span></td>`;
+      <td>${statusSelect(p.code, p.status)}</td>`;
     tb.appendChild(tr);
   });
   $("#prevEmpty").style.display = peds.length ? "none" : "block";
