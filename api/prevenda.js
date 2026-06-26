@@ -119,7 +119,14 @@ export default async function handler(req, res) {
       // status editado pela equipe (hash por código do pedido) sobrescreve o original
       let st = {};
       try { const flat = (await cmd(["HGETALL", "prevendas:status"])) || []; for (let i = 0; i < flat.length; i += 2) st[flat[i]] = flat[i + 1]; } catch { /* */ }
-      pedidos.forEach((p) => { if (p && p.code && st[p.code]) p.status = st[p.code]; });
+      // edição de sabores/qtd pela equipe (hash por código) sobrescreve o original
+      let ed = {};
+      try { const flat = (await cmd(["HGETALL", "prevendas:edit"])) || []; for (let i = 0; i < flat.length; i += 2) ed[flat[i]] = flat[i + 1]; } catch { /* */ }
+      pedidos.forEach((p) => {
+        if (!p || !p.code) return;
+        if (st[p.code]) p.status = st[p.code];
+        if (ed[p.code]) { try { const o = JSON.parse(ed[p.code]); if (o.sabor != null) p.sabor = o.sabor; if (o.qty != null) p.qty = o.qty; p.editado = true; } catch { /* */ } }
+      });
       res.status(200).json({ ok: true, updatedAt: Date.now(), total, pedidos });
     } catch (e) {
       res.status(500).json({ error: String((e && e.message) || e) });
@@ -140,6 +147,23 @@ export default async function handler(req, res) {
     if (!scode) { res.status(400).json({ error: "code" }); return; }
     try { await cmd(["HSET", "prevendas:status", scode, sstatus]); res.status(200).json({ ok: true }); }
     catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
+    return;
+  }
+
+  // Ação do painel: editar sabores/quantidade de um pedido
+  if (body.action === "edit") {
+    if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
+    const ecode = s120(body.code || "");
+    if (!ecode) { res.status(400).json({ error: "code" }); return; }
+    const esab = clean(body.sabor || "", 200);
+    const eqty = Math.max(1, Math.min(20, Number(body.qty) || 1));
+    const oldq = Math.max(0, Number(body.oldQty) || 0);
+    try {
+      const cmds = [["HSET", "prevendas:edit", ecode, JSON.stringify({ sabor: esab, qty: eqty })]];
+      if (oldq && eqty !== oldq) cmds.push(["INCRBY", "prevendas:units", eqty - oldq]); // mantém o contador de escassez correto
+      await pipeline(cmds);
+      res.status(200).json({ ok: true });
+    } catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
     return;
   }
 

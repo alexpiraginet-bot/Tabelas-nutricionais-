@@ -266,6 +266,18 @@
   </div>
 </div>
 
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(8,10,7,.85);z-index:60;align-items:center;justify-content:center;padding:18px">
+  <div style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;max-width:360px;width:100%">
+    <div style="font-weight:800;margin-bottom:2px">✏️ Editar sabores do pedido</div>
+    <div id="editCode" class="mono" style="color:var(--gold);font-size:12px;margin-bottom:8px"></div>
+    <div id="editRows"></div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button id="editSave" style="flex:1;background:var(--pist);color:#0c0f0a;border:none;border-radius:9px;padding:12px;font-weight:800;font-size:14px;cursor:pointer">Salvar</button>
+      <button id="editCancel" style="background:transparent;border:1px solid var(--line);color:var(--soft);border-radius:9px;padding:12px 16px;cursor:pointer">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 const $ = (s) => document.querySelector(s);
@@ -522,6 +534,37 @@ async function setPrevStatus(el){
   }catch(e){ alert("Erro de conexão ao salvar status."); }
   el.disabled=false;
 }
+var _editCode=null, _editOldQty=0;
+var EDIT_FLAVORS=["Opereta","Pistache Perfeito","Chocolate Dubai"];
+function parsePrevSab(sabor, qty){
+  var out={"Opereta":0,"Pistache Perfeito":0,"Chocolate Dubai":0}, s=String(sabor||"");
+  if(/×\s*\d/.test(s)){ s.split("·").forEach(function(part){ var m=part.match(/^\s*(.+?)\s*×\s*(\d+)\s*$/); if(m && out.hasOwnProperty(m[1].trim())) out[m[1].trim()]=Number(m[2]); }); }
+  else if(s.trim() && out.hasOwnProperty(s.trim())){ out[s.trim()]=Number(qty)||1; }
+  return out;
+}
+function openEditPrev(code, sabor, qty){
+  if(!code){ alert("Pedido sem código — não dá pra editar."); return; }
+  _editCode=code; _editOldQty=Number(qty)||0;
+  $("#editCode").textContent="Pedido "+code;
+  var c=parsePrevSab(sabor, qty);
+  $("#editRows").innerHTML=EDIT_FLAVORS.map(function(fl){ return '<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)"><span style="font-weight:600">'+fl+'</span><input type="number" min="0" max="20" class="edq" data-fl="'+fl+'" value="'+(c[fl]||0)+'" style="width:66px;background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px;text-align:center;font-size:15px"></div>'; }).join("");
+  $("#editModal").style.display="flex";
+}
+async function saveEditPrev(){
+  var parts=[], sum=0;
+  $("#editRows").querySelectorAll(".edq").forEach(function(i){ var n=Math.max(0,parseInt(i.value,10)||0); if(n>0){ parts.push(i.getAttribute("data-fl")+" ×"+n); sum+=n; } });
+  if(sum<1){ alert("Selecione pelo menos 1 pote."); return; }
+  var btn=$("#editSave"); btn.disabled=true; btn.textContent="Salvando…";
+  try{
+    var key=localStorage.getItem(KEYSTORE)||"";
+    var r=await fetch("/api/prevenda",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"edit",code:_editCode,sabor:parts.join(" · "),qty:sum,oldQty:_editOldQty})});
+    var j=await r.json();
+    if(j&&j.ok){ $("#editModal").style.display="none"; loadPrevendas().catch(function(){}); }
+    else alert("Não consegui salvar: "+((j&&j.error)||"erro"));
+  }catch(e){ alert("Erro de conexão."); }
+  btn.disabled=false; btn.textContent="Salvar";
+}
+(function(){ var s=$("#editSave"), c=$("#editCancel"), m=$("#editModal"); if(s) s.onclick=saveEditPrev; if(c) c.onclick=function(){ m.style.display="none"; }; if(m) m.addEventListener("click",function(e){ if(e.target===m) m.style.display="none"; }); })();
 function renderPrevRefs(peds){
   var box=$("#prevRefs"); if(!box) return;
   var byRef={};
@@ -558,7 +601,7 @@ function renderPrevendas(d){
       <td class="mono">${escapeHtml(p.code||"—")}</td>
       <td>${escapeHtml(p.nome||"—")}</td>
       <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
-      <td>${escapeHtml(p.sabor||"—")}</td>
+      <td>${escapeHtml(p.sabor||"—")}${p.editado?' <span class="tag conv">editado</span>':''} <button class="edsab" data-code="${escapeHtml(p.code||'')}" data-sabor="${escapeHtml(p.sabor||'')}" data-qty="${p.qty||1}" title="Editar sabores" style="background:none;border:none;cursor:pointer;font-size:13px;vertical-align:middle">✏️</button></td>
       <td class="num">${p.qty||1}</td>
       <td>${escapeHtml(p.unidade||"—")}</td>
       <td>${p.ref?('<span class="tag conv">'+escapeHtml(p.ref)+'</span>'):"—"}</td>
@@ -567,6 +610,7 @@ function renderPrevendas(d){
     tb.appendChild(tr);
   });
   renderPrevRefs(peds);
+  $("#prevTbl tbody").querySelectorAll(".edsab").forEach(function(b){ b.onclick=function(){ openEditPrev(b.getAttribute("data-code"), b.getAttribute("data-sabor"), Number(b.getAttribute("data-qty"))); }; });
   $("#prevEmpty").style.display = peds.length ? "none" : "block";
 }
 
