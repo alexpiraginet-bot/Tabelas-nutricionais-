@@ -58,11 +58,23 @@ export default async function handler(req, res) {
     return out;
   }
 
-  // POST: atendente marca como retirado (sai da lista de pagos)
+  const STORES = ["Praia do Canto", "Jardim Camburi"];
+  const FLAVS = ["Opereta", "Pistache Perfeito", "Chocolate Dubai"];
+
+  // POST: marcar retirado, ou salvar o estoque compartilhado da loja
   if (req.method === "POST") {
     let body = await readRaw(req);
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
     if (!body || typeof body !== "object") body = {};
+    // Estoque compartilhado (na nuvem) — todos os atendentes veem o mesmo
+    if (body.action === "estoque") {
+      const src = (body.estoque && typeof body.estoque === "object") ? body.estoque : {};
+      const out = {};
+      STORES.forEach((st) => { out[st] = {}; FLAVS.forEach((fl) => { const v = Number(src[st] && src[st][fl]); out[st][fl] = (isFinite(v) && v > 0) ? Math.min(99999, Math.floor(v)) : 0; }); });
+      try { await cmd(["SET", "prevendas:estoque", JSON.stringify(out)]); res.status(200).json({ ok: true }); }
+      catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
+      return;
+    }
     const code = clean(body.code || "", 120);
     if (!code) { res.status(400).json({ error: "code" }); return; }
     const novo = body.action === "retirado" ? "retirado" : clean(body.status || "retirado", 120);
@@ -71,16 +83,25 @@ export default async function handler(req, res) {
     return;
   }
 
-  // GET: lista só os pagos
+  // GET: lista só os pagos + estoque compartilhado
   if (req.method === "GET") {
     try {
       const raw = (await cmd(["LRANGE", "prevendas", 0, 499])) || [];
       const st = await statusMap();
+      // overrides de sabores/qtd (mesma edição do painel admin)
+      let ed = {};
+      try { const flat = (await cmd(["HGETALL", "prevendas:edit"])) || []; for (let i = 0; i < flat.length; i += 2) ed[flat[i]] = flat[i + 1]; } catch { /* */ }
       const pagos = raw.map((x) => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean)
-        .map((p) => { if (p.code && st[p.code]) p.status = st[p.code]; return p; })
+        .map((p) => {
+          if (p.code && st[p.code]) p.status = st[p.code];
+          if (p.code && ed[p.code]) { try { const o = JSON.parse(ed[p.code]); if (o.sabor != null) p.sabor = o.sabor; if (o.qty != null) p.qty = o.qty; } catch { /* */ } }
+          return p;
+        })
         .filter((p) => p.status === "pago")
         .map((p) => ({ code: p.code, nome: p.nome, phone: p.phone, sabor: p.sabor, qty: p.qty, unidade: p.unidade, ts: p.ts }));
-      res.status(200).json({ ok: true, updatedAt: Date.now(), pagos });
+      let estoque = {};
+      try { estoque = JSON.parse((await cmd(["GET", "prevendas:estoque"])) || "{}"); } catch { /* */ }
+      res.status(200).json({ ok: true, updatedAt: Date.now(), pagos, estoque });
     } catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
     return;
   }

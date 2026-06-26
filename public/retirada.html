@@ -134,8 +134,9 @@ const STOCK_IDS=[
 ];
 function loadStock(){ var s={"Praia do Canto":{},"Jardim Camburi":{}}; STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); var v=el?parseInt(el.value,10):NaN; s[m[1]][m[2]]=isNaN(v)?0:Math.max(0,v); }); return s; }
 function stockHasAny(store,stock){ var o=(stock&&stock[store])||{}; return Object.keys(o).some(function(k){return o[k]>0;}); }
-function saveStock(){ try{ localStorage.setItem("bento:estoque", JSON.stringify(loadStock())); }catch(e){} }
-function restoreStock(){ try{ var s=JSON.parse(localStorage.getItem("bento:estoque")||"{}"); STOCK_IDS.forEach(function(m){ var v=s[m[1]]&&s[m[1]][m[2]]; var el=$("#"+m[0]); if(el&&v!=null&&v!==""&&v!==0) el.value=v; }); }catch(e){} }
+function applyServerStock(est){ if(!est) return; STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); if(!el || document.activeElement===el) return; var v=(est[m[1]]&&est[m[1]][m[2]])||0; el.value = v>0 ? v : ""; }); }
+var _stockT=null;
+function saveStockServer(){ if(_stockT) clearTimeout(_stockT); _stockT=setTimeout(function(){ var key=localStorage.getItem(KEYSTORE)||""; try{ fetch("/api/retirada",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"estoque",estoque:loadStock()})}); }catch(e){} }, 500); }
 function readyMsg(p){ var n=String(p.nome||"").trim().split(" ")[0]; return "Oi "+(n||"")+"! 🍫 Seu pedido BentôBytes da pré-venda ("+(p.code||"")+") já está PRONTO para retirada na nossa loja "+(p.unidade||"")+". Pode vir buscar! 💚"; }
 function copyTxt(txt,label){ try{ navigator.clipboard.writeText(txt); }catch(e){ var a=document.createElement("textarea");a.value=txt;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");}catch(_){}document.body.removeChild(a); } alert((label||"Texto")+" copiado! ✅"); }
 function renderReadyBar(pagos){
@@ -168,6 +169,8 @@ function render(d){
   _lastData=d;
   const pagos = (d && d.pagos) || [];
   pagos.sort((a,b)=>(a.ts||0)-(b.ts||0));
+  // estoque compartilhado (nuvem) → reflete nos campos
+  if(d && d.estoque) applyServerStock(d.estoque);
   // validação de estoque por ordem de recebimento (FIFO)
   var stock=loadStock();
   var rem={"Praia do Canto":Object.assign({},stock["Praia do Canto"]),"Jardim Camburi":Object.assign({},stock["Jardim Camburi"])};
@@ -224,9 +227,8 @@ $("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim(
 $("#key").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("#enter").click(); });
 $("#refresh").onclick = refresh;
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); location.reload(); };
-// estoque: restaura salvo e revalida ao digitar
-restoreStock();
-STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); if(el) el.addEventListener("input", function(){ saveStock(); if(_lastData) render(_lastData); }); });
+// estoque na nuvem: salva no servidor e revalida ao digitar (sincroniza entre atendentes)
+STOCK_IDS.forEach(function(m){ var el=$("#"+m[0]); if(el) el.addEventListener("input", function(){ saveStockServer(); if(_lastData) render(_lastData); }); });
 setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 12000);
 if(localStorage.getItem(KEYSTORE)) refresh();
 </script>
