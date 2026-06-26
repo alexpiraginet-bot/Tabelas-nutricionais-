@@ -154,6 +154,7 @@
 
   <div class="card pane" data-pane="prevendas" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🍫 Pré-vendas BentôBytes</span><span id="prevCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
+    <div id="prevLotes" style="margin-bottom:12px"></div>
     <div class="tblscroll">
       <table id="prevTbl">
         <thead><tr><th>Quando</th><th>Pedido</th><th>Nome</th><th>WhatsApp</th><th>Sabor</th><th class="num">Qtd</th><th>Retirada</th><th class="num">Total</th><th>Status</th></tr></thead>
@@ -462,6 +463,31 @@ async function loadPrevendas(){
   const r = await fetch("/api/prevenda", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
   if(!r.ok) return;
   renderPrevendas(await r.json());
+  try{ const c = await (await fetch("/api/prevenda?count=1",{cache:"no-store"})).json(); renderPrevLotes(c); }catch(e){}
+}
+function prevBRL(n){ return (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function loteCard(title,sold,total,sub){
+  var pct=Math.min(100,Math.round(sold/total*100));
+  return '<div style="flex:1;min-width:150px;background:#0e120b;border:1px solid var(--line);border-radius:12px;padding:12px">'
+    +'<div style="font-size:11px;color:var(--soft);font-weight:700">'+title+'</div>'
+    +'<div style="font-size:24px;font-weight:800;color:var(--pist);margin:2px 0 6px;line-height:1">'+sold+'<span style="font-size:13px;color:var(--soft)">/'+total+'</span></div>'
+    +'<div style="height:7px;background:var(--line);border-radius:999px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:linear-gradient(90deg,var(--gold),var(--pist))"></div></div>'
+    +'<div style="font-size:10.5px;color:var(--soft);margin-top:5px">'+sub+'</div></div>';
+}
+function renderPrevLotes(j){
+  const box = $("#prevLotes"); if(!box) return;
+  if(!j || !j.cap){ box.innerHTML=""; return; }
+  const u = Math.max(0, Number(j.units)||0);
+  const l1on = Math.min(100, u);                 // unidades do site no lote 1 (após as 200 de fora)
+  const l2on = Math.max(0, Math.min(300, u-100));// unidades do site no lote 2
+  const l1sold = Math.min(300, (j.baseline||200) + l1on);
+  const rev1 = l1on*24.90, rev2 = l2on*26.90;
+  box.innerHTML =
+    '<div style="display:flex;gap:10px;flex-wrap:wrap">'
+    + loteCard("1º lote · R$ 24,90", l1sold, 300, (j.baseline||200)+" fora + "+l1on+" no site · "+prevBRL(rev1))
+    + loteCard("2º lote · R$ 26,90", l2on, 300, (l2on?(l2on+" no site · "+prevBRL(rev2)):"aguardando 1º esgotar"))
+    + '</div>'
+    + '<div style="margin-top:8px;font-size:12px;color:var(--soft)">💰 Receita do site: <b style="color:var(--pist)">'+prevBRL(rev1+rev2)+'</b> · Vendido: <b style="color:var(--ink)">'+j.sold+'/'+j.cap+'</b>'+(j.soldout?' · <b style="color:var(--gold)">ESGOTADO</b>':'')+'</div>';
 }
 function renderPrevendas(d){
   const peds = (d && d.pedidos) || [];
