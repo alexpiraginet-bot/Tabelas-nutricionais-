@@ -97,7 +97,7 @@ export default async function handler(req, res) {
       const lote = sold <= LOTE ? 1 : 2;
       const price = PRICES[Math.min(lote, PRICES.length) - 1];
       const loteSold = lote === 1 ? sold : sold - LOTE;
-      return { ok: true, sold, cap: LOTE * LOTES, lote, price, loteSold, loteTotal: LOTE, loteRemaining: Math.max(0, LOTE - loteSold), soldout };
+      return { ok: true, sold, cap: LOTE * LOTES, lote, price, loteSold, loteTotal: LOTE, loteRemaining: Math.max(0, LOTE - loteSold), soldout, units: Math.max(0, u), baseline: BASE };
     }
     try {
       const u = Number((KV_URL && KV_TOKEN) ? (await cmd(["GET", "prevendas:units"]) || 0) : 0);
