@@ -114,7 +114,7 @@ export default async function handler(req, res) {
     const phoneDigits = String(body.phone || "").replace(/\D/g, "");
     if (phoneDigits.length < 10) { res.status(204).end(); return; }
 
-    const qty = Math.max(1, Math.min(20, Number(body.qty) || 1));
+    const qty = Math.max(1, Math.min(3, Number(body.qty) || 1)); // limite de 3 por pessoa (pré-venda)
     const ped = {
       ts: Date.now(),
       code: s120(body.code || ""),
