@@ -143,6 +143,8 @@ a.a{background:transparent;color:var(--pistD)}
 .closed .big{font-family:'Fraunces',serif;font-style:italic;font-size:22px;color:var(--ink)}
 .pvscarce{background:linear-gradient(135deg,var(--pistD),#2C3A22);color:#fff;border-radius:12px;padding:11px 14px;font-size:12.5px;text-align:center;margin:0 0 16px;border:1px solid var(--gold)}
 .pvscarce b{color:#EBD79A}
+.pvret{background:var(--bg);border:1px solid var(--gold);border-radius:12px;padding:9px 12px;font-size:12.5px;text-align:center;color:#5C4A1E;margin:0 0 14px}
+.pvret b{color:var(--pistD)}
 .qnote{font-size:11.5px;color:var(--soft);margin-top:7px}
 .qnote b{color:var(--pistD)}
 .soldbar{margin:2px 0 16px}
@@ -299,6 +301,7 @@ a.a{background:transparent;color:var(--pistD)}
           <div class="soldtrack"><div class="soldfill" id="soldFill"></div></div>
           <div class="soldsub" id="soldSub"></div>
         </div>
+        <div class="pvret">📦 Retirada na loja <b>a partir de amanhã</b> · pedidos do 1º lote</div>
         <span class="pvlab">1 · Monte sua caixa <span style="text-transform:none;letter-spacing:0;color:var(--pistD)">— até 3 potes (pode 1 de cada)</span></span>
         <div id="pvSabores">
           <div class="frow" data-s="Opereta"><img src="/bytes/img/opereta.jpg" alt=""><span class="fn">Opereta</span><div class="qtt sm"><button type="button" class="fminus">−</button><span class="fq">0</span><button type="button" class="fplus">+</button></div></div>
@@ -333,6 +336,21 @@ a.a{background:transparent;color:var(--pistD)}
         <a class="wapp" id="payWapp" href="#" target="_blank" rel="noopener">📲 Já paguei — enviar comprovante</a>
         <div class="pvnote">Anexe o comprovante na conversa do WhatsApp com o código do pedido. Confirmamos e separamos para retirada.</div>
         <button type="button" id="payVoltar" style="margin-top:10px;background:none;border:none;color:var(--pistD);font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit">← Fazer outro pedido</button>
+      </div>
+      <div class="pay" id="waitBox" style="display:none">
+        <div style="font-size:42px">⏳</div>
+        <div style="font-family:'Fraunces',serif;font-weight:600;font-size:24px;color:var(--ink);margin:4px 0 4px">1º lote esgotado!</div>
+        <p style="font-size:14px;color:var(--soft);max-width:420px;margin:0 auto 8px">Deixe seu contato e a gente te avisa <b>na hora</b> que o 2º lote abrir. 💚</p>
+        <div id="waitForm">
+          <div class="fld"><span class="pvlab">Nome</span><input id="waNome" placeholder="Seu nome"></div>
+          <div class="fld"><span class="pvlab">WhatsApp</span><input id="waFone" inputmode="tel" placeholder="(27) 99999-9999"></div>
+          <button class="cta" id="waSend" disabled>🔔 Quero ser avisado(a)</button>
+        </div>
+        <div id="waOk" style="display:none">
+          <div style="font-size:38px">🎉</div>
+          <div style="font-weight:700;color:var(--pistD);font-size:18px">Você está na lista!</div>
+          <p style="font-size:13px;color:var(--soft)">A gente te chama no WhatsApp assim que o 2º lote abrir. 💛</p>
+        </div>
       </div>
     </div>
   </section>
@@ -411,6 +429,9 @@ a.a{background:transparent;color:var(--pistD)}
     if(j.soldout){ $("soldSub").textContent = j.lote2Open ? "Tudo esgotado 🙏 obrigada!" : "🥈 1º lote esgotado! Em breve abrimos o 2º lote 🔥"; if($("pvPagar"))$("pvPagar").textContent = j.lote2Open ? "Esgotado" : "1º lote esgotado"; }
     else if(l2){ $("soldSub").textContent="🥈 1º lote esgotado! Agora 2º lote a "+brl(j.price)+" · restam "+j.loteRemaining+" de "+j.loteTotal+" 🔥"; }
     else { $("soldSub").textContent="Restam só "+j.loteRemaining+" de "+j.loteTotal+" potes 🔥"; }
+    var _so=j.soldout && !j.lote2Open;
+    if($("waitBox")) $("waitBox").style.display=_so?"block":"none";
+    if(_so){ if($("pvForm")) $("pvForm").style.display="none"; } else if($("pvForm") && $("pvPay") && $("pvPay").style.display!=="block"){ $("pvForm").style.display="block"; }
     refresh();
   }
   function loadSold(){ fetch(API+"?count=1",{cache:"no-store"}).then(function(r){return r.json();}).then(function(j){ renderSold(j); }).catch(function(){}); }
@@ -476,7 +497,7 @@ a.a{background:transparent;color:var(--pistD)}
     $("paySum").textContent=saboresStr()+" · retirada "+st.unidade+" · "+brl(t);
     $("payQr").src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data="+encodeURIComponent(copia);
     $("payCopia").value=copia;
-    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade,"*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
+    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade+" (a partir de amanhã)","*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
     $("payWapp").href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(msg);
     $("pvForm").style.display="none"; $("pvPay").style.display="block";
     $("pvPay").scrollIntoView({behavior:"smooth",block:"center"});
@@ -488,6 +509,16 @@ a.a{background:transparent;color:var(--pistD)}
     else { $("payCopia").select(); try{document.execCommand("copy");}catch(e){} done(); }
   };
   $("payVoltar").onclick=function(){ for(var k in st.f) st.f[k]=0; refresh(); $("pvPay").style.display="none"; $("pvForm").style.display="block"; };
+  // lista de espera (2º lote)
+  function waRefresh(){ if($("waSend")) $("waSend").disabled=!($("waNome").value.trim() && $("waFone").value.replace(/\D/g,"").length>=10); }
+  if($("waFone")) $("waFone").addEventListener("input",function(e){ var d=e.target.value.replace(/\D/g,"").slice(0,11),o=d; if(d.length>6)o="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7); else if(d.length>2)o="("+d.slice(0,2)+") "+d.slice(2); e.target.value=o; waRefresh(); });
+  if($("waNome")) $("waNome").addEventListener("input",waRefresh);
+  if($("waSend")) $("waSend").onclick=function(){
+    if($("waSend").disabled) return;
+    $("waSend").disabled=true; $("waSend").textContent="Enviando…";
+    var done=function(){ $("waitForm").style.display="none"; $("waOk").style.display="block"; };
+    fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({action:"waitlist",nome:$("waNome").value.trim(),phone:$("waFone").value.trim(),ref:REF})}).then(function(r){return r.json();}).then(done).catch(done);
+  };
 })();
 
 /* ===== Sorteio (10 kits) ===== */
