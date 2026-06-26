@@ -408,7 +408,7 @@ a.a{background:transparent;color:var(--pistD)}
     $("soldHead").innerHTML="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price)+' <s style="color:var(--soft);font-weight:400">de '+brl(29.90)+'</s>';
     $("soldTxt").textContent=j.loteSold+"/"+j.loteTotal;
     $("soldFill").style.width=Math.min(100,Math.round(j.loteSold/j.loteTotal*100))+"%";
-    if(j.soldout){ $("soldSub").textContent="Tudo esgotado 🙏 obrigada!"; if($("pvPagar"))$("pvPagar").textContent="Esgotado"; }
+    if(j.soldout){ $("soldSub").textContent = j.lote2Open ? "Tudo esgotado 🙏 obrigada!" : "🥈 1º lote esgotado! Em breve abrimos o 2º lote 🔥"; if($("pvPagar"))$("pvPagar").textContent = j.lote2Open ? "Esgotado" : "1º lote esgotado"; }
     else if(l2){ $("soldSub").textContent="🥈 1º lote esgotado! Agora 2º lote a "+brl(j.price)+" · restam "+j.loteRemaining+" de "+j.loteTotal+" 🔥"; }
     else { $("soldSub").textContent="Restam só "+j.loteRemaining+" de "+j.loteTotal+" potes 🔥"; }
     refresh();
