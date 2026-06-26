@@ -20,6 +20,17 @@ export default function ContratoPage({data:d}){
     const body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("58","BR")+emv("59","ABB GELATERIA LTDA")+emv("60","VITORIA")+emv("62",emv("05","***"))+"6304";
     return body+crc16(body);
   };
+  // Pix com valor (para pagamento integral antecipado).
+  const pixCodeAmount=(amount)=>{
+    const mai=emv("26",emv("00","BR.GOV.BCB.PIX")+emv("01",pixKey));
+    const body=emv("00","01")+mai+emv("52","0000")+emv("53","986")+emv("54",Number(amount).toFixed(2))+emv("58","BR")+emv("59","ABB GELATERIA LTDA")+emv("60","VITORIA")+emv("62",emv("05","***"))+"6304";
+    return body+crc16(body);
+  };
+  // Dias até o evento → desconto de 7% no pagamento integral antecipado (eventos com +30 dias).
+  const diasEvento=(()=>{const p=(d.data||"").split("/");if(p.length!==3)return null;const ev=new Date(Number(p[2]),Number(p[1])-1,Number(p[0]));const hj=new Date();hj.setHours(0,0,0,0);const dd=Math.round((ev-hj)/86400000);return isNaN(dd)?null:dd;})();
+  const antecipadoOk=diasEvento!=null&&diasEvento>30;
+  const integralDesc=Math.round(total*0.93*100)/100; // 7% off
+  const economia7=Math.round(total*0.07*100)/100;
   const copyTxt=async(txt,label)=>{
     try{ await navigator.clipboard.writeText(txt); }
     catch{ const t=document.createElement("textarea");t.value=txt;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch{}document.body.removeChild(t); }
@@ -143,6 +154,7 @@ export default function ContratoPage({data:d}){
             <tbody>
               <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Entrada (sinal · 50%) — na assinatura</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(entrada)}</td></tr>
               <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Saldo (50%) — até 7 dias antes do evento</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(saldo)}</td></tr>
+              {antecipadoOk&&<tr style={{background:"#EEF5E2"}}><td style={{border:"1px solid #1FA855",padding:"6px 10px"}}>💸 <strong>Ou pagamento integral antecipado via Pix — 7% de desconto</strong> (evento com mais de 30 dias). Economia de {money(economia7)}.</td><td style={{border:"1px solid #1FA855",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700,color:"#1B7A40"}}>{money(integralDesc)}</td></tr>}
             </tbody>
           </table>
           <div style={{marginTop:8,border:"1px solid #C9A86A",borderRadius:6,padding:"10px 12px",fontSize:11,lineHeight:1.7,background:"#FCFAF2"}}>
@@ -153,8 +165,9 @@ export default function ContratoPage({data:d}){
             <div className="noprint" style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:9}}>
               <button onClick={()=>copyTxt(pixKey,"Chave Pix (CNPJ)")} style={{background:"#C9A86A",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📋 Copiar chave Pix</button>
               <button onClick={()=>copyTxt(pixCode(),"Pix Copia e Cola")} style={{background:"#3A4528",color:"#F1ECDD",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📲 Copiar Pix Copia e Cola</button>
+              {antecipadoOk&&<button onClick={()=>copyTxt(pixCodeAmount(integralDesc),"Pix integral com 7% de desconto")} style={{background:"#1FA855",color:"#fff",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>💸 Copiar Pix integral −7% ({money(integralDesc)})</button>}
             </div>
-            <div className="noprint" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>O “Pix Copia e Cola” já leva titular e chave — é só colar no app do banco e digitar o valor (entrada ou saldo).</div>
+            <div className="noprint" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>O “Pix Copia e Cola” leva titular e chave — cole no app e digite o valor (entrada ou saldo). {antecipadoOk?<>O botão verde já vem com o <strong>valor integral e o 7% de desconto</strong> aplicado.</>:null}</div>
           </div>
         </Clause>
         <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
