@@ -90,14 +90,17 @@ export default async function handler(req, res) {
   // Lote 1: 300 un a R$24,90. Esgotou → Lote 2: +300 un a R$26,90. Teto 600.
   if (req.method === "GET" && req.query && req.query.count !== undefined) {
     res.setHeader("Cache-Control", "no-store");
-    const BASE = 200, LOTE = 300, LOTES = 2, PRICES = [24.90, 26.90];
+    const BASE = 200, LOTE = 300, PRICES = [24.90, 26.90];
+    let lote2Open = false;
+    try { lote2Open = ((KV_URL && KV_TOKEN) ? (await cmd(["GET", "prevendas:lote2"])) : "") === "1"; } catch { /* */ }
     function pack(u) {
-      const sold = Math.min(LOTE * LOTES, BASE + Math.max(0, u));
-      const soldout = sold >= LOTE * LOTES;
+      const cap = LOTE * (lote2Open ? 2 : 1); // 2º lote fechado → para em 300
+      const sold = Math.min(cap, BASE + Math.max(0, u));
+      const soldout = sold >= cap;
       const lote = sold <= LOTE ? 1 : 2;
       const price = PRICES[Math.min(lote, PRICES.length) - 1];
       const loteSold = lote === 1 ? sold : sold - LOTE;
-      return { ok: true, sold, cap: LOTE * LOTES, lote, price, loteSold, loteTotal: LOTE, loteRemaining: Math.max(0, LOTE - loteSold), soldout, units: Math.max(0, u), baseline: BASE };
+      return { ok: true, sold, cap, lote, price, loteSold, loteTotal: LOTE, loteRemaining: Math.max(0, LOTE - loteSold), soldout, units: Math.max(0, u), baseline: BASE, lote2Open };
     }
     try {
       const u = Number((KV_URL && KV_TOKEN) ? (await cmd(["GET", "prevendas:units"]) || 0) : 0);
@@ -164,6 +167,14 @@ export default async function handler(req, res) {
       await pipeline(cmds);
       res.status(200).json({ ok: true });
     } catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
+    return;
+  }
+
+  // Ação do painel: abrir/pausar o 2º lote
+  if (body.action === "lote2") {
+    if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
+    try { await cmd(["SET", "prevendas:lote2", body.open ? "1" : "0"]); res.status(200).json({ ok: true, lote2Open: !!body.open }); }
+    catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
     return;
   }
 

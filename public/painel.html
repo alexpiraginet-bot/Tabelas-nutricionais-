@@ -509,9 +509,17 @@ function renderPrevLotes(j){
   box.innerHTML =
     '<div style="display:flex;gap:10px;flex-wrap:wrap">'
     + loteCard("1º lote · R$ 24,90", l1sold, 300, (j.baseline||200)+" fora + "+l1on+" no site · "+prevBRL(rev1))
-    + loteCard("2º lote · R$ 26,90", l2on, 300, (l2on?(l2on+" no site · "+prevBRL(rev2)):"aguardando 1º esgotar"))
+    + loteCard("2º lote · R$ 26,90", l2on, 300, (l2on?(l2on+" no site · "+prevBRL(rev2)):(j.lote2Open?"aguardando 1º esgotar":"⏸️ pausado (fechado)")))
     + '</div>'
-    + '<div style="margin-top:8px;font-size:12px;color:var(--soft)">💰 Receita do site: <b style="color:var(--pist)">'+prevBRL(rev1+rev2)+'</b> · Vendido: <b style="color:var(--ink)">'+j.sold+'/'+j.cap+'</b>'+(j.soldout?' · <b style="color:var(--gold)">ESGOTADO</b>':'')+'</div>';
+    + '<div style="margin-top:8px;font-size:12px;color:var(--soft)">💰 Receita do site: <b style="color:var(--pist)">'+prevBRL(rev1+rev2)+'</b> · Vendido: <b style="color:var(--ink)">'+j.sold+'/'+j.cap+'</b>'+(j.soldout?' · <b style="color:var(--gold)">'+(j.lote2Open?'ESGOTADO':'1º LOTE ESGOTADO')+'</b>':'')+'</div>'
+    + '<div style="margin-top:10px"><button id="lote2Btn" data-open="'+(j.lote2Open?'1':'0')+'" style="background:'+(j.lote2Open?'transparent':'var(--pist)')+';color:'+(j.lote2Open?'var(--soft)':'#0c0f0a')+';border:1px solid '+(j.lote2Open?'var(--line)':'var(--pist)')+';border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer">'+(j.lote2Open?'⏸️ Pausar 2º lote':'▶️ Abrir 2º lote (R$ 26,90)')+'</button> <span style="font-size:11px;color:var(--soft)">'+(j.lote2Open?'2º lote ABERTO — vende até 600.':'2º lote PAUSADO — para em 300 (1º lote esgotado).')+'</span></div>';
+  var lb=$("#lote2Btn"); if(lb) lb.onclick=async function(){
+    var open = lb.getAttribute("data-open")!=="1";
+    if(!confirm(open?"Abrir o 2º lote agora? (vai vender até 600, a R$ 26,90)":"Pausar o 2º lote? (vendas param em 300)")) return;
+    lb.disabled=true;
+    try{ var key=localStorage.getItem(KEYSTORE)||""; var r=await fetch("/api/prevenda",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"lote2",open:open})}); var jj=await r.json(); if(jj&&jj.ok){ loadPrevendas().catch(function(){}); } else alert("Não consegui salvar."); }
+    catch(e){ alert("Erro de conexão."); lb.disabled=false; }
+  };
 }
 function statusSelect(code, cur){
   cur = cur || "aguardando pagamento";
