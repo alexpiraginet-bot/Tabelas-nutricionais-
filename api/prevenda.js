@@ -130,7 +130,9 @@ export default async function handler(req, res) {
         if (st[p.code]) p.status = st[p.code];
         if (ed[p.code]) { try { const o = JSON.parse(ed[p.code]); if (o.sabor != null) p.sabor = o.sabor; if (o.qty != null) p.qty = o.qty; p.editado = true; } catch { /* */ } }
       });
-      res.status(200).json({ ok: true, updatedAt: Date.now(), total, pedidos });
+      let espera = [];
+      try { const raw2 = (await cmd(["LRANGE", "espera", 0, 1999])) || []; espera = raw2.map((x) => { try { return JSON.parse(x); } catch { return null; } }).filter(Boolean); } catch { /* */ }
+      res.status(200).json({ ok: true, updatedAt: Date.now(), total, pedidos, espera });
     } catch (e) {
       res.status(500).json({ error: String((e && e.message) || e) });
     }
@@ -142,6 +144,21 @@ export default async function handler(req, res) {
   let body = await readRaw(req);
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   if (!body || typeof body !== "object") body = {};
+
+  // Público: lista de espera do 2º lote (1 por telefone)
+  if (body.action === "waitlist") {
+    if (!(await rateOk(ipOf(req), "wait", 10))) { res.status(429).json({ error: "Calma! tente em instantes." }); return; }
+    const ph = String(body.phone || "").replace(/\D/g, "");
+    if (ph.length < 10) { res.status(200).json({ ok: false, error: "telefone" }); return; }
+    try {
+      const isNew = await cmd(["SADD", "espera:phones", ph]);
+      if (Number(isNew) === 1) {
+        await pipeline([["LPUSH", "espera", JSON.stringify({ ts: Date.now(), nome: s120(body.nome || ""), phone: s120(body.phone || ""), ref: s120(body.ref || "") })], ["LTRIM", "espera", 0, 1999], ["INCR", "espera:count"]]);
+        res.status(200).json({ ok: true, dup: false });
+      } else { res.status(200).json({ ok: true, dup: true }); }
+    } catch { res.status(200).json({ ok: false, error: "kv" }); }
+    return;
+  }
 
   // Ação do painel: atualizar o status de um pedido (aguardando/pago/cancelado)
   if (body.action === "status") {

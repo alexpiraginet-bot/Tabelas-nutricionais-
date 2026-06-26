@@ -158,6 +158,7 @@
   <div class="card pane" data-pane="prevendas" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🍫 Pré-vendas BentôBytes</span><span id="prevCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div id="prevLotes" style="margin-bottom:12px"></div>
+    <div id="prevEspera" style="margin-bottom:12px"></div>
     <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px">
       <div class="lkgrp" style="margin-top:0">🔗 Link de influenciadora</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -573,6 +574,17 @@ async function saveEditPrev(){
   btn.disabled=false; btn.textContent="Salvar";
 }
 (function(){ var s=$("#editSave"), c=$("#editCancel"), m=$("#editModal"); if(s) s.onclick=saveEditPrev; if(c) c.onclick=function(){ m.style.display="none"; }; if(m) m.addEventListener("click",function(e){ if(e.target===m) m.style.display="none"; }); })();
+function renderEspera(list){
+  var box=$("#prevEspera"); if(!box) return;
+  if(!list || !list.length){ box.innerHTML=""; return; }
+  var html='<div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px">'
+    +'<div class="lkgrp" style="margin-top:0">⏳ Lista de espera do 2º lote ('+list.length+')</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px"><button id="espCopy" style="background:var(--pist);border:none;color:#0c0f0a;border-radius:9px;padding:8px 13px;font-size:12px;font-weight:800;cursor:pointer">📋 Copiar números</button><span class="mono" style="font-size:11px;color:var(--soft)">avisa todos quando abrir o 2º lote</span></div>';
+  list.slice(0,80).forEach(function(p){ var dig=String(p.phone||"").replace(/\D/g,""); var wa=dig.length>=10?("https://wa.me/"+(dig.length<=11?"55":"")+dig):null; html+='<div class="lk"><span class="ico">⏳</span><div class="mid"><div class="nm">'+escapeHtml(p.nome||"—")+(p.ref?' · '+escapeHtml(p.ref):'')+'</div><div class="u">'+escapeHtml(p.phone||"")+'</div></div><div class="act">'+(wa?'<a class="open" target="_blank" rel="noopener" href="'+wa+'">WhatsApp</a>':'')+'</div></div>'; });
+  html+='</div>';
+  box.innerHTML=html;
+  var cp=$("#espCopy"); if(cp) cp.onclick=function(){ var nums=list.map(function(p){var d=String(p.phone||"").replace(/\D/g,"");return d?(d.length<=11?"55":"")+d:"";}).filter(Boolean).join("\n"); copyLink(nums, cp); };
+}
 function renderPrevRefs(peds){
   var box=$("#prevRefs"); if(!box) return;
   var byRef={};
@@ -618,6 +630,7 @@ function renderPrevendas(d){
     tb.appendChild(tr);
   });
   renderPrevRefs(peds);
+  renderEspera((d&&d.espera)||[]);
   $("#prevTbl tbody").querySelectorAll(".edsab").forEach(function(b){ b.onclick=function(){ openEditPrev(b.getAttribute("data-code"), b.getAttribute("data-sabor"), Number(b.getAttribute("data-qty"))); }; });
   $("#prevEmpty").style.display = peds.length ? "none" : "block";
 }
