@@ -420,7 +420,7 @@ a.a{background:transparent;color:var(--pistD)}
   var _data=null, _soldout=false, _txid="BentBytes", _lote=1;
   function renderSold(j){
     if(!j||!j.cap){ return; }
-    _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes"; _lote=j.lote||1; if($("pvRet")) $("pvRet").innerHTML=(_lote>=2)?'📦 Retirada do 2º lote: <b>a partir de domingo e segunda-feira</b>':'📦 Retirada na loja <b>a partir de amanhã</b> · pedidos do 1º lote';
+    _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes"; _lote=j.lote||1; if($("pvRet")) $("pvRet").innerHTML=(_lote>=2)?'📦 Retirada do 2º lote: <b>somente a partir de terça-feira (semana que vem)</b>':'📦 Retirada na loja <b>a partir de amanhã</b> · pedidos do 1º lote';
     $("soldBar").style.display="block";
     var l2=j.lote>=2;
     $("soldHead").innerHTML="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price)+' <s style="color:var(--soft);font-weight:400">de '+brl(29.90)+'</s>';
@@ -497,7 +497,7 @@ a.a{background:transparent;color:var(--pistD)}
     $("paySum").textContent=saboresStr()+" · retirada "+st.unidade+" · "+brl(t);
     $("payQr").src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data="+encodeURIComponent(copia);
     $("payCopia").value=copia;
-    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade+" ("+(_lote>=2?"a partir de domingo/segunda":"a partir de amanhã")+")","*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
+    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade+" ("+(_lote>=2?"a partir de terça-feira da semana que vem":"a partir de amanhã")+")","*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
     $("payWapp").href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(msg);
     $("pvForm").style.display="none"; $("pvPay").style.display="block";
     $("pvPay").scrollIntoView({behavior:"smooth",block:"center"});
