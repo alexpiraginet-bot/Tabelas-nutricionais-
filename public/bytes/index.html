@@ -189,15 +189,14 @@ a.a{background:transparent;color:var(--pistD)}
       <div class="box"><div class="num" id="s">--</div><div class="u">seg</div></div>
     </div>
     <div class="when">📍 <b>Sábado, 27 de junho</b> · 12h · nas duas unidades</div>
-    <div class="live" id="live"><div class="big">🎉 É hoje! Já lançamos.</div><div class="when" style="margin-top:6px">Venha provar em primeira mão nas nossas lojas.</div></div>
+    <div class="live" id="live"><div class="big">🎉 BentôBytes já lançou!</div><div class="when" style="margin-top:6px">Já à venda nas lojas — e o <b>2º lote da pré-venda abre em breve</b>, nos próximos dias.</div></div>
   </section>
 
   <div class="prevenda">
-    <span class="tagp">Antecipe</span>
-    🎟️ <b>Sexta, 26/06</b> — pré-venda &amp; degustação, só na <b>Praia do Canto</b>. Prove antes de todo mundo.
+    <span class="tagp">Fique de olho</span>
+    🥈 <b>2º lote abre em breve</b> — nos próximos dias! Entre na <b>lista de espera</b> e seja avisado(a) primeiro.
   </div>
 
-  <a href="#sorteio" class="sobanner">🎁 <b>Concorra a 1 de 10 kits BentôBytes</b> — inscrição grátis <span class="ar">→</span></a>
 
   <div class="pills">
     <span class="pill hot"><span class="g">✦</span> Zero adição de açúcar</span>
@@ -240,43 +239,6 @@ a.a{background:transparent;color:var(--pistD)}
     </div>
   </section>
 
-  <section class="sec" id="sorteio">
-    <div class="h">
-      <h2>Concorra a 1 de 10 kits 🎁</h2>
-      <p>Cada kit traz <b>um potinho de cada sabor</b> — Opereta, Pistache Perfeito e Chocolate Dubai.</p>
-    </div>
-    <div class="pv">
-      <div class="frame"></div>
-      <div id="soForm">
-        <ul class="solist">
-          <li><span>🎟️</span><span><b>10 kits</b> sorteados entre todos os inscritos.</span></li>
-          <li><span>🏪</span><span>Retirada na <b>loja física</b> neste fim de semana ou na próxima.</span></li>
-          <li><span>⏰</span><span>Sorteio <b>amanhã, ao fim do dia</b> — anunciamos os ganhadores.</span></li>
-        </ul>
-        <div class="fld"><span class="pvlab">Nome</span><input id="soNome" placeholder="Nome completo"></div>
-        <div class="fld"><span class="pvlab">WhatsApp</span><input id="soFone" inputmode="tel" placeholder="(27) 99999-9999"></div>
-        <div class="fld"><span class="pvlab">Instagram (opcional)</span><input id="soInsta" placeholder="@seuusuario" autocapitalize="off"></div>
-        <div class="fld">
-          <span class="pvlab">Onde prefere retirar (opcional)</span>
-          <div class="uni" id="soUni">
-            <button type="button" data-u="Praia do Canto">Praia do Canto</button>
-            <button type="button" data-u="Jardim Camburi">Jardim Camburi</button>
-          </div>
-        </div>
-        <label style="display:flex;gap:9px;align-items:flex-start;cursor:pointer;margin:6px 0 2px">
-          <input type="checkbox" id="soConsent" style="margin-top:3px;width:17px;height:17px;accent-color:var(--pistD);flex-shrink:0">
-          <span style="font-size:12px;color:var(--soft);line-height:1.45">Autorizo a Bentô a guardar e usar meus dados (nome, WhatsApp e Instagram) para o sorteio, contato e <b>futuras campanhas e novidades</b>, conforme a <a href="https://bentogelateria.com/?privacidade=1" target="_blank" rel="noopener" style="color:var(--pistD)">Política de Privacidade</a>.</span>
-        </label>
-        <button class="cta" id="soSend" disabled>Quero concorrer 🎁</button>
-        <div class="pvnote">Brinde para retirada em loja física — sem entrega. Você pode pedir a remoção dos seus dados quando quiser. 💛</div>
-      </div>
-      <div class="pay" id="soOk" style="display:none">
-        <div style="font-size:46px">🎉</div>
-        <div id="soOkTitle" style="font-family:'Fraunces',serif;font-weight:600;font-size:24px;color:var(--ink);margin:6px 0 4px">Você está concorrendo!</div>
-        <p id="soOkMsg" style="font-size:14px;color:var(--soft);max-width:420px;margin:0 auto">Boa sorte! 💛 O sorteio dos 10 kits é amanhã, ao fim do dia. Se você ganhar, a gente chama no seu WhatsApp para combinar a retirada na loja.</p>
-      </div>
-    </div>
-  </section>
 
   <section class="sec" id="prevenda">
     <div class="h">
@@ -420,13 +382,13 @@ a.a{background:transparent;color:var(--pistD)}
   var _data=null, _soldout=false, _txid="BentBytes", _lote=1;
   function renderSold(j){
     if(!j||!j.cap){ return; }
-    _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes"; _lote=j.lote||1; if($("pvRet")) $("pvRet").innerHTML=(_lote>=2)?'📦 Retirada do 2º lote: <b>somente a partir de terça-feira (semana que vem)</b>':'📦 Retirada na loja <b>a partir de amanhã</b> · pedidos do 1º lote';
+    _data=j; _soldout=!!j.soldout; if(typeof j.price==="number") PRECO=j.price; _txid=(j.lote>=2)?"segundolote":"BentBytes"; _lote=j.lote||1; if($("pvRet")) $("pvRet").innerHTML=(_lote>=2)?'📦 Retirada do 2º lote: <b>somente a partir de terça-feira, 30/06</b>':'📦 Retirada na loja <b>a partir de amanhã</b> · pedidos do 1º lote';
     $("soldBar").style.display="block";
     var l2=j.lote>=2;
     $("soldHead").innerHTML="🔥 "+(l2?"2º lote":"1º lote")+" · "+brl(j.price)+' <s style="color:var(--soft);font-weight:400">de '+brl(29.90)+'</s>';
     $("soldTxt").textContent=j.loteSold+"/"+j.loteTotal;
     $("soldFill").style.width=Math.min(100,Math.round(j.loteSold/j.loteTotal*100))+"%";
-    if(j.soldout){ $("soldSub").textContent = j.lote2Open ? "Tudo esgotado 🙏 obrigada!" : "🥈 1º lote esgotado! Em breve abrimos o 2º lote 🔥"; if($("pvPagar"))$("pvPagar").textContent = j.lote2Open ? "Esgotado" : "1º lote esgotado"; }
+    if(j.soldout){ $("soldSub").textContent = j.lote2Open ? "Tudo esgotado 🙏 obrigada!" : "🥈 1º lote esgotado! Em breve, nos próximos dias, abrimos o 2º lote 🔥"; if($("pvPagar"))$("pvPagar").textContent = j.lote2Open ? "Esgotado" : "1º lote esgotado"; }
     else if(l2){ $("soldSub").textContent="🥈 1º lote esgotado! Agora 2º lote a "+brl(j.price)+" · restam "+j.loteRemaining+" de "+j.loteTotal+" 🔥"; }
     else { $("soldSub").textContent="Restam só "+j.loteRemaining+" de "+j.loteTotal+" potes 🔥"; }
     var _so=j.soldout && !j.lote2Open;
@@ -497,7 +459,7 @@ a.a{background:transparent;color:var(--pistD)}
     $("paySum").textContent=saboresStr()+" · retirada "+st.unidade+" · "+brl(t);
     $("payQr").src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=0&data="+encodeURIComponent(copia);
     $("payCopia").value=copia;
-    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade+" ("+(_lote>=2?"a partir de terça-feira da semana que vem":"a partir de amanhã")+")","*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
+    var msg=["*Pré-venda BentôBytes* 🍫","*Pedido:* "+code,"*Sabores:* "+saboresStr(),"*Retirada:* "+st.unidade+" ("+(_lote>=2?"a partir de terça-feira, 30/06":"a partir de amanhã")+")","*Total:* "+brl(t),"*Nome:* "+ped.nome,"","Acabei de pagar o Pix — segue o comprovante em anexo. 💛"].join("\n");
     $("payWapp").href="https://wa.me/"+WHATS+"?text="+encodeURIComponent(msg);
     $("pvForm").style.display="none"; $("pvPay").style.display="block";
     $("pvPay").scrollIntoView({behavior:"smooth",block:"center"});
@@ -521,44 +483,6 @@ a.a{background:transparent;color:var(--pistD)}
   };
 })();
 
-/* ===== Sorteio (10 kits) ===== */
-(function(){
-  var API="https://bentogelateria.com/api/sorteio", $=function(id){return document.getElementById(id);};
-  if(!$("soForm")) return;
-  var st={unidade:""};
-  function ok(){ return $("soNome").value.trim() && $("soFone").value.replace(/\D/g,"").length>=10 && $("soConsent").checked; }
-  function refresh(){ $("soSend").disabled=!ok(); }
-  $("soNome").addEventListener("input",refresh);
-  $("soConsent").addEventListener("change",refresh);
-  $("soFone").addEventListener("input",function(e){
-    var d=e.target.value.replace(/\D/g,"").slice(0,11),o=d;
-    if(d.length>6)o="("+d.slice(0,2)+") "+d.slice(2,7)+"-"+d.slice(7);
-    else if(d.length>2)o="("+d.slice(0,2)+") "+d.slice(2);
-    e.target.value=o; refresh();
-  });
-  $("soUni").querySelectorAll("button").forEach(function(b){
-    b.onclick=function(){ st.unidade=b.dataset.u; $("soUni").querySelectorAll("button").forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); };
-  });
-  $("soSend").onclick=function(){
-    if(!ok()) return;
-    $("soSend").disabled=true; var old=$("soSend").textContent; $("soSend").textContent="Enviando…";
-    var ig=$("soInsta").value.trim(); if(ig && ig.charAt(0)!=="@") ig="@"+ig;
-    var data={nome:$("soNome").value.trim(),phone:$("soFone").value.trim(),instagram:ig,unidade:st.unidade,consent:$("soConsent").checked};
-    fetch(API,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify(data)})
-      .then(function(r){return r.json();})
-      .then(function(j){
-        if(j && j.ok){
-          if(j.dup){ $("soOkTitle").textContent="Você já está participando!"; $("soOkMsg").textContent="Seu número já está na urna 💛 Boa sorte no sorteio de amanhã!"; }
-          $("soForm").style.display="none"; $("soOk").style.display="block";
-          $("soOk").scrollIntoView({behavior:"smooth",block:"center"});
-        } else {
-          alert(j && j.error==="telefone" ? "Confira seu WhatsApp (com DDD)." : "Não consegui inscrever. Tente de novo.");
-          $("soSend").disabled=false; $("soSend").textContent=old;
-        }
-      })
-      .catch(function(){ alert("Sem conexão agora. Tente de novo em instantes."); $("soSend").disabled=false; $("soSend").textContent=old; });
-  };
-})();
 </script>
 </body>
 </html>
