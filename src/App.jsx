@@ -143,6 +143,28 @@ function Tile({t,delay=0}){
 
 /* ========== HOME (LAUNCHER) ========== */
 
+/* Banner grande com foto real à esquerda (40%) e informação à direita (60%). */
+function PhotoBanner({as="button",href,target,onClick,img,imgPos,kicker,kickerBg,kickerColor="#fff",title,sub,bg,border,borderLeft,accent,shadow,delay,light}){
+  const titleColor=light?"#FFFDF7":T.ink, subColor=light?"#D9E0CC":T.inkSoft;
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:bg,border,borderLeft,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:12,boxShadow:shadow,padding:0,minHeight:104,textDecoration:"none"};
+  const inner=(
+    <>
+      <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
+        <img src={img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr}
+          style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:imgPos||"center"}}/>
+      </div>
+      <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 6px 12px 15px"}}>
+        <span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:kickerColor,background:kickerBg,borderRadius:999,padding:"2px 9px",marginBottom:5}}>{kicker}</span>
+        <div className="fd" style={{fontSize:"clamp(17px,3.1vw,22px)",color:titleColor,lineHeight:1.06}}>{title}</div>
+        <div className="fb" style={{fontSize:12,color:subColor,marginTop:3,lineHeight:1.3}}>{sub}</div>
+      </div>
+      <span className="fd" style={{fontSize:22,color:accent,flexShrink:0,alignSelf:"center",padding:"0 14px 0 4px"}}>→</span>
+    </>
+  );
+  if(as==="a") return <a href={href} target={target} rel="noopener" onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</a>;
+  return <button onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
+}
+
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
     {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
@@ -163,40 +185,32 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </p>
 
         <div style={{width:"100%",marginTop:22}}>
-          {/* Banner de lançamento BentôBytes → subdomínio de eventos */}
-          <a href="/bytes/" target="_blank" rel="noopener" onClick={()=>tk("Lançamento · BentôBytes")} className="hl rise" style={{textDecoration:"none",width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#16241A 0%,#2C3A22 100%)",border:`1px solid ${T.accent}`,borderRadius:18,padding:"13px 18px",cursor:"pointer",marginBottom:12,boxShadow:"0 12px 30px -16px rgba(20,36,26,.7)"}}>
-            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>🍫</span>
-            <div style={{flex:1,minWidth:0}}>
-              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#16241A",background:T.accent,borderRadius:999,padding:"2px 9px",marginBottom:4}}>✦ Novo · Lançamento</span>
-              <div className="fd" style={{fontSize:"clamp(18px,3.2vw,22px)",color:"#FFFDF7",lineHeight:1.05}}>BentôBytes está chegando</div>
-              <div className="fb" style={{fontSize:12,color:"#D9E0CC",marginTop:2,lineHeight:1.3}}>Sábado 27/06 nas duas lojas · pré-venda sexta na Praia do Canto · veja a contagem regressiva</div>
-            </div>
-            <span className="fd" style={{fontSize:22,color:T.accent,flexShrink:0}}>→</span>
-          </a>
-          {/* Botão principal: Tabelas */}
-          <button onClick={()=>tk("Tabelas Nutricionais",onTabelas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)",border:"1px solid #BCCE8E",borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:18,padding:"12px 18px",cursor:"pointer",animationDelay:"120ms",boxShadow:"0 10px 28px -16px rgba(74,90,34,.5)"}}>
-            <div style={{display:"flex",gap:2,flexShrink:0}}>
-              <GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={46} id="hg"/>
-              <PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={40} id="hp"/>
-            </div>
-            <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:5}}>A sobremesa que você pode repetir</div>
-              <div className="fd" style={{fontSize:"clamp(19px,3.2vw,24px)",color:T.ink,lineHeight:1.05}}>Tabelas Nutricionais</div>
-              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Gelatos, picolés, monte seu pote e quiz de sabores.</div>
-            </div>
-            <span className="fd" style={{fontSize:24,color:T.pistacheDark,flexShrink:0}}>→</span>
-          </button>
+          {/* Banner de lançamento BentôBytes → foto real dos potes (40%) + info (60%) */}
+          <PhotoBanner as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
+            img="/bytes/img/hero.jpg" imgPos="center 62%" light
+            kicker="✦ Novo · Lançamento" kickerBg={T.accent} kickerColor="#16241A"
+            title="BentôBytes está chegando" sub="Edição limitada · 1º lote esgotou · 2º lote abre em breve · garanta seus sabores"
+            bg="linear-gradient(135deg,#16241A 0%,#2C3A22 100%)" border={`1px solid ${T.accent}`} accent={T.accent}
+            shadow="0 12px 30px -16px rgba(20,36,26,.7)" delay="80ms"/>
 
-          {/* Banner Delivery / Nos encontre (iFood + endereços das lojas) */}
-          <button onClick={()=>tk("Delivery / Nos encontre",onDelivery)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#FBE7E3 0%,#F6D2CB 100%)",border:"1px solid #E79A8E",borderLeft:"4px solid #EA1D2C",borderRadius:18,padding:"12px 20px 12px 14px",cursor:"pointer",marginTop:12,animationDelay:"150ms",boxShadow:"0 10px 28px -16px rgba(234,29,44,.5)"}}>
-            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>🛵</span>
-            <div style={{flex:1,minWidth:0}}>
-              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#EA1D2C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>🗺️ iFood + endereços</span>
-              <div className="fd" style={{fontSize:"clamp(18px,3.2vw,22px)",color:T.ink,lineHeight:1.05}}>Delivery <span style={{color:"#C2384A"}}>/</span> Nos encontre</div>
-              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Peça no iFood ou veja onde estamos — Praia do Canto e Jardim Camburi.</div>
-            </div>
-            <span className="fd" style={{fontSize:22,color:"#EA1D2C",flexShrink:0}}>→</span>
-          </button>
+          {/* Botão principal: Tabelas → foto da linha com fichas nutricionais (40%) + info (60%) */}
+          <PhotoBanner onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
+            img="/portfolio/picoles-lineup.jpg" imgPos="center 40%"
+            kicker="A sobremesa que você pode repetir" kickerBg={T.pistacheDark}
+            title="Tabelas Nutricionais" sub="Gelatos, picolés, monte seu pote e quiz de sabores."
+            bg="linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)" border="1px solid #BCCE8E"
+            borderLeft={`4px solid ${T.pistacheDark}`} accent={T.pistacheDark}
+            shadow="0 10px 28px -16px rgba(74,90,34,.5)" delay="120ms"/>
+
+          {/* Banner Delivery / Nos encontre → foto dos potes (40%) + info (60%) */}
+          <PhotoBanner onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
+            img="/portfolio/potes-140.jpg" imgPos="center 45%"
+            kicker="🗺️ iFood + endereços" kickerBg="#EA1D2C"
+            title={<>Delivery <span style={{color:"#C2384A"}}>/</span> Nos encontre</>}
+            sub="Peça no iFood ou veja onde estamos — Praia do Canto e Jardim Camburi."
+            bg="linear-gradient(135deg,#FBE7E3 0%,#F6D2CB 100%)" border="1px solid #E79A8E"
+            borderLeft="4px solid #EA1D2C" accent="#EA1D2C"
+            shadow="0 10px 28px -16px rgba(234,29,44,.5)" delay="150ms"/>
 
           {/* Linha 1 de funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
@@ -205,16 +219,14 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             ))}
           </div>
 
-          {/* Banner Eventos */}
-          <button onClick={()=>tk("Nos leve para seu evento",onEventos)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:"linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)",border:"1px solid #D3B57E",borderLeft:"4px solid #A9831C",borderRadius:18,padding:"12px 20px 12px 12px",cursor:"pointer",marginTop:12,animationDelay:"250ms",boxShadow:"0 10px 28px -16px rgba(169,131,28,.5)"}}>
-            <img src="/eventos/carrinho-1-thumb.webp" alt="" aria-hidden="true" loading="lazy" style={{width:54,height:54,objectFit:"cover",borderRadius:14,flexShrink:0,border:"1px solid #DCC494"}} onError={onImgErr} />
-            <div style={{flex:1,minWidth:0}}>
-              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:"#A9831C",borderRadius:999,padding:"2px 9px",marginBottom:4}}>⚡ Orçamento na hora</span>
-              <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Nos leve para seu evento</div>
-              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Estrutura completa + orçamento online na hora · casamentos, festas e corporativo</div>
-            </div>
-            <span className="fd" style={{fontSize:22,color:"#A9831C",flexShrink:0}}>→</span>
-          </button>
+          {/* Banner Eventos → foto do carrinho em evento (40%) + info (60%) */}
+          <PhotoBanner onClick={()=>tk("Nos leve para seu evento",onEventos)}
+            img="/eventos/carrinho-1.jpg" imgPos="center 42%"
+            kicker="⚡ Orçamento na hora" kickerBg="#A9831C"
+            title="Nos leve para seu evento" sub="Estrutura completa + orçamento online na hora · casamentos, festas e corporativo"
+            bg="linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)" border="1px solid #D3B57E"
+            borderLeft="4px solid #A9831C" accent="#A9831C"
+            shadow="0 10px 28px -16px rgba(169,131,28,.5)" delay="250ms"/>
 
           {/* Demais funções */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
@@ -223,16 +235,14 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             ))}
           </div>
 
-          {/* Banner Vagas — Estamos contratando */}
-          <button onClick={()=>tk("Vagas · Estamos contratando",onVagas)} className="hl rise" style={{width:"100%",display:"flex",alignItems:"center",gap:14,textAlign:"left",background:`linear-gradient(135deg,${T.surface} 0%,${T.bgWarm} 100%)`,border:`1px solid ${T.accent}`,borderLeft:`4px solid ${T.pistacheDark}`,borderRadius:18,padding:"12px 20px 12px 14px",cursor:"pointer",marginTop:12,animationDelay:"430ms",boxShadow:"0 10px 28px -16px rgba(70,88,58,.5)"}}>
-            <span style={{fontSize:30,lineHeight:1,flexShrink:0}}>💼</span>
-            <div style={{flex:1,minWidth:0}}>
-              <span className="fm" style={{display:"inline-block",fontSize:9,letterSpacing:"0.16em",textTransform:"uppercase",color:"#fff",background:T.pistacheDark,borderRadius:999,padding:"2px 9px",marginBottom:4}}>💚 Estamos contratando</span>
-              <div className="fd" style={{fontSize:"clamp(17px,3vw,21px)",color:T.ink,lineHeight:1.1}}>Trabalhe conosco</div>
-              <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2,lineHeight:1.3}}>Vaga de Atendente · Jardim Camburi e Praia do Canto · cadastre seu interesse</div>
-            </div>
-            <span className="fd" style={{fontSize:22,color:T.pistacheDark,flexShrink:0}}>→</span>
-          </button>
+          {/* Banner Vagas — foto da loja/quiosque (40%) + info (60%) */}
+          <PhotoBanner onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
+            img="/parceria/estande.jpg" imgPos="center 55%"
+            kicker="💚 Estamos contratando" kickerBg={T.pistacheDark}
+            title="Trabalhe conosco" sub="Vaga de Atendente · Jardim Camburi e Praia do Canto · cadastre seu interesse"
+            bg={`linear-gradient(135deg,${T.surface} 0%,${T.bgWarm} 100%)`} border={`1px solid ${T.accent}`}
+            borderLeft={`4px solid ${T.pistacheDark}`} accent={T.pistacheDark}
+            shadow="0 10px 28px -16px rgba(70,88,58,.5)" delay="430ms"/>
         </div>
       </section>
     </div>
