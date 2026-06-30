@@ -143,22 +143,23 @@ function Tile({t,delay=0}){
 
 /* ========== HOME (LAUNCHER) ========== */
 
-/* Banner grande com foto real à esquerda (40%) e informação à direita (60%). */
-function PhotoBanner({as="button",href,target,onClick,img,imgPos,kicker,kickerBg,kickerColor="#fff",title,sub,bg,border,borderLeft,accent,shadow,delay,light}){
-  const titleColor=light?"#FFFDF7":T.ink, subColor=light?"#D9E0CC":T.inkSoft;
-  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:bg,border,borderLeft,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:12,boxShadow:shadow,padding:0,minHeight:104,textDecoration:"none"};
+/* Banner grande — família visual única: superfície creme, borda fina bege,
+   foto real à esquerda (40%) + informação à direita (60%), selo dourado fosco
+   e seta discreta. Sem gradientes/bordas coloridas: "luxo silencioso". */
+function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay}){
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:112,textDecoration:"none"};
   const inner=(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
         <img src={img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr}
           style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:imgPos||"center"}}/>
       </div>
-      <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",justifyContent:"center",padding:"12px 6px 12px 15px"}}>
-        <span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",color:kickerColor,background:kickerBg,borderRadius:999,padding:"2px 9px",marginBottom:5}}>{kicker}</span>
-        <div className="fd" style={{fontSize:"clamp(17px,3.1vw,22px)",color:titleColor,lineHeight:1.06}}>{title}</div>
-        <div className="fb" style={{fontSize:12,color:subColor,marginTop:3,lineHeight:1.3}}>{sub}</div>
+      <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",justifyContent:"center",padding:"15px 8px 15px 18px"}}>
+        {selo&&<span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:8.5,letterSpacing:"0.2em",textTransform:"uppercase",color:T.pistacheDark,background:"#ECDDB0",borderRadius:999,padding:"3px 10px",marginBottom:8}}>{selo}</span>}
+        <div className="fd" style={{fontSize:"clamp(18px,3vw,22px)",color:T.ink,lineHeight:1.08,letterSpacing:"-0.01em"}}>{title}</div>
+        <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:4,lineHeight:1.4}}>{sub}</div>
       </div>
-      <span className="fd" style={{fontSize:22,color:accent,flexShrink:0,alignSelf:"center",padding:"0 14px 0 4px"}}>→</span>
+      <span aria-hidden="true" style={{display:"flex",alignItems:"center",flexShrink:0,padding:"0 14px 0 2px",color:T.accent}}><ChevronRight size={20} strokeWidth={1.75}/></span>
     </>
   );
   if(as==="a") return <a href={href} target={target} rel="noopener" onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</a>;
@@ -173,76 +174,67 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 30%",bd:"#4a5a3a"},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",onClick:onFaq,img:"/tiles/duvidas.webp",imgPos:"center 35%",bd:"#4a5142"},
   ];
+  const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   return(
     <div className="fade">
-      <section style={{minHeight:"calc(100svh - 64px)",maxWidth:880,margin:"0 auto",padding:"16px 20px 28px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
-        <div className="rise"><BentoLogo size={78}/></div>
-        <h1 className="fd rise" style={{fontSize:"clamp(26px,5vw,46px)",lineHeight:1.05,color:T.ink,marginTop:12,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
+      <section style={{minHeight:"calc(100svh - 64px)",maxWidth:760,margin:"0 auto",padding:"34px 20px 40px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
+        {/* Hero premium */}
+        <div className="rise"><BentoLogo size={84}/></div>
+        <h1 className="fd rise" style={{fontSize:"clamp(28px,5.2vw,48px)",lineHeight:1.04,color:T.ink,marginTop:16,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
         </h1>
-        <p className="fb rise" style={{maxWidth:440,margin:"8px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.55,animationDelay:"100ms"}}>
-          Sabor de sobremesa, ficha de suplemento. Zero açúcar adicionado · rico em proteína · rótulo limpo.
+        <p className="fb rise" style={{maxWidth:400,margin:"10px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.6,animationDelay:"100ms"}}>
+          Sobremesas funcionais com estética premium. Zero açúcar adicionado, alto padrão nutricional.
         </p>
+        <div className="rise" style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:20,animationDelay:"150ms"}}>
+          <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
+          <button onClick={()=>tk("Tabelas & sabores",onTabelas)} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>Tabelas & sabores</button>
+        </div>
 
-        <div style={{width:"100%",marginTop:22}}>
-          {/* Banner de lançamento BentôBytes → foto real dos potes (40%) + info (60%) */}
+        <div style={{width:"100%",marginTop:34}}>
+          {/* BentôBytes — lançamento */}
           <PhotoBanner as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
-            img="/bytes/img/hero.jpg" imgPos="center 62%" light
-            kicker="✦ Novo · Lançamento" kickerBg={T.accent} kickerColor="#16241A"
-            title="BentôBytes está chegando" sub="Edição limitada · 1º lote esgotou · 2º lote abre em breve · garanta seus sabores"
-            bg="linear-gradient(135deg,#16241A 0%,#2C3A22 100%)" border={`1px solid ${T.accent}`} accent={T.accent}
-            shadow="0 12px 30px -16px rgba(20,36,26,.7)" delay="80ms"/>
+            img="/bytes/img/hero.jpg" imgPos="center 62%"
+            selo="Lançamento" title="BentôBytes" sub="Edição limitada. Segundo lote em breve."
+            delay="80ms"/>
 
-          {/* Botão principal: Tabelas → foto da linha com fichas nutricionais (40%) + info (60%) */}
+          {/* Tabelas nutricionais */}
           <PhotoBanner onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
             img="/portfolio/picoles-lineup.jpg" imgPos="center 40%"
-            kicker="A sobremesa que você pode repetir" kickerBg={T.pistacheDark}
-            title="Tabelas Nutricionais" sub="Gelatos, picolés, monte seu pote e quiz de sabores."
-            bg="linear-gradient(135deg,#EEF4DF 0%,#E1ECC8 100%)" border="1px solid #BCCE8E"
-            borderLeft={`4px solid ${T.pistacheDark}`} accent={T.pistacheDark}
-            shadow="0 10px 28px -16px rgba(74,90,34,.5)" delay="120ms"/>
+            selo="Nutrição" title="Tabelas nutricionais" sub="Gelatos, picolés e potes — macros e restrições."
+            delay="120ms"/>
 
-          {/* Banner Delivery / Nos encontre → foto real da loja (40%) + info (60%) */}
+          {/* Delivery & lojas */}
           <PhotoBanner onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
             img="/lojas/praia-do-canto.jpg" imgPos="center 48%"
-            kicker="🗺️ iFood + endereços" kickerBg="#EA1D2C"
-            title={<>Delivery <span style={{color:"#C2384A"}}>/</span> Nos encontre</>}
-            sub="Peça no iFood ou veja onde estamos — Praia do Canto e Jardim Camburi."
-            bg="linear-gradient(135deg,#FBE7E3 0%,#F6D2CB 100%)" border="1px solid #E79A8E"
-            borderLeft="4px solid #EA1D2C" accent="#EA1D2C"
-            shadow="0 10px 28px -16px rgba(234,29,44,.5)" delay="150ms"/>
+            selo="Delivery" title="Delivery & lojas" sub="Peça no iFood ou retire na unidade mais próxima."
+            delay="150ms"/>
 
-          {/* Linha 1 de funções */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
+          {/* Atalhos secundários */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginTop:14}}>
             {tiles.slice(0,2).map((t,i)=>(
               <Tile key={t.title} t={t} delay={160+i*45}/>
             ))}
           </div>
 
-          {/* Banner Eventos → foto do carrinho em evento (40%) + info (60%) */}
+          {/* Eventos */}
           <PhotoBanner onClick={()=>tk("Nos leve para seu evento",onEventos)}
             img="/eventos/carrinho-1.jpg" imgPos="center 42%"
-            kicker="⚡ Orçamento na hora" kickerBg="#A9831C"
-            title="Nos leve para seu evento" sub="Estrutura completa + orçamento online na hora · casamentos, festas e corporativo"
-            bg="linear-gradient(135deg,#F8EFD8 0%,#EFDFB8 100%)" border="1px solid #D3B57E"
-            borderLeft="4px solid #A9831C" accent="#A9831C"
-            shadow="0 10px 28px -16px rgba(169,131,28,.5)" delay="250ms"/>
+            selo="Eventos" title="Bentô no seu evento" sub="Carrinho premium e orçamento na hora."
+            delay="250ms"/>
 
-          {/* Demais funções */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:12,marginTop:12}}>
+          {/* Demais atalhos */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginTop:14}}>
             {tiles.slice(2).map((t,i)=>(
               <Tile key={t.title} t={t} delay={250+i*45}/>
             ))}
           </div>
 
-          {/* Banner Vagas — foto da loja/quiosque (40%) + info (60%) */}
+          {/* Carreira */}
           <PhotoBanner onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
             img="/parceria/estande.jpg" imgPos="center 55%"
-            kicker="💚 Estamos contratando" kickerBg={T.pistacheDark}
-            title="Trabalhe conosco" sub="Vaga de Atendente · Jardim Camburi e Praia do Canto · cadastre seu interesse"
-            bg={`linear-gradient(135deg,${T.surface} 0%,${T.bgWarm} 100%)`} border={`1px solid ${T.accent}`}
-            borderLeft={`4px solid ${T.pistacheDark}`} accent={T.pistacheDark}
-            shadow="0 10px 28px -16px rgba(70,88,58,.5)" delay="430ms"/>
+            selo="Carreira" title="Trabalhe conosco" sub="Vaga de atendente · Praia do Canto e Jardim Camburi."
+            delay="430ms"/>
         </div>
       </section>
     </div>
