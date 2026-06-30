@@ -235,15 +235,16 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
 /* ========== TABELAS (HUB DE PRODUTOS/FERRAMENTAS) ========== */
 
-function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCulpa,onGLP1}){
-  const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
-  const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
+function TabelasHub({onSelect,onShakes,onPote,onQuiz,onBack,onCulpa,onGLP1}){
   const tools=[
     {title:"Gelatos",onClick:()=>onSelect("gelato"),img:"/banners/tab-gelatos.webp",alt:"Gelatos — 18 sabores, ficha nutricional completa"},
     {title:"Bentôlé",onClick:()=>onSelect("bentole"),img:"/banners/tab-bentole.webp",alt:"Bentôlé — 6 picolés, ficha por sabor"},
     {title:"Shakes",onClick:onShakes,img:"/banners/tab-shakes.webp",alt:"Shakes — 4 shakes proteicos, tabela e ingredientes"},
     {title:"Monte seu pote",onClick:onPote,img:"/banners/tab-pote.webp",alt:"Monte seu pote — combine 2 sabores, calorias e proteína"},
     {title:"Qual é o meu sabor?",onClick:onQuiz,img:"/banners/tab-quiz.webp",alt:"Qual é o meu sabor? — quiz rápido de 3 perguntas"},
+    {title:"Sem culpa-ômetro",onClick:onCulpa,img:"/banners/tab-culpa.webp",alt:"Sem culpa-ômetro — quanto açúcar você economiza vs sorvete comum"},
+    {title:"Tá na caneta? (GLP-1)",onClick:onGLP1,img:"/banners/tab-glp1.webp",alt:"Tá na caneta? Proteína em porção pequena pra pouco apetite — para quem usa GLP-1"},
+    {title:"Mais ricos em proteína",onClick:()=>onSelect("gelato"),img:"/banners/tab-proteina.webp",alt:"Mais ricos em proteína — veja os sabores com mais proteína por porção"},
   ];
   return(
     <div className="fade">
@@ -256,42 +257,6 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
         <div style={{maxWidth:760,margin:"22px auto 0"}}>
           {tools.map((t,i)=>(
             <PhotoBanner key={t.title} full onClick={()=>tk(t.title,t.onClick)} img={t.img} alt={t.alt} delay={`${i*45}ms`}/>
-          ))}
-        </div>
-
-        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>✦ Inteligência nutricional</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14}}>
-          <button onClick={()=>tk("Sem culpa-ômetro",onCulpa)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#222B1A,#3A472A)",border:"1px solid #3A472A",borderRadius:14,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
-            <span style={{fontSize:34,flexShrink:0}}>🍦</span>
-            <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#B8C97A"}}>Compare & compartilhe</div>
-              <div className="fd" style={{fontSize:19,color:"#fff",lineHeight:1.1,marginTop:3}}>Sem culpa-ômetro</div>
-              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.8)",marginTop:3,lineHeight:1.3}}>Quanto açúcar você economiza vs sorvete comum</div>
-            </div>
-            <span className="fd" style={{fontSize:20,color:"#B8C97A",flexShrink:0}}>→</span>
-          </button>
-          <button onClick={()=>tk("Aliado da caneta (GLP-1)",onGLP1)} className="hl rise" style={{textAlign:"left",background:"linear-gradient(135deg,#2A2238,#3E2F58)",border:"1px solid #463A5F",borderRadius:14,padding:"18px 18px",cursor:"pointer",display:"flex",alignItems:"center",gap:14}}>
-            <span style={{fontSize:34,flexShrink:0}}>💉</span>
-            <div style={{flex:1,minWidth:0}}>
-              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#D9C7F2"}}>Para quem usa GLP-1</div>
-              <div className="fd" style={{fontSize:19,color:"#fff",lineHeight:1.1,marginTop:3}}>Tá na caneta?</div>
-              <div className="fb" style={{fontSize:11.5,color:"rgba(255,255,255,.8)",marginTop:3,lineHeight:1.3}}>Proteína em porção pequena pra pouco apetite</div>
-            </div>
-            <span className="fd" style={{fontSize:20,color:"#D9C7F2",flexShrink:0}}>→</span>
-          </button>
-        </div>
-
-        <div className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",margin:"34px 0 14px"}}>⚡ Mais ricos em proteína</div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:12}}>
-          {topProt.map(p=>(
-            <button key={p.id} className="hl" style={{textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:12,padding:14,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>onSelectProduct(p.id)}>
-              <ProductArt product={p} size={64}/>
-              <div>
-                <div className="fd" style={{fontSize:16,color:T.ink}}>{p.name}</div>
-                <div className="fm" style={{fontSize:17,color:T.pistacheDark,fontWeight:500,marginTop:3}}>{p.nutrition.protein}g</div>
-                <div className="fm" style={{fontSize:9,color:T.inkSoft,letterSpacing:"0.18em",textTransform:"uppercase"}}>proteína · {p.nutrition.kcal} kcal</div>
-              </div>
-            </button>
           ))}
         </div>
       </section>
