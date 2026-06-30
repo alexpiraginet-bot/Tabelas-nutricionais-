@@ -171,8 +171,6 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
-    {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 22%",bd:"#2f3a24"},
-    {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 30%",bd:"#4a5a3a"},
     {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",onClick:onFaq,img:"/tiles/duvidas.webp",imgPos:"center 35%",bd:"#4a5142"},
   ];
@@ -214,22 +212,20 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             img="/banners/cardapio.webp" alt="Cardápio e retirada — peça, escolha a retirada e pague no site"
             delay="150ms"/>
 
-          {/* Atalhos secundários */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginTop:14}}>
-            {tiles.slice(0,2).map((t,i)=>(
-              <Tile key={t.title} t={t} delay={160+i*45}/>
-            ))}
-          </div>
-
           {/* Eventos — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full onClick={()=>tk("Nos leve para seu evento",onEventos)}
             img="/banners/eventos.webp" alt="Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"
+            delay="200ms"/>
+
+          {/* Seja um parceiro — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full onClick={()=>tk("Seja um parceiro",onParceria)}
+            img="/banners/parceiro.webp" alt="Seja um parceiro — revenda e franquia futura: leve a Bentô para novos pontos de venda"
             delay="250ms"/>
 
-          {/* Demais atalhos */}
+          {/* Atalhos secundários */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginTop:14}}>
-            {tiles.slice(2).map((t,i)=>(
-              <Tile key={t.title} t={t} delay={250+i*45}/>
+            {tiles.map((t,i)=>(
+              <Tile key={t.title} t={t} delay={300+i*45}/>
             ))}
           </div>
 
