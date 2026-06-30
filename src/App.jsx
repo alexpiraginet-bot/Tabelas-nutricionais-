@@ -174,7 +174,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 
           {/* Seja um parceiro — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full onClick={()=>tk("Seja um parceiro",onParceria)}
-            img="/banners/parceiro.webp" alt="Seja um parceiro — revenda e franquia futura: leve a Bentô para novos pontos de venda"
+            img="/banners/parceiro.webp" alt="Seja um parceiro ou futuro franqueado — revenda e expanda a Bentô"
             delay="250ms"/>
 
           {/* Conheça a Bentô + FAQ — acesso único: abre o "Conheça" e de lá leva às Dúvidas */}
