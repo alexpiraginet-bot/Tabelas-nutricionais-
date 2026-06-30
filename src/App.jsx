@@ -195,10 +195,9 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <div style={{width:"100%",marginTop:34}}>
-          {/* BentôBytes — lançamento */}
-          <PhotoBanner as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
-            img="/bytes/img/hero.jpg" imgPos="center 62%"
-            selo="Lançamento" title="BentôBytes" sub="Edição limitada. Segundo lote em breve."
+          {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
+            img="/banners/bytes.webp" alt="BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"
             delay="80ms"/>
 
           {/* Tabelas nutricionais — arte completa (selo, título, ícones e seta já na imagem) */}
@@ -218,10 +217,9 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             ))}
           </div>
 
-          {/* Eventos */}
-          <PhotoBanner onClick={()=>tk("Nos leve para seu evento",onEventos)}
-            img="/eventos/carrinho-1.jpg" imgPos="center 42%"
-            selo="Eventos" title="Bentô no seu evento" sub="Carrinho premium e orçamento na hora."
+          {/* Eventos — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full onClick={()=>tk("Nos leve para seu evento",onEventos)}
+            img="/banners/eventos.webp" alt="Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"
             delay="250ms"/>
 
           {/* Demais atalhos */}
