@@ -194,24 +194,24 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <div style={{width:"100%",marginTop:34}}>
-          {/* Cardápio / Retirada — arte completa · ação comercial principal (pedido + retirada + pagamento) */}
-          <PhotoBanner full as="a" href="https://totem.bentogelateria.com/pedir" target="_blank" onClick={()=>tk("Cardápio")}
-            img="/banners/cardapio.webp" alt="Cardápio e retirada — peça, escolha a retirada e pague no site"
-            delay="60ms"/>
-
           {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
             img="/banners/bytes.webp" alt="BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"
-            delay="80ms"/>
+            delay="60ms"/>
 
           {/* Tabelas nutricionais — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
             img="/banners/tabelas.webp" alt="Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz de sabores"
-            delay="120ms"/>
+            delay="80ms"/>
 
           {/* Delivery / Nos encontre — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
             img="/banners/delivery.webp" alt="Delivery / Nos encontre — peça no iFood ou veja onde estamos: Praia do Canto e Jardim Camburi"
+            delay="120ms"/>
+
+          {/* Cardápio / Retirada — arte completa · ação comercial principal (pedido + retirada + pagamento) */}
+          <PhotoBanner full as="a" href="https://totem.bentogelateria.com/pedir" target="_blank" onClick={()=>tk("Cardápio")}
+            img="/banners/cardapio.webp" alt="Cardápio e retirada — peça, escolha a retirada e pague no site"
             delay="150ms"/>
 
           {/* Atalhos secundários */}
