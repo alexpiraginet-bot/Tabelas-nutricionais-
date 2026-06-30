@@ -239,11 +239,11 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
   const counts={gelato:PRODUCTS.filter(p=>p.category==="gelato").length,bentole:PRODUCTS.filter(p=>p.category==="bentole").length};
   const topProt=PRODUCTS.slice().sort((a,b)=>b.nutrition.protein-a.nutrition.protein).slice(0,4);
   const tools=[
-    {title:"Gelatos",sub:`${counts.gelato} sabores · ficha completa`,onClick:()=>onSelect("gelato"),art:<GelatoSVG p={{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}} size={64} id="tg"/>},
-    {title:"Bentôlé",sub:`${counts.bentole} picolés · ficha por sabor`,onClick:()=>onSelect("bentole"),art:<PicoleSVG p={{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}} size={64} id="tp"/>},
-    {title:"Shakes",sub:`${SHAKES.length} shakes proteicos · tabela e ingredientes`,onClick:onShakes,emoji:"🥤"},
-    {title:"Monte seu pote",sub:"Combine 2 sabores · calorias e proteína",onClick:onPote,emoji:"🍦"},
-    {title:"Qual é o meu sabor?",sub:"Quiz rápido de 3 perguntas",onClick:onQuiz,emoji:"🎯"},
+    {title:"Gelatos",onClick:()=>onSelect("gelato"),img:"/banners/tab-gelatos.webp",alt:"Gelatos — 18 sabores, ficha nutricional completa"},
+    {title:"Bentôlé",onClick:()=>onSelect("bentole"),img:"/banners/tab-bentole.webp",alt:"Bentôlé — 6 picolés, ficha por sabor"},
+    {title:"Shakes",onClick:onShakes,img:"/banners/tab-shakes.webp",alt:"Shakes — 4 shakes proteicos, tabela e ingredientes"},
+    {title:"Monte seu pote",onClick:onPote,img:"/banners/tab-pote.webp",alt:"Monte seu pote — combine 2 sabores, calorias e proteína"},
+    {title:"Qual é o meu sabor?",onClick:onQuiz,img:"/banners/tab-quiz.webp",alt:"Qual é o meu sabor? — quiz rápido de 3 perguntas"},
   ];
   return(
     <div className="fade">
@@ -253,16 +253,9 @@ function TabelasHub({onSelect,onSelectProduct,onShakes,onPote,onQuiz,onBack,onCu
         <h1 className="fd" style={{fontSize:"clamp(30px,5vw,52px)",lineHeight:1,color:T.ink,fontWeight:400,letterSpacing:"-0.02em"}}>Explore os produtos</h1>
         <p className="fb" style={{fontSize:14,color:T.inkSoft,marginTop:8,maxWidth:560,lineHeight:1.5}}>Fichas nutricionais completas, calculadora de pote e o quiz de sabores.</p>
 
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(230px,1fr))",gap:14,marginTop:24}}>
+        <div style={{maxWidth:760,margin:"22px auto 0"}}>
           {tools.map((t,i)=>(
-            <button key={t.title} onClick={t.onClick} className="hl rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,padding:"20px",textAlign:"left",display:"flex",alignItems:"center",gap:14,cursor:"pointer",animationDelay:`${i*45}ms`}}>
-              <div style={{width:64,height:64,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>{t.art||<span style={{fontSize:38,lineHeight:1}}>{t.emoji}</span>}</div>
-              <div style={{flex:1,minWidth:0}}>
-                <div className="fd" style={{fontSize:22,color:T.ink,lineHeight:1.1,letterSpacing:"-0.01em"}}>{t.title}</div>
-                <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:4,lineHeight:1.35}}>{t.sub}</div>
-              </div>
-              <span className="fd" style={{fontSize:22,color:T.pistacheDark,flexShrink:0}}>→</span>
-            </button>
+            <PhotoBanner key={t.title} full onClick={()=>tk(t.title,t.onClick)} img={t.img} alt={t.alt} delay={`${i*45}ms`}/>
           ))}
         </div>
 
