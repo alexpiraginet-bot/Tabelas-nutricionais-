@@ -167,7 +167,7 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,kicker,kickerBg
 
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
-    {title:"Cardápio",sub:"Linha completa com fotos e preços",onClick:onCardapio,img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
+    {title:"Cardápio",sub:"Peça, escolha a retirada e pague no site",onClick:()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener"),img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
     {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 22%",bd:"#2f3a24"},
     {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 30%",bd:"#4a5a3a"},
@@ -202,9 +202,9 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             borderLeft={`4px solid ${T.pistacheDark}`} accent={T.pistacheDark}
             shadow="0 10px 28px -16px rgba(74,90,34,.5)" delay="120ms"/>
 
-          {/* Banner Delivery / Nos encontre → foto dos potes (40%) + info (60%) */}
+          {/* Banner Delivery / Nos encontre → foto real da loja (40%) + info (60%) */}
           <PhotoBanner onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
-            img="/portfolio/potes-140.jpg" imgPos="center 45%"
+            img="/lojas/praia-do-canto.jpg" imgPos="center 48%"
             kicker="🗺️ iFood + endereços" kickerBg="#EA1D2C"
             title={<>Delivery <span style={{color:"#C2384A"}}>/</span> Nos encontre</>}
             sub="Peça no iFood ou veja onde estamos — Praia do Canto e Jardim Camburi."
