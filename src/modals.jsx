@@ -3,6 +3,16 @@ import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X,
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
 import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 
+/* Cabeçalho de modal com a arte (banner) no topo + botão de fechar flutuante. */
+export function ModalArtHeader({img,alt,onClose}){
+  return(
+    <div style={{position:"relative",lineHeight:0}}>
+      <img src={img} alt={alt||""} loading="eager" onError={onImgErr} style={{display:"block",width:"100%",height:"auto"}}/>
+      <button onClick={onClose} aria-label="Fechar" style={{position:"absolute",top:10,right:10,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(3px)",border:"none",borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",cursor:"pointer",lineHeight:0}}><X size={16}/></button>
+    </div>
+  );
+}
+
 export function QuizModal({onClose,onResult,onDelivery}){
   useModal(onClose);
   const [step,setStep]=useState(0);const [ans,setAns]=useState([]);const [done,setDone]=useState(false);const [result,setResult]=useState(null);
@@ -199,7 +209,7 @@ export function CardapioDigital({onClose}){
       <div className="no-scrollbar" style={{display:"flex",gap:8,overflowX:"auto",padding:"4px 20px 14px",flexShrink:0}}>
         {CARDAPIO.map((k,idx)=>(
           <button key={k.cat} onClick={()=>setC(idx)} className="fm" style={{whiteSpace:"nowrap",flexShrink:0,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",padding:"9px 15px",borderRadius:999,cursor:"pointer",border:`1px solid ${idx===c?gold:"rgba(201,168,106,0.3)"}`,background:idx===c?gold:"transparent",color:idx===c?ink:cream}}>
-            <span style={{marginRight:6}}>{k.emoji}</span>{k.cat}
+{k.cat}
           </button>
         ))}
       </div>
@@ -210,7 +220,7 @@ export function CardapioDigital({onClose}){
             <div key={it.name} style={{display:"flex",alignItems:"center",gap:14,padding:"12px 14px",border:"1px solid rgba(201,168,106,0.2)",borderRadius:14,background:"rgba(255,255,255,0.02)"}}>
               {it.img
                 ? <div style={{width:62,height:62,borderRadius:14,overflow:"hidden",flexShrink:0,border:"1px solid rgba(201,168,106,0.25)"}}><img src={it.img} alt={it.name} width={62} height={62} loading="lazy" style={{objectFit:"cover",display:"block"}} onError={onImgErr} /></div>
-                : <div style={{width:62,height:62,borderRadius:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}>{cat.emoji}</div>}
+                : <div style={{width:62,height:62,borderRadius:14,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",background:"linear-gradient(135deg,rgba(201,168,106,0.18),rgba(124,139,78,0.16))",border:"1px solid rgba(201,168,106,0.25)"}}><BentoLogo size={30}/></div>}
               <div style={{flex:1,minWidth:0}}>
                 <div className="fb" style={{fontSize:15,color:cream,fontWeight:500,lineHeight:1.2}}>{it.name}</div>
                 <div className="fb" style={{fontSize:12,color:"#A9AB96",marginTop:3,lineHeight:1.35}}>{it.info}</div>
@@ -260,7 +270,7 @@ export function SejaParceiro({onClose,onForm}){
   const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist="#7C8C66",soft="#A9AB96";
   useModal(onClose);
   const grid="radial-gradient(rgba(201,168,106,0.08) 1px, transparent 1px)";
-  const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto. 🍨");
+  const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto.");
   const Kicker=({children})=>(<div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:gold,textTransform:"uppercase",marginBottom:12}}>{children}</div>);
   const H=({children})=>(<h2 className="fd" style={{fontSize:"clamp(24px,4vw,38px)",color:cream,fontWeight:400,lineHeight:1.12,letterSpacing:"-0.02em",margin:0}}>{children}</h2>);
   const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(201,168,106,0.2)",borderRadius:14,padding:"22px"};
@@ -280,8 +290,8 @@ export function SejaParceiro({onClose,onForm}){
             <div className="fm" style={{fontSize:13,letterSpacing:"0.08em",color:gold,marginTop:16}}>Programa de revenda · margens de 30% a 50%</div>
             <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:24}}>
               <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:12,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
-              <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 WhatsApp direto</a>
-              <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>📄 Ver portfólio</a>
+              <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>WhatsApp direto</a>
+              <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Ver portfólio</a>
             </div>
           </div>
           <div className="rise" style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
@@ -298,7 +308,7 @@ export function SejaParceiro({onClose,onForm}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:14,marginTop:26}}>
           {PARC_PILARES.map(p=>(
             <div key={p.t} style={card}>
-              <div style={{fontSize:24,marginBottom:10}}>{p.e}</div>
+              <div style={{width:28,height:2,background:gold,borderRadius:2,marginBottom:14}}/>
               <div className="fd" style={{fontSize:21,color:cream}}>{p.t}</div>
               <div className="fb" style={{fontSize:13.5,color:soft,lineHeight:1.5,marginTop:6}}>{p.d}</div>
             </div>
@@ -583,7 +593,7 @@ export function EventosModal({onClose}){
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 3</div>
-            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento 🎉</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
@@ -597,7 +607,7 @@ export function EventosModal({onClose}){
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
             <span className="fm" style={lab}>Deixe seu WhatsApp (com DDD) *</span>
             <input className="fb" style={inp} value={cad.zap} onChange={e=>setC("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
-            <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Deixe seu contato para a gente te enviar o orçamento e mais informações do evento. Sem compromisso. 💛</div>
+            <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Deixe seu contato para a gente te enviar o orçamento e mais informações do evento. Sem compromisso.</div>
             <span className="fm" style={lab}>Data do evento *</span>
             <input type="date" className="fb" style={inp} value={ev.data} onChange={e=>setE("data",e.target.value)}/>
             <span className="fm" style={lab}>Horário previsto para início</span>
@@ -626,7 +636,7 @@ export function EventosModal({onClose}){
             {menor?(
               <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:12,padding:"16px"}}>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de 70 convidados?</div>
-                <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online é para eventos a partir de <strong>70 pessoas</strong>. Para grupos menores temos <strong>outras possibilidades de serviço</strong> — fale com a gente que montamos algo sob medida. 💛</div>
+                <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online é para eventos a partir de <strong>70 pessoas</strong>. Para grupos menores temos <strong>outras possibilidades de serviço</strong> — fale com a gente que montamos algo sob medida.</div>
                 <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
@@ -786,26 +796,20 @@ export function DeliveryModal({onClose}){
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Delivery Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
-        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div>
-            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Delivery · iFood</div>
-            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Peça em casa 🛵</div>
-          </div>
-          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
-        </div>
+        <ModalArtHeader img="/banners/delivery.webp" alt="Delivery / Nos encontre — peça no iFood ou veja onde estamos" onClose={onClose}/>
         <div style={{padding:22}}>
           <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:14}}>Temos duas lojas em Vitória. Escolha a mais perto de você — ou deixe a gente descobrir:</div>
-          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>📍 Qual loja está mais perto de mim?</button>
+          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>Qual loja está mais perto de mim?</button>
           {geoMsg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,textAlign:"center",marginBottom:6}}>{geoMsg}</div>}
           <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:10}}>
             {LOJAS.map(l=>(
               <div key={l.id} style={{border:`1.5px solid ${near===l.id?T.pistacheDark:T.border}`,background:near===l.id?"#EFF5E5":T.bg,borderRadius:12,padding:"16px 16px 14px",position:"relative"}}>
-                {near===l.id&&<span className="fm" style={{position:"absolute",top:-9,left:14,fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"3px 10px"}}>⭐ Mais próxima de você</span>}
+                {near===l.id&&<span className="fm" style={{position:"absolute",top:-9,left:14,fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"3px 10px"}}>Mais próxima de você</span>}
                 <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
                 <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
                 <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:"#EA1D2C",color:"#fff",borderRadius:10,padding:"12px 14px",fontSize:13.5,fontWeight:700,textDecoration:"none"}}>Pedir agora no iFood</a>
-                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:10,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>🗺️ Ver no mapa</a>
+                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:T.pistacheDark,color:"#fff",borderRadius:10,padding:"12px 14px",fontSize:13.5,fontWeight:600,textDecoration:"none"}}>Pedir agora no iFood</a>
+                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:10,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>Ver no mapa</a>
                 </div>
               </div>
             ))}
@@ -847,7 +851,7 @@ export function SejaBento({onClose}){
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Expansão</div>
-            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Seja Bentô 🤝</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Seja Bentô</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
@@ -859,7 +863,7 @@ export function SejaBento({onClose}){
               <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
-          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro. 💛</div>}
+          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro.</div>}
           <span className="fm" style={lab}>Nome completo *</span>
           <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
           <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
@@ -878,8 +882,8 @@ export function SejaBento({onClose}){
             <input type="checkbox" checked={form.consent} onChange={e=>set("consent",e.target.checked)} style={{marginTop:3,accentColor:T.pistacheDark,width:16,height:16,flexShrink:0}}/>
             <span className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.45}}>Autorizo o uso dos meus dados para contato, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
           </label>
-          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok?"#25D366":T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            💬 Enviar pelo WhatsApp
+          <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok?T.pistacheDark:T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            Enviar pelo WhatsApp
           </button>
           <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta — é só confirmar o envio.</div>
         </div>

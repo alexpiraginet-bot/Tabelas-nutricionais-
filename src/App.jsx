@@ -269,12 +269,9 @@ function TabelasHub({onSelect,onShakes,onPote,onQuiz,onBack,onCulpa,onGLP1}){
 function ShakeCard({s,delay}){
   return(
     <div className="rise hl" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,overflow:"hidden",animationDelay:`${delay}ms`,display:"flex",flexDirection:"column"}}>
-      <div style={{background:s.color.bg,padding:"16px 18px",display:"flex",alignItems:"center",gap:12}}>
-        <span style={{fontSize:34,lineHeight:1}}>{s.emoji}</span>
-        <div style={{flex:1,minWidth:0}}>
-          <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:s.color.ink,opacity:.8}}>{s.code} · Proteico</div>
-          <div className="fd" style={{fontSize:20,color:s.color.ink,lineHeight:1.1,marginTop:2}}>{s.name}</div>
-        </div>
+      <div style={{background:T.bgWarm,padding:"16px 18px",borderBottom:`1px solid ${T.border}`}}>
+        <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:T.pistacheDark}}>{s.code} · Proteico</div>
+        <div className="fd" style={{fontSize:20,color:T.ink,lineHeight:1.1,marginTop:2}}>{s.name}</div>
       </div>
       <div style={{padding:"16px 18px",display:"flex",flexDirection:"column",gap:16,flex:1}}>
         <p className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.5,margin:0}}>{s.description}</p>
@@ -345,7 +342,7 @@ function ShakesPage({onBack,onDelivery}){
         </div>
         {onDelivery&&(
           <div style={{marginTop:22,display:"flex",justifyContent:"center"}}>
-            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:"#EA1D2C",color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:700,cursor:"pointer"}}>🛵 Pedir um shake no iFood</button>
+            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Pedir um shake no iFood</button>
           </div>
         )}
         <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey True (truesource/vivatrue, por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
