@@ -267,17 +267,18 @@ const PARC_PASSOS=[
 ];
 
 export function SejaParceiro({onClose,onForm}){
-  const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist="#7C8C66",soft="#A9AB96";
+  // Identidade clara/creme (conceito Programa de Franquias): fundo creme, texto verde/ink, dourado fosco.
+  const ink="#1F2317",cream="#1F3D2A",gold="#B8893C",pist="#46583A",soft="#5A5E4E",bg="#F3ECDB",surf="#FBF8EE",line="#E4D9BE";
   useModal(onClose);
-  const grid="radial-gradient(rgba(201,168,106,0.08) 1px, transparent 1px)";
+  const grid="radial-gradient(rgba(184,137,60,0.07) 1px, transparent 1px)";
   const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto.");
   const Kicker=({children})=>(<div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:gold,textTransform:"uppercase",marginBottom:12}}>{children}</div>);
   const H=({children})=>(<h2 className="fd" style={{fontSize:"clamp(24px,4vw,38px)",color:cream,fontWeight:400,lineHeight:1.12,letterSpacing:"-0.02em",margin:0}}>{children}</h2>);
-  const card={background:"rgba(255,255,255,0.03)",border:"1px solid rgba(201,168,106,0.2)",borderRadius:14,padding:"22px"};
+  const card={background:surf,border:`1px solid ${line}`,borderRadius:14,padding:"22px"};
   const wrap={maxWidth:980,margin:"0 auto",padding:"0 22px"};
   return(
-    <div className="fade" role="dialog" aria-modal="true" aria-label="Seja um parceiro Bentô" style={{position:"fixed",inset:0,zIndex:200,background:ink,backgroundImage:grid,backgroundSize:"28px 28px",overflow:"auto"}}>
-      <button onClick={onClose} aria-label="Fechar" className="fm" style={{position:"fixed",top:16,right:16,zIndex:10,background:"rgba(24,28,18,0.7)",backdropFilter:"blur(6px)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:12,padding:"9px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>FECHAR</button>
+    <div className="fade" role="dialog" aria-modal="true" aria-label="Seja um parceiro Bentô" style={{position:"fixed",inset:0,zIndex:200,background:bg,backgroundImage:grid,backgroundSize:"28px 28px",overflow:"auto"}}>
+      <button onClick={onClose} aria-label="Fechar" className="fm" style={{position:"fixed",top:16,right:16,zIndex:10,background:"rgba(251,248,238,0.85)",backdropFilter:"blur(6px)",border:`1px solid ${line}`,color:ink,borderRadius:12,padding:"9px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>FECHAR</button>
 
       {/* HERO */}
       <section style={{...wrap,paddingTop:64,paddingBottom:40}}>
@@ -294,7 +295,7 @@ export function SejaParceiro({onClose,onForm}){
               <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Ver portfólio</a>
             </div>
           </div>
-          <div className="rise" style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+          <div className="rise" style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -36px rgba(31,35,23,0.35)"}}>
             <img src="/parceria/freezer.jpg" alt="Freezer Bentô personalizado em um ponto de venda" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
@@ -313,6 +314,16 @@ export function SejaParceiro({onClose,onForm}){
               <div className="fb" style={{fontSize:13.5,color:soft,lineHeight:1.5,marginTop:6}}>{p.d}</div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* VÍDEO — apresentação do programa de franquias (logo abaixo da revenda) */}
+      <section style={{...wrap,paddingTop:10,paddingBottom:40}}>
+        <Kicker>Programa de Franquias</Kicker>
+        <H>Veja os modelos de negócio.</H>
+        <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14,maxWidth:680}}>Quiosque em shopping, aeroporto de alto fluxo e a loja conceito — a apresentação completa em ~20 segundos.</p>
+        <div style={{maxWidth:360,margin:"24px auto 0",borderRadius:24,overflow:"hidden",border:`1px solid ${gold}`,boxShadow:"0 30px 70px -34px rgba(31,35,23,0.4)"}}>
+          <video src="/franquias/programa-franquias.mp4" poster="/franquias/programa-franquias-poster.jpg" controls loop muted autoPlay playsInline preload="metadata" style={{width:"100%",display:"block",background:"#0e120b"}} />
         </div>
       </section>
 
@@ -344,7 +355,7 @@ export function SejaParceiro({onClose,onForm}){
             </div>
           ))}
         </div>
-        <p className="fb" style={{fontSize:13,color:soft,marginTop:18,lineHeight:1.55,maxWidth:680}}>Trabalhamos com <strong style={{color:cream}}>preço final sugerido protegido</strong> — você mantém a percepção premium e ainda garante uma margem saudável. As <strong style={{color:cream}}>condições exatas são reveladas após avaliarmos o seu ponto</strong>. 👀</p>
+        <p className="fb" style={{fontSize:13,color:soft,marginTop:18,lineHeight:1.55,maxWidth:680}}>Trabalhamos com <strong style={{color:cream}}>preço final sugerido protegido</strong> — você mantém a percepção premium e ainda garante uma margem saudável. As <strong style={{color:cream}}>condições exatas são reveladas após avaliarmos o seu ponto</strong>.</p>
       </section>
 
       {/* MODELOS */}
@@ -356,7 +367,7 @@ export function SejaParceiro({onClose,onForm}){
             <div key={m.t} style={card}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
                 <span className="fm" style={{fontSize:13,color:gold}}>0{i+1}</span>
-                <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:ink,background:pist,borderRadius:999,padding:"4px 9px"}}>{m.tag}</span>
+                <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"#fff",background:pist,borderRadius:999,padding:"4px 9px"}}>{m.tag}</span>
               </div>
               <div className="fd" style={{fontSize:19,color:cream}}>{m.t}</div>
               <div className="fb" style={{fontSize:13.5,color:soft,lineHeight:1.5,marginTop:6}}>{m.d}</div>
@@ -391,10 +402,10 @@ export function SejaParceiro({onClose,onForm}){
                 <span key={t} className="fb" style={{fontSize:12.5,color:cream,border:"1px solid rgba(201,168,106,0.3)",borderRadius:999,padding:"8px 14px"}}>{t}</span>
               ))}
             </div>
-            <div className="fb" style={{fontSize:12.5,color:soft,marginTop:18,lineHeight:1.5}}>💡 A <strong style={{color:cream}}>franquia é um projeto futuro</strong>. Registre seu interesse e seja o primeiro a saber quando abrirmos.</div>
+            <div className="fb" style={{fontSize:12.5,color:soft,marginTop:18,lineHeight:1.5}}>A <strong style={{color:cream}}>franquia é um projeto futuro</strong>. Registre seu interesse e seja o primeiro a saber quando abrirmos.</div>
             <button onClick={onForm} className="fb" style={{marginTop:18,background:gold,color:ink,border:"none",borderRadius:12,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>Quero ser avisado →</button>
           </div>
-          <div style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -30px rgba(0,0,0,0.7)"}}>
+          <div style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -36px rgba(31,35,23,0.35)"}}>
             <img src="/parceria/estande.jpg" alt="Quiosque Bentô Gelatos em shopping — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
           </div>
         </div>
@@ -407,10 +418,10 @@ export function SejaParceiro({onClose,onForm}){
           <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:12,maxWidth:520,marginLeft:"auto",marginRight:"auto"}}>Conte sobre o seu ponto e a sua região. Avaliamos o perfil e montamos a melhor condição para você.</p>
           <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:24}}>
             <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:12,padding:"15px 28px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Preencher meus dados →</button>
-            <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>💬 Chamar no WhatsApp</a>
+            <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:pist,color:"#fff",borderRadius:12,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Chamar no WhatsApp</a>
           </div>
           <div className="fm" style={{fontSize:12,color:soft,marginTop:22,letterSpacing:"0.06em"}}>WhatsApp (27) 99915-9995 · Instagram @bentogelateria · Vitória-ES</div>
-          <div className="fb" style={{fontSize:11.5,color:soft,marginTop:14,maxWidth:520,marginLeft:"auto",marginRight:"auto",lineHeight:1.5}}>💡 Pensando em <strong style={{color:cream}}>franquia</strong>? É um projeto futuro — registre seu interesse no formulário e avisamos você primeiro.</div>
+          <div className="fb" style={{fontSize:11.5,color:soft,marginTop:14,maxWidth:520,marginLeft:"auto",marginRight:"auto",lineHeight:1.5}}>Pensando em <strong style={{color:cream}}>franquia</strong>? É um projeto futuro — registre seu interesse no formulário e avisamos você primeiro.</div>
         </div>
       </section>
     </div>
