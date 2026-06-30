@@ -233,10 +233,9 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             ))}
           </div>
 
-          {/* Carreira */}
-          <PhotoBanner onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
-            img="/parceria/estande.jpg" imgPos="center 55%"
-            selo="Carreira" title="Trabalhe conosco" sub="Vaga de atendente · Praia do Canto e Jardim Camburi."
+          {/* Carreira — arte completa (selo, título, ícones e seta já na imagem) · último card */}
+          <PhotoBanner full onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
+            img="/banners/carreira.webp" alt="Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"
             delay="430ms"/>
         </div>
       </section>
