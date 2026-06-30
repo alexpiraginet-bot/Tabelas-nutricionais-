@@ -171,7 +171,6 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
   const tiles=[
-    {title:"Cardápio",sub:"Peça, escolha a retirada e pague no site",onClick:()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener"),img:"/tiles/cardapio.webp",imgPos:"center 42%",bd:"#7a6440"},
     {title:"Seja um parceiro",sub:"Revenda & franquia",onClick:onParceria,img:"/tiles/parceria.webp",imgPos:"center 22%",bd:"#2f3a24"},
     {title:"Stranger Gelatos",sub:"Vença as fases e conquiste descontos",onClick:()=>window.open("https://stranger-gelatos.vercel.app/index.html","_blank","noopener"),img:"/games/stranger-gelatos.webp",imgPos:"26% 40%",glow:"rgba(230,57,70,.55)",bd:"#3a2630",badge:"🎮 Jogar e ganhar desconto",badgeBg:"#C2384A"},
     {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 30%",bd:"#4a5a3a"},
@@ -195,6 +194,11 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <div style={{width:"100%",marginTop:34}}>
+          {/* Cardápio / Retirada — arte completa · ação comercial principal (pedido + retirada + pagamento) */}
+          <PhotoBanner full as="a" href="https://totem.bentogelateria.com/pedir" target="_blank" onClick={()=>tk("Cardápio")}
+            img="/banners/cardapio.webp" alt="Cardápio e retirada — peça, escolha a retirada e pague no site"
+            delay="60ms"/>
+
           {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
             img="/banners/bytes.webp" alt="BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"
