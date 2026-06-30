@@ -187,6 +187,41 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Ação do painel: importar ganhadores de sorteio / brindes como pedidos PAGOS na fila de retirada.
+  // Não mexe no contador de escassez (units) — não são vendas. Idempotente por "tag".
+  if (body.action === "brinde") {
+    if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }
+    const tag = s120(body.tag || "brinde");
+    const list = Array.isArray(body.winners) ? body.winners.slice(0, 100) : [];
+    if (!list.length) { res.status(400).json({ error: "winners" }); return; }
+    try {
+      const first = await cmd(["SET", "brinde:done:" + tag, "1", "NX"]); // só importa uma vez por tag
+      if (first !== "OK") { res.status(200).json({ ok: true, dup: true, imported: 0 }); return; }
+      const now = Date.now();
+      const cmds = [];
+      list.forEach((w, i) => {
+        const ped = {
+          ts: now + i,
+          code: s120(w.code || (tag.toUpperCase() + "-" + String(i + 1).padStart(2, "0"))),
+          nome: s120(w.nome || ""),
+          phone: s120(w.phone || ""),
+          sabor: s120(w.sabor || ""),
+          qty: Math.max(1, Math.min(20, Number(w.qty) || 1)),
+          unidade: s120(w.unidade || ""),
+          total: 0,
+          status: "pago",
+          ref: s120(w.ref || tag),
+        };
+        cmds.push(["LPUSH", "prevendas", JSON.stringify(ped)]);
+      });
+      cmds.push(["LTRIM", "prevendas", 0, 999]);
+      cmds.push(["INCRBY", "prevendas:count", list.length]);
+      await pipeline(cmds);
+      res.status(200).json({ ok: true, imported: list.length });
+    } catch (e) { res.status(500).json({ error: String((e && e.message) || e) }); }
+    return;
+  }
+
   // Ação do painel: abrir/pausar o 2º lote
   if (body.action === "lote2") {
     if (!safeEq(getKey(req), PANEL_KEY)) { res.status(401).json({ error: "Senha incorreta." }); return; }

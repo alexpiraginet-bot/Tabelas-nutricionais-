@@ -168,6 +168,12 @@
       <div id="refLink" class="mono" style="font-size:11.5px;color:var(--soft);margin-top:8px;word-break:break-all"></div>
       <div id="prevRefs" style="margin-top:10px"></div>
     </div>
+    <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div class="lkgrp" style="margin-top:0">🎁 Ganhadores do sorteio BentôBytes</div>
+      <div style="font-size:12px;color:var(--soft);margin-bottom:9px">Adiciona os <b>10 ganhadores</b> à fila de <b>retirada</b> como pedidos <b>pagos</b> — kit com 1 Opereta · 1 Pistache Perfeito · 1 Chocolate Dubai. Sem loja definida (aparecem em “Outra” na retirada). Roda só uma vez.</div>
+      <button id="brindeBtn" style="background:var(--gold);border:none;color:#0c0f0a;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer">🎁 Importar ganhadores</button>
+      <span id="brindeMsg" style="font-size:11.5px;color:var(--soft);margin-left:8px"></span>
+    </div>
     <div class="tblscroll">
       <table id="prevTbl">
         <thead><tr><th>Quando</th><th>Pedido</th><th>Nome</th><th>WhatsApp</th><th>Sabor</th><th class="num">Qtd</th><th>Retirada</th><th>Origem</th><th class="num">Total</th><th>Status</th></tr></thead>
@@ -607,6 +613,39 @@ function bindRefGen(){
   };
 }
 bindRefGen();
+// Ganhadores do sorteio BentôBytes — kit 1 de cada sabor, entram como "pago" na fila de retirada.
+var SORTEIO_BYTES_TAG = "sorteio-bytes";
+var SORTEIO_BYTES_SABOR = "Opereta × 1 · Pistache Perfeito × 1 · Chocolate Dubai × 1";
+var SORTEIO_BYTES = [
+  { nome:"Manuella Gonzalez" },
+  { nome:"Lauriane Barbosa", ref:"@lauriane.barbosa" },
+  { nome:"Paloma Alves Bezerra Morais" },
+  { nome:"Paula Cani" },
+  { nome:"Ana Angélica de Alencar", ref:"@anaangelica_alencar" },
+  { nome:"Thalia Bazoni", ref:"@thalia_bazoni" },
+  { nome:"Katia Zamprogno Soares" },
+  { nome:"Fabiana Ferreira", ref:"@Fabianafsilva" },
+  { nome:"Gabriela Soares Berger" },
+  { nome:"Fernanda Bastos de Cerqueira", ref:"@fernandabastos_nutri" }
+];
+function bindBrindeImport(){
+  var btn=$("#brindeBtn"); if(!btn) return;
+  btn.onclick=async function(){
+    if(!confirm("Importar os 10 ganhadores do sorteio para a fila de retirada (como PAGOS)?\nKit: 1 Opereta · 1 Pistache · 1 Chocolate Dubai. Roda só uma vez.")) return;
+    var msg=$("#brindeMsg"); btn.disabled=true; if(msg) msg.textContent="Importando…";
+    var winners=SORTEIO_BYTES.map(function(w,i){ return { code:"SORTEIO-"+String(i+1).toString().padStart(2,"0"), nome:w.nome, phone:"", sabor:SORTEIO_BYTES_SABOR, qty:3, unidade:"", ref:(w.ref||"Sorteio BentôBytes") }; });
+    try{
+      var key=localStorage.getItem(KEYSTORE)||"";
+      var r=await fetch("/api/prevenda",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"brinde",tag:SORTEIO_BYTES_TAG,winners:winners})});
+      var jj=await r.json();
+      if(jj&&jj.ok){
+        if(jj.dup){ if(msg) msg.textContent="Já importados antes (nada a fazer)."; }
+        else { if(msg) msg.textContent="✅ "+jj.imported+" ganhadores adicionados à retirada."; loadPrevendas().catch(function(){}); }
+      } else { if(msg) msg.textContent="Não consegui importar."; btn.disabled=false; }
+    }catch(e){ if(msg) msg.textContent="Erro de conexão."; btn.disabled=false; }
+  };
+}
+bindBrindeImport();
 function renderPrevendas(d){
   const peds = (d && d.pedidos) || [];
   $("#prevCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgPrev", peds.length);
