@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint src/",
     "video": "remotion render src/video/index.ts BentoStory out/bento-story.mp4",
+    "video:franquias": "remotion render src/video/index.ts FranquiasStory out/bento-franquias.mp4",
     "video:studio": "remotion studio src/video/index.ts",
     "fichas": "node scripts/generate-fichas.mjs",
     "menu": "node scripts/menu-poster.mjs"
