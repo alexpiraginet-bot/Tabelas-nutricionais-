@@ -1004,7 +1004,7 @@ function PitchStat({v,u,l,gold,cream}){
   );
 }
 
-export function PitchDeck({onClose,onCatalog}){
+export function PitchDeck({onClose,onCatalog,onFaq}){
   const ink="#181C12",cream="#F6F1E7",gold="#C9A86A",pist=T.pistache,pistD="#7C8B4E";
   const G=useMemo(()=>PRODUCTS.filter(p=>p.category==="gelato"),[]);
   const B=useMemo(()=>PRODUCTS.filter(p=>p.category==="bentole"),[]);
@@ -1111,6 +1111,7 @@ export function PitchDeck({onClose,onCatalog}){
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center",marginTop:34}}>
         <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:gold,color:ink,border:"none",borderRadius:11,padding:"13px 24px",fontSize:14,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><Printer size={15}/>Baixar PDF</a>
         <button onClick={onCatalog} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:11,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Explorar catálogo <ChevronRight size={14}/></button>
+        {onFaq&&<button onClick={onFaq} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:11,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Dúvidas frequentes <ChevronRight size={14}/></button>}
       </div>
       <div className="fm" style={{fontSize:11,letterSpacing:"0.3em",color:"#9A9C86",marginTop:30,textTransform:"uppercase"}}>Bentô · Functional Nutrition</div>
     </div>,
@@ -1133,7 +1134,10 @@ export function PitchDeck({onClose,onCatalog}){
       {/* topo */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"16px 20px",flexShrink:0}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}><BentoLogo size={30}/><span className="fm" style={{fontSize:10,letterSpacing:"0.28em",color:"#9A9C86",textTransform:"uppercase"}}>Pitch</span></div>
-        <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:11,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          {onFaq&&<button onClick={onFaq} aria-label="Dúvidas frequentes" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:11,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}>Dúvidas</button>}
+          <button onClick={onClose} aria-label="Fechar" className="fm" style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(201,168,106,0.3)",color:cream,borderRadius:11,padding:"8px 14px",fontSize:11,letterSpacing:"0.1em",display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}><X size={14}/>ESC</button>
+        </div>
       </div>
       {/* slide */}
       <div style={{flex:1,overflow:"auto",display:"flex",alignItems:"center",justifyContent:"center",padding:"12px 24px"}}>

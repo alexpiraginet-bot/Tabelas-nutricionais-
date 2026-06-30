@@ -170,10 +170,6 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 }
 
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
-  const tiles=[
-    {title:"Conheça a Bentô",sub:"Nossa história e propósito",onClick:onPitch,img:"/tiles/conheca.webp",imgPos:"center 30%",bd:"#4a5a3a"},
-    {title:"Dúvidas frequentes",sub:"Dieta, polióis, lactose e mais",onClick:onFaq,img:"/tiles/duvidas.webp",imgPos:"center 35%",bd:"#4a5142"},
-  ];
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   return(
     <div className="fade">
@@ -222,12 +218,10 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             img="/banners/parceiro.webp" alt="Seja um parceiro — revenda e franquia futura: leve a Bentô para novos pontos de venda"
             delay="250ms"/>
 
-          {/* Atalhos secundários */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(150px,1fr))",gap:14,marginTop:14}}>
-            {tiles.map((t,i)=>(
-              <Tile key={t.title} t={t} delay={300+i*45}/>
-            ))}
-          </div>
+          {/* Conheça a Bentô + FAQ — acesso único: abre o "Conheça" e de lá leva às Dúvidas */}
+          <PhotoBanner full onClick={()=>tk("Conheça a Bentô + FAQ",onPitch)}
+            img="/banners/conheca.webp" alt="Conheça a Bentô e FAQ — nossa proposta, sabores, diferenciais e perguntas frequentes"
+            delay="300ms"/>
 
           {/* Carreira — arte completa (selo, título, ícones e seta já na imagem) · último card */}
           <PhotoBanner full onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
@@ -817,7 +811,7 @@ export default function App(){
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
-      {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}}/>}
+      {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
       {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
