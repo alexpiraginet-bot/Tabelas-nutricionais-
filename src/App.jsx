@@ -146,20 +146,23 @@ function Tile({t,delay=0}){
 /* Banner grande — família visual única: superfície creme, borda fina bege,
    foto real à esquerda (40%) + informação à direita (60%), selo dourado fosco
    e seta discreta. Sem gradientes/bordas coloridas: "luxo silencioso". */
-function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay}){
-  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:112,textDecoration:"none"};
-  const inner=(
+function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay,full,alt}){
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
+  // Modo "full": a própria arte já traz selo, título, subtítulo e seta — imagem cobre o card todo.
+  const inner=full?(
+    <img src={img} alt={alt||title||""} loading="lazy" onError={onImgErr} style={{display:"block",width:"100%",height:"auto"}}/>
+  ):(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
         <img src={img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr}
           style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:imgPos||"center"}}/>
       </div>
       <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",justifyContent:"center",padding:"15px 8px 15px 18px"}}>
-        {selo&&<span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:8.5,letterSpacing:"0.2em",textTransform:"uppercase",color:T.pistacheDark,background:"#ECDDB0",borderRadius:999,padding:"3px 10px",marginBottom:8}}>{selo}</span>}
-        <div className="fd" style={{fontSize:"clamp(18px,3vw,22px)",color:T.ink,lineHeight:1.08,letterSpacing:"-0.01em"}}>{title}</div>
+        {selo&&<span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:8.5,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent,background:"transparent",border:`1px solid ${T.accent}`,borderRadius:999,padding:"3px 11px",marginBottom:8}}>{selo}</span>}
+        <div className="fd" style={{fontSize:"clamp(18px,3vw,22px)",color:T.pistacheDark,lineHeight:1.08,letterSpacing:"-0.01em"}}>{title}</div>
         <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:4,lineHeight:1.4}}>{sub}</div>
       </div>
-      <span aria-hidden="true" style={{display:"flex",alignItems:"center",flexShrink:0,padding:"0 14px 0 2px",color:T.accent}}><ChevronRight size={20} strokeWidth={1.75}/></span>
+      <span aria-hidden="true" style={{display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,alignSelf:"center",margin:"0 14px 0 4px",width:34,height:34,borderRadius:"50%",background:T.pistacheDark,color:T.surface}}><ChevronRight size={18} strokeWidth={2}/></span>
     </>
   );
   if(as==="a") return <a href={href} target={target} rel="noopener" onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</a>;
@@ -198,16 +201,14 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             selo="Lançamento" title="BentôBytes" sub="Edição limitada. Segundo lote em breve."
             delay="80ms"/>
 
-          {/* Tabelas nutricionais */}
-          <PhotoBanner onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
-            img="/portfolio/picoles-lineup.jpg" imgPos="center 40%"
-            selo="Nutrição" title="Tabelas nutricionais" sub="Gelatos, picolés e potes — macros e restrições."
+          {/* Tabelas nutricionais — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
+            img="/banners/tabelas.webp" alt="Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz de sabores"
             delay="120ms"/>
 
-          {/* Delivery & lojas */}
-          <PhotoBanner onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
-            img="/lojas/praia-do-canto.jpg" imgPos="center 48%"
-            selo="Delivery" title="Delivery & lojas" sub="Peça no iFood ou retire na unidade mais próxima."
+          {/* Delivery / Nos encontre — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
+            img="/banners/delivery.webp" alt="Delivery / Nos encontre — peça no iFood ou veja onde estamos: Praia do Canto e Jardim Camburi"
             delay="150ms"/>
 
           {/* Atalhos secundários */}
