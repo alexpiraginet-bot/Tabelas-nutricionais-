@@ -100,6 +100,14 @@
     </div>
     <div class="stlbl" style="margin-top:8px">Validamos por <b>ordem de recebimento</b>: os mais antigos têm prioridade até o estoque acabar. Deixe 0/vazio para não validar a loja.</div>
   </details>
+  <details class="stockbox" id="clubeBox">
+    <summary>🎁 Clube Bentô — validar código de resgate</summary>
+    <div style="margin-top:8px;display:flex;gap:8;flex-wrap:wrap;align-items:center">
+      <input class="stin" id="clubeCode" type="text" placeholder="BEN-XXXX" autocapitalize="characters" autocomplete="off" style="width:130px;text-transform:uppercase">
+      <button class="ghost" id="clubeCheck" type="button">Validar</button>
+    </div>
+    <div class="stlbl" id="clubeMsg" style="margin-top:8px">Peça o código na tela do Clube do cliente (ex.: BEN-7K2M). Validar marca o código como usado — entregue o brinde em seguida.</div>
+  </details>
   <div id="banner"></div>
   <div id="readyBar"></div>
   <div id="list"></div>
@@ -110,6 +118,25 @@
 const $ = (s) => document.querySelector(s);
 const KEYSTORE = "bento:lojakey";
 function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+// Clube Bentô: valida o código de resgate (1 uso) e mostra a recompensa a entregar.
+(function(){
+  var btn=$("#clubeCheck"); if(!btn) return;
+  btn.addEventListener("click", async function(){
+    var code=($("#clubeCode").value||"").trim().toUpperCase();
+    var msg=$("#clubeMsg");
+    if(!code){ msg.textContent="Digite o código (ex.: BEN-7K2M)."; return; }
+    btn.disabled=true; msg.textContent="Validando…";
+    try{
+      var key=localStorage.getItem(KEYSTORE)||"";
+      var r=await fetch("/api/clube",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"validar",code:code})});
+      var j=await r.json();
+      if(j&&j.ok){ msg.innerHTML="✅ <b>Válido!</b> Entregar: <b>"+esc(j.reward)+"</b> · WhatsApp "+esc(j.phone||"—")+". O código foi marcado como usado."; $("#clubeCode").value=""; }
+      else{ msg.innerHTML="❌ "+esc((j&&j.error)||"Código inválido.")+(j&&j.reward?(" ("+esc(j.reward)+")"):""); }
+    }catch(e){ msg.textContent="Erro de conexão — tente de novo."; }
+    btn.disabled=false;
+  });
+})();
 
 async function load(){
   const key = localStorage.getItem(KEYSTORE) || "";

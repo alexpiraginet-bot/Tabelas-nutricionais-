@@ -856,6 +856,18 @@ export default function App(){
   useEffect(()=>{if(favorites.length>=3)awardBadge("colecionador");},[favorites,awardBadge]);
   const[culpaProdId,setCulpaProdId]=useState(null);
   const[showClube,setShowClube]=useState(false);
+  // Indique-e-ganhe: guarda ?amigo=CODE e um id anônimo do visitante (dedupe da indicação).
+  useEffect(()=>{try{
+    const c=new URLSearchParams(window.location.search).get("amigo");
+    if(c)localStorage.setItem("bento:amigo",c.toUpperCase().replace(/[^A-Z0-9]/g,""));
+    if(!localStorage.getItem("bento:vid"))localStorage.setItem("bento:vid",((crypto&&crypto.randomUUID)?crypto.randomUUID():String(Math.random()).slice(2)+Date.now().toString(36)));
+  }catch{/* */}},[]);
+  const registrarIndicacao=useCallback(()=>{try{
+    const amigo=localStorage.getItem("bento:amigo");
+    if(!amigo||localStorage.getItem("bento:amigo:ok"))return;
+    fetch("/api/clube",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"indicacao",ref:amigo,visitor:localStorage.getItem("bento:vid")||""}),keepalive:true})
+      .then(r=>r.json()).then(j=>{if(j&&j.ok){localStorage.setItem("bento:amigo:ok","1");tk("Clube · Indicação registrada");}}).catch(()=>{});
+  }catch{/* */}},[]);
   // Onboarding do Clube: 1 toast de boas-vindas com a primeira missão (1x por pessoa).
   useEffect(()=>{
     try{
@@ -888,9 +900,9 @@ export default function App(){
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)} onCulpa={()=>{setCulpaProdId(productId);setShowCulpa(true);}}/>}
       <Suspense fallback={null}>
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");}}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");registrarIndicacao();}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
-      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
+      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({id:b.id,icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
       {showClube&&(()=>{
         const albumCount=(()=>{try{return JSON.parse(localStorage.getItem("bento:album")||"[]").length;}catch{return 0;}})();
         const fichasN=(()=>{try{return Number(localStorage.getItem("bento:fichas"))||0;}catch{return 0;}})();
@@ -902,7 +914,15 @@ export default function App(){
           {t:"Compartilhe a Bentô no story",done:badges.includes("sem-culpa"),go:()=>{setShowClube(false);setShowCulpa(true);}},
           {t:"Complete o álbum da Copa (10 figurinhas)",done:albumCount>=10,go:()=>{window.open("https://totem.bentogelateria.com/album","_blank","noopener");}},
         ];
-        return <ClubeBento onClose={()=>setShowClube(false)} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} albumCount={albumCount} missions={missions} badgeList={BADGES.map(b=>({icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>;
+        const onMerged=(st)=>{
+          if(!st)return;
+          if(Array.isArray(st.badges)&&st.badges.length)setBadges(prev=>{const nx=[...new Set([...prev,...st.badges.filter(id=>BADGES.some(b=>b.id===id))])];try{localStorage.setItem("bento:badges",JSON.stringify(nx));}catch{}return nx;});
+          if(st.quiz&&st.quiz.id&&PRODUCTS.some(p=>p.id===st.quiz.id))setQuizResult(prev=>(!prev||((st.quiz.ts||0)>=(prev.ts||0)))?st.quiz:prev);
+          if(Array.isArray(st.album)&&st.album.length){try{const cur=JSON.parse(localStorage.getItem("bento:album")||"[]");localStorage.setItem("bento:album",JSON.stringify([...new Set([...cur,...st.album])]));}catch{}}
+          if(st.fichas){try{const cur=Number(localStorage.getItem("bento:fichas"))||0;localStorage.setItem("bento:fichas",String(Math.max(cur,Number(st.fichas)||0)));}catch{}}
+          if(Array.isArray(st.favs)&&st.favs.length)setFavs(prev=>[...new Set([...prev,...st.favs.filter(id=>PRODUCTS.some(p=>p.id===id))])]);
+        };
+        return <ClubeBento onClose={()=>setShowClube(false)} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} albumCount={albumCount} missions={missions} onMerged={onMerged} badgeList={BADGES.map(b=>({id:b.id,icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>;
       })()}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}

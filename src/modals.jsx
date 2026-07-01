@@ -125,12 +125,70 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
 
 /* ========== CLUBE BENTÔ (hub de gamificação: missões, conquistas, recompensas) ========== */
 
-export function ClubeBento({onClose,quiz,badgeList,albumCount,missions}){
+export function ClubeBento({onClose,quiz,badgeList,albumCount,missions,onMerged}){
   useModal(onClose);
   const earned=badgeList.filter(b=>b.earned).length;
   const nivel=earned>=5?"Cliente Ouro":earned>=3?"Prata":earned>=1?"Bronze":"Boas-vindas";
   const quizProd=quiz?PRODUCTS.find(p=>p.id===quiz.id):null;
   const sec={fontSize:9.5,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,margin:"16px 0 10px"};
+  // Conta na nuvem (Degrau 2): telefone + sync + resgates + indicações.
+  const[fone,setFone]=useState(()=>{try{return localStorage.getItem("bento:phone")||"";}catch{return "";}});
+  const[foneInput,setFoneInput]=useState("");
+  const[consent,setConsent]=useState(false);
+  const[busy,setBusy]=useState(false);
+  const[erro,setErro]=useState("");
+  const[srv,setSrv]=useState(null); // {ref,ind,codes}
+  const conectado=fone.replace(/\D/g,"").length>=10;
+  const localState=()=>{
+    let album=[],fichas=0,favs=[];
+    try{album=JSON.parse(localStorage.getItem("bento:album")||"[]");}catch{/* */}
+    try{fichas=Number(localStorage.getItem("bento:fichas"))||0;}catch{/* */}
+    try{favs=JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{/* */}
+    return {badges:badgeList.filter(b=>b.earned).map(b=>b.id),album,fichas,favs,quiz:quiz||null};
+  };
+  async function syncNow(ph){
+    setBusy(true);setErro("");
+    try{
+      const r=await fetch("/api/clube",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"sync",phone:ph,consent:true,state:localState()})});
+      const j=await r.json();
+      if(j&&j.ok){try{localStorage.setItem("bento:phone",ph);}catch{/* */}setFone(ph);setSrv(j.state);if(onMerged)onMerged(j.state);}
+      else setErro((j&&j.error)||"Não consegui sincronizar agora.");
+    }catch{setErro("Sem conexão — tente novamente.");}
+    setBusy(false);
+  }
+  useEffect(()=>{const ph=fone.replace(/\D/g,"");if(ph.length>=10)syncNow(ph);},[]); // eslint-disable-line react-hooks/exhaustive-deps
+  async function resgatar(reward){
+    const ph=fone.replace(/\D/g,"");if(!ph)return;
+    setBusy(true);setErro("");
+    try{
+      const r=await fetch("/api/clube",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"resgate",phone:ph,reward})});
+      const j=await r.json();
+      if(j&&j.ok){tk("Clube · Resgate "+reward);setSrv(s=>({...(s||{}),codes:{...((s&&s.codes)||{}),[reward]:j.code}}));}
+      else setErro((j&&j.error)||"Não consegui gerar o código.");
+    }catch{setErro("Sem conexão — tente novamente.");}
+    setBusy(false);
+  }
+  const codes=(srv&&srv.codes)||{};
+  const ind=Math.max(0,Number(srv&&srv.ind)||0);
+  const refLink=srv&&srv.ref?`https://bentogelateria.com/?amigo=${srv.ref}`:null;
+  async function copiarLink(){
+    if(!refLink)return;
+    tk("Clube · Compartilhar indicação");
+    const msg=`Descubra seu sabor Bentô ideal (e me ajude a ganhar um brinde): ${refLink}`;
+    try{if(navigator.share){await navigator.share({title:"Clube Bentô",text:msg});return;}}catch{/* */}
+    try{await navigator.clipboard.writeText(msg);alert("Link copiado! Envie para seus amigos.");}catch{alert(refLink);}
+  }
+  const CodePill=({code})=>(
+    <div style={{marginTop:8,display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:T.ink,borderRadius:10,padding:"10px 12px"}}>
+      <span className="fm" style={{fontSize:18,letterSpacing:"0.18em",color:"#F2E7C8",fontWeight:700}}>{code}</span>
+      <span className="fb" style={{fontSize:10,color:"#B9BBA6"}}>apresente na loja · 1 uso</span>
+    </div>
+  );
+  const ResgateBtn=({reward})=>conectado?(codes[reward]?<CodePill code={codes[reward]}/>:(
+    <button onClick={()=>resgatar(reward)} disabled={busy} className="fm" style={{marginTop:8,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:999,padding:"9px 15px",cursor:busy?"wait":"pointer"}}>{busy?"Gerando…":"Gerar código de resgate"}</button>
+  )):(
+    <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:6}}>Conecte seu WhatsApp abaixo para gerar o código de resgate.</div>
+  );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Clube Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:460,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
@@ -157,13 +215,37 @@ export function ClubeBento({onClose,quiz,badgeList,albumCount,missions}){
             </div>
           </div>
 
+          {/* Conta / progresso na nuvem */}
+          <div className="fm" style={sec}>Sua conta</div>
+          {conectado?(
+            <div style={{background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:12,padding:"11px 14px",display:"flex",alignItems:"center",gap:10}}>
+              <div style={{flex:1,minWidth:0}}>
+                <div className="fb" style={{fontSize:12.5,color:T.ink}}>Conectado · <strong>{fone.replace(/^(\d{2})(\d{4,5})(\d{4})$/,"($1) $2-$3")}</strong></div>
+                <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:2}}>{busy?"Sincronizando…":"Progresso salvo na nuvem — vale em qualquer aparelho."}</div>
+              </div>
+              <button onClick={()=>{try{localStorage.removeItem("bento:phone");}catch{/* */}setFone("");setSrv(null);}} className="fm" style={{fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:999,padding:"6px 11px",cursor:"pointer"}}>Sair</button>
+            </div>
+          ):(
+            <div style={{border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px"}}>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.45}}>Salve seu progresso com o seu WhatsApp — vale em qualquer aparelho e libera os <strong style={{color:T.ink}}>códigos de resgate</strong> e o <strong style={{color:T.ink}}>indique-e-ganhe</strong>.</div>
+              <input value={foneInput} onChange={e=>setFoneInput(e.target.value)} placeholder="(27) 99999-9999" inputMode="tel" aria-label="Seu WhatsApp com DDD" className="fb" style={{width:"100%",marginTop:10,padding:"11px 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,boxSizing:"border-box"}}/>
+              <label style={{display:"flex",gap:8,alignItems:"flex-start",marginTop:9,cursor:"pointer"}}>
+                <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} style={{marginTop:2,accentColor:T.pistacheDark,width:15,height:15,flexShrink:0}}/>
+                <span className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.4}}>Autorizo guardar meu progresso vinculado a este número, conforme a <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{color:T.pistacheDark,textDecoration:"underline"}}>Política de Privacidade</a>.</span>
+              </label>
+              <button onClick={()=>{const ph=foneInput.replace(/\D/g,"");if(ph.length<10){setErro("Informe um WhatsApp válido (com DDD).");return;}if(!consent){setErro("Marque a autorização para continuar.");return;}tk("Clube · Entrar",()=>syncNow(ph));}} disabled={busy} className="fb" style={{width:"100%",marginTop:10,padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:13.5,fontWeight:600,cursor:busy?"wait":"pointer"}}>{busy?"Conectando…":"Entrar no Clube"}</button>
+            </div>
+          )}
+          {erro&&<div className="fb" role="alert" style={{fontSize:11.5,color:"#A63838",marginTop:8}}>{erro}</div>}
+
           {/* Recompensas */}
           <div className="fm" style={sec}>Recompensas</div>
           {quizProd?(
             <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
               <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#A9831C"}}>Ativa · quiz concluído</div>
-              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Seu sabor ideal é <strong>{quizProd.name}</strong>. Mostre esta tela na loja e ganhe um <strong>Bentôlé Baby</strong> de cortesia.</div>
+              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Seu sabor ideal é <strong>{quizProd.name}</strong>. Ganhe um <strong>Bentôlé Baby</strong> de cortesia na loja.</div>
               <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:3}}>1 por pessoa · consumo no local</div>
+              <ResgateBtn reward="quiz-baby"/>
             </div>
           ):(
             <div style={{border:`1px dashed ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8}}>
@@ -173,7 +255,8 @@ export function ClubeBento({onClose,quiz,badgeList,albumCount,missions}){
           {albumCount>=10?(
             <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
               <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#A9831C"}}>Ativa · álbum completo</div>
-              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Você completou o <strong>álbum da Copa</strong>! Mostre esta tela na loja e comemore com a gente.</div>
+              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Você completou o <strong>álbum da Copa</strong>! Comemore com a gente na loja.</div>
+              <ResgateBtn reward="album"/>
             </div>
           ):(
             <div style={{border:`1px dashed ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8}}>
@@ -181,6 +264,28 @@ export function ClubeBento({onClose,quiz,badgeList,albumCount,missions}){
             </div>
           )}
           <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:2}}>Novas recompensas em breve — conquistas contam para o seu nível.</div>
+
+          {/* Indique e ganhe */}
+          {conectado&&refLink&&(
+            <>
+              <div className="fm" style={sec}>Indique e ganhe</div>
+              <div style={{border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px"}}>
+                <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45}}>Convide amigos com o seu link: quando <strong>3 completarem o quiz</strong>, você ganha um <strong>Bentôlé</strong> de cortesia.</div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10}}>
+                  <div style={{flex:1,height:7,background:T.bgWarm,borderRadius:999,overflow:"hidden"}} role="progressbar" aria-valuenow={Math.min(3,ind)} aria-valuemin={0} aria-valuemax={3} aria-label={`${Math.min(3,ind)} de 3 amigos indicados`}>
+                    <div style={{height:"100%",width:`${Math.min(3,ind)/3*100}%`,background:"linear-gradient(90deg,#C9A24A,#46583A)",transition:"width .4s"}}/>
+                  </div>
+                  <span className="fm" style={{fontSize:11,color:T.ink,fontWeight:600}}>{Math.min(3,ind)}/3 amigos</span>
+                </div>
+                {ind>=3?(codes["indicacao"]?<CodePill code={codes["indicacao"]}/>:(
+                  <button onClick={()=>resgatar("indicacao")} disabled={busy} className="fm" style={{marginTop:10,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:999,padding:"9px 15px",cursor:busy?"wait":"pointer"}}>{busy?"Gerando…":"Resgatar meu Bentôlé"}</button>
+                )):(
+                  <button onClick={copiarLink} className="fb" style={{width:"100%",marginTop:10,padding:"11px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13,fontWeight:600,cursor:"pointer"}}>Compartilhar meu link</button>
+                )}
+                <div className="fm" style={{fontSize:10,color:T.inkSoft,marginTop:8,wordBreak:"break-all",textAlign:"center"}}>{refLink}</div>
+              </div>
+            </>
+          )}
 
           {/* Missões */}
           <div className="fm" style={sec}>Missões</div>
