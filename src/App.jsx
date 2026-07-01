@@ -169,6 +169,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
               width={1600} height={800} loading="eager" fetchpriority="high" onError={onImgErr}
               style={{display:"block",width:"100%",height:"auto"}}/>
           </a>
+          <AlbumProgress/>
 
           {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
           <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
@@ -430,7 +431,7 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
 /* ========== DETAIL ========== */
 // Valores Diários de Referência — IN 75/2020, Anexo II
 
-function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,compareIds,onToggleCompare}){
+function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,compareIds,onToggleCompare,onCulpa}){
   const [protGoal,setProtGoal]=useState(120);
   const product=PRODUCTS.find(p=>p.id===productId);
   if(!product)return null;
@@ -498,6 +499,9 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                 {claim&&<Chip tone="good">{claim}</Chip>}
                 {n.fiber>=5&&<Chip tone="good">Alto em Fibras</Chip>}
               </div>
+              {onCulpa&&product.category==="gelato"&&(
+                <button onClick={()=>tk("Ficha · Sem culpa-ômetro",onCulpa)} className="fm no-print" style={{marginTop:14,fontSize:9.5,letterSpacing:"0.14em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"9px 16px",cursor:"pointer"}}>Sem culpa-ômetro · vs sorvete comum →</button>
+              )}
               {lupas.length>0&&(
                 <div style={{marginTop:14,display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap"}}>
                   {lupas.map(l=>(
@@ -748,6 +752,47 @@ function StoreHours(){
   );
 }
 
+/* ========== CONQUISTAS (selos locais, sem backend) ========== */
+const BADGES=[
+  {id:"sommelier",icon:Target,title:"Sommelier Bentô",desc:"Completou o quiz de sabor"},
+  {id:"explorador",icon:Search,title:"Explorador",desc:"Viu 5 fichas de sabores"},
+  {id:"colecionador",icon:Heart,title:"Colecionador",desc:"Guardou 3 favoritos"},
+  {id:"mestre-pote",icon:Beaker,title:"Mestre do Pote",desc:"Montou um pote com 20g+ de proteína"},
+  {id:"sem-culpa",icon:Sparkles,title:"Sem Culpa",desc:"Compartilhou a Bentô no story"},
+];
+
+/* ========== PROGRESSO DO ÁLBUM DA COPA (autodeclarado, localStorage) ========== */
+function AlbumProgress(){
+  const[got,setGot]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:album")||"[]");}catch{return[];}});
+  const[open,setOpen]=useState(false);
+  useEffect(()=>{try{localStorage.setItem("bento:album",JSON.stringify(got));}catch{}},[got]);
+  const toggle=(n)=>{setGot(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n]);};
+  const done=got.length;
+  return(
+    <div className="rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,marginTop:8,padding:"10px 14px",animationDelay:"90ms"}}>
+      <div style={{display:"flex",alignItems:"center",gap:10}}>
+        <span className="fm" style={{fontSize:9.5,letterSpacing:"0.14em",textTransform:"uppercase",color:T.pistacheDark,whiteSpace:"nowrap"}}>Meu álbum</span>
+        <div style={{flex:1,height:7,background:T.bgWarm,borderRadius:999,overflow:"hidden"}} role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={10} aria-label={`Álbum da Copa: ${done} de 10 figurinhas`}>
+          <div style={{height:"100%",width:`${done*10}%`,background:`linear-gradient(90deg,${T.accent},${T.pistacheDark})`,transition:"width .4s cubic-bezier(.2,.8,.2,1)"}}/>
+        </div>
+        <span className="fm" style={{fontSize:11,color:T.ink,fontWeight:600,whiteSpace:"nowrap"}}>{done}/10</span>
+        <button onClick={()=>{setOpen(o=>!o);if(!open)tk("Álbum · Marcar figurinhas");}} className="fm" style={{fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",background:open?T.pistacheDark:"transparent",color:open?"#fff":T.pistacheDark,border:`1px solid ${open?T.pistacheDark:T.border}`,borderRadius:999,padding:"6px 11px",cursor:"pointer",whiteSpace:"nowrap"}}>{open?"Pronto":"Marcar"}</button>
+      </div>
+      {open&&(
+        <div style={{marginTop:10}}>
+          <div className="fb" style={{fontSize:11,color:T.inkSoft,marginBottom:8}}>Toque nas figurinhas que você já colecionou:</div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
+            {Array.from({length:10},(_,i)=>i+1).map(n=>{const on=got.includes(n);return(
+              <button key={n} onClick={()=>toggle(n)} aria-pressed={on} aria-label={`Figurinha ${n}${on?" colecionada":""}`} className="fm" style={{width:34,height:34,borderRadius:"50%",border:`2px solid ${on?T.accent:T.border}`,background:on?T.pistacheDark:T.bg,color:on?"#F2E7C8":T.inkSoft,fontSize:12,fontWeight:700,cursor:"pointer"}}>{n}</button>
+            );})}
+          </div>
+        </div>
+      )}
+      {done===10&&<div className="fb" style={{fontSize:11.5,color:T.pistacheDark,fontWeight:600,textAlign:"center",marginTop:8}}>Álbum completo! Mostre na loja e comemore com a gente.</div>}
+    </div>
+  );
+}
+
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
     try{
@@ -784,10 +829,27 @@ export default function App(){
   // Último resultado do quiz — persiste e vira card "Seu sabor" na home (razão de retorno).
   const[quizResult,setQuizResult]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:quiz")||"null");}catch{return null;}});
   useEffect(()=>{try{quizResult?localStorage.setItem("bento:quiz",JSON.stringify(quizResult)):localStorage.removeItem("bento:quiz");}catch{}},[quizResult]);
+  // Conquistas: persistem em localStorage; modais disparam window event "bento:achieve".
+  const[badges,setBadges]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:badges")||"[]");}catch{return[];}});
+  const[toastBadge,setToastBadge]=useState(null);
+  const awardBadge=useCallback((id)=>{
+    setBadges(prev=>{
+      if(prev.includes(id))return prev;
+      const b=BADGES.find(x=>x.id===id); if(!b)return prev;
+      const next=[...prev,id];
+      try{localStorage.setItem("bento:badges",JSON.stringify(next));}catch{}
+      tk("Conquista · "+b.title);
+      setToastBadge(b); setTimeout(()=>setToastBadge(null),3800);
+      return next;
+    });
+  },[]);
+  useEffect(()=>{const h=(e)=>awardBadge(e.detail);window.addEventListener("bento:achieve",h);return()=>window.removeEventListener("bento:achieve",h);},[awardBadge]);
+  useEffect(()=>{if(favorites.length>=3)awardBadge("colecionador");},[favorites,awardBadge]);
+  const[culpaProdId,setCulpaProdId]=useState(null);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
-  const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);}setProd(id);setView("detail");},[]);
+  const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
   const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
@@ -805,11 +867,11 @@ export default function App(){
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
-      {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
+      {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)} onCulpa={()=>{setCulpaProdId(productId);setShowCulpa(true);}}/>}
       <Suspense fallback={null}>
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={setQuizResult}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
-      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav}/>}
+      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
@@ -817,7 +879,7 @@ export default function App(){
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
       {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
       {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
-      {showCulpa&&<CulpaModal onClose={()=>setShowCulpa(false)} onDelivery={()=>{setShowCulpa(false);setShowDelivery(true);}}/>}
+      {showCulpa&&<CulpaModal productId={culpaProdId} onClose={()=>{setShowCulpa(false);setCulpaProdId(null);}} onDelivery={()=>{setShowCulpa(false);setShowDelivery(true);}}/>}
       {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);setShowDelivery(true);}}/>}
       {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
       </Suspense>
@@ -839,6 +901,15 @@ export default function App(){
           <p className="fb" style={{fontSize:10,color:T.inkSoft,lineHeight:1.5,margin:0,textAlign:"center"}}>© {new Date().getFullYear()} ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45. Todos os direitos reservados. Conteúdo, layout e marca protegidos (Leis 9.610/98 e 9.279/96); cópia ou reprodução proibida. Veja os <a href="/?termos=1" style={{color:T.pistacheDark,textDecoration:"underline"}}>Termos</a>.</p>
         </div>
       </footer>
+      {toastBadge&&(()=>{const TI=toastBadge.icon;return(
+        <div className="rise no-print" role="status" style={{position:"fixed",top:74,left:"50%",transform:"translateX(-50%)",zIndex:400,display:"flex",alignItems:"center",gap:10,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",boxShadow:"0 18px 40px -18px rgba(0,0,0,.5)",maxWidth:"calc(100vw - 30px)"}}>
+          {TI?<TI size={16} style={{color:"#C9A24A",flexShrink:0}}/>:null}
+          <div style={{textAlign:"left",minWidth:0}}>
+            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#C9A24A"}}>Conquista desbloqueada</div>
+            <div className="fb" style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{toastBadge.title}</div>
+          </div>
+        </div>
+      );})()}
       <StoreHours/>
       <Analytics/>
     </div>
