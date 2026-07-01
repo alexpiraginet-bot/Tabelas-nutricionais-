@@ -505,7 +505,7 @@ export function EventosModal({onClose}){
   const nConv=Number(ev.convidados)||0;
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
   // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
-  const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true});}catch{}};
+  const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});}catch{}};
   // Monta o orçamento completo + link interno (?contrato=) que a ContratoPage renderiza como PDF
   const mkPayload=(qq,gg)=>({nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
     data:ev.data?ev.data.split("-").reverse().join("/"):"",hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
@@ -842,7 +842,7 @@ export function SejaBento({onClose}){
   const[sent,setSent]=useState(false);
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim()&&form.consent;
-  const postLead=(p)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),keepalive:true});}catch{}};
+  const postLead=(p)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),keepalive:true}).catch(()=>{});}catch{}};
   const enviar=()=>{
     const linhas=[
       "*Nova solicitação — Seja Bentô*",
