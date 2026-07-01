@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
-import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
+import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer, Clock } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
@@ -668,6 +668,63 @@ function TabelasIntro({onClose}){
   );
 }
 
+/* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
+// dias: 0=Dom … 6=Sáb · [abre, fecha] em horas (24h) · null = fechado
+const HORARIOS=[
+  {loja:"Praia do Canto", dias:{0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[8,20]},
+    resumo:[["Seg","10h–19h"],["Ter a Sáb","08h–20h"],["Dom","12h–17h"]]},
+  {loja:"Jardim Camburi", dias:{0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]},
+    resumo:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]]},
+];
+function nowSP(){
+  try{
+    const p=new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
+    const wd={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[p.find(x=>x.type==="weekday").value];
+    const h=+p.find(x=>x.type==="hour").value, m=+p.find(x=>x.type==="minute").value;
+    return {wd, cur:h+m/60};
+  }catch{ const d=new Date(); return {wd:d.getDay(), cur:d.getHours()+d.getMinutes()/60}; }
+}
+const abertaAgora=(dias,wd,cur)=>{ const r=dias[wd]; return !!(r&&cur>=r[0]&&cur<r[1]); };
+function StoreHours(){
+  const[open,setOpen]=useState(false);
+  const{wd,cur}=useMemo(()=>nowSP(),[]);
+  const anyOpen=HORARIOS.some(s=>abertaAgora(s.dias,wd,cur));
+  return(
+    <div className="no-print" style={{position:"fixed",right:16,bottom:16,zIndex:130,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,maxWidth:"calc(100vw - 32px)"}}>
+      {open&&(
+        <div className="rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,boxShadow:"0 26px 64px -30px rgba(35,38,25,.55)",padding:"16px 18px",width:308,maxWidth:"calc(100vw - 32px)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+            <div className="fm" style={{fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark}}>Horários das lojas</div>
+            <button onClick={()=>setOpen(false)} aria-label="Fechar" style={{background:"none",border:"none",color:T.inkSoft,cursor:"pointer",lineHeight:0,padding:0}}><X size={16}/></button>
+          </div>
+          {HORARIOS.map(s=>{const ab=abertaAgora(s.dias,wd,cur);return(
+            <div key={s.loja} style={{padding:"11px 0",borderTop:`1px solid ${T.border}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:8}}>
+                <div className="fd" style={{fontSize:15.5,color:T.ink}}>{s.loja}</div>
+                <span className="fm" style={{fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",fontWeight:700,color:ab?"#2E7D32":"#A46A6A",background:ab?"#E7F1E4":"#F3E9E7",borderRadius:999,padding:"3px 9px"}}>{ab?"Aberta agora":"Fechada"}</span>
+              </div>
+              <div style={{marginTop:6}}>
+                {s.resumo.map(([d,h])=>(
+                  <div key={d} className="fb" style={{display:"flex",justifyContent:"space-between",fontSize:12.5,padding:"2px 0"}}>
+                    <span style={{color:T.inkSoft}}>{d}</span>
+                    <span style={{color:h==="fechado"?T.inkSoft:T.ink,fontWeight:h==="fechado"?400:500}}>{h}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );})}
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:8,lineHeight:1.4}}>Vitória/ES · fusos e feriados podem variar.</div>
+        </div>
+      )}
+      <button onClick={()=>setOpen(o=>!o)} aria-label="Horários das lojas" className="fb hl" style={{display:"flex",alignItems:"center",gap:9,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:999,padding:"12px 18px",fontSize:13.5,fontWeight:600,cursor:"pointer",boxShadow:"0 16px 32px -14px rgba(70,88,58,.65)"}}>
+        <Clock size={16}/>
+        <span>Horários</span>
+        <span style={{width:9,height:9,borderRadius:"50%",background:anyOpen?"#8BE79A":"#E4A6A6",boxShadow:anyOpen?"0 0 0 3px rgba(139,231,154,.28)":"none"}}/>
+      </button>
+    </div>
+  );
+}
+
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
     try{
@@ -753,6 +810,7 @@ export default function App(){
           <p className="fb" style={{fontSize:10,color:T.inkSoft,lineHeight:1.5,margin:0,textAlign:"center"}}>© {new Date().getFullYear()} ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45. Todos os direitos reservados. Conteúdo, layout e marca protegidos (Leis 9.610/98 e 9.279/96); cópia ou reprodução proibida. Veja os <a href="/?termos=1" style={{color:T.pistacheDark,textDecoration:"underline"}}>Termos</a>.</p>
         </div>
       </footer>
+      <StoreHours/>
       <Analytics/>
     </div>
   );
