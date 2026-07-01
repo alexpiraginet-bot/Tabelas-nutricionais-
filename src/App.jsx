@@ -686,9 +686,9 @@ export default function App(){
   const[showCmp,setShowCmp]=useState(false);
   const[showPote,setShowPote]=useState(false);
   const[showPitch,setShowPitch]=useState(false);
-  const[showCardapio,setShowCardapio]=useState(false);
+  const[showCardapio,setShowCardapio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("cardapio");}catch{return false;}});
   const[showRevenda,setShowRevenda]=useState(false);
-  const[showParceria,setShowParceria]=useState(false);
+  const[showParceria,setShowParceria]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return p.has("parceria")||p.has("franquia");}catch{return false;}});
   const[showDelivery,setShowDelivery]=useState(()=>{try{return new URLSearchParams(window.location.search).has("delivery");}catch{return false;}});
   const[showFaq,setShowFaq]=useState(false);
   const[showCulpa,setShowCulpa]=useState(false);

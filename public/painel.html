@@ -705,6 +705,7 @@ function renderVagas(d){
 
 // ---- Links rápidos (central de links p/ posts/stories) ----
 var SITE = "https://bentogelateria.com", EVENTOS = "https://bentogelateria.com/bytes";
+var TOTEM = "https://totem.bentogelateria.com";
 var LINKS = [
   ["Site principal", [
     ["🏠","Página inicial", SITE+"/"],
@@ -712,7 +713,17 @@ var LINKS = [
     ["🛵","Delivery / Nos encontre", SITE+"/?delivery"],
     ["🎉","Eventos (orçamento na hora)", SITE+"/?eventos"],
     ["💼","Trabalhe conosco (vagas)", SITE+"/?vagas"],
+  ]],
+  ["Cardápio & pedidos", [
+    ["🧾","Pedir online — retirada + pagamento", TOTEM+"/pedir"],
+    ["📋","Cardápio digital (preços)", SITE+"/?cardapio"],
+  ]],
+  ["Parcerias & franquias", [
+    ["🤝","Seja parceiro / Franquia", SITE+"/?parceria"],
+    ["📈","Programa de Franquias (PDF)", SITE+"/franquias/programa-franquias.pdf"],
     ["📄","Portfólio para parceiros", SITE+"/?portfolio=1"],
+    ["📑","Portfólio em PDF", SITE+"/portfolio-bento.pdf"],
+    ["✨","Apresentação institucional (PDF)", SITE+"/Bento-Functional-Nutrition.pdf"],
   ]],
   ["Lançamento BentôBytes", [
     ["🍫","BentôBytes — contagem + pré-venda", EVENTOS],
@@ -725,7 +736,6 @@ var LINKS = [
   ["Outros", [
     ["🎮","Stranger Gelatos (jogo + desconto)", "https://stranger-gelatos.vercel.app/index.html"],
     ["🏪","Retirada na loja (atendentes)", SITE+"/retirada.html"],
-    ["📑","Portfólio em PDF", SITE+"/portfolio-bento.pdf"],
     ["🔒","Política de Privacidade", SITE+"/?privacidade=1"],
     ["📜","Termos de uso", SITE+"/?termos=1"],
   ]],
