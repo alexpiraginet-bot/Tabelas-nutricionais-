@@ -8,6 +8,7 @@ import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip,
 /* ===== Modais e overlays: carregados sob demanda (code-split) ===== */
 const QuizModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.QuizModal })));
 const CompareModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.CompareModal })));
+const FavoritesModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.FavoritesModal })));
 const CardapioDigital = lazy(() => import("./modals.jsx").then(m => ({ default: m.CardapioDigital })));
 const SejaParceiro = lazy(() => import("./modals.jsx").then(m => ({ default: m.SejaParceiro })));
 const EventosModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.EventosModal })));
@@ -59,7 +60,7 @@ button{cursor:pointer}
 
 // Comportamento padrão de modal: fecha no Esc e trava o scroll do fundo (iOS inclusive)
 
-function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
+function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites,onOpenFavs}){
   return(
     <header className="hdr no-print" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
       <div style={{maxWidth:1152,margin:"0 auto",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
@@ -71,7 +72,11 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites}){
           </div>
         </button>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          {favorites.length>0&&<span className="fm" aria-label={`${favorites.length} favoritos`} style={{fontSize:9,letterSpacing:"0.18em",color:T.inkSoft,textTransform:"uppercase"}}>❤️ {favorites.length}</span>}
+          {favorites.length>0&&(
+            <button onClick={onOpenFavs} aria-label={`Abrir meus ${favorites.length} favoritos`} className="fm" style={{display:"flex",alignItems:"center",gap:5,fontSize:9,letterSpacing:"0.14em",color:T.pistacheDark,textTransform:"uppercase",background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:999,padding:"8px 13px",cursor:"pointer"}}>
+              <Heart size={12} fill={T.pistacheDark} style={{color:T.pistacheDark}}/> {favorites.length}
+            </button>
+          )}
           {compareCount>0&&(
             <button onClick={onOpenCompare} className="fb" aria-label={`Comparar ${compareCount} sabores`} style={{background:T.bgWarm,color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"9px 15px",fontSize:12,display:"flex",alignItems:"center",gap:6,position:"relative"}}>
               <Scale size={13}/><span className="fm" style={{fontSize:9,letterSpacing:"0.14em"}}>Comparar</span>
@@ -128,7 +133,7 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   return <button onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
 }
 
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   return(
     <div className="fade">
@@ -145,6 +150,15 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
           <button onClick={()=>tk("Tabelas & sabores",onTabelas)} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>Tabelas & sabores</button>
         </div>
+
+        {/* Resultado salvo do quiz — razão de retorno */}
+        {quiz&&(
+          <div className="rise" style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",justifyContent:"center",marginTop:14,background:T.surface,border:`1px solid ${T.border}`,borderRadius:999,padding:"7px 9px 7px 16px",animationDelay:"200ms"}}>
+            <span className="fb" style={{fontSize:12.5,color:T.inkSoft}}>Seu sabor ideal: <strong style={{color:T.pistacheDark}}>{quiz.name}</strong></span>
+            <button onClick={()=>tk("Home · Quiz salvo · Ver ficha",()=>onQuizFicha(quiz.id))} className="fm" style={{fontSize:9.5,letterSpacing:"0.1em",textTransform:"uppercase",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:999,padding:"7px 12px",cursor:"pointer"}}>Ver ficha</button>
+            <button onClick={()=>tk("Home · Quiz salvo · Refazer",onQuizRefazer)} className="fm" style={{fontSize:9.5,letterSpacing:"0.1em",textTransform:"uppercase",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:999,padding:"7px 12px",cursor:"pointer"}}>Refazer</button>
+          </div>
+        )}
 
         <div style={{width:"100%",marginTop:34}}>
           {/* Álbum Digital da Copa — card clicável (link externo, nova aba) */}
@@ -467,7 +481,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
           <div style={{display:"flex",flexDirection:"column",gap:14}}>
             <div style={{background:`linear-gradient(160deg,${T.bgWarm},${T.surface})`,border:`1px solid ${T.border}`,borderRadius:10,padding:26,textAlign:"center",position:"relative"}}>
               <div className="no-print" style={{position:"absolute",top:12,right:12,display:"flex",gap:8}}>
-                <button onClick={onToggleFav} style={{background:isFav?"#FFEDED":T.bgWarm,border:`1px solid ${isFav?"#E8A0A0":T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:isFav?"#C04040":T.inkSoft}}><Heart size={14} fill={isFav?"#C04040":"none"}/></button>
+                <button onClick={onToggleFav} aria-label={isFav?"Remover dos favoritos":"Adicionar aos favoritos"} style={{background:isFav?"#FFEDED":T.bgWarm,border:`1px solid ${isFav?"#E8A0A0":T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:isFav?"#C04040":T.inkSoft}}><Heart size={14} fill={isFav?"#C04040":"none"}/></button>
                 <button onClick={onToggleCompare} style={{background:inCmp?"#E5EBD3":T.bgWarm,border:`1px solid ${inCmp?T.pistacheDark:T.border}`,borderRadius:"50%",width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",color:inCmp?T.pistacheDark:T.inkSoft}}><Scale size={14}/></button>
               </div>
               <div className="fm" style={{fontSize:9,letterSpacing:"0.28em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:6}}>{product.category==="gelato"?"Gelato · Vitrine":"Picolé · Bentôlé"}</div>
@@ -760,11 +774,16 @@ export default function App(){
   const[showCulpa,setShowCulpa]=useState(false);
   const[showGLP1,setShowGLP1]=useState(false);
   const[showEventos,setShowEventos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("eventos");}catch{return false;}});
-  const[compareIds,setCmpIds]=useState([]);
+  const[compareIds,setCmpIds]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:cmp")||"[]");}catch{return[];}});
+  useEffect(()=>{try{localStorage.setItem("bento:cmp",JSON.stringify(compareIds));}catch{}},[compareIds]);
   const[tabIntro,setTabIntro]=useState(()=>{try{return !sessionStorage.getItem("bento:tabIntro");}catch{return true;}});
   const fecharTabIntro=useCallback(()=>{setTabIntro(false);try{sessionStorage.setItem("bento:tabIntro","1");}catch{}},[]);
   const[favorites,setFavs]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:favs")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:favs",JSON.stringify(favorites));}catch{}},[favorites]);
+  const[showFavs,setShowFavs]=useState(false);
+  // Último resultado do quiz — persiste e vira card "Seu sabor" na home (razão de retorno).
+  const[quizResult,setQuizResult]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:quiz")||"null");}catch{return null;}});
+  useEffect(()=>{try{quizResult?localStorage.setItem("bento:quiz",JSON.stringify(quizResult)):localStorage.removeItem("bento:quiz");}catch{}},[quizResult]);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
@@ -780,16 +799,17 @@ export default function App(){
   return(
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
-      <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}}/>}
+      <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)}/>}
       <Suspense fallback={null}>
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={setQuizResult}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
+      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav}/>}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}

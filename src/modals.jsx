@@ -13,7 +13,7 @@ export function ModalArtHeader({img,alt,onClose}){
   );
 }
 
-export function QuizModal({onClose,onResult,onDelivery}){
+export function QuizModal({onClose,onResult,onDelivery,onSaved}){
   useModal(onClose);
   const [step,setStep]=useState(0);const [ans,setAns]=useState([]);const [done,setDone]=useState(false);const [result,setResult]=useState(null);
   const pick=(val)=>{
@@ -28,16 +28,51 @@ export function QuizModal({onClose,onResult,onDelivery}){
       const mm={proteina:"proteina",refrescante:"refrescante",indulgente:"indulgente",premium:"premium",postreino:"postreino",comfort:"comfort",lanche:"leve",surprise:null};
       const g=mm[goal],m2=mm[moment];
       const sc=pool.map(p=>({...p,score:(g&&p.moods.includes(g)?3:0)+(m2&&p.moods.includes(m2)?2:0)+Math.random()*0.5})).sort((a,b)=>b.score-a.score);
-      setResult(sc[0]||PRODUCTS[0]);setDone(true);setAns(na);
+      const win=sc[0]||PRODUCTS[0];
+      setResult(win);setDone(true);setAns(na);
+      tk("Quiz · Concluído");
+      try{onSaved&&onSaved({id:win.id,name:win.name,ts:Date.now()});}catch{/* */}
     }
   };
+  // Imagem de story 1080×1350 com o resultado (mesmo padrão do Sem culpa-ômetro).
+  function gerarImagemQuiz(p){
+    return new Promise((resolve)=>{
+      const c=document.createElement("canvas"); c.width=1080; c.height=1350; const x=c.getContext("2d");
+      const g=x.createLinearGradient(0,0,0,1350); g.addColorStop(0,"#222B1A"); g.addColorStop(1,"#0E120B"); x.fillStyle=g; x.fillRect(0,0,1080,1350);
+      x.textAlign="center";
+      x.fillStyle="#B8C97A"; x.font="700 52px Georgia, serif"; x.fillText("BENTÔ", 540, 150);
+      x.fillStyle="#9FB089"; x.font="600 26px Helvetica"; x.fillText("M E U   S A B O R   I D E A L", 540, 200);
+      let fs=110; x.font=`800 ${fs}px Georgia, serif`;
+      while(fs>54&&x.measureText(p.name).width>940){fs-=6;x.font=`800 ${fs}px Georgia, serif`;}
+      x.fillStyle="#fff"; x.fillText(p.name, 540, 600);
+      x.fillStyle="#E3C46A"; x.font="800 96px Helvetica"; x.fillText(`${p.nutrition.protein}g de proteína`, 540, 780);
+      x.fillStyle="#E9EFDC"; x.font="600 40px Helvetica";
+      x.fillText(`${p.nutrition.kcal} kcal · ${p.nutrition.addedSugars>0?p.nutrition.addedSugars+"g açúcar adic.":"zero açúcar adicionado"}`, 540, 860);
+      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Qual é o seu? Faça o quiz:", 540, 1150);
+      x.fillStyle="#9FB089"; x.font="500 32px Helvetica"; x.fillText("bentogelateria.com", 540, 1215);
+      c.toBlob(b=>resolve(b),"image/png");
+    });
+  }
+  async function compartilharQuiz(){
+    if(!result)return;
+    tk("Compartilhar · Quiz");
+    const msg=`Meu sabor Bentô ideal é ${result.name}: ${result.nutrition.protein}g de proteína e ${result.nutrition.kcal} kcal. Descubra o seu:`;
+    const url="https://bentogelateria.com";
+    try{
+      const blob=await gerarImagemQuiz(result);
+      const file=blob&&new File([blob],"meu-sabor-bento.png",{type:"image/png"});
+      if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:msg+" "+url});return;}
+    }catch{/* */}
+    try{if(navigator.share){await navigator.share({title:"Meu sabor Bentô",text:msg,url});return;}}catch{/* */}
+    try{await navigator.clipboard.writeText(msg+" "+url);alert("Texto copiado! Cole no seu story ou conversa.");}catch{alert(msg+" "+url);}
+  }
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Quiz: qual é o seu Bentô" style={{position:"fixed",inset:0,zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",border:`1px solid ${T.border}`,overflow:"hidden"}}>
         <div style={{background:T.ink,padding:"18px 22px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>{done?"Resultado":`Pergunta ${step+1} de ${QUIZ.length}`}</div>
-            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:4}}>{done?"Seu Bentô ideal 🎉":"Qual é o seu Bentô?"}</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:4}}>{done?"Seu Bentô ideal":"Qual é o seu Bentô?"}</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
@@ -70,10 +105,63 @@ export function QuizModal({onClose,onResult,onDelivery}){
                   </div>
                 ))}
               </div>
+              {/* Recompensa por concluir o quiz — fecha o loop e leva à loja (texto editável) */}
+              <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:12,textAlign:"center"}}>
+                <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",textTransform:"uppercase",color:"#A9831C",marginBottom:4}}>Recompensa do quiz</div>
+                <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45}}>Mostre esta tela na loja e ganhe um <strong>Bentôlé Baby</strong> de cortesia.</div>
+                <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:3}}>1 por pessoa · consumo no local</div>
+              </div>
               <button onClick={()=>{onClose();onResult(result.id);}} style={{width:"100%",padding:"13px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:10,fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>Ver ficha completa →</button>
-              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Pedir agora no iFood</button>}
+              <button onClick={compartilharQuiz} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Compartilhar meu sabor</button>
+              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",opacity:.94}}>Pedir agora no iFood</button>}
               <button onClick={()=>{setStep(0);setAns([]);setDone(false);setResult(null);}} style={{width:"100%",marginTop:8,padding:"10px 0",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:10,fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>Refazer quiz</button>
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========== MEUS FAVORITOS ========== */
+
+export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,onToggleFav}){
+  useModal(onClose);
+  const favs=PRODUCTS.filter(p=>ids.includes(p.id));
+  const totProt=favs.reduce((a,p)=>a+p.nutrition.protein,0);
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Meus sabores favoritos" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:440,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Sua coleção</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Meus favoritos{favs.length?` (${favs.length})`:""}</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:"12px 22px 22px"}}>
+          {favs.length===0?(
+            <div style={{textAlign:"center",padding:"26px 8px"}}>
+              <Heart size={34} style={{color:T.border}}/>
+              <div className="fd" style={{fontSize:19,color:T.ink,marginTop:10}}>Sua coleção está vazia</div>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>Toque no coração nas fichas dos sabores para guardar seus favoritos aqui.</div>
+            </div>
+          ):(
+            <>
+              {favs.map(p=>(
+                <div key={p.id} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${T.borderSoft}`}}>
+                  <button onClick={()=>onViewProduct(p.id)} aria-label={`Ver ficha de ${p.name}`} style={{background:"none",border:"none",padding:0,cursor:"pointer",lineHeight:0}}><ProductArt product={p} size={54}/></button>
+                  <button onClick={()=>onViewProduct(p.id)} style={{flex:1,minWidth:0,background:"none",border:"none",padding:0,textAlign:"left",cursor:"pointer"}}>
+                    <div className="fd" style={{fontSize:16,color:T.ink,lineHeight:1.15}}>{p.name}</div>
+                    <div className="fm" style={{fontSize:10,color:T.inkSoft,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:2}}>{p.nutrition.kcal} kcal · {p.nutrition.protein}g proteína</div>
+                  </button>
+                  <button onClick={()=>onToggleFav(p.id)} aria-label={`Remover ${p.name} dos favoritos`} style={{background:"none",border:"none",cursor:"pointer",padding:6,lineHeight:0}}><Heart size={17} fill={T.pistacheDark} style={{color:T.pistacheDark}}/></button>
+                </div>
+              ))}
+              <div className="fb" style={{fontSize:11.5,color:T.inkSoft,margin:"12px 0 14px",textAlign:"center"}}>Sua coleção soma <strong style={{color:T.pistacheDark}}>{totProt}g de proteína</strong>.</div>
+              {favs.length>=2&&<button onClick={()=>{tk("Favoritos · Comparar",()=>onCompare(favs.slice(0,3).map(p=>p.id)));}} className="fb" style={{width:"100%",padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Comparar meus favoritos{favs.length>3?" (3 primeiros)":""}</button>}
+              <button onClick={()=>tk("Conversão · iFood · Favoritos",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Pedir no iFood</button>
+            </>
           )}
         </div>
       </div>
