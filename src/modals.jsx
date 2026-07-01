@@ -839,11 +839,13 @@ const WHATS_REVENDA="5527999159995"; // DDI+DDD+número, só dígitos
 export function SejaBento({onClose}){
   useModal(onClose);
   const[form,setForm]=useState({interesse:"Revenda",nome:"",zap:"",cidade:"",ponto:"",msg:"",consent:false});
+  const[sent,setSent]=useState(false);
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
   const ok=form.nome.trim()&&form.zap.replace(/\D/g,"").length>=10&&form.cidade.trim()&&form.consent;
+  const postLead=(p)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p),keepalive:true});}catch{}};
   const enviar=()=>{
     const linhas=[
-      "*Nova solicitação — Seja Bentô* 🍨",
+      "*Nova solicitação — Seja Bentô*",
       `*Interesse:* ${form.interesse}`,
       `*Nome:* ${form.nome.trim()}`,
       `*WhatsApp:* ${form.zap.trim()}`,
@@ -852,7 +854,10 @@ export function SejaBento({onClose}){
       form.msg.trim()&&`*Mensagem:* ${form.msg.trim()}`,
     ].filter(Boolean);
     tk("Conversão · Revenda/Franquia");
+    // registra o lead no nosso banco (aparece no painel) mesmo que não conclua o envio no WhatsApp
+    postLead({stage:"parceria",ref:"seja-parceiro",interesse:form.interesse,nome:form.nome.trim(),phone:form.zap.trim(),cidade:form.cidade.trim(),ponto:form.ponto,msg:form.msg.trim()});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
+    setSent(true); // libera o download do PDF só depois de gerar o lead
   };
   const inp={width:"100%",padding:"11px 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:14,outline:"none",boxSizing:"border-box"};
   const lab={fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:T.inkSoft,display:"block",marginBottom:5,marginTop:14};
@@ -866,6 +871,16 @@ export function SejaBento({onClose}){
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
+        {sent?(
+          <div style={{padding:"34px 24px",textAlign:"center"}}>
+            <div style={{width:64,height:64,borderRadius:"50%",background:T.pistacheDark,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:34,fontWeight:700,margin:"0 auto"}}>✓</div>
+            <div className="fd" style={{fontSize:23,color:T.ink,marginTop:14}}>Recebemos seu interesse!</div>
+            <div className="fb" style={{fontSize:13.5,color:T.inkSoft,marginTop:8,lineHeight:1.5}}>Abrimos o WhatsApp com sua mensagem pronta — é só confirmar o envio. Enquanto isso, baixe a apresentação completa do <strong style={{color:T.ink}}>Programa de Franquias</strong>:</div>
+            <a href="/franquias/programa-franquias.pdf" download target="_blank" rel="noopener" onClick={()=>tk("Franquia · Download PDF")} className="fb" style={{display:"inline-block",marginTop:20,background:T.pistacheDark,color:"#fff",borderRadius:12,padding:"15px 26px",fontSize:15,fontWeight:600,textDecoration:"none"}}>Baixar apresentação (PDF)</a>
+            <div className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:14}}>~1 MB · 6 páginas · documento confidencial</div>
+            <button onClick={onClose} className="fb" style={{display:"block",margin:"18px auto 0",background:"transparent",border:"none",color:T.inkSoft,fontSize:12.5,textDecoration:"underline",cursor:"pointer"}}>Fechar</button>
+          </div>
+        ):(
         <div style={{padding:22}}>
           <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quer levar a Bentô para a sua cidade? Preencha abaixo — a mensagem chega direto no nosso WhatsApp e respondemos rapidinho.</div>
           <span className="fm" style={lab}>Tenho interesse em</span>
@@ -874,7 +889,7 @@ export function SejaBento({onClose}){
               <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
-          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro.</div>}
+          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro. Ao enviar, você recebe a apresentação completa do Programa de Franquias em PDF.</div>}
           <span className="fm" style={lab}>Nome completo *</span>
           <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
           <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
@@ -896,8 +911,9 @@ export function SejaBento({onClose}){
           <button onClick={enviar} disabled={!ok} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok?T.pistacheDark:T.border,color:ok?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok?"pointer":"not-allowed",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
             Enviar pelo WhatsApp
           </button>
-          <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta — é só confirmar o envio.</div>
+          <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10}}>Ao enviar, o WhatsApp abre com a mensagem pronta e você recebe a <strong style={{color:T.inkSoft}}>apresentação em PDF</strong>.</div>
         </div>
+        )}
       </div>
     </div>
   );
