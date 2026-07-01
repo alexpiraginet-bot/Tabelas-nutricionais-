@@ -12,6 +12,9 @@ export const tk = (name, fn) => {
   if (typeof fn === "function") fn();
 };
 
+// Conquistas: modais disparam um evento global; o App escuta, persiste e mostra o toast.
+export const award = (id) => { try { window.dispatchEvent(new CustomEvent("bento:achieve", { detail: id })); } catch { /* */ } };
+
 
 export const T = {
   bg:"#F6F1E7",bgWarm:"#EFE7D6",surface:"#FFFDF7",

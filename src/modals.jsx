@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
-import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, award, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 
 /* Cabeçalho de modal com a arte (banner) no topo + botão de fechar flutuante. */
 export function ModalArtHeader({img,alt,onClose}){
@@ -55,7 +55,7 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
   }
   async function compartilharQuiz(){
     if(!result)return;
-    tk("Compartilhar · Quiz");
+    tk("Compartilhar · Quiz");award("sem-culpa");
     const msg=`Meu sabor Bentô ideal é ${result.name}: ${result.nutrition.protein}g de proteína e ${result.nutrition.kcal} kcal. Descubra o seu:`;
     const url="https://bentogelateria.com";
     try{
@@ -125,10 +125,23 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
 
 /* ========== MEUS FAVORITOS ========== */
 
-export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,onToggleFav}){
+export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,onToggleFav,badgeList=[]}){
   useModal(onClose);
   const favs=PRODUCTS.filter(p=>ids.includes(p.id));
   const totProt=favs.reduce((a,p)=>a+p.nutrition.protein,0);
+  const galeria=badgeList.length>0&&(
+    <div style={{marginTop:16,borderTop:`1px solid ${T.borderSoft}`,paddingTop:14}}>
+      <div className="fm" style={{fontSize:9.5,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,marginBottom:10}}>Conquistas · {badgeList.filter(b=>b.earned).length}/{badgeList.length}</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(76px,1fr))",gap:8}}>
+        {badgeList.map(b=>{const I=b.icon;return(
+          <div key={b.title} title={b.desc} style={{textAlign:"center",opacity:b.earned?1:.38}}>
+            <div style={{width:44,height:44,margin:"0 auto",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:b.earned?T.pistacheDark:T.bgWarm,border:`2px solid ${b.earned?"#C9A24A":T.border}`,color:b.earned?"#F2E7C8":T.inkSoft}}>{I?<I size={18}/>:null}</div>
+            <div className="fb" style={{fontSize:9.5,color:b.earned?T.ink:T.inkSoft,marginTop:5,lineHeight:1.2}}>{b.title}</div>
+          </div>
+        );})}
+      </div>
+    </div>
+  );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Meus sabores favoritos" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:440,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
@@ -145,6 +158,7 @@ export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,o
               <Heart size={34} style={{color:T.border}}/>
               <div className="fd" style={{fontSize:19,color:T.ink,marginTop:10}}>Sua coleção está vazia</div>
               <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>Toque no coração nas fichas dos sabores para guardar seus favoritos aqui.</div>
+              {galeria}
             </div>
           ):(
             <>
@@ -161,6 +175,7 @@ export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,o
               <div className="fb" style={{fontSize:11.5,color:T.inkSoft,margin:"12px 0 14px",textAlign:"center"}}>Sua coleção soma <strong style={{color:T.pistacheDark}}>{totProt}g de proteína</strong>.</div>
               {favs.length>=2&&<button onClick={()=>{tk("Favoritos · Comparar",()=>onCompare(favs.slice(0,3).map(p=>p.id)));}} className="fb" style={{width:"100%",padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Comparar meus favoritos{favs.length>3?" (3 primeiros)":""}</button>}
               <button onClick={()=>tk("Conversão · iFood · Favoritos",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Pedir no iFood</button>
+              {galeria}
             </>
           )}
         </div>
@@ -1033,6 +1048,35 @@ export function PoteBuilder({onClose,onDelivery}){
   const gA=Math.round(g*ratio/100), gB=g-gA;
   const per=(p,k)=>p.nutrition[k]/p.serving;       // por grama
   const tot=k=>per(A,k)*gA+per(B,k)*gB;            // total no pote
+  const proteico=tot("protein")>=20;               // celebração + conquista
+  useEffect(()=>{if(proteico)award("mestre-pote");},[proteico]);
+  const comboTxt=`Pote ${cup} (${g} g): ${ratio}% ${A.name} + ${100-ratio}% ${B.name} · ${Math.round(tot("kcal"))} kcal · ${tot("protein").toFixed(1)}g de proteína`;
+  async function compartilharPote(){
+    tk("Compartilhar · Monte seu pote");award("sem-culpa");
+    const url="https://bentogelateria.com";
+    try{
+      const blob=await new Promise((resolve)=>{
+        const c=document.createElement("canvas"); c.width=1080; c.height=1350; const x=c.getContext("2d");
+        const gr=x.createLinearGradient(0,0,0,1350); gr.addColorStop(0,"#222B1A"); gr.addColorStop(1,"#0E120B"); x.fillStyle=gr; x.fillRect(0,0,1080,1350);
+        x.textAlign="center";
+        x.fillStyle="#B8C97A"; x.font="700 52px Georgia, serif"; x.fillText("BENTÔ", 540, 150);
+        x.fillStyle="#9FB089"; x.font="600 26px Helvetica"; x.fillText("M E U   P O T E", 540, 200);
+        let fs=84; const l1=`${ratio}% ${A.name}`, l2=`${100-ratio}% ${B.name}`;
+        x.font=`800 ${fs}px Georgia, serif`;
+        while(fs>44&&Math.max(x.measureText(l1).width,x.measureText(l2).width)>940){fs-=6;x.font=`800 ${fs}px Georgia, serif`;}
+        x.fillStyle="#fff"; x.fillText(l1, 540, 520); x.fillText("+", 540, 620); x.fillText(l2, 540, 720);
+        x.fillStyle="#E3C46A"; x.font="800 84px Helvetica"; x.fillText(`${tot("protein").toFixed(1)}g de proteína`, 540, 900);
+        x.fillStyle="#E9EFDC"; x.font="600 40px Helvetica"; x.fillText(`${Math.round(tot("kcal"))} kcal no pote de ${g} g`, 540, 975);
+        x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Monte o seu:", 540, 1150);
+        x.fillStyle="#9FB089"; x.font="500 32px Helvetica"; x.fillText("bentogelateria.com", 540, 1215);
+        c.toBlob(b=>resolve(b),"image/png");
+      });
+      const file=blob&&new File([blob],"meu-pote-bento.png",{type:"image/png"});
+      if(file&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:comboTxt+" · "+url});return;}
+    }catch{/* */}
+    try{if(navigator.share){await navigator.share({title:"Meu pote Bentô",text:comboTxt,url});return;}}catch{/* */}
+    try{await navigator.clipboard.writeText(comboTxt+" · "+url);alert("Combinação copiada! Cole no seu story ou conversa.");}catch{alert(comboTxt);}
+  }
   const Sel=({value,onChange,label})=>(
     <select value={value} onChange={e=>onChange(e.target.value)} aria-label={label} className="fb" style={{width:"100%",padding:"8px 10px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:13}}>
       {gelatos.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
@@ -1044,7 +1088,7 @@ export function PoteBuilder({onClose,onDelivery}){
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Calculadora</div>
-            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Monte seu pote 🍦</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Monte seu pote</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
@@ -1075,7 +1119,8 @@ export function PoteBuilder({onClose,onDelivery}){
               <span className="fm" style={{fontSize:10,color:T.inkSoft}}>{B.name} {100-ratio}%</span>
             </div>
           </div>
-          <div style={{marginTop:18,background:T.ink,borderRadius:12,padding:"16px 18px",display:"flex",gap:12,alignItems:"center"}}>
+          <div style={{marginTop:18,background:T.ink,border:proteico?"1px solid #C9A24A":"1px solid transparent",borderRadius:12,padding:"16px 18px",display:"flex",gap:12,alignItems:"center",position:"relative"}}>
+            {proteico&&<span className="fm" style={{position:"absolute",top:-9,left:"50%",transform:"translateX(-50%)",fontSize:8.5,letterSpacing:"0.16em",textTransform:"uppercase",background:"#C9A24A",color:"#16241A",borderRadius:999,padding:"3px 11px",whiteSpace:"nowrap",fontWeight:700}}>Pote proteico · 20g+</span>}
             <div style={{flex:1,textAlign:"center"}}>
               <div className="fd" style={{fontSize:34,color:T.bg,fontWeight:500,lineHeight:1}}>{Math.round(tot("kcal"))}</div>
               <div className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.border,textTransform:"uppercase",marginTop:4}}>kcal no pote</div>
@@ -1095,7 +1140,9 @@ export function PoteBuilder({onClose,onDelivery}){
             ))}
           </div>
           <p className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:12,lineHeight:1.5,textAlign:"center"}}>Referência padrão: 100 g · valores calculados proporcionalmente para o pote de {g} g.</p>
-          {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Monte seu pote",onDelivery)} className="fb" style={{width:"100%",marginTop:14,padding:"13px 14px",background:"#EA1D2C",color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:700,cursor:"pointer"}}>🛵 Montar de verdade — pedir no iFood</button>}
+          <button onClick={compartilharPote} className="fb" style={{width:"100%",marginTop:14,padding:"12px 14px",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:12,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Compartilhar meu pote</button>
+          {onDelivery&&<button onClick={()=>{try{navigator.clipboard&&navigator.clipboard.writeText(comboTxt).catch(()=>{});}catch{/* */}tk("Conversão · iFood · Monte seu pote",onDelivery);}} className="fb" style={{width:"100%",marginTop:8,padding:"13px 14px",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer"}}>Montar de verdade — pedir no iFood</button>}
+          {onDelivery&&<div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:6}}>Sua combinação é copiada — é só colar na observação do pedido.</div>}
         </div>
       </div>
     </div>
@@ -1302,10 +1349,12 @@ function Linha({rotulo, bento, comum, unidade}){
   );
 }
 
-export function CulpaModal({onClose,onDelivery}){
+export function CulpaModal({onClose,onDelivery,productId}){
   useModal(onClose);
-  // Comparação no best-seller (Pistache), por PORÇÃO real de 60 g — números reais.
-  const pis = PRODUCTS.find(p=>p.id==="pistache");
+  // Comparação por PORÇÃO real — dinâmica por sabor (padrão: Pistache, o best-seller).
+  const gelatos=PRODUCTS.filter(p=>p.category==="gelato");
+  const [pid,setPid]=useState(productId&&gelatos.some(p=>p.id===productId)?productId:"pistache");
+  const pis = gelatos.find(p=>p.id===pid)||gelatos[0];
   const sc = pis.serving/100; // sorvete comum (por 100 g) reescalado p/ a mesma porção
   const cSug=SORVETE_REF.sugars*sc, cProt=SORVETE_REF.protein*sc, cKcal=Math.round(SORVETE_REF.kcal*sc);
   const bSug=pis.nutrition.addedSugars, bProt=pis.nutrition.protein, bKcal=pis.nutrition.kcal;
@@ -1323,15 +1372,15 @@ export function CulpaModal({onClose,onDelivery}){
       x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("torrões de açúcar adicionado por porção", 540, 625);
       x.fillStyle="#E3C46A"; x.font="800 180px Helvetica"; x.fillText("+"+protMais.toFixed(0)+"g", 540, 900);
       x.fillStyle="#E9EFDC"; x.font="600 38px Helvetica"; x.fillText("de proteína vs sorvete comum", 540, 965);
-      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Pistache · "+bKcal+" kcal por porção", 540, 1190);
+      x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText(pis.name+" · "+bKcal+" kcal por porção", 540, 1190);
       x.fillStyle="#9FB089"; x.font="500 30px Helvetica"; x.fillText("bentogelateria.com", 540, 1245);
       c.toBlob(b=>resolve(b),"image/png");
     });
   }
-  const msg = `No nosso Pistache: ~${cubos} torrões de açúcar adicionado a MENOS, +${protMais.toFixed(0)}g de proteína e só ${bKcal} kcal por porção vs sorvete comum. 🍦`;
+  const msg = `No nosso ${pis.name}: ~${cubos} torrões de açúcar adicionado a MENOS, +${protMais.toFixed(0)}g de proteína e só ${bKcal} kcal por porção vs sorvete comum.`;
   const url = "https://bentogelateria.com";
   async function compartilhar(){
-    tk("Compartilhar · Sem culpa-ômetro");
+    tk("Compartilhar · Sem culpa-ômetro");award("sem-culpa");
     try{
       const blob = await gerarImagem();
       const file = blob && new File([blob],"bento-sem-culpa.png",{type:"image/png"});
@@ -1357,7 +1406,10 @@ export function CulpaModal({onClose,onDelivery}){
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.14)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",flexShrink:0}}><X size={16}/></button>
         </div>
         <div style={{padding:22}}>
-          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:16,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo nosso Pistache (best-seller) — por porção de {pis.portionLabel}:</div>
+          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:10,lineHeight:1.5}}>O que você ganha trocando o sorvete comum pelo nosso <strong style={{color:T.ink}}>{pis.name}</strong> — por porção de {pis.portionLabel}:</div>
+          <select value={pid} onChange={e=>{setPid(e.target.value);tk("Sem culpa · Trocar sabor");}} aria-label="Escolher o sabor da comparação" className="fb" style={{width:"100%",padding:"9px 11px",borderRadius:10,border:`1px solid ${T.border}`,background:T.bg,color:T.ink,fontSize:13,marginBottom:14}}>
+            {gelatos.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
 
           <div style={{display:"flex",gap:10,marginBottom:18}}>
             <div style={{flex:1,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:16,padding:"14px 10px",textAlign:"center"}}>
@@ -1383,12 +1435,12 @@ export function CulpaModal({onClose,onDelivery}){
           </div>
 
           <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
-            <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📲 Compartilhar no story</button>
-            <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>⬇️ Baixar imagem</button>
+            <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>Compartilhar no story</button>
+            <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>Baixar imagem</button>
           </div>
-          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Provar sem culpa — pedir no iFood</button>
+          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:600,cursor:"pointer",opacity:.94}}>Provar sem culpa — pedir no iFood</button>
 
-          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. Bentô Pistache (porção de {pis.portionLabel}, da nossa ficha). “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g), na mesma porção.</div>
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. Bentô {pis.name} (porção de {pis.portionLabel}, da nossa ficha). “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g), na mesma porção.</div>
         </div>
       </div>
     </div>
