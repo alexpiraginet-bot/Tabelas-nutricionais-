@@ -671,8 +671,8 @@ function TabelasIntro({onClose}){
 /* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
 // dias: 0=Dom … 6=Sáb · [abre, fecha] em horas (24h) · null = fechado
 const HORARIOS=[
-  {loja:"Praia do Canto", dias:{0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[8,20]},
-    resumo:[["Seg","10h–19h"],["Ter a Sáb","08h–20h"],["Dom","12h–17h"]]},
+  {loja:"Praia do Canto", dias:{0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[10,20]},
+    resumo:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]]},
   {loja:"Jardim Camburi", dias:{0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]},
     resumo:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]]},
 ];
