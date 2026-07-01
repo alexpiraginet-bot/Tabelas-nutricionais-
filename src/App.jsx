@@ -147,8 +147,17 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <div style={{width:"100%",marginTop:34}}>
-          {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) · LCP do topo */}
-          <PhotoBanner full priority as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
+          {/* Álbum Digital da Copa — card clicável (link externo, nova aba) */}
+          <a href="https://totem.bentogelateria.com/album" target="_blank" rel="noopener" onClick={()=>tk("Álbum da Copa")}
+            aria-label="Acesse o álbum digital da Copa Bentô" className="hl rise"
+            style={{display:"block",overflow:"hidden",borderRadius:18,border:`1px solid ${T.border}`,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",textDecoration:"none"}}>
+            <img src="/buttons/album-copa-card.webp" alt="Acesse o álbum digital da Copa Bentô — colecione os 10 sabores oficiais"
+              width={1600} height={800} loading="eager" fetchpriority="high" onError={onImgErr}
+              style={{display:"block",width:"100%",height:"auto"}}/>
+          </a>
+
+          {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
+          <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
             img="/banners/bytes.webp" alt="BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"
             delay="60ms"/>
 
