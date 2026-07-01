@@ -263,6 +263,17 @@ export function ClubeBento({onClose,quiz,badgeList,albumCount,missions,onMerged}
               <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.45}}>Álbum da Copa: <strong style={{color:T.ink}}>{albumCount}/10 figurinhas</strong> — complete para desbloquear a comemoração na loja.</div>
             </div>
           )}
+          {earned>=5?(
+            <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#A9831C"}}>Ativa · Cliente Ouro</div>
+              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Você é <strong>Cliente Ouro</strong>: acesso aos <strong>lançamentos antes de todo mundo</strong> — apresente seu código para garantir a pré-estreia.</div>
+              <ResgateBtn reward="ouro"/>
+            </div>
+          ):(
+            <div style={{border:`1px dashed ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.45}}>Complete as <strong style={{color:T.ink}}>5 conquistas</strong> e vire <strong style={{color:T.ink}}>Cliente Ouro</strong>: acesso antecipado aos lançamentos, antes de todo mundo.</div>
+            </div>
+          )}
           <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:2}}>Novas recompensas em breve — conquistas contam para o seu nível.</div>
 
           {/* Indique e ganhe */}

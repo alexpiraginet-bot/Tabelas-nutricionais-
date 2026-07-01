@@ -126,6 +126,7 @@
     <button data-t="prevendas">🍫 Pré-vendas <span class="tbg" id="bgPrev"></span></button>
     <button data-t="vagas">💼 Vagas <span class="tbg" id="bgVagas"></span></button>
     <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
+    <button data-t="clube">👑 Clube <span class="tbg" id="bgClube"></span></button>
     <button data-t="links">🔗 Links</button>
   </nav>
 
@@ -181,6 +182,18 @@
       </table>
     </div>
     <div class="empty" id="prevEmpty" style="display:none">Nenhuma pré-venda ainda. Quando alguém comprar o BentôBytes na pré-venda, o pedido aparece aqui na hora. 🍫</div>
+  </div>
+
+  <div class="card pane" data-pane="clube" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center"><span>👑 Clube Bentô — membros</span><span id="clubeCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
+    <div class="stlbl" style="margin-bottom:10px;font-size:12px;color:var(--soft)">Clientes que conectaram o WhatsApp no Clube. Recompensas: quiz → Bentôlé Baby · álbum 10/10 → comemoração · 3 indicações → Bentôlé · <b>Cliente Ouro (5 conquistas) → acesso antecipado aos lançamentos</b>. Códigos são validados na tela de retirada.</div>
+    <div class="tblscroll">
+      <table id="clubeTbl">
+        <thead><tr><th>WhatsApp</th><th>Nível</th><th class="num">Conquistas</th><th class="num">Álbum</th><th>Sabor ideal</th><th class="num">Indicações</th><th>Última atividade</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="empty" id="clubeEmpty" style="display:none">Nenhum membro ainda. Quando alguém conectar o WhatsApp no Clube Bentô (site), aparece aqui. 👑</div>
   </div>
 
   <div class="card pane" data-pane="vagas" style="margin-bottom:14px">
@@ -764,6 +777,35 @@ function renderLinks(){
 }
 renderLinks();
 
+// ---- Clube Bentô (membros) ----
+async function loadClube(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/clube", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  const d = await r.json();
+  const ms = (d && d.membros) || [];
+  $("#clubeCount").textContent = ms.length ? (ms.length + " membro" + (ms.length>1?"s":"")) : "";
+  setBadge("bgClube", ms.length);
+  const tb = $("#clubeTbl tbody"); tb.innerHTML = "";
+  $("#clubeEmpty").style.display = ms.length ? "none" : "block";
+  ms.forEach(function(m){
+    const dig = String(m.phone||"").replace(/\D/g,"");
+    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
+    const fone = dig.replace(/^(\d{2})(\d{4,5})(\d{4})$/, "($1) $2-$3");
+    const nivel = m.badges>=5 ? "👑 Ouro" : m.badges>=3 ? "Prata" : m.badges>=1 ? "Bronze" : "—";
+    const quando = m.updated ? new Date(m.updated).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td>"+(wa?('<a href="'+wa+'" target="_blank" rel="noreferrer" style="color:var(--pist)">'+escapeHtml(fone)+"</a>"):escapeHtml(fone))+"</td>"
+      +"<td>"+nivel+"</td>"
+      +'<td class="num">'+(m.badges||0)+"/5</td>"
+      +'<td class="num">'+(m.album||0)+"/10</td>"
+      +"<td>"+escapeHtml(m.quiz||"—")+"</td>"
+      +'<td class="num">'+(m.ind||0)+"</td>"
+      +"<td>"+quando+"</td>";
+    tb.appendChild(tr);
+  });
+}
+
 // ---- Abas superiores ----
 function setBadge(id,n){ var e=$("#"+id); if(e) e.textContent = n>0 ? String(n) : ""; }
 function showTab(t){
@@ -864,7 +906,7 @@ function bindSorteio(){
 bindSorteio();
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 

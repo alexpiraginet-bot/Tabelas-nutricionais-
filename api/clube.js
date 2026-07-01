@@ -72,7 +72,7 @@ const REWARDS = {
   "quiz-baby": { label: "Bentôlé Baby de cortesia (quiz do sabor)", ok: (s) => !!(s.quiz && s.quiz.id) },
   "album": { label: "Comemoração do álbum completo", ok: (s) => (s.album || []).length >= 10 },
   "indicacao": { label: "Bentôlé de cortesia (3 amigos indicados)", ok: (s, ind) => ind >= 3 },
-  "ouro": { label: "Boas-vindas Cliente Ouro (5 conquistas)", ok: (s) => (s.badges || []).length >= 5 },
+  "ouro": { label: "Cliente Ouro — acesso antecipado aos lançamentos", ok: (s) => (s.badges || []).length >= 5 },
 };
 
 async function loadState(phone) {
