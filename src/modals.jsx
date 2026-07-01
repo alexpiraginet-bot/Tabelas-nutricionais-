@@ -123,6 +123,93 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
   );
 }
 
+/* ========== CLUBE BENTÔ (hub de gamificação: missões, conquistas, recompensas) ========== */
+
+export function ClubeBento({onClose,quiz,badgeList,albumCount,missions}){
+  useModal(onClose);
+  const earned=badgeList.filter(b=>b.earned).length;
+  const nivel=earned>=5?"Cliente Ouro":earned>=3?"Prata":earned>=1?"Bronze":"Boas-vindas";
+  const quizProd=quiz?PRODUCTS.find(p=>p.id===quiz.id):null;
+  const sec={fontSize:9.5,letterSpacing:"0.22em",textTransform:"uppercase",color:T.pistacheDark,margin:"16px 0 10px"};
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Clube Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:460,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:"#C9A24A",textTransform:"uppercase"}}>Sua jornada</div>
+            <div className="fd" style={{fontSize:19,color:T.bg,marginTop:2}}>Clube Bentô</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:"14px 22px 22px"}}>
+
+          {/* Nível */}
+          <div style={{display:"flex",alignItems:"center",gap:12,background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:12,padding:"12px 14px"}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:T.inkSoft}}>Seu nível</div>
+              <div className="fd" style={{fontSize:19,color:T.ink,marginTop:2}}>{nivel}</div>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{height:7,background:"#E6DEC8",borderRadius:999,overflow:"hidden"}} role="progressbar" aria-valuenow={earned} aria-valuemin={0} aria-valuemax={5} aria-label={`${earned} de 5 conquistas`}>
+                <div style={{height:"100%",width:`${earned*20}%`,background:"linear-gradient(90deg,#C9A24A,#46583A)",transition:"width .4s"}}/>
+              </div>
+              <div className="fm" style={{fontSize:10,color:T.inkSoft,marginTop:4,textAlign:"right"}}>{earned}/5 conquistas</div>
+            </div>
+          </div>
+
+          {/* Recompensas */}
+          <div className="fm" style={sec}>Recompensas</div>
+          {quizProd?(
+            <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#A9831C"}}>Ativa · quiz concluído</div>
+              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Seu sabor ideal é <strong>{quizProd.name}</strong>. Mostre esta tela na loja e ganhe um <strong>Bentôlé Baby</strong> de cortesia.</div>
+              <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:3}}>1 por pessoa · consumo no local</div>
+            </div>
+          ):(
+            <div style={{border:`1px dashed ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.45}}>Complete o quiz do sabor e desbloqueie um <strong style={{color:T.ink}}>Bentôlé Baby</strong> de cortesia na loja.</div>
+            </div>
+          )}
+          {albumCount>=10?(
+            <div style={{border:"1px solid #D9BE7A",background:"#FBF6E7",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#A9831C"}}>Ativa · álbum completo</div>
+              <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.45,marginTop:4}}>Você completou o <strong>álbum da Copa</strong>! Mostre esta tela na loja e comemore com a gente.</div>
+            </div>
+          ):(
+            <div style={{border:`1px dashed ${T.border}`,borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.45}}>Álbum da Copa: <strong style={{color:T.ink}}>{albumCount}/10 figurinhas</strong> — complete para desbloquear a comemoração na loja.</div>
+            </div>
+          )}
+          <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:2}}>Novas recompensas em breve — conquistas contam para o seu nível.</div>
+
+          {/* Missões */}
+          <div className="fm" style={sec}>Missões</div>
+          <div>
+            {missions.map(m=>(
+              <div key={m.t} style={{display:"flex",alignItems:"center",gap:11,padding:"9px 0",borderBottom:`1px solid ${T.borderSoft}`}}>
+                <span aria-hidden="true" style={{width:22,height:22,borderRadius:"50%",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,background:m.done?T.pistacheDark:"transparent",border:`2px solid ${m.done?T.pistacheDark:T.border}`,color:m.done?"#F2E7C8":"transparent"}}>✓</span>
+                <span className="fb" style={{flex:1,fontSize:13,color:m.done?T.inkSoft:T.ink,textDecoration:m.done?"line-through":"none",lineHeight:1.3}}>{m.t}</span>
+                {!m.done&&<button onClick={m.go} className="fm" style={{fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"6px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Ir</button>}
+              </div>
+            ))}
+          </div>
+
+          {/* Conquistas */}
+          <div className="fm" style={sec}>Conquistas · {earned}/{badgeList.length}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(76px,1fr))",gap:8}}>
+            {badgeList.map(b=>{const I=b.icon;return(
+              <div key={b.title} title={b.desc} style={{textAlign:"center",opacity:b.earned?1:.38}}>
+                <div style={{width:44,height:44,margin:"0 auto",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:b.earned?T.pistacheDark:T.bgWarm,border:`2px solid ${b.earned?"#C9A24A":T.border}`,color:b.earned?"#F2E7C8":T.inkSoft}}>{I?<I size={18}/>:null}</div>
+                <div className="fb" style={{fontSize:9.5,color:b.earned?T.ink:T.inkSoft,marginTop:5,lineHeight:1.2}}>{b.title}</div>
+              </div>
+            );})}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ========== MEUS FAVORITOS ========== */
 
 export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,onToggleFav,badgeList=[]}){
