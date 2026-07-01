@@ -9,6 +9,7 @@ import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip,
 const QuizModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.QuizModal })));
 const CompareModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.CompareModal })));
 const FavoritesModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.FavoritesModal })));
+const ClubeBento = lazy(() => import("./modals.jsx").then(m => ({ default: m.ClubeBento })));
 const CardapioDigital = lazy(() => import("./modals.jsx").then(m => ({ default: m.CardapioDigital })));
 const SejaParceiro = lazy(() => import("./modals.jsx").then(m => ({ default: m.SejaParceiro })));
 const EventosModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.EventosModal })));
@@ -133,7 +134,7 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   return <button onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
 }
 
-function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer}){
+function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   return(
     <div className="fade">
@@ -150,6 +151,14 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
           <button onClick={()=>tk("Tabelas & sabores",onTabelas)} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>Tabelas & sabores</button>
         </div>
+
+        {/* Clube Bentô — entrada do hub de missões/conquistas/recompensas */}
+        <button onClick={()=>tk("Clube Bentô · Abrir",onClube)} className="rise hl fb" style={{display:"flex",alignItems:"center",gap:9,marginTop:14,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",fontSize:12.5,fontWeight:600,cursor:"pointer",animationDelay:"180ms"}}>
+          <Sparkles size={14} style={{color:"#C9A24A"}}/>
+          <span>Clube Bentô</span>
+          <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"#C9A24A"}}>{clubeEarned>0?`${clubeEarned}/5 conquistas`:"comece sua missão"}</span>
+          <ChevronRight size={14} style={{color:"#C9A24A"}}/>
+        </button>
 
         {/* Resultado salvo do quiz — razão de retorno */}
         {quiz&&(
@@ -846,6 +855,16 @@ export default function App(){
   useEffect(()=>{const h=(e)=>awardBadge(e.detail);window.addEventListener("bento:achieve",h);return()=>window.removeEventListener("bento:achieve",h);},[awardBadge]);
   useEffect(()=>{if(favorites.length>=3)awardBadge("colecionador");},[favorites,awardBadge]);
   const[culpaProdId,setCulpaProdId]=useState(null);
+  const[showClube,setShowClube]=useState(false);
+  // Onboarding do Clube: 1 toast de boas-vindas com a primeira missão (1x por pessoa).
+  useEffect(()=>{
+    try{
+      if(localStorage.getItem("bento:clube:hello"))return;
+      localStorage.setItem("bento:clube:hello","1");
+      const t=setTimeout(()=>{setToastBadge({icon:Sparkles,kicker:"Clube Bentô",title:"Primeira missão: descubra seu sabor ideal"});setTimeout(()=>setToastBadge(null),5200);},1800);
+      return()=>clearTimeout(t);
+    }catch{/* */}
+  },[]);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
@@ -862,7 +881,7 @@ export default function App(){
     <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
       <GStyle/>
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
-      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)}/>}
+      {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
@@ -872,6 +891,19 @@ export default function App(){
       {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
       {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
+      {showClube&&(()=>{
+        const albumCount=(()=>{try{return JSON.parse(localStorage.getItem("bento:album")||"[]").length;}catch{return 0;}})();
+        const fichasN=(()=>{try{return Number(localStorage.getItem("bento:fichas"))||0;}catch{return 0;}})();
+        const missions=[
+          {t:"Descubra seu sabor ideal (quiz)",done:!!quizResult,go:()=>{setShowClube(false);setShowQuiz(true);}},
+          {t:"Explore 5 fichas de sabores",done:fichasN>=5||badges.includes("explorador"),go:()=>{setShowClube(false);setView("tabelas");}},
+          {t:"Guarde 3 sabores favoritos",done:favorites.length>=3,go:()=>{setShowClube(false);setView("tabelas");}},
+          {t:"Monte um pote com 20g+ de proteína",done:badges.includes("mestre-pote"),go:()=>{setShowClube(false);setShowPote(true);}},
+          {t:"Compartilhe a Bentô no story",done:badges.includes("sem-culpa"),go:()=>{setShowClube(false);setShowCulpa(true);}},
+          {t:"Complete o álbum da Copa (10 figurinhas)",done:albumCount>=10,go:()=>{window.open("https://totem.bentogelateria.com/album","_blank","noopener");}},
+        ];
+        return <ClubeBento onClose={()=>setShowClube(false)} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} albumCount={albumCount} missions={missions} badgeList={BADGES.map(b=>({icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>;
+      })()}
       {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
@@ -905,7 +937,7 @@ export default function App(){
         <div className="rise no-print" role="status" style={{position:"fixed",top:74,left:"50%",transform:"translateX(-50%)",zIndex:400,display:"flex",alignItems:"center",gap:10,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",boxShadow:"0 18px 40px -18px rgba(0,0,0,.5)",maxWidth:"calc(100vw - 30px)"}}>
           {TI?<TI size={16} style={{color:"#C9A24A",flexShrink:0}}/>:null}
           <div style={{textAlign:"left",minWidth:0}}>
-            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#C9A24A"}}>Conquista desbloqueada</div>
+            <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#C9A24A"}}>{toastBadge.kicker||"Conquista desbloqueada"}</div>
             <div className="fb" style={{fontSize:13,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{toastBadge.title}</div>
           </div>
         </div>
