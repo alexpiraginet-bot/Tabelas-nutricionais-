@@ -85,13 +85,13 @@ export const PRODUCTS = [
     nutrition:{kcal:112,carbs:16,sugars:5.0,addedSugars:0,protein:9.2,fat:3.6,satFat:2.1,transFat:0,fiber:0.2,sodium:46},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"A baunilha clássica reinventada: fava de Madagascar e whey WPH. Base perfeita, cremosa e proteica." },
-  { id:"doce-de-leite", name:"Doce de Leite", category:"gelato", sub:"Doce de leite zero açúcar", emoji:"🍯", estimated:true,
+  { id:"doce-de-leite", name:"Doce de Leite", category:"gelato", sub:"Doce de leite · sem adição de açúcar", emoji:"🍯", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#D9A86A",mid:"#B07C3E",deep:"#6E4A1E",swirl:"#3E2A10",hl:"#F2D9A8"}, image:null,
     serving:60, portionLabel:"60 g",
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"400 g"},{name:"Doce de leite Zero (Veneza)",qty:"350 g"}],
     nutrition:{kcal:138,carbs:20,sugars:6.0,addedSugars:0,protein:11,fat:4.4,satFat:2.6,transFat:0,fiber:0.2,sodium:72},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Doce de leite zero açúcar (Veneza) com whey WPH. O sabor afetivo brasileiro, 11g de proteína." },
+    description:"Doce de leite sem adição de açúcar (Veneza) com whey WPH. O sabor afetivo brasileiro, 11g de proteína." },
   { id:"avela", name:"Avelã", category:"gelato", sub:"Nocciola · pasta de avelã", emoji:"🌰", estimated:true,
     moods:["premium","comfort","proteina"], palette:{base:"#C9A074",mid:"#9E7344",deep:"#5E3E1E",swirl:"#3A2410",hl:"#E8CBA0"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -119,7 +119,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"400 g"},{name:"Cookies Zero",qty:"180 g"},{name:"Chocolate 70% Zero (Lukau)",qty:"40 g"}],
     nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
-    description:"Creme proteico com pedaços de cookies zero açúcar e chocolate 70%. O clássico americano, 11g de proteína." },
+    description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate 70%. O clássico americano, 11g de proteína." },
   { id:"menta", name:"Menta Intensa", category:"gelato", sub:"Menta · cacau 70%", emoji:"🌿", estimated:true,
     moods:["refrescante","premium","proteina"], palette:{base:"#A8E0C4",mid:"#5FB890",deep:"#2A6A4A",swirl:"#1A3E2A",hl:"#D8F5E6"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -133,7 +133,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"420 g"},{name:"Cacau em pó",qty:"180 g"},{name:"Chocolate ao Leite Zero (Lukau)",qty:"120 g"}],
     nutrition:{kcal:140,carbs:21,sugars:5.0,addedSugars:0,protein:12,fat:5.0,satFat:2.8,transFat:0,fiber:2.0,sodium:54},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"O brigadeiro brasileiro em gelato: cacau e chocolate ao leite zero açúcar. 12g de proteína, alto teor." },
+    description:"O brigadeiro brasileiro em gelato: cacau e chocolate ao leite sem adição de açúcar. 12g de proteína, alto teor." },
   { id:"banana-canela", name:"Banana com Canela", category:"gelato", sub:"Banana · canela do Ceilão", emoji:"🍌", estimated:true,
     moods:["postreino","comfort","leve"], palette:{base:"#F2E2A0",mid:"#D9C25E",deep:"#A88A2E",swirl:"#6E5A1A",hl:"#FFF8D0"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -155,7 +155,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite Piracanjuba",qty:"350 g"},{name:"Whey WPH",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite Zero (Veneza)",qty:"250 g"},{name:"Chocolate 70% Zero (Lukau)",qty:"30 g"}],
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
-    description:"Picolé inspirado no Snickers. Amendoim real, doce de leite zero açúcar, chocolate 70%. 9,6g de proteína." },
+    description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate 70%. 9,6g de proteína." },
   { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · choco branco · choco 70%", emoji:"🫐",
     moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:"/sabores/bentole-franui.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
@@ -260,6 +260,20 @@ export function proteinClaim(p){
   if (g >= 12) return "ALTO TEOR DE PROTEÍNA";
   if (g >= 6)  return "FONTE DE PROTEÍNA";
   return null;
+}
+
+// Alegação de açúcares (RDC 54/2012) — FONTE ÚNICA para app, fichas e CSV:
+//  · "ZERO AÇÚCARES" (absoluto): nenhum açúcar adicionado E ≤ 0,5 g de açúcares totais/100 g.
+//  · "SEM ADIÇÃO DE AÇÚCARES": nenhum açúcar adicionado no processamento; quando o alimento
+//    contém açúcares próprios (lactose do leite/whey, frutose das frutas, etc.), a alegação
+//    DEVE vir acompanhada da frase "Contém açúcares próprios dos ingredientes."
+//  · Qualquer adição (mesmo residual, ex.: 0,1 g vinda de um insumo açucarado) → SEM alegação.
+export const FRASE_ACUCARES_PROPRIOS = "Contém açúcares próprios dos ingredientes.";
+export function sugarClaim(p){
+  const n = p.nutrition, f = 100 / p.serving;
+  if ((n.addedSugars || 0) > 0) return null;                       // houve adição → não alega
+  if ((n.sugars || 0) * f <= 0.5) return { label: "ZERO AÇÚCARES", note: null };
+  return { label: "SEM ADIÇÃO DE AÇÚCARES", note: FRASE_ACUCARES_PROPRIOS };
 }
 
 export const MOOD_META = {
