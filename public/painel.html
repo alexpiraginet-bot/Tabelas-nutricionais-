@@ -1020,13 +1020,14 @@ function renderClube(d){
     if(!FILTERS[_clubeFilter](m)) return;
     shown++;
     var dig = leadDigits(m.phone);
+    var okey = dig || ("sem-fone-" + shown); // membro sem fone não compartilha a chave vazia de estado
     var nivel = m.badges>=5 ? "👑 Ouro" : m.badges>=3 ? "Prata" : m.badges>=1 ? "Bronze" : "Novo";
     var det = stackTopic({
       title: leadFone(dig) || String(m.phone||"—"), dig: dig, waText: "💬 Chamar no WhatsApp",
       badge: nivel,
       when: m.updated ? stackWhen(m.updated) : "",
-      open: !!_clubeOpen[dig],
-      onToggle: function(o){ _clubeOpen[dig] = o; }
+      open: !!_clubeOpen[okey],
+      onToggle: function(o){ _clubeOpen[okey] = o; }
     });
     var pctB = Math.min(100, Math.round((m.badges||0)/5*100));
     var pctA = Math.min(100, (m.album||0)*10);
