@@ -274,6 +274,23 @@ export const PRODUCTS = [
 // Advertência de polióis (maltitol/sorbitol da Base FRUTA 300 ZERO — 65 g/100 g na base).
 // Texto oficial da RDC 727/2022, art. 25 (exibido em negrito no rótulo).
 export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
+// Bentôlé G: os mesmos picolés no tamanho G — porção e macros EXATAMENTE 2× o
+// mini (mesma receita/batelada; rende metade das unidades). Gerados a partir dos
+// minis para nunca divergirem; lupa frontal não muda (valores por 100 g são iguais).
+const BENTOLE_G = PRODUCTS.filter(p => p.category === "bentole").map(p => ({
+  ...p,
+  id: p.id + "-g",
+  name: p.name + " G",
+  serving: p.serving * 2,
+  portionLabel: (p.serving * 2) + " g (picolé G)",
+  ingredients: p.ingredients.map(i => ({ ...i })),
+  nutrition: Object.fromEntries(Object.entries(p.nutrition).map(([k, v]) => [k, Math.round(v * 2 * 100) / 100])),
+  flags: { ...p.flags },
+  yield: "~50 picolés G",
+  description: p.description + " Versão G: o dobro do mini.",
+}));
+PRODUCTS.push(...BENTOLE_G);
+
 // POLIOL_IDS é derivado de hasPolyols, calculado mais abaixo (após a troca de
 // base dos picolés), a partir das composições auditadas dos insumos.
 
@@ -304,6 +321,11 @@ export const ALLERGENS = {
   "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
   "bentole-prestigio":  ["LEITE","SOJA"],
 };
+// Bentôlé G herda os alérgicos do mini correspondente.
+for (const p of PRODUCTS) if (p.id.endsWith("-g") && p.category === "bentole") {
+  ALLERGENS[p.id] = ALLERGENS[p.id.slice(0, -2)] || [];
+}
+
 // Produção compartilhada na mesma gelateria + "pode conter" das fichas dos
 // insumos (o mais extenso é o da pasta de pistache MEC3).
 export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTANHA-DE-CAJU","CASTANHA-DO-PARÁ","MACADÂMIA","NOZES","PECÃ","PISTACHE","TRIGO","CENTEIO","CEVADA","AVEIA","SOJA"];
@@ -317,11 +339,11 @@ export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTA
 // fornecedor, os que levam pasta de pistache MEC3 — a ficha diz "CONTÉM GLÚTEN"
 // sem trigo na composição (Lei 10.674 é binária); ver exceção logo abaixo.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
-const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
+const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui", "bentole-franui-g"];
 // A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição
 // (cereais no "pode conter"; a Lei 10.674 é binária) → sabores com essa pasta
 // declaram glúten mesmo sem TRIGO nos alérgicos.
-const CONTEM_GLUTEN_PELA_PASTA_PISTACHE = ["pistache", "bentole-pistache-cb"];
+const CONTEM_GLUTEN_PELA_PASTA_PISTACHE = ["pistache", "bentole-pistache-cb", "bentole-pistache-cb-g"];
 for (const p of PRODUCTS) {
   p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE") && !ZERO_LACTOSE_APESAR_DE_LEITE.includes(p.id);
   p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO") || CONTEM_GLUTEN_PELA_PASTA_PISTACHE.includes(p.id);
