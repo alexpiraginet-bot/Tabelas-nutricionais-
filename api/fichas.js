@@ -17,6 +17,8 @@ function findKV() {
 const { url: KV_URL, token: KV_TOKEN } = findKV();
 const KEYS = [process.env.FICHAS_KEY, process.env.PANEL_KEY].filter(Boolean);
 const KV_KEY = "fichas:drafts";
+const KV_INSUMOS = "fichas:insumos";
+const KV_RECEITAS = "fichas:receitas";
 
 function bearer(req) {
   const h = req.headers.authorization || "";
@@ -39,10 +41,11 @@ async function kv(cmd) {
   const j = await r.json().catch(() => ({}));
   return j.result;
 }
-async function readDrafts() {
-  const raw = await kv(["GET", KV_KEY]);
+async function readMap(key) {
+  const raw = await kv(["GET", key]);
   try { return raw ? JSON.parse(raw) : {}; } catch { return {}; }
 }
+const readDrafts = () => readMap(KV_KEY);
 
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
@@ -51,7 +54,8 @@ export default async function handler(req, res) {
   if (!KV_URL || !KV_TOKEN) { res.status(503).json({ ok: false, error: "Banco (Redis/KV) não configurado." }); return; }
 
   if (req.method === "GET") {
-    res.status(200).json({ ok: true, drafts: await readDrafts(), ai: !!process.env.ANTHROPIC_API_KEY });
+    const [drafts, insumos, receitas] = await Promise.all([readDrafts(), readMap(KV_INSUMOS), readMap(KV_RECEITAS)]);
+    res.status(200).json({ ok: true, drafts, insumos, receitas, ai: !!process.env.ANTHROPIC_API_KEY });
     return;
   }
   if (req.method !== "POST") { res.status(405).end(); return; }
@@ -60,18 +64,23 @@ export default async function handler(req, res) {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   if (!body || typeof body !== "object") body = {};
 
-  const drafts = await readDrafts();
-  if (body.action === "save" && body.id && body.patch && typeof body.patch === "object") {
-    drafts[body.id] = {
-      ...(drafts[body.id] || {}),
+  // roteia a ação para o mapa certo: rascunhos de SKU, cadastro de insumos ou receitas
+  const KEYMAP = { save: KV_KEY, clear: KV_KEY, "insumo-save": KV_INSUMOS, "insumo-del": KV_INSUMOS, "receita-save": KV_RECEITAS, "receita-del": KV_RECEITAS };
+  const storeKey = KEYMAP[body.action];
+  if (!storeKey || !body.id) { res.status(400).json({ ok: false, error: "action" }); return; }
+  const map = await readMap(storeKey);
+  if (/-(save)$|^save$/.test(body.action)) {
+    if (!body.patch || typeof body.patch !== "object") { res.status(400).json({ ok: false, error: "patch" }); return; }
+    map[body.id] = {
+      ...(map[body.id] || {}),
       ...body.patch,
       _meta: { by: String(body.by || "").slice(0, 60), at: new Date().toISOString() },
     };
-  } else if (body.action === "clear" && body.id) {
-    delete drafts[body.id];
   } else {
-    res.status(400).json({ ok: false, error: "action" }); return;
+    delete map[body.id];
   }
-  await kv(["SET", KV_KEY, JSON.stringify(drafts)]);
-  res.status(200).json({ ok: true, drafts });
+  await kv(["SET", storeKey, JSON.stringify(map)]);
+  const out = { ok: true };
+  out[storeKey === KV_KEY ? "drafts" : storeKey === KV_INSUMOS ? "insumos" : "receitas"] = map;
+  res.status(200).json(out);
 }
