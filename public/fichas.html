@@ -4,59 +4,150 @@
 <meta name="theme-color" content="#F6F1E7"/>
 <title>Fichas Técnicas · Nutri & P&D — Bentô</title>
 <style>
-:root{--bg:#F6F1E7;--surface:#FFFDF7;--ink:#232619;--soft:#5E6353;--pist:#46583A;--border:#E4DCC9;--gold:#C9A24A;--red:#8A2A00;--warn:#7A5320}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Georgia,'Times New Roman',serif}
+:root{--bg:#F6F1E7;--surface:#FFFDF7;--ink:#232619;--soft:#5E6353;--pist:#46583A;--border:#E4DCC9;--gold:#C9A24A;--red:#8A2A00;--warn:#7A5320;--radius:12px;--shadow:0 1px 2px rgba(35,38,25,.05),0 4px 14px rgba(35,38,25,.06)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 Georgia,'Times New Roman',serif}
 .mono{font-family:ui-monospace,Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;font-size:10px}
-header{display:flex;gap:12px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surface)}
-header h1{font-size:16px;margin:0}header .mono{color:var(--pist)}
-main{display:grid;grid-template-columns:250px 1fr;gap:0;min-height:calc(100vh - 57px)}
-nav{border-right:1px solid var(--border);background:var(--surface);overflow-y:auto}
-nav button{display:block;width:100%;text-align:left;padding:9px 14px;border:0;border-bottom:1px solid var(--border);background:none;cursor:pointer;font:inherit;font-size:13px}
-nav button.on{background:var(--bg);font-weight:700}
-nav .tag{font-size:9px;padding:1px 5px;border-radius:6px;margin-left:5px;font-family:ui-monospace,monospace}
-.tag.draft{background:#F2E2C5;color:var(--warn)}.tag.est{background:#FBE3EC;color:#A8334A}
-section{padding:18px 22px;max-width:980px}
-h2{font-size:19px;margin:0 0 2px}h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pist);margin:20px 0 8px;font-family:ui-monospace,monospace}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
-label{display:block;font-size:10px;color:var(--soft);font-family:ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
-input,textarea{width:100%;padding:7px 8px;border:1px solid var(--border);border-radius:7px;background:#fff;font:inherit;font-size:13px}
+
+/* ---------- header ---------- */
+header{display:flex;gap:14px;align-items:center;padding:14px 22px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:5;box-shadow:0 1px 0 rgba(35,38,25,.03)}
+header .brand{display:flex;flex-direction:column;gap:1px}
+header .brand .mono{color:var(--gold)}
+header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.01em}
+header .hspace{flex:1}
+header a.mono{color:var(--pist);text-decoration:none;padding:6px 2px;border-bottom:1px solid transparent;transition:border-color .15s}
+header a.mono:hover{border-bottom-color:var(--gold)}
+
+/* ---------- layout ---------- */
+main{display:grid;grid-template-columns:272px 1fr;gap:0;min-height:calc(100vh - 61px)}
+aside{border-right:1px solid var(--border);background:var(--surface);overflow-y:auto}
+#cats{display:flex;flex-direction:column;gap:6px;padding:12px 12px 8px}
+#cats button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:none;cursor:pointer;font:inherit;font-size:13.5px;font-weight:700;color:var(--soft);transition:background .15s,color .15s,border-color .15s}
+#cats button .n{margin-left:auto;font-family:ui-monospace,monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:99px;padding:1px 7px;color:var(--soft)}
+#cats button.on{background:var(--pist);border-color:var(--pist);color:#fff}
+#cats button.on .n{background:rgba(255,255,255,.14);border-color:transparent;color:#fff}
+#nav{padding:4px 12px 16px}
+#nav button{display:block;width:100%;text-align:left;padding:9px 12px;margin-top:4px;border:1px solid transparent;border-radius:10px;background:none;cursor:pointer;font:inherit;font-size:13px;transition:background .15s,border-color .15s}
+#nav button:hover{background:var(--bg)}
+#nav button.on{background:var(--bg);border-color:var(--border);font-weight:700;box-shadow:inset 3px 0 0 var(--gold)}
+
+/* ---------- pills ---------- */
+.pill{display:inline-block;font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.pill.draft{background:#F2E2C5;color:var(--warn)}
+.pill.est{background:#FBE3EC;color:#A8334A}
+.pill.ok{background:#DCE8CD;color:var(--pist)}
+.pill.calc{background:#DDE6EE;color:#2E4A66}
+
+/* ---------- editor ---------- */
+section{padding:22px 26px;max-width:1010px}
+h2{font-size:22px;margin:0 0 2px;letter-spacing:.01em}
+h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pist);margin:22px 0 8px;font-family:ui-monospace,monospace}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+label{display:block;font-size:10px;color:var(--soft);font-family:ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+input,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;font:inherit;font-size:13px;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus{outline:none;border-color:var(--pist);box-shadow:0 0 0 3px rgba(70,88,58,.12)}
 textarea{min-height:74px;resize:vertical}
-.row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
-button.act{padding:9px 14px;border:1px solid var(--pist);border-radius:8px;background:var(--pist);color:#fff;cursor:pointer;font:inherit;font-size:13px}
-button.sec{background:none;color:var(--pist)}button.act:disabled{opacity:.5;cursor:wait}
-.ficha{background:#fff;border:1.5px solid var(--ink);padding:18px;margin-top:8px}
-.ficha h4{margin:0 0 4px;font-size:15px;text-transform:uppercase}
-.ficha table{border-collapse:collapse;width:100%;max-width:460px;margin:8px 0}
-.ficha th,.ficha td{border:1px solid var(--ink);padding:3px 8px;font-size:12.5px;text-align:right}
-.ficha th:first-child,.ficha td:first-child{text-align:left}
-.ficha .b{font-weight:700}.ficha p{margin:6px 0;font-size:12.5px}
-.ai{border:1px solid var(--border);border-radius:9px;background:var(--surface);padding:14px;margin-top:10px}
-.ai .critico{color:var(--red);font-weight:700}.ai .atencao{color:var(--warn);font-weight:700}.ai .info{color:var(--pist);font-weight:700}
-.ai li{margin:6px 0;font-size:13px}
-#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9}
-#gate>div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:min(320px,calc(100vw - 32px));text-align:center}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+button.act{padding:9px 16px;border:1px solid var(--pist);border-radius:9px;background:var(--pist);color:#fff;cursor:pointer;font:inherit;font-size:13px;transition:filter .15s,transform .1s}
+button.act:hover{filter:brightness(1.08)}
+button.act:active{transform:translateY(1px)}
+button.sec{background:none;color:var(--pist)}
+button.gold{background:var(--gold);border-color:var(--gold)}
+button.act:disabled{opacity:.5;cursor:wait}
 .status{font-size:12px;color:var(--soft);min-height:18px}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.hint{font-size:12px;color:var(--soft);font-style:italic;margin:4px 0 0}
+
+/* ---------- IA ---------- */
+.ai{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:16px;margin-top:12px;box-shadow:var(--shadow)}
+.ai .critico{color:var(--red);font-weight:700}.ai .atencao{color:var(--warn);font-weight:700}.ai .info{color:var(--pist);font-weight:700}
+.ai li{margin:6px 0;font-size:13px}
+
+/* ---------- gate & modal ---------- */
+#gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9}
+#gate>div{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:30px;width:min(330px,calc(100vw - 32px));text-align:center;box-shadow:var(--shadow)}
+.overlay{position:fixed;inset:0;background:rgba(35,38,25,.45);display:flex;align-items:flex-start;justify-content:center;z-index:8;padding:4vh 16px;overflow-y:auto}
+.overlay[hidden]{display:none}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:min(560px,100%);box-shadow:var(--shadow)}
+.modal h3{margin-top:0}
+.modal .grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+
+/* ---------- FICHA padrão indústria ---------- */
+.ficha{background:#fff;border:1.5px solid var(--ink);padding:0;margin-top:10px;box-shadow:var(--shadow)}
+.ficha .fthead{display:grid;grid-template-columns:1.1fr 1.6fr 1fr;border-bottom:1.5px solid var(--ink)}
+.ficha .fthead>div{padding:10px 12px}
+.ficha .fthead .co{border-right:1px solid var(--ink)}
+.ficha .fthead .co .nm{font-weight:700;font-size:13px}
+.ficha .fthead .ti{border-right:1px solid var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;font-size:15px;letter-spacing:.12em}
+.ficha .fthead .mt{font-family:ui-monospace,monospace;font-size:10.5px;line-height:1.7}
+.ficha .fthead .mt b{font-weight:700}
+.ficha .ftbody{padding:14px 18px 18px}
+.ficha .sect{margin:0 0 12px}
+.ficha .sect>.st{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.14em;font-weight:700;border-bottom:1px solid var(--ink);padding-bottom:2px;margin-bottom:5px}
+.ficha p{margin:5px 0;font-size:12.5px}
+.ficha .b{font-weight:700}
+.ficha table{border-collapse:collapse;width:100%;margin:6px 0}
+.ficha th,.ficha td{border:1px solid var(--ink);padding:3px 8px;font-size:12px;text-align:right}
+.ficha th:first-child,.ficha td:first-child{text-align:left}
+.ficha table.kv td{text-align:left}
+.ficha table.kv td:first-child{width:200px;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft)}
+.ficha .nut{max-width:520px}
+.ficha .foot{display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1.5px solid var(--ink);padding:14px 18px 18px;margin-top:6px}
+.ficha .foot .sig{font-size:11.5px}
+.ficha .foot .line{border-bottom:1px solid var(--ink);height:34px;margin-bottom:4px}
+.ficha .small{font-size:10.5px;color:var(--soft)}
+
+/* ---------- dossiê (print only) ---------- */
+#dossier{display:none}
+#dossier .capa{background:#fff;border:1.5px solid var(--ink);padding:48px 40px}
+#dossier .capa h1{font-size:24px;margin:12px 0 4px}
+#dossier .capa ol{font-size:13px}
+#dossier .capa h3{margin:18px 0 6px}
+#dossier .page{margin-top:14px}
+
+/* ---------- mobile ---------- */
 @media (max-width:760px){
   main{display:block;min-height:auto}
-  header{flex-wrap:wrap;padding:10px 14px;gap:6px 14px}
-  header>.mono:first-child{display:none}
+  header{flex-wrap:wrap;padding:10px 14px;gap:6px 12px;position:static}
+  header .brand .mono{display:none}
   header h1{flex:1 1 100%;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   header .hspace{display:none}
   header a.mono{font-size:9px;padding:4px 0}
-  nav{display:flex;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:2}
-  nav button{flex:0 0 auto;width:auto;white-space:nowrap;border-bottom:0;border-right:1px solid var(--border);padding:10px 12px;min-height:44px}
-  nav button.on{box-shadow:inset 0 -3px 0 var(--pist)}
-  nav button>.mono{display:none!important}
+  aside{border-right:0;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:4}
+  #cats{flex-direction:row;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:10px 10px 6px;gap:6px}
+  #cats button{flex:0 0 auto;width:auto;white-space:nowrap;min-height:40px}
+  #nav{display:flex;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;padding:2px 10px 10px;gap:4px}
+  #nav button{flex:0 0 auto;width:auto;white-space:nowrap;min-height:44px;margin-top:0}
+  #nav button.on{box-shadow:inset 0 -3px 0 var(--gold)}
+  #nav button .pill{display:none}
+  #nav button>.mono{display:none!important}
   section{padding:14px 12px;max-width:none}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   input,textarea{font-size:16px}
   button.act{min-height:44px}
   .row button.act{flex:1 1 auto}
-  .ficha{padding:12px}
-  .ficha table{max-width:none;min-width:400px}
+  .ficha .fthead{grid-template-columns:1fr}
+  .ficha .fthead .co,.ficha .fthead .ti{border-right:0;border-bottom:1px solid var(--ink)}
+  .ficha .ftbody{padding:12px}
+  .ficha table{min-width:400px}
+  .ficha .nut{max-width:none}
+  .tablewrap table{min-width:400px}
 }
-@media print{header,nav,.noprint,#gate{display:none!important}main{display:block}section{max-width:none;padding:0}.tablewrap{overflow:visible}.ficha{border-width:2px;page-break-inside:avoid}.ficha table{max-width:460px;min-width:0}}
+/* ---------- print ---------- */
+@media print{
+  header,aside,.noprint,#gate,.overlay{display:none!important}
+  body{background:#fff}
+  main{display:block}
+  section{max-width:none;padding:0}
+  .tablewrap{overflow:visible}
+  .ficha{border-width:2px;box-shadow:none;page-break-inside:avoid}
+  .ficha table{min-width:0}
+  body.dossie main{display:none!important}
+  body.dossie #dossier{display:block}
+  #dossier .capa{page-break-after:always;border-width:2px}
+  #dossier .page{page-break-after:always;margin-top:0}
+  #dossier .page .ficha{page-break-inside:auto}
+}
 </style></head><body>
 <div id="gate"><div>
   <div class="mono" style="color:var(--pist);margin-bottom:10px">Bentô · Fichas Técnicas</div>
@@ -68,25 +159,66 @@ button.sec{background:none;color:var(--pist)}button.act:disabled{opacity:.5;curs
 </div></div>
 
 <header>
-  <div class="mono">Bentô Functional Nutrition</div>
-  <h1>Fichas Técnicas — Nutri & P&D</h1>
-  <span class="hspace" style="flex:1"></span>
-  <a class="mono noprint" href="/tabela-nutricional.csv" download style="color:var(--pist)">CSV nutricional</a>
-  <a class="mono noprint" href="/ficha-tecnica.csv" download style="color:var(--pist)">CSV produção</a>
+  <div class="brand">
+    <div class="mono">Bentô Functional Nutrition</div>
+    <h1>Fichas Técnicas — Nutri & P&D</h1>
+  </div>
+  <span class="hspace"></span>
+  <a class="mono noprint" href="/tabela-nutricional.csv" download>CSV nutricional</a>
+  <a class="mono noprint" href="/ficha-tecnica.csv" download>CSV produção</a>
   <button class="act sec noprint" id="expjson" style="padding:6px 10px;font-size:12px">Exportar JSON</button>
+  <button class="act sec noprint" id="cfgbtn" style="padding:6px 10px;font-size:12px">⚙️ Dados da empresa</button>
+  <button class="act gold noprint" id="dossiebtn" style="padding:6px 12px;font-size:12px">📑 Dossiê completo</button>
 </header>
 <main>
-  <nav id="nav"></nav>
+  <aside class="noprint"><div id="cats"></div><nav id="nav"></nav></aside>
   <section id="sec"><p class="status">Carregando…</p></section>
 </main>
+
+<div class="overlay" id="cfgov" hidden><div class="modal">
+  <h3 style="margin:0 0 4px">⚙️ Dados da empresa & responsável técnico</h3>
+  <p class="status" style="margin:0 0 12px">Usados no cabeçalho e na seção 8 de todas as fichas. Campos vazios saem como "____________" na impressão (preencher à mão) — nunca invente CNPJ/RT.</p>
+  <div class="grid">
+    <div style="grid-column:1/-1"><label>Razão social</label><input id="c_empresa"/></div>
+    <div><label>CNPJ</label><input id="c_cnpj"/></div>
+    <div><label>Cidade / UF</label><input id="c_cidadeUf"/></div>
+    <div style="grid-column:1/-1"><label>Endereço completo</label><input id="c_endereco"/></div>
+    <div><label>Responsável técnico</label><input id="c_rt"/></div>
+    <div><label>CRN / registro do RT</label><input id="c_rtRegistro"/></div>
+    <div><label>Validade — gelato</label><input id="c_validadeGelato" placeholder="ex.: 90 dias a -18 °C"/></div>
+    <div><label>Validade — bentôlé</label><input id="c_validadeBentole" placeholder="ex.: 90 dias a -18 °C"/></div>
+    <div><label>Validade — shake</label><input id="c_validadeShake" placeholder="ex.: consumo imediato"/></div>
+    <div style="grid-column:1/-1"><label>Conservação (texto padrão)</label><textarea id="c_conservacao" placeholder="ex.: Conservar a -18 °C ou inferior. Após aberto…"></textarea></div>
+  </div>
+  <div class="row" style="margin-bottom:0">
+    <button class="act" id="cfgsave">Salvar configuração</button>
+    <button class="act sec" id="cfgclose">Fechar</button>
+  </div>
+  <div class="status" id="cfgmsg"></div>
+</div></div>
+
+<div id="dossier"></div>
+
 <script>
 "use strict";
 const $=(s)=>document.querySelector(s);
+const escH=(v)=>String(v??"").replace(/[&<>"']/g,(c)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const VD={kcal:2000,carbs:300,addedSugars:50,protein:50,fat:65,satFat:20,fiber:25,sodium:2000};
 const NUT=[["kcal","Valor energético (kcal)"],["carbs","Carboidratos (g)"],["sugars","Açúcares totais (g)"],["addedSugars","Açúcares adicionados (g)"],["protein","Proteínas (g)"],["fat","Gorduras totais (g)"],["satFat","Gorduras saturadas (g)"],["transFat","Gorduras trans (g)"],["fiber","Fibras alimentares (g)"],["sodium","Sódio (mg)"]];
-let DATA=null,DRAFTS={},CUR=null,KEY=localStorage.getItem("fichas:key")||"",NAME=localStorage.getItem("fichas:nome")||"";
+const SHAKE_NUT=[["kcal","Valor energético (kcal)"],["carb","Carboidratos (g)"],["prot","Proteínas (g)"],["fat","Gorduras totais (g)"],["sat","Gorduras saturadas (g)"],["fiber","Fibras alimentares (g)"],["na","Sódio (mg)"]];
+const CATS=[["gelato","🍨 Gelatos"],["bentole","🍡 Bentôlé"],["shake","🥤 Shakes"]];
+const CFG_FIELDS=["empresa","cnpj","endereco","cidadeUf","rt","rtRegistro","validadeGelato","validadeBentole","validadeShake","conservacao"];
+let DATA=null,DRAFTS={},CUR=null,CAT="gelato",KEY=localStorage.getItem("fichas:key")||"",NAME=localStorage.getItem("fichas:nome")||"";
 const br=(v)=>Number.isFinite(v)?String(Math.round(v*10)/10).replace(".",","):"—";
 const auth=()=>({Authorization:"Bearer "+KEY,"Content-Type":"application/json"});
+const items=()=>[...DATA.products,...(DATA.shakes||[])];
+const byCat=(c)=>items().filter(p=>p.category===c);
+const findItem=(id)=>items().find(x=>x.id===id);
+const isShake=(m)=>m.category==="shake";
+const cfg=()=>DRAFTS._config||{};
+const blank=(v)=>(v&&String(v).trim())?escH(v):"____________";
+const ftCode=(m)=>m.code||("FT-"+String(m.id).toUpperCase());
+const hoje=()=>new Date().toLocaleDateString("pt-BR");
 
 // ordem decrescente por quantidade; qty não numérica mantém a posição da receita
 function ordered(ings){
@@ -97,95 +229,205 @@ function ordered(ings){
 }
 function merged(p){
   const d=DRAFTS[p.id]||{};
-  return {...p,...d,nutrition:{...p.nutrition,...(d.nutrition||{})},draft:Object.keys(d).filter(k=>k!=="_meta").length>0};
+  const nutrition=Array.isArray(p.nutrition)?p.nutrition:{...p.nutrition,...(d.nutrition||{})};
+  const draft=Object.keys(d).filter(k=>k!=="_meta"&&k!=="_rev").length>0;
+  return {...p,...d,nutrition,draft};
 }
+const revOf=(m)=>{const d=DRAFTS[m.id]||{};return String(d._rev||(m.draft?1:0)).padStart(3,"0")};
+function denomDefault(m){
+  if(isShake(m))return "Shake proteico sabor "+m.name.replace(/^shake\s*/i,"").toLowerCase()+" (preparado na hora)";
+  const base=(m.category==="gelato"?"Gelato sabor ":"Picolé (Bentôlé) sabor ")+m.name.toLowerCase();
+  return (m.nutrition.addedSugars===0)?base+" zero adição de açúcares":base;
+}
+const denom=(m)=>m.denominacao&&m.denominacao.trim()?m.denominacao:denomDefault(m);
 function rotuloIngredientes(m){
   if(m.ingredientesText) return m.ingredientesText;
   return ordered(m.ingredients).map(i=>i.note?`${i.name} (${i.note.toLowerCase()})`:i.name).join(", ")+".";
 }
+function shakeAllergens(m){
+  // derivado dos ingredientes declarados (whey = proteína do leite)
+  return m.ingredients.some(i=>/leite|whey/i.test(i.name))?["LEITE"]:[];
+}
 function alergicosTexto(m){
-  const a=(m.alergicosText||m.allergens.join(", "));
+  const base=isShake(m)?shakeAllergens(m).join(", "):m.allergens.join(", ");
+  const a=(m.alergicosText||base);
   return a?`ALÉRGICOS: CONTÉM ${a.toUpperCase()}.`:"ALÉRGICOS: NÃO CONTÉM ALÉRGENOS DE DECLARAÇÃO OBRIGATÓRIA.";
+}
+function glutenLactose(m){
+  if(isShake(m))return ["NÃO CONTÉM GLÚTEN.","PODE CONTER LACTOSE — CONFORME O WHEY E O LÍQUIDO ESCOLHIDOS."];
+  return [m.flags.gluten?"CONTÉM GLÚTEN.":"NÃO CONTÉM GLÚTEN.",m.flags.lactose?"CONTÉM LACTOSE.":"NÃO CONTÉM LACTOSE."];
 }
 function advertencias(m){
   const out=[];
+  if(isShake(m)){
+    out.push("PRODUTO PREPARADO E SERVIDO NA HORA — CONSUMO IMEDIATO; NÃO ARMAZENAR O PRODUTO PRONTO.");
+    out.push("VALORES NUTRICIONAIS CALCULADOS POR LÍQUIDO ESCOLHIDO — PODEM VARIAR CONFORME MARCA, LOTE E PONTO DA FRUTA.");
+    return out;
+  }
   if(m.hasPolyols) out.push("CONTÉM POLIÓIS. "+DATA.avisoPoliol.toUpperCase());
-  out.push(m.flags.gluten?"CONTÉM GLÚTEN.":"NÃO CONTÉM GLÚTEN.");
-  out.push(m.flags.lactose?"CONTÉM LACTOSE.":"NÃO CONTÉM LACTOSE.");
-  out.push(`ALÉRGICOS: PODE CONTER ${DATA.podeConter.join(", ")}.`);
   if(m.estimated) out.push("⚠ USO INTERNO: macros ESTIMADOS — não protocolar sem análise laboratorial.");
+  if(!out.length) out.push("Sem advertências adicionais além das declarações de alergênicos da seção 3.");
   return out;
 }
+// lista completa (usada no payload da análise IA — mantém o comportamento anterior)
+function advertenciasAll(m){
+  return [...glutenLactose(m),`ALÉRGICOS: PODE CONTER ${DATA.podeConter.join(", ")}.`,...advertencias(m)];
+}
+function conservacaoTexto(m){
+  if(m.conservacao&&String(m.conservacao).trim())return escH(m.conservacao);
+  const c=cfg();
+  const val={gelato:c.validadeGelato,bentole:c.validadeBentole,shake:c.validadeShake}[m.category];
+  const parts=[c.conservacao,val?("Validade: "+val):""].filter(v=>v&&String(v).trim()).map(escH);
+  return parts.length?parts.join(" · "):"____________";
+}
+function pills(m){
+  let h="";
+  if(m.draft)h+=`<span class="pill draft">rascunho r${revOf(m)}</span>`;
+  if(m.estimated)h+=`<span class="pill est">estimado</span>`;
+  if(isShake(m))h+=`<span class="pill calc">calculado</span>`;
+  if(!m.draft&&!m.estimated&&!isShake(m))h+=`<span class="pill ok">publicado</span>`;
+  return h;
+}
 function nav(){
-  $("#nav").innerHTML=DATA.products.map(p=>{const m=merged(p);
-    return `<button data-id="${p.id}" class="${CUR===p.id?"on":""}">${p.name}
-      <span class="mono" style="color:var(--soft);display:block;font-size:9px">${m.linha}</span>
-      ${m.draft?'<span class="tag draft">rascunho</span>':""}${m.estimated?'<span class="tag est">estimado</span>':""}</button>`;}).join("");
+  $("#cats").innerHTML=CATS.map(([c,l])=>`<button data-cat="${c}" class="${CAT===c?"on":""}">${l}<span class="n">${byCat(c).length}</span></button>`).join("");
+  document.querySelectorAll("#cats button").forEach(b=>b.onclick=()=>{
+    CAT=b.dataset.cat;
+    const list=byCat(CAT);
+    if(!list.some(p=>p.id===CUR))CUR=list[0]?list[0].id:null;
+    render();
+  });
+  $("#nav").innerHTML=byCat(CAT).map(p=>{const m=merged(p);
+    return `<button data-id="${p.id}" class="${CUR===p.id?"on":""}">${escH(p.name)}
+      <span class="mono" style="color:var(--soft);display:block;font-size:9px">${escH(m.linha)}</span>
+      ${m.draft?'<span class="pill draft">rascunho</span>':""}${m.estimated?'<span class="pill est">estimado</span>':""}</button>`;}).join("");
   document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>{CUR=b.dataset.id;render()});
 }
-function fichaHTML(m){
+
+/* ===== FICHA TÉCNICA — padrão fornecedor/indústria (ref.: fichas Aromitalia) ===== */
+function nutTableProduto(m){
   const f=100/m.serving;
   const rows=NUT.map(([k,l])=>{
     const v=m.nutrition[k]??0,vd=VD[k]?Math.round(v/VD[k]*100):null;
     return `<tr><td>${l}</td><td>${br(v*f)}</td><td>${br(v)}</td><td>${vd===null?"—":vd+"%"}</td></tr>`;
   }).join("");
-  const alegs=[m.claims.sugar,m.claims.sugarNote,m.claims.protein,...(m.claims.lupa||[]).map(l=>"LUPA FRONTAL: ALTO EM "+l)].filter(Boolean);
-  return `<div class="ficha" id="fichaPrint">
-    <h4>Ficha técnica de rotulagem — ${m.name}</h4>
-    <p class="mono" style="margin-bottom:10px">${m.linha} · Porção: ${m.portionLabel} · Rendimento da receita: ${m.yield} · Gerada em ${new Date().toLocaleDateString("pt-BR")}</p>
-    <p><span class="b">INGREDIENTES:</span> ${rotuloIngredientes(m)}</p>
-    <p class="b">${alergicosTexto(m)}</p>
-    ${advertencias(m).map(a=>`<p class="b">${a}</p>`).join("")}
-    <div class="tablewrap"><table><tr><th>INFORMAÇÃO NUTRICIONAL</th><th>100 g</th><th>${m.portionLabel}</th><th>%VD*</th></tr>${rows}</table></div>
-    <p style="font-size:11px">*Percentual de valores diários fornecidos pela porção com base em uma dieta de 2.000 kcal ou 8.400 kJ. Seus valores diários podem ser maiores ou menores dependendo de suas necessidades energéticas.</p>
-    ${alegs.length?`<p><span class="b">Alegações:</span> ${alegs.join(" · ")}</p>`:""}
-    ${m.obs?`<p><span class="b">Observações internas:</span> ${m.obs}</p>`:""}
+  return `<div class="tablewrap"><table class="nut"><tr><th>INFORMAÇÃO NUTRICIONAL</th><th>100 g</th><th>${escH(m.portionLabel)}</th><th>%VD*</th></tr>${rows}</table></div>
+  <p class="small">*Percentual de valores diários fornecidos pela porção com base em uma dieta de 2.000 kcal ou 8.400 kJ. Seus valores diários podem ser maiores ou menores dependendo de suas necessidades energéticas.</p>`;
+}
+function nutTableShake(m){
+  const head=`<tr><th>INFORMAÇÃO NUTRICIONAL — por porção preparada</th>${m.nutrition.map(n=>`<th>${escH(n.liquid)}</th>`).join("")}</tr>`;
+  const rows=SHAKE_NUT.map(([k,l])=>`<tr><td>${l}</td>${m.nutrition.map(n=>`<td>${br(n[k])}</td>`).join("")}</tr>`).join("");
+  return `<div class="tablewrap"><table>${head}${rows}</table></div>
+  <p class="small">Produto preparado na hora — valores calculados por líquido escolhido pelo cliente (não há tabela por 100 g de produto pronto).</p>`;
+}
+function fichaHTML(m){
+  const c=cfg();
+  const alegs=isShake(m)?[]:[m.claims.sugar,m.claims.sugarNote,m.claims.protein,...(m.claims.lupa||[]).map(l=>"LUPA FRONTAL: ALTO EM "+l)].filter(Boolean);
+  const porcao=isShake(m)?`1 shake (${escH(m.sub)})`:escH(m.portionLabel);
+  return `<div class="ficha">
+    <div class="fthead">
+      <div class="co"><div class="nm">${blank(c.empresa)==="____________"?"Bentô Functional Nutrition":escH(c.empresa)}</div>
+        <div class="small">CNPJ: ${blank(c.cnpj)}</div></div>
+      <div class="ti">FICHA TÉCNICA DE PRODUTO</div>
+      <div class="mt"><b>Código:</b> ${escH(ftCode(m))}<br/><b>Revisão:</b> ${revOf(m)}<br/><b>Emissão:</b> ${hoje()}<br/><b>Página:</b> 1/1</div>
+    </div>
+    <div class="ftbody">
+      <div class="sect"><div class="st">1. DENOMINAÇÃO DE VENDA</div>
+        <p class="b">${escH(denom(m))}</p>
+        <p class="small">${escH(m.linha)} · Porção: ${porcao}${m.yield?` · Rendimento da receita: ${escH(m.yield)}`:""}${isShake(m)&&m.prep?` · Preparo: ${escH(m.prep)}`:""}</p></div>
+      <div class="sect"><div class="st">2. INGREDIENTES</div>
+        <p>${escH(rotuloIngredientes(m))}</p>
+        <p class="small">Lista em ordem decrescente de quantidade; composições dos ingredientes compostos entre parênteses (RDC 727/2022).</p></div>
+      <div class="sect"><div class="st">3. ALERGÊNICOS (RDC 26/2015)</div>
+        <p class="b">${escH(alergicosTexto(m))}</p>
+        <p class="b">ALÉRGICOS: PODE CONTER ${DATA.podeConter.join(", ")}.</p>
+        ${glutenLactose(m).map(x=>`<p class="b">${escH(x)}</p>`).join("")}</div>
+      <div class="sect"><div class="st">4. INFORMAÇÃO NUTRICIONAL (RDC 429/2020 · IN 75/2020)</div>
+        ${isShake(m)?nutTableShake(m):nutTableProduto(m)}</div>
+      <div class="sect"><div class="st">5. ADVERTÊNCIAS</div>
+        ${advertencias(m).map(a=>`<p class="b">${escH(a)}</p>`).join("")}</div>
+      <div class="sect"><div class="st">6. ALEGAÇÕES (RDC 54/2012)</div>
+        ${alegs.length?alegs.map(a=>`<p>${escH(a)}</p>`).join(""):`<p>Nenhuma alegação nutricional declarada${isShake(m)?" — produto preparado na hora; alegações a validar com o RT":""}.</p>`}</div>
+      <div class="sect"><div class="st">7. CONSERVAÇÃO E VALIDADE</div>
+        <p>${conservacaoTexto(m)}</p></div>
+      <div class="sect"><div class="st">8. EMPRESA E RESPONSÁVEL TÉCNICO</div>
+        <table class="kv">
+          <tr><td>Razão social</td><td>${blank(c.empresa)}</td></tr>
+          <tr><td>CNPJ</td><td>${blank(c.cnpj)}</td></tr>
+          <tr><td>Endereço</td><td>${blank(c.endereco)}</td></tr>
+          <tr><td>Cidade / UF</td><td>${blank(c.cidadeUf)}</td></tr>
+          <tr><td>Responsável técnico</td><td>${blank(c.rt)}</td></tr>
+          <tr><td>CRN / registro</td><td>${blank(c.rtRegistro)}</td></tr>
+        </table></div>
+      ${m.obs?`<div class="sect"><div class="st">OBSERVAÇÕES INTERNAS (não saem no rótulo)</div><p>${escH(m.obs)}</p></div>`:""}
+    </div>
+    <div class="foot">
+      <div class="sig"><div class="line"></div><b>Elaborador</b> — assinatura · Data: ____/____/______</div>
+      <div class="sig"><div class="line"></div><b>Aprovador (RT)</b> — assinatura · Data: ____/____/______</div>
+    </div>
   </div>`;
 }
+
+/* ===== editor ===== */
 function render(){
   nav();
-  const p=DATA.products.find(x=>x.id===CUR);if(!p){$("#sec").innerHTML="<p class='status'>Selecione um sabor.</p>";return}
+  const p=findItem(CUR);
+  if(!p){$("#sec").innerHTML="<p class='status'>Selecione um sabor.</p>";return}
   const m=merged(p),meta=(DRAFTS[p.id]||{})._meta;
+  const shake=isShake(m);
   $("#sec").innerHTML=`
-    <h2>${m.name}</h2>
-    <p class="status">${meta?`Rascunho salvo por ${meta.by||"?"} em ${new Date(meta.at).toLocaleString("pt-BR")}`:"Sem edições pendentes — exibindo dados publicados."}</p>
+    <h2>${m.emoji?escH(m.emoji)+" ":""}${escH(m.name)} ${pills(m)}</h2>
+    <p class="status">${meta?`Rascunho salvo por ${escH(meta.by||"?")} em ${new Date(meta.at).toLocaleString("pt-BR")}`:"Sem edições pendentes — exibindo dados publicados."}</p>
     <div class="noprint">
+      <h3>Denominação, conservação & observações</h3>
+      <div class="grid" style="grid-template-columns:1fr">
+        <div><label>1 · Denominação de venda (vazio = padrão)</label><input id="f_denominacao" value="${escH(m.denominacao||"")}" placeholder="${escH(denomDefault(m))}"/></div>
+        <div><label>7 · Conservação e validade (vazio = padrão da categoria em ⚙️)</label><textarea id="f_conservacao" placeholder="${escH(conservacaoTexto({...m,conservacao:""}).replace(/____________/,"defina o padrão em ⚙️ Dados da empresa"))}">${escH(m.conservacao||"")}</textarea></div>
+        <div><label>Observações internas (não saem no rótulo)</label><textarea id="f_obs">${escH(m.obs||"")}</textarea></div>
+      </div>
+      ${shake?`<p class="hint">🥤 Shake preparado na hora: macros são <b>calculados por líquido</b> a partir das fichas dos insumos — não são editáveis aqui.</p>`:`
       <h3>Porção & tabela nutricional (por porção)</h3>
       <div class="grid">
         <div><label>Porção (g)</label><input id="f_serving" type="number" step="1" value="${m.serving}"/></div>
-        <div><label>Rótulo da porção</label><input id="f_portionLabel" value="${m.portionLabel}"/></div>
+        <div><label>Rótulo da porção</label><input id="f_portionLabel" value="${escH(m.portionLabel)}"/></div>
         ${NUT.map(([k,l])=>`<div><label>${l}</label><input id="n_${k}" type="number" step="0.1" value="${m.nutrition[k]??0}"/></div>`).join("")}
       </div>
       <h3>Lista de ingredientes do rótulo (vazio = gerada automaticamente da receita)</h3>
-      <textarea id="f_ingredientesText" placeholder="${rotuloIngredientes({...m,ingredientesText:""}).replace(/"/g,"&quot;")}">${m.ingredientesText||""}</textarea>
+      <textarea id="f_ingredientesText" placeholder="${rotuloIngredientes({...m,ingredientesText:""}).replace(/"/g,"&quot;")}">${escH(m.ingredientesText||"")}</textarea>
       <h3>Alérgicos — CONTÉM (vazio = derivado da receita)</h3>
-      <input id="f_alergicosText" value="${m.alergicosText||""}" placeholder="${m.allergens.join(", ")}"/>
-      <h3>Observações internas (não saem no rótulo)</h3>
-      <textarea id="f_obs">${m.obs||""}</textarea>
+      <input id="f_alergicosText" value="${escH(m.alergicosText||"")}" placeholder="${escH(m.allergens.join(", "))}"/>`}
       <div class="row">
         <button class="act" id="save">Salvar rascunho</button>
         <button class="act sec" id="clear">Descartar rascunho</button>
         <button class="act" id="ai">🧠 Analisar conformidade (IA)</button>
-        <button class="act sec" onclick="window.print()">Imprimir / PDF p/ protocolo</button>
+        <button class="act sec" onclick="window.print()">🖨 Imprimir esta ficha</button>
       </div>
       <div class="status" id="msg"></div>
       <div id="aiout"></div>
     </div>
-    <h3>Prévia da ficha (modelo de protocolo)</h3>
+    <h3>Ficha técnica — padrão indústria (prévia de impressão)</h3>
     ${fichaHTML(m)}`;
   $("#save").onclick=save;$("#clear").onclick=clearDraft;$("#ai").onclick=analyze;
 }
-function collectPatch(){
-  const patch={serving:+$("#f_serving").value||undefined,portionLabel:$("#f_portionLabel").value.trim(),nutrition:{}};
-  NUT.forEach(([k])=>{const v=parseFloat($("#n_"+k).value);if(Number.isFinite(v))patch.nutrition[k]=v});
-  const it=$("#f_ingredientesText").value.trim();if(it)patch.ingredientesText=it;
-  const al=$("#f_alergicosText").value.trim();if(al)patch.alergicosText=al;
+function collectPatch(m){
+  const patch={};
+  const den=$("#f_denominacao").value.trim();if(den)patch.denominacao=den;
+  const cv=$("#f_conservacao").value.trim();if(cv)patch.conservacao=cv;
   const ob=$("#f_obs").value.trim();if(ob)patch.obs=ob;
+  if(!isShake(m)){
+    patch.serving=+$("#f_serving").value||undefined;
+    patch.portionLabel=$("#f_portionLabel").value.trim();
+    patch.nutrition={};
+    NUT.forEach(([k])=>{const v=parseFloat($("#n_"+k).value);if(Number.isFinite(v))patch.nutrition[k]=v});
+    const it=$("#f_ingredientesText").value.trim();if(it)patch.ingredientesText=it;
+    const al=$("#f_alergicosText").value.trim();if(al)patch.alergicosText=al;
+  }
+  patch._rev=((DRAFTS[m.id]||{})._rev||0)+1; // nº de revisão da ficha (Revisão NNN)
   return patch;
 }
 async function save(){
   $("#msg").textContent="Salvando…";
-  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"save",id:CUR,by:NAME,patch:collectPatch()})});
+  const m=findItem(CUR);
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"save",id:CUR,by:NAME,patch:collectPatch(m)})});
   const j=await r.json().catch(()=>({}));
   if(j.ok){DRAFTS=j.drafts;render();$("#msg").textContent="Rascunho salvo ✔ (o site público só muda após aplicação no código)."}
   else $("#msg").textContent="Erro: "+(j.error||r.status);
@@ -197,8 +439,8 @@ async function clearDraft(){
 }
 async function analyze(){
   const b=$("#ai");b.disabled=true;b.textContent="Analisando… (até 1 min)";$("#aiout").innerHTML="";
-  const p=DATA.products.find(x=>x.id===CUR);
-  const ficha={base:p,draft:DRAFTS[p.id]||null,rotulo:{ingredientes:rotuloIngredientes(merged(p)),alergicos:alergicosTexto(merged(p)),advertencias:advertencias(merged(p))},contexto:{podeConter:DATA.podeConter,avisoPoliol:DATA.avisoPoliol}};
+  const p=findItem(CUR);
+  const ficha={base:p,draft:DRAFTS[p.id]||null,rotulo:{denominacao:denom(merged(p)),ingredientes:rotuloIngredientes(merged(p)),alergicos:alergicosTexto(merged(p)),advertencias:advertenciasAll(merged(p))},contexto:{podeConter:DATA.podeConter,avisoPoliol:DATA.avisoPoliol,empresa:cfg()}};
   try{
     const r=await fetch("/api/fichas-ai",{method:"POST",headers:auth(),body:JSON.stringify({ficha})});
     const j=await r.json();
@@ -212,12 +454,56 @@ async function analyze(){
       <p style="font-size:13px"><b>${a.rotulo_sugerido.alergicos}</b></p>
       ${a.rotulo_sugerido.advertencias.map(x=>`<p style="font-size:13px"><b>${x}</b></p>`).join("")}
       ${a.rotulo_sugerido.alegacoes.length?`<p style="font-size:13px"><b>Alegações:</b> ${a.rotulo_sugerido.alegacoes.join(" · ")}</p>`:""}
-      <button class="act sec" style="margin-top:8px" id="aiApply">Copiar lista sugerida p/ o rascunho</button>
+      ${isShake(p)?"":'<button class="act sec" style="margin-top:8px" id="aiApply">Copiar lista sugerida p/ o rascunho</button>'}
     </div>`;
-    $("#aiApply").onclick=()=>{$("#f_ingredientesText").value=a.rotulo_sugerido.lista_ingredientes;$("#msg").textContent="Lista sugerida copiada — revise e salve o rascunho."};
-  }catch(e){$("#aiout").innerHTML=`<div class="ai"><span class="critico">Erro na análise:</span> ${e.message}</div>`}
+    const ap=$("#aiApply");
+    if(ap)ap.onclick=()=>{$("#f_ingredientesText").value=a.rotulo_sugerido.lista_ingredientes;$("#msg").textContent="Lista sugerida copiada — revise e salve o rascunho."};
+  }catch(e){$("#aiout").innerHTML=`<div class="ai"><span class="critico">Erro na análise:</span> ${escH(e.message)}</div>`}
   b.disabled=false;b.textContent="🧠 Analisar conformidade (IA)";
 }
+
+/* ===== config global (_config no KV — mesmo endpoint /api/fichas) ===== */
+function openCfg(){
+  const c=cfg();
+  CFG_FIELDS.forEach(k=>{$("#c_"+k).value=c[k]||""});
+  $("#cfgmsg").textContent="";
+  $("#cfgov").hidden=false;
+}
+async function saveCfg(){
+  $("#cfgmsg").textContent="Salvando…";
+  const patch={};CFG_FIELDS.forEach(k=>{patch[k]=$("#c_"+k).value.trim()});
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"save",id:"_config",by:NAME,patch})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){DRAFTS=j.drafts;$("#cfgmsg").textContent="Configuração salva ✔ — aplicada em todas as fichas.";render()}
+  else $("#cfgmsg").textContent="Erro: "+(j.error||r.status);
+}
+$("#cfgbtn").onclick=openCfg;
+$("#cfgsave").onclick=saveCfg;
+$("#cfgclose").onclick=()=>{$("#cfgov").hidden=true};
+$("#cfgov").onclick=(e)=>{if(e.target.id==="cfgov")$("#cfgov").hidden=true};
+
+/* ===== dossiê ANVISA (capa + todas as fichas, quebra de página por SKU) ===== */
+function dossie(){
+  const c=cfg();
+  const indice=CATS.map(([cid,l])=>{
+    const list=byCat(cid);
+    return list.length?`<h3 class="mono" style="color:var(--pist)">${l} (${list.length})</h3><ol>${list.map(p=>`<li>${escH(denom(merged(p)))} — <span class="mono" style="letter-spacing:.05em">${escH(ftCode(p))}</span></li>`).join("")}</ol>`:"";
+  }).join("");
+  $("#dossier").innerHTML=`<div class="capa">
+      <div class="mono" style="color:var(--gold)">Dossiê de fichas técnicas · notificação ANVISA</div>
+      <h1>${blank(c.empresa)==="____________"?"Bentô Functional Nutrition":escH(c.empresa)}</h1>
+      <p class="small" style="font-size:12px">CNPJ: ${blank(c.cnpj)} · ${blank(c.cidadeUf)}<br/>Responsável técnico: ${blank(c.rt)} — CRN/registro: ${blank(c.rtRegistro)}</p>
+      <p style="font-size:13px">Emitido em ${hoje()} · ${items().length} fichas técnicas (padrão indústria, seções 1–8).</p>
+      <h2 style="font-size:16px;margin-top:24px">Índice</h2>
+      ${indice}
+    </div>`+items().map(p=>`<div class="page">${fichaHTML(merged(p))}</div>`).join("");
+  document.body.classList.add("dossie");
+  window.print();
+  document.body.classList.remove("dossie");
+}
+window.addEventListener("afterprint",()=>document.body.classList.remove("dossie"));
+$("#dossiebtn").onclick=dossie;
+
 $("#expjson").onclick=()=>{
   const blob=new Blob([JSON.stringify({geradoEm:new Date().toISOString(),...DATA,drafts:DRAFTS},null,1)],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bento-fichas-tecnicas.json";a.click();
@@ -227,7 +513,8 @@ async function boot(){
   if(r.status===401)throw new Error("401");
   const j=await r.json();DRAFTS=j.drafts||{};
   if(!DATA)DATA=await (await fetch("/fichas-data.json",{cache:"no-store"})).json();
-  CUR=CUR||DATA.products[0].id;
+  if(!CUR){CUR=DATA.products[0].id}
+  const cur=findItem(CUR);if(cur)CAT=cur.category;
   $("#gate").style.display="none";render();
 }
 $("#gbtn").onclick=async()=>{
