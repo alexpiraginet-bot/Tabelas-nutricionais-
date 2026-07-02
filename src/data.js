@@ -74,16 +74,29 @@ export const PASTA_PISTACHE = "Pasta de pistache e corante clorofila (INS 141(i)
 // · Mix de castanhas da Opereta (informação da produção, 02/07/2026) — cada
 //   espécie declarada nos alérgicos (RDC 26/2015); damasco não é alérgeno.
 export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, damasco, avelã e pistache";
+// · Creme de pistache = Aromitalia "Mesclado Pistache Senza Pecatto" (ESP-4361BR
+//   rev. 003, 08/10/2025). Sem adição de açúcares ✔ (1,4 g açúcares próprios),
+//   sem dextrose, sem glúten, sem leite; lecitina de GIRASSOL (sem soja). Tem
+//   MALTITOL (38 g polióis/100 g). CONTÉM PISTACHE; pode conter avelã, amêndoas
+//   e nozes. ATENÇÃO: a ficha exige "COLORIDO ARTIFICIALMENTE" no rótulo dos
+//   produtos que o usam (Dubai gelato e picolé) — avaliar com o RT.
+export const CREME_PISTACHE = "Óleo vegetal de canola, pistache, sal, edulcorantes maltitol (INS 965) e sucralose (INS 955), polidextrose (INS 1200), emulsificante lecitina de girassol (INS 322(i)), corantes clorofilina cúprica (INS 141(ii)), clorofila (INS 140(i)), clorofila cúprica (INS 141(i)) e curcumina (INS 100) e aromatizante";
+// · Bebida vegetal de amêndoa (rótulo do fabricante) — Extra Dark, 2 L/receita.
+//   Zero açúcares ✔. CONTÉM AMÊNDOAS; pode conter avelã, macadâmia, amendoim,
+//   castanha-de-caju, pistache e nozes (cobertos pelo PODE_CONTER). Sem glúten.
+export const BEBIDA_AMENDOA = "Água, pasta de amêndoas, cálcio, aromas naturais, sal marinho, goma gelana, goma guar e lecitina de girassol";
 
 /* ===== PENDENTE-AUDITORIA (insumos compostos ainda sem ficha do fornecedor) =====
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
-   · Creme de pistache (ex-"Creme de Pistache G") — Dubai gelato e picolé
    · "Emulsificante" das DUAS bases de gelato sem nome/INS na composição
      declarada (fichas oficiais recebidas, mas o aditivo segue genérico)
+   · Rotulagem dos sabores com creme de pistache deve trazer "COLORIDO
+     ARTIFICIALMENTE" (exigência da ficha ESP-4361BR) — validar com o RT
    DESCONTINUADOS: sabor Cookies & Cream (fora do ar em 02/07/2026, junto com o
    biscoito black Lowçucar), stracciatella e Base Limone 50.
-   RESOLVIDOS: bases de gelato com ficha oficial (FRUTA 300 ZERO p/ leite e
+   RESOLVIDOS: creme de pistache (ESP-4361BR) e bebida vegetal de amêndoa do
+   Extra Dark (2 L/receita); bases de gelato com ficha oficial (FRUTA 300 ZERO p/ leite e
    Vegana Sugar Free p/ sorbet), pasta de pistache MEC3 (com GLÚTEN!),
    Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
    (consts acima); Limão com suco concentrado de limão (sem açúcar adicionado;
@@ -106,13 +119,13 @@ export const PRODUCTS = [
     nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:0,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
     flags:{gluten:false,lactose:false}, yield:"2.000 mL",
     description:"Sorbet de limão siciliano com colágeno hidrolisado. Zero gordura, alta fibra. O gelato mais leve do cardápio." },
-  { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100% · vegano", emoji:"🖤", estimated:true, // reformulado (base vegana + bebida vegetal): reanalisar macros e gramatura da bebida
+  { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100% · vegano", emoji:"🖤", estimated:true, // fórmula nova (base vegana + 2 L de bebida de amêndoa): reanalisar macros
     moods:["zerocal","leve","premium"], palette:{base:"#5A3A22",mid:"#3A2418",deep:"#1A0E08",swirl:"#0A0503",hl:"#A87545"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_SORBET_NOME,qty:"1.000 g",note:BASE_SORBET},{name:"Água",qty:"2.500 mL"},{name:"Bebida vegetal de amêndoa e castanha-de-caju",qty:"a confirmar"},{name:"Cacau em pó",qty:"250 g"}],
+    ingredients:[{name:BASE_SORBET_NOME,qty:"1.000 g",note:BASE_SORBET},{name:"Água",qty:"2.500 mL"},{name:"Bebida vegetal de amêndoa",qty:"2.000 mL",note:BEBIDA_AMENDOA},{name:"Cacau em pó",qty:"250 g"}],
     nutrition:{kcal:70,carbs:20,sugars:0.1,addedSugars:0.1,protein:1.2,fat:0.8,satFat:0.5,transFat:0,fiber:2.2,sodium:1.24},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade com bebida vegetal de amêndoas e castanha-de-caju. 100% vegetal, zero lactose, zero glúten." },
+    description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade com bebida vegetal de amêndoas. 100% vegetal, zero lactose, zero glúten." },
   { id:"pacoca", name:"Paçoca", category:"gelato", sub:"Amendoim cremoso", emoji:"🥜",
     moods:["postreino","comfort","proteina"], palette:{base:"#D9B574",mid:"#B08A48",deep:"#6E5224",swirl:"#3E2D11",hl:"#F2DDA8"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -137,7 +150,7 @@ export const PRODUCTS = [
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"100 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"50 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g",note:CREME_PISTACHE},{name:"Cobertura sabor chocolate meio amargo",qty:"100 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"50 g"}],
     nutrition:{kcal:162,carbs:27,sugars:4.5,addedSugars:0.1,protein:12,fat:6.6,satFat:2.9,transFat:0,fiber:2.5,sodium:47},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"A tendência do Dubai em formato gelato. Chocolate meio amargo, creme de pistache e kadaif crocante. 12g de proteína." },
@@ -217,7 +230,7 @@ export const PRODUCTS = [
   { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · choco meio amargo", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:"/sabores/bentole-choco-dubai.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"150 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"70 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g",note:CREME_PISTACHE},{name:"Cobertura sabor chocolate meio amargo",qty:"150 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"70 g"}],
     nutrition:{kcal:108,carbs:17,sugars:3.6,addedSugars:0.1,protein:10,fat:4.3,satFat:1.7,transFat:0,fiber:1.5,sodium:33},
     flags:{gluten:true,lactose:true}, yield:"~100 picolés",
     description:"O Dubai em formato mini picolé. Cacau escuro, pistache, chocolate meio amargo e kadaif crocante. 10g de proteína." },
@@ -269,7 +282,7 @@ export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
 export const ALLERGENS = {
   "ninho-nutella":      ["LEITE"],  // gianduiella auditada: SEM avelã e SEM soja; leite = leite em pó + whey
   "limao-siciliano":    [],
-  "extra-dark":         ["AMÊNDOA","CASTANHA-DE-CAJU"],  // bebida vegetal da receita reformulada
+  "extra-dark":         ["AMÊNDOA"],  // bebida vegetal só de amêndoa (rótulo); caju é "pode conter"
   "pacoca":             ["LEITE","AMENDOIM"],
   "chocolate-branco":   ["LEITE"],  // lattíssimo: lecitina de girassol; soja só "pode conter"
   "coco":               ["LEITE"],

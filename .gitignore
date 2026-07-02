@@ -10,3 +10,6 @@ public/*.csv
 
 # Remotion render output
 out/
+
+# JSON do painel de fichas (regenerado no build)
+public/fichas-data.json
