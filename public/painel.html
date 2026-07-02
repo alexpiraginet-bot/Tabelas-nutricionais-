@@ -106,6 +106,20 @@
   .qrow .ql2{font-size:12.5px;color:var(--ink);line-height:1.45;overflow-wrap:break-word}
   .qrow .ql3{display:flex;gap:16px;flex-wrap:wrap}
   .qrow .qact{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;text-decoration:none;color:var(--pist)}
+  /* Padrão compartilhado das abas em pilha (Eventos, Pré-vendas, Vagas, Sorteio, Clube).
+     Novas abas: <div class="chips" id="xChips"></div> + <div class="lstack" id="xStack"></div>
+     e use stackChips()/stackTopic() no JS — cards <details class="topic"> com linhas .qrow. */
+  .lstack .stsel{min-height:44px;font-size:12px}
+  .crow{display:flex;align-items:center;gap:9px;min-height:44px;padding:5px 12px;border:1px solid var(--line);border-radius:10px;background:#0e120b;font-size:12.5px;flex-wrap:wrap}
+  .crow .cwhen{font-size:10.5px;color:var(--soft);flex-shrink:0}
+  .crow .cnm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:44%}
+  .crow a{color:var(--pist);text-decoration:none;display:inline-block;padding:8px 0;font-variant-numeric:tabular-nums}
+  .crow .cx{color:var(--soft);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1;text-align:right}
+  .crow.win{border-color:rgba(227,196,106,.55);background:rgba(227,196,106,.06)}
+  .minibar{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--soft)}
+  .minibar .lb{flex-shrink:0;min-width:110px}
+  .minibar .barwrap{flex:1}
+  .minibar .bar{display:block}
   /* Login */
   .gate{position:fixed;inset:0;background:rgba(8,10,7,.92);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
   .gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px;max-width:360px;width:100%;text-align:center}
@@ -205,35 +219,23 @@
       <button id="brindeBtn" style="background:var(--gold);border:none;color:#0c0f0a;border-radius:9px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer">🎁 Importar ganhadores</button>
       <span id="brindeMsg" style="font-size:11.5px;color:var(--soft);margin-left:8px"></span>
     </div>
-    <div class="tblscroll">
-      <table id="prevTbl">
-        <thead><tr><th>Quando</th><th>Pedido</th><th>Nome</th><th>WhatsApp</th><th>Sabor</th><th class="num">Qtd</th><th>Retirada</th><th>Origem</th><th class="num">Total</th><th>Status</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="chips" id="prevChips"></div>
+    <div class="lstack" id="prevStack"></div>
     <div class="empty" id="prevEmpty" style="display:none">Nenhuma pré-venda ainda. Quando alguém comprar o BentôBytes na pré-venda, o pedido aparece aqui na hora. 🍫</div>
   </div>
 
   <div class="card pane" data-pane="clube" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>👑 Clube Bentô — membros</span><span id="clubeCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
     <div class="stlbl" style="margin-bottom:10px;font-size:12px;color:var(--soft)">Clientes que conectaram o WhatsApp no Clube. Recompensas: quiz → Bentôlé Baby · álbum 10/10 → comemoração · 3 indicações → Bentôlé · <b>Cliente Ouro (5 conquistas) → acesso antecipado aos lançamentos</b>. Códigos são validados na tela de retirada.</div>
-    <div class="tblscroll">
-      <table id="clubeTbl">
-        <thead><tr><th>WhatsApp</th><th>Nível</th><th class="num">Conquistas</th><th class="num">Álbum</th><th>Sabor ideal</th><th class="num">Indicações</th><th>Última atividade</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="chips" id="clubeChips"></div>
+    <div class="lstack" id="clubeStack"></div>
     <div class="empty" id="clubeEmpty" style="display:none">Nenhum membro ainda. Quando alguém conectar o WhatsApp no Clube Bentô (site), aparece aqui. 👑</div>
   </div>
 
   <div class="card pane" data-pane="vagas" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>💼 Candidatos às vagas</span><span id="vagasCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
-    <div class="tblscroll">
-      <table id="vagasTbl">
-        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Vaga</th><th>Unidade</th><th>Idade</th><th>Disponib.</th><th>Experiência / Sobre</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="chips" id="vagasChips"></div>
+    <div class="lstack" id="vagasStack"></div>
     <div class="empty" id="vagasEmpty" style="display:none">Nenhum candidato ainda. Quando alguém se cadastrar em “Trabalhe conosco”, aparece aqui na hora. 💼</div>
   </div>
 
@@ -264,13 +266,9 @@
     </div>
 
     <details style="margin-top:10px">
-      <summary class="mono" style="cursor:pointer;color:var(--soft);font-size:11px;letter-spacing:.06em">Ver todos os inscritos</summary>
-      <div class="tblscroll" style="margin-top:8px">
-        <table id="sortTbl">
-          <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th>Instagram</th><th>Retira em</th></tr></thead>
-          <tbody></tbody>
-        </table>
-      </div>
+      <summary class="mono" style="cursor:pointer;color:var(--soft);font-size:11px;letter-spacing:.06em;padding:12px 0">Ver todos os inscritos</summary>
+      <div class="lstack" id="sortStack" style="margin-top:8px;gap:6px"></div>
+      <button class="ghost" id="sortMore" style="display:none;width:100%;margin-top:8px;min-height:44px;font-size:12px">Mostrar mais</button>
     </details>
     <div class="empty" id="sortEmpty" style="display:none">Ninguém inscrito ainda. Quando alguém participar do sorteio na página do evento, aparece aqui. 🎁</div>
   </div>
@@ -488,6 +486,45 @@ function leadFone(dig){
   var f = d.replace(/^(\d{2})(\d{4,5})(\d{4})$/, "($1) $2-$3");
   return f || dig;
 }
+// ---- Componente genérico "pilha de cards" (mesmo padrão da aba Eventos) ----
+// Como usar numa aba nova: no HTML crie <div class="chips" id="xChips"></div> + <div class="lstack" id="xStack"></div>;
+// no JS guarde o payload + filtro + tópicos abertos em variáveis (p/ o auto-refresh de 30s preservar o estado),
+// monte os filtros com stackChips() e cada card com stackTopic() (adicione linhas .qrow dentro do <details>).
+function waUrl(dig){ dig=String(dig||""); return dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null; }
+function stackChips(el, items, active, onPick){
+  if(!el) return;
+  el.innerHTML = "";
+  el.style.display = items && items.length ? "flex" : "none";
+  (items||[]).forEach(function(it){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = it.label===active ? "on" : "";
+    b.innerHTML = escapeHtml(it.label) + ' <span class="n">'+(it.count||0)+'</span>';
+    b.onclick = function(){ onPick(it.label); };
+    el.appendChild(b);
+  });
+}
+// o = { title, dig, waText?, badge?, when?, open?, onToggle? } → retorna <details class="topic">
+function stackTopic(o){
+  var det = document.createElement("details"); det.className = "topic";
+  if(o.open) det.open = true;
+  if(o.onToggle) det.addEventListener("toggle", function(){ o.onToggle(det.open); });
+  var wa = waUrl(o.dig);
+  var sum = document.createElement("summary");
+  sum.innerHTML = '<div class="tmid">'
+    + '<div class="tnm'+(o.title?'':' anon')+'">'+escapeHtml(o.title||"Sem nome")+'</div>'
+    + '<div class="twa">'+(wa ? '<a href="'+wa+'" target="_blank" rel="noopener">'+escapeHtml(o.waText||leadFone(o.dig))+'</a>' : 'sem WhatsApp')+'</div>'
+    + '</div>'
+    + '<div class="tright">'+(o.badge?'<span class="tct">'+escapeHtml(o.badge)+'</span>':'')+(o.when?'<span class="tts mono">'+escapeHtml(o.when)+'</span>':'')+'</div>'
+    + '<span class="chev">›</span>';
+  var a = sum.querySelector(".twa a");
+  if(a) a.addEventListener("click", function(e){ e.stopPropagation(); }); // abre o WhatsApp sem abrir/fechar o card
+  det.appendChild(sum);
+  return det;
+}
+function stackNone(box, msg){ var d=document.createElement("div"); d.className="empty"; d.style.padding="18px"; d.textContent=msg; box.appendChild(d); }
+function stackWhen(ts){ return new Date(ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }
+
 function leadTipo(l){ var t=String((l&&l.tipo)||"").trim(); return t ? (t.charAt(0).toUpperCase()+t.slice(1)) : ""; }
 function leadMatch(t, f){
   if(f==="Todos") return true;
@@ -770,31 +807,70 @@ function bindBrindeImport(){
   };
 }
 bindBrindeImport();
+// Pré-vendas em pilha de cards: 1 tópico por WhatsApp do comprador, chips por status.
+var _prevData = null, _prevFilter = "Todos", _prevOpen = {};
+function prevStatusOf(p){ return String((p && p.status) || "aguardando pagamento"); }
 function renderPrevendas(d){
+  _prevData = d;
   const peds = (d && d.pedidos) || [];
   $("#prevCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgPrev", peds.length);
-  const tb = $("#prevTbl tbody"); tb.innerHTML = "";
   const brl = (n)=> (Number(n)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  peds.forEach(p=>{
-    const dig = String(p.phone||"").replace(/\D/g,"");
-    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
-    const quando = new Date(p.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
-      <td class="mono">${escapeHtml(p.code||"—")}</td>
-      <td>${escapeHtml(p.nome||"—")}</td>
-      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
-      <td>${escapeHtml(p.sabor||"—")}${p.editado?' <span class="tag conv">editado</span>':''} <button class="edsab" data-code="${escapeHtml(p.code||'')}" data-sabor="${escapeHtml(p.sabor||'')}" data-qty="${p.qty||1}" title="Editar sabores" style="background:none;border:none;cursor:pointer;font-size:13px;vertical-align:middle">✏️</button></td>
-      <td class="num">${p.qty||1}</td>
-      <td>${escapeHtml(p.unidade||"—")}</td>
-      <td>${p.ref?('<span class="tag conv">'+escapeHtml(p.ref)+'</span>'):"—"}</td>
-      <td class="num">${brl(p.total)}</td>
-      <td>${statusSelect(p.code, p.status)}</td>`;
-    tb.appendChild(tr);
+
+  // 1) tópicos por WhatsApp (mesma canonização da aba Eventos); sem fone = card individual
+  var topics = {}, order = [];
+  peds.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); }).forEach(function(p,i){
+    var dig = leadDigits(p.phone);
+    var key = dig || ("solo:"+(p.code||i));
+    if(!topics[key]){ topics[key] = { key:key, dig:dig, nome:"", peds:[], last:0, potes:0 }; order.push(key); }
+    var t = topics[key];
+    t.peds.push(p);
+    if(!t.nome && p.nome) t.nome = p.nome;
+    if((p.ts||0) > t.last) t.last = p.ts||0;
+    t.potes += Number(p.qty)||1;
   });
+
+  // 2) chips por status (derivados dos dados)
+  var sts = {};
+  peds.forEach(function(p){ sts[prevStatusOf(p)] = 1; });
+  var filters = ["Todos"].concat(Object.keys(sts).sort(function(a,b){ return a.localeCompare(b,"pt-BR"); }));
+  if(filters.indexOf(_prevFilter) < 0) _prevFilter = "Todos";
+  var match = function(t,f){ return f==="Todos" || t.peds.some(function(p){ return prevStatusOf(p)===f; }); };
+  stackChips($("#prevChips"), peds.length ? filters.map(function(f){
+    return { label:f, count: order.reduce(function(s,k){ return s + (match(topics[k],f)?1:0); }, 0) };
+  }).filter(function(it){ return it.label==="Todos" || it.count>0; }) : [], _prevFilter, function(f){ _prevFilter=f; renderPrevendas(_prevData); });
+
+  // 3) pilha vertical
+  var box = $("#prevStack"); box.innerHTML = "";
+  var shown = 0;
+  order.forEach(function(k){
+    var t = topics[k];
+    if(!match(t, _prevFilter)) return;
+    shown++;
+    var det = stackTopic({
+      title: t.nome, dig: t.dig,
+      badge: t.peds.length+" pedido"+(t.peds.length>1?"s":"")+" · "+t.potes+" pote"+(t.potes>1?"s":""),
+      when: stackWhen(t.last),
+      open: !!_prevOpen[t.key],
+      onToggle: function(o){ _prevOpen[t.key] = o; }
+    });
+    t.peds.forEach(function(p){
+      var row = document.createElement("div"); row.className = "qrow";
+      var extra = [(p.qty||1)+" pote"+((p.qty||1)>1?"s":""), p.unidade?("📍 "+p.unidade):"", p.ref?("🔗 "+p.ref):""].filter(Boolean).join(" · ");
+      row.innerHTML = '<div class="ql1"><span class="mono qwhen">'+stackWhen(p.ts)+'</span>'
+        + '<span class="mono" style="color:var(--gold);font-size:11.5px">'+escapeHtml(p.code||"—")+'</span>'
+        + (p.editado?'<span class="tag conv">editado</span>':'')
+        + '<span class="mono qtot">'+brl(p.total)+'</span></div>'
+        + '<div class="ql2">🍨 '+escapeHtml(p.sabor||"—")+(extra?(' · '+escapeHtml(extra)):'')+'</div>'
+        + '<div class="ql3" style="align-items:center">'+statusSelect(p.code, p.status)
+        + '<button type="button" class="qact edsab" data-code="'+escapeHtml(p.code||'')+'" data-sabor="'+escapeHtml(p.sabor||'')+'" data-qty="'+(p.qty||1)+'" style="background:none;border:none;cursor:pointer;padding:0">✏️ Editar sabores</button></div>';
+      det.appendChild(row);
+    });
+    box.appendChild(det);
+  });
+  if(!shown && peds.length) stackNone(box, "Nenhum pedido neste status.");
+  box.querySelectorAll(".edsab").forEach(function(b){ b.onclick=function(){ openEditPrev(b.getAttribute("data-code"), b.getAttribute("data-sabor"), Number(b.getAttribute("data-qty"))); }; });
   renderPrevRefs(peds);
   renderEspera((d&&d.espera)||[]);
-  $("#prevTbl tbody").querySelectorAll(".edsab").forEach(function(b){ b.onclick=function(){ openEditPrev(b.getAttribute("data-code"), b.getAttribute("data-sabor"), Number(b.getAttribute("data-qty"))); }; });
   $("#prevEmpty").style.display = peds.length ? "none" : "block";
 }
 
@@ -804,26 +880,50 @@ async function loadVagas(){
   if(!r.ok) return;
   renderVagas(await r.json());
 }
+// Vagas em pilha de cards: 1 card por candidato, chips por vaga (cargo).
+var _vagasData = null, _vagasFilter = "Todos", _vagasOpen = {};
 function renderVagas(d){
+  _vagasData = d;
   const cands = (d && d.candidatos) || [];
   $("#vagasCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgVagas", cands.length);
-  const tb = $("#vagasTbl tbody"); tb.innerHTML = "";
-  cands.forEach(c=>{
-    const dig = String(c.phone||"").replace(/\D/g,"");
-    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
-    const quando = new Date(c.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const extra = [c.experiencia, c.sobre].filter(Boolean).join(" · ");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
-      <td>${escapeHtml(c.nome||"—")}</td>
-      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(c.phone)}</a>`:escapeHtml(c.phone||"—")}</td>
-      <td>${escapeHtml(c.cargo||"—")}</td>
-      <td>${escapeHtml(c.unidade||"—")}${c.bairro?` · ${escapeHtml(c.bairro)}`:""}</td>
-      <td class="num">${escapeHtml(c.idade||"—")}</td>
-      <td>${escapeHtml(c.disponibilidade||"—")}</td>
-      <td>${escapeHtml(extra||"—")}</td>`;
-    tb.appendChild(tr);
+  var cargoOf = function(c){ return String((c && c.cargo) || "").trim() || "—"; };
+
+  var cargos = {};
+  cands.forEach(function(c){ cargos[cargoOf(c)] = (cargos[cargoOf(c)]||0)+1; });
+  var filters = ["Todos"].concat(Object.keys(cargos).sort(function(a,b){ return a.localeCompare(b,"pt-BR"); }));
+  if(filters.indexOf(_vagasFilter) < 0) _vagasFilter = "Todos";
+  stackChips($("#vagasChips"), cands.length ? filters.map(function(f){
+    return { label:f, count: f==="Todos" ? cands.length : cargos[f] };
+  }) : [], _vagasFilter, function(f){ _vagasFilter=f; renderVagas(_vagasData); });
+
+  var box = $("#vagasStack"); box.innerHTML = "";
+  var shown = 0;
+  cands.forEach(function(c,i){
+    if(_vagasFilter!=="Todos" && cargoOf(c)!==_vagasFilter) return;
+    shown++;
+    var dig = leadDigits(c.phone);
+    var key = (dig||"x")+":"+(c.ts||i);
+    var det = stackTopic({
+      title: c.nome, dig: dig,
+      badge: cargoOf(c),
+      when: stackWhen(c.ts),
+      open: !!_vagasOpen[key],
+      onToggle: function(o){ _vagasOpen[key] = o; }
+    });
+    var l1 = [
+      (c.unidade||c.bairro) ? ("📍 "+[c.unidade,c.bairro].filter(Boolean).join(" · ")) : "",
+      c.idade ? ("🎂 "+c.idade+" anos") : "",
+      c.disponibilidade ? ("🗓️ "+c.disponibilidade) : ""
+    ].filter(Boolean).join(" · ");
+    var row = document.createElement("div"); row.className = "qrow";
+    row.innerHTML = (l1?'<div class="ql2">'+escapeHtml(l1)+'</div>':'')
+      + (c.experiencia?'<div class="ql2">🧰 '+escapeHtml(c.experiencia)+'</div>':'')
+      + (c.sobre?'<div class="ql2">💬 '+escapeHtml(c.sobre)+'</div>':'');
+    if(!row.innerHTML) row.innerHTML = '<div class="ql2" style="color:var(--soft)">Sem mais detalhes.</div>';
+    det.appendChild(row);
+    box.appendChild(det);
   });
+  if(!shown && cands.length) stackNone(box, "Nenhum candidato nesta vaga.");
   $("#vagasEmpty").style.display = cands.length ? "none" : "block";
 }
 
@@ -893,28 +993,51 @@ async function loadClube(){
   const key = localStorage.getItem(KEYSTORE) || "";
   const r = await fetch("/api/clube", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
   if(!r.ok) return;
-  const d = await r.json();
+  renderClube(await r.json());
+}
+// Clube em pilha de cards: 1 card por membro (fone em destaque), mini-barras de progresso.
+var _clubeData = null, _clubeFilter = "Todos", _clubeOpen = {};
+function renderClube(d){
+  _clubeData = d;
   const ms = (d && d.membros) || [];
   $("#clubeCount").textContent = ms.length ? (ms.length + " membro" + (ms.length>1?"s":"")) : "";
   setBadge("bgClube", ms.length);
-  const tb = $("#clubeTbl tbody"); tb.innerHTML = "";
   $("#clubeEmpty").style.display = ms.length ? "none" : "block";
+
+  var FILTERS = {
+    "Todos": function(){ return true; },
+    "👑 Cliente Ouro": function(m){ return (m.badges||0)>=5; },
+    "Com progresso": function(m){ return (m.badges||0)>0 || (m.album||0)>0 || (m.ind||0)>0; }
+  };
+  if(!FILTERS[_clubeFilter]) _clubeFilter = "Todos";
+  stackChips($("#clubeChips"), ms.length ? Object.keys(FILTERS).map(function(f){
+    return { label:f, count: ms.filter(FILTERS[f]).length };
+  }).filter(function(it){ return it.label==="Todos" || it.count>0; }) : [], _clubeFilter, function(f){ _clubeFilter=f; renderClube(_clubeData); });
+
+  var box = $("#clubeStack"); box.innerHTML = "";
+  var shown = 0;
   ms.forEach(function(m){
-    const dig = String(m.phone||"").replace(/\D/g,"");
-    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
-    const fone = dig.replace(/^(\d{2})(\d{4,5})(\d{4})$/, "($1) $2-$3");
-    const nivel = m.badges>=5 ? "👑 Ouro" : m.badges>=3 ? "Prata" : m.badges>=1 ? "Bronze" : "—";
-    const quando = m.updated ? new Date(m.updated).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
-    const tr = document.createElement("tr");
-    tr.innerHTML = "<td>"+(wa?('<a href="'+wa+'" target="_blank" rel="noreferrer" style="color:var(--pist)">'+escapeHtml(fone)+"</a>"):escapeHtml(fone))+"</td>"
-      +"<td>"+nivel+"</td>"
-      +'<td class="num">'+(m.badges||0)+"/5</td>"
-      +'<td class="num">'+(m.album||0)+"/10</td>"
-      +"<td>"+escapeHtml(m.quiz||"—")+"</td>"
-      +'<td class="num">'+(m.ind||0)+"</td>"
-      +"<td>"+quando+"</td>";
-    tb.appendChild(tr);
+    if(!FILTERS[_clubeFilter](m)) return;
+    shown++;
+    var dig = leadDigits(m.phone);
+    var nivel = m.badges>=5 ? "👑 Ouro" : m.badges>=3 ? "Prata" : m.badges>=1 ? "Bronze" : "Novo";
+    var det = stackTopic({
+      title: leadFone(dig) || String(m.phone||"—"), dig: dig, waText: "💬 Chamar no WhatsApp",
+      badge: nivel,
+      when: m.updated ? stackWhen(m.updated) : "",
+      open: !!_clubeOpen[dig],
+      onToggle: function(o){ _clubeOpen[dig] = o; }
+    });
+    var pctB = Math.min(100, Math.round((m.badges||0)/5*100));
+    var pctA = Math.min(100, (m.album||0)*10);
+    var row = document.createElement("div"); row.className = "qrow";
+    row.innerHTML = '<div class="minibar"><span class="lb">🏅 Conquistas '+(m.badges||0)+'/5</span><div class="barwrap"><div class="bar" style="width:'+pctB+'%"></div></div></div>'
+      + '<div class="minibar"><span class="lb">📔 Álbum '+(m.album||0)+'/10</span><div class="barwrap"><div class="bar" style="width:'+pctA+'%"></div></div></div>'
+      + '<div class="ql2">🍨 Sabor ideal: '+escapeHtml(m.quiz||"—")+' · 🤝 '+(m.ind||0)+((m.ind||0)===1?' indicação':' indicações')+'</div>';
+    det.appendChild(row);
+    box.appendChild(det);
   });
+  if(!shown && ms.length) stackNone(box, "Nenhum membro nesta categoria.");
 }
 
 // ---- Abas superiores ----
@@ -937,33 +1060,60 @@ async function loadSorteio(){
   renderSorteio(await r.json());
 }
 var _inscritos = [];
+// Sorteio em pilha compacta: 1 linha (.crow) por participante, agrupado por telefone, com "mostrar mais".
+var _sortData = null, _sortShown = 60;
 function renderSorteio(d){
+  _sortData = d;
   const ins = (d && d.inscritos) || [];
   _inscritos = ins;
   $("#sortCount").textContent = (d && d.total) ? (d.total + " inscritos") : "";
   setBadge("bgSorteio", d && d.total ? d.total : ins.length);
-  const tb = $("#sortTbl tbody"); tb.innerHTML = "";
-  ins.forEach(p=>{
-    const dig = String(p.phone||"").replace(/\D/g,"");
-    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
-    const nome1 = escapeHtml((p.nome||"").split(" ")[0]);
-    const quando = new Date(p.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
-      <td>${escapeHtml(p.nome||"—")}</td>
-      <td>${wa?`<a class="docs camp-send" href="${wa}" data-wa="${wa}" data-nome="${nome1}" target="_blank" rel="noopener">${escapeHtml(p.phone)}</a>`:escapeHtml(p.phone||"—")}</td>
-      <td>${escapeHtml(p.instagram||"—")}</td>
-      <td>${escapeHtml(p.unidade||"—")}</td>`;
-    tb.appendChild(tr);
-  });
   $("#sortEmpty").style.display = ins.length ? "none" : "block";
   _winners = (d && d.winners) || [];
   renderWinners(_winners, d && d.drawnAt);
+
+  var winSet = {};
+  _winners.forEach(function(w){ var g = leadDigits(w.phone); if(g) winSet[g] = 1; });
+
+  // agrupa por telefone (inscrições repetidas viram 1 linha com ×N)
+  var groups = {}, order = [];
+  ins.forEach(function(p,i){
+    var dig = leadDigits(p.phone);
+    var key = dig || ("solo:"+i);
+    if(!groups[key]){ groups[key] = { dig:dig, items:[] }; order.push(key); }
+    groups[key].items.push(p);
+  });
+
+  var box = $("#sortStack"); box.innerHTML = "";
+  var lim = Math.max(60, _sortShown);
+  order.slice(0, lim).forEach(function(k){
+    var g = groups[k], p = g.items[0];
+    var wa = waUrl(g.dig);
+    var quando = new Date(p.ts||Date.now()).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+    var nome1 = escapeHtml((p.nome||"").split(" ")[0]);
+    var isWin = g.dig && winSet[g.dig];
+    var extra = [p.instagram, p.unidade].filter(Boolean).join(" · ");
+    var row = document.createElement("div"); row.className = "crow"+(isWin?" win":"");
+    row.innerHTML = '<span class="mono cwhen">'+quando+'</span>'
+      + '<span class="cnm">'+(isWin?'👑 ':'')+escapeHtml(p.nome||"—")+'</span>'
+      + (g.items.length>1?'<span class="tag conv">×'+g.items.length+'</span>':'')
+      + (wa?'<a class="camp-send" href="'+wa+'" data-wa="'+wa+'" data-nome="'+nome1+'" target="_blank" rel="noopener">'+escapeHtml(leadFone(g.dig))+'</a>':'<span class="cx" style="flex:none">sem fone</span>')
+      + (extra?'<span class="cx">'+escapeHtml(extra)+'</span>':'');
+    box.appendChild(row);
+  });
+  var more = $("#sortMore");
+  if(order.length > lim){
+    more.style.display = "block";
+    more.textContent = "Mostrar mais ("+(order.length-lim)+" restantes)";
+    more.onclick = function(){ _sortShown = lim + 60; renderSorteio(_sortData); };
+  } else {
+    more.style.display = "none";
+  }
 }
 function campTpl(msg, nome){ return String(msg).replace(/\{nome\}/g, nome||""); }
 function bindCampaign(){
   // ao clicar no WhatsApp de um inscrito, aplica a mensagem da campanha (com {nome})
-  var tb = $("#sortTbl"); if(tb) tb.addEventListener("click", function(e){
+  var tb = $("#sortStack"); if(tb) tb.addEventListener("click", function(e){
     var a = e.target.closest ? e.target.closest(".camp-send") : null; if(!a) return;
     var msg = ($("#campMsg") && $("#campMsg").value.trim()) || "";
     a.href = msg ? (a.dataset.wa + "?text=" + encodeURIComponent(campTpl(msg, a.dataset.nome))) : a.dataset.wa;
