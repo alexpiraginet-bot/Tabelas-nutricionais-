@@ -5,6 +5,7 @@
 import crypto from "node:crypto";
 
 const PANEL_KEY = process.env.PANEL_KEY;
+const FICHAS_KEY = process.env.FICHAS_KEY; // nutricionista pode anexar fichas de insumos
 const SB_URL = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const BUCKET = process.env.SUPABASE_BUCKET || "artes";
@@ -41,7 +42,7 @@ function slugName(name) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (!PANEL_KEY) { res.status(503).json({ ok: false, error: "PANEL_KEY não configurada." }); return; }
-  if (!eq(getKey(req), PANEL_KEY)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+  if (!eq(getKey(req), PANEL_KEY) && !(FICHAS_KEY && eq(getKey(req), FICHAS_KEY))) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
 
   // GET: o painel checa se o Supabase está configurado (sem expor chaves)
   if (req.method === "GET") {
