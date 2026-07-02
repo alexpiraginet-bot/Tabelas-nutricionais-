@@ -15,6 +15,7 @@
     "menu": "node scripts/menu-poster.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.109.1",
     "@vercel/analytics": "^2.0.1",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.383.0",

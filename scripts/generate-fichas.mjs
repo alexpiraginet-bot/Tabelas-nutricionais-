@@ -1,8 +1,9 @@
-// Gera planilhas (CSV) a partir da fonte única src/data.js
+// Gera planilhas (CSV) e o JSON do painel de fichas a partir da fonte única src/data.js
 //   - public/tabela-nutricional.csv : 1 linha por sabor, com toda a tabela nutricional
 //   - public/ficha-tecnica.csv      : 1 linha por ingrediente, com colunas de custo p/ preencher
+//   - public/fichas-data.json       : base de dados do painel /fichas.html (nutri & P&D)
 // Uso: npm run fichas
-import { PRODUCTS, BASE, ALLERGENS, sugarClaim, proteinClaim, lupaFrontal, AVISO_POLIOL } from "../src/data.js";
+import { PRODUCTS, BASE, ALLERGENS, PODE_CONTER, sugarClaim, proteinClaim, lupaFrontal, AVISO_POLIOL, FRASE_ACUCARES_PROPRIOS } from "../src/data.js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -68,6 +69,31 @@ for (const p of PRODUCTS) {
 }
 writeFileSync(join(OUT, "ficha-tecnica.csv"), toCSV([fichaHeader, ...fichaRows]));
 
+// ---- 3) JSON do painel de fichas (/fichas.html) ----
+const fichasData = {
+  avisoPoliol: AVISO_POLIOL,
+  fraseAcucaresProprios: FRASE_ACUCARES_PROPRIOS,
+  podeConter: PODE_CONTER,
+  products: PRODUCTS.map((p) => {
+    const sc = sugarClaim(p);
+    return {
+      id: p.id, name: p.name, category: p.category, linha: cat(p.category),
+      serving: p.serving, portionLabel: p.portionLabel, yield: p.yield,
+      estimated: !!p.estimated, hasPolyols: !!p.hasPolyols,
+      ingredients: p.ingredients.map((i) => ({ name: i.name, qty: i.qty, note: i.note || "" })),
+      nutrition: p.nutrition,
+      allergens: ALLERGENS[p.id] || [],
+      flags: p.flags,
+      claims: {
+        sugar: sc ? sc.label : null, sugarNote: sc && sc.note ? sc.note : null,
+        protein: proteinClaim(p), lupa: lupaFrontal(p),
+      },
+    };
+  }),
+};
+writeFileSync(join(OUT, "fichas-data.json"), JSON.stringify(fichasData, null, 1));
+
 console.log(`OK  ${PRODUCTS.length} sabores`);
 console.log(`  → public/tabela-nutricional.csv (${nutRows.length} linhas)`);
 console.log(`  → public/ficha-tecnica.csv (${fichaRows.length} linhas)`);
+console.log(`  → public/fichas-data.json (${fichasData.products.length} SKUs)`);
