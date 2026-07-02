@@ -99,7 +99,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites,onOpenFavs})
 /* Dimensões reais das artes (px) — reservam o espaço do banner e zeram o CLS
    sem cortar a imagem (a proporção é a da própria arte). */
 const BANNER_DIMS={
-  "/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,686],"/banners/delivery.webp":[1600,686],
+  "/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,533],"/banners/delivery.webp":[1600,686],
   "/banners/cardapio.webp":[1600,686],"/banners/eventos.webp":[1600,686],
   "/banners/parceiro.webp":[1600,533],"/banners/conheca.webp":[1600,533],"/banners/carreira.webp":[1600,533],
   "/banners/tab-gelatos.webp":[1600,533],"/banners/tab-bentole.webp":[1600,533],"/banners/tab-shakes.webp":[1600,533],
@@ -662,50 +662,15 @@ const TrabalhePage = lazy(() => import("./TrabalhePage.jsx"));
 
 // Intro "Sem culpa" ao entrar nas Tabelas: comparativo Bentô × sorvete comum (números reais, 1x por sessão).
 function TabelasIntro({onClose}){
-  // Comparação no nosso best-seller (Pistache), por PORÇÃO real de 60 g — números reais.
-  const pis=useMemo(()=>PRODUCTS.find(p=>p.id==="pistache"),[]);
-  const s=pis.serving/100; // sorvete comum (média de mercado, por 100 g) reescalado p/ a mesma porção
-  const ref={kcal:Math.round(207*s),sugars:Math.round(21*s),protein:3.5*s};
-  const data=[
-    {l:"Açúcar adicionado · por porção",bento:pis.nutrition.addedSugars,comum:ref.sugars,dec:0,note:"zero açúcar adicionado · só o natural do leite/fruta"},
-    {l:"Proteína · por porção",bento:pis.nutrition.protein,comum:ref.protein,dec:1,note:"quase 5× mais · whey hidrolisado"},
-  ];
-  const reduce=useMemo(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}},[]);
-  const[go,setGo]=useState(reduce);
-  useEffect(()=>{if(reduce)return;const t=setTimeout(()=>setGo(true),90);return()=>clearTimeout(t);},[reduce]);
-  const Bar=({val,max,color,delay})=>{const pct=Math.max(4,Math.round(val/max*100));return(
-    <div style={{flex:1,background:T.borderSoft,borderRadius:14,height:24,overflow:"hidden"}}>
-      <div style={{height:"100%",width:(go?pct:4)+"%",background:color,borderRadius:14,transition:reduce?"none":`width .9s cubic-bezier(.2,.8,.2,1) ${delay}s`}}/>
-    </div>);};
+  // Card de campanha (arte estática em /banners/push-culpa.webp). Ambas as ações
+  // do design ("Pular ✕" e "Ver as fichas →") fecham o modal — um alvo único.
+  // Números impressos na arte: Pistache 60 g · 0 g açúcar adic. · 10 g proteína ·
+  // 130 kcal — manter em sincronia com src/data.js ao regravar a arte.
   return(
     <div className="fade" role="dialog" aria-modal="true" aria-label="Bentô comparado ao sorvete comum" onClick={onClose} style={{position:"fixed",inset:0,zIndex:250,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:18,maxWidth:560,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,padding:"24px 24px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-          <div className="fm" style={{fontSize:10,letterSpacing:"0.24em",textTransform:"uppercase",color:T.pistacheDark}}>Sem culpa</div>
-          <button onClick={onClose} className="fm" style={{background:"none",border:"none",color:T.inkSoft,fontSize:12,cursor:"pointer",letterSpacing:"0.08em"}}>Pular ✕</button>
-        </div>
-        <h2 className="fd" style={{fontSize:30,color:T.ink,margin:"2px 0 4px",lineHeight:1.1,fontWeight:500}}>Bentô <span style={{color:T.pistacheDark}}>×</span> sorvete comum</h2>
-        <p className="fb" style={{fontSize:13.5,color:T.inkSoft,marginBottom:18,lineHeight:1.45}}>A mesma sobremesa, outra ficha. No nosso Pistache (best-seller), por porção de {pis.portionLabel}:</p>
-        {data.map((m,i)=>(
-          <div key={m.l} style={{marginBottom:16}}>
-            <div className="fm" style={{fontSize:10.5,letterSpacing:"0.1em",textTransform:"uppercase",color:T.inkSoft,marginBottom:8}}>{m.l}</div>
-            {[["Bentô",m.bento,"linear-gradient(90deg,#8FA050,#46583A)",true],["Comum",m.comum,"#C9A98F",false]].map(([nome,val,color,strong],j)=>(
-              <div key={nome} style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-                <span className="fm" style={{width:54,fontSize:11,color:strong?T.pistacheDark:T.inkSoft,fontWeight:strong?700:500}}>{nome}</span>
-                <Bar val={val} max={Math.max(m.bento,m.comum)} color={color} delay={i*0.12+j*0.08}/>
-                <span className="fb" style={{width:62,textAlign:"right",fontSize:13,fontWeight:strong?700:500,color:strong?T.ink:T.inkSoft}}>{val.toLocaleString("pt-BR",{minimumFractionDigits:m.dec,maximumFractionDigits:m.dec})}</span>
-              </div>
-            ))}
-            <div className="fb" style={{fontSize:11.5,color:T.pistacheDark,marginTop:4,fontWeight:600}}>{m.note}</div>
-          </div>
-        ))}
-        <div style={{display:"flex",alignItems:"center",gap:12,background:T.bg,border:`1px solid ${T.borderSoft}`,borderRadius:14,padding:"12px 14px",marginTop:2,marginBottom:6}}>
-          <div className="fd" style={{fontSize:30,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{pis.nutrition.kcal} kcal</div>
-          <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {pis.nutrition.protein} g de proteína.</div>
-        </div>
-        <button onClick={onClose} className="fb" style={{width:"100%",marginTop:8,padding:"14px",borderRadius:12,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Ver as fichas →</button>
-        <p className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.4}}>Bentô Pistache (porção de {pis.portionLabel}) · sorvete comum como referência de mercado, na mesma porção.</p>
-      </div>
+      <button className="rise gn" onClick={onClose} aria-label="Bentô × sorvete comum: zero açúcar adicionado e quase 5 vezes mais proteína. Toque para ver as fichas." style={{background:"none",border:"none",padding:0,cursor:"pointer",maxWidth:520,width:"100%"}}>
+        <img src="/banners/push-culpa.webp" alt="" width={1120} height={1400} style={{display:"block",width:"100%",height:"auto",maxHeight:"92dvh",objectFit:"contain",borderRadius:20,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}/>
+      </button>
     </div>
   );
 }
