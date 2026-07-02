@@ -54,9 +54,20 @@ export const COBERTURA_MEIO_AMARGO = "Gordura vegetal, cacau em pó, edulcorante
 //   38 g de polióis/100 g (MALTITOL). Pode conter: avelã, amendoim,
 //   castanha-de-caju, pistache e amêndoa.
 export const COBERTURA_AO_LEITE = "Gordura vegetal, leite em pó integral zero lactose, cacau em pó, edulcorante maltitol, emulsificante lecitina de soja e aromatizante";
-// · Pasta de pistache = "Selection" PURA (MEC3) — 100% pistache, sem outros
-//   ingredientes (informação da produção, 02/07/2026; anexar ficha MEC3 depois).
-export const PASTA_PISTACHE = "Pistache (100%)";
+// · Pasta de pistache = MEC3 "Pasta Pistacchio 100% Califórnia" (FT 105514552,
+//   rev. 02, 14/09/2023 — docs/fichas-fornecedores/). Sem açúcar adicionado ✔,
+//   sem polióis. ATENÇÃO: a ficha declara CONTÉM GLÚTEN (Lei 10.674; cereais no
+//   "pode conter") e contato cruzado extenso (trigo, centeio, cevada, aveia, ovos,
+//   amendoim, soja, leite, amêndoa, avelã, castanha-de-caju, castanha-do-pará,
+//   macadâmia, nozes e pecã) → exceção de glúten na derivação de flags e
+//   PODE_CONTER ampliado.
+export const PASTA_PISTACHE = "Pasta de pistache e corante clorofila (INS 141(i))";
+// · Biscoito black = "Biscoito Recheado Lowçucar sabor Dark Vanilla, Linha Black"
+//   (fonte: descrição de varejo — anexar a ficha oficial Lowçucar quando possível).
+//   Zero adição de açúcares ✔ (adoçado com estévia/sucralose) e sem lactose.
+//   Contém MALTITOL e SORBITOL (polióis), maltodextrina (não é açúcar) e gordura
+//   vegetal HIDROGENADA (conferir gordura trans na análise). CONTÉM TRIGO e SOJA.
+export const BISCOITO_BLACK = "Farinha de trigo enriquecida com ferro e ácido fólico, maltitol, gordura vegetal hidrogenada, gordura vegetal, polidextrose, maltodextrina, amido de milho, sorbitol, cacau em pó, vitaminas (A, D, B1, B2, B6, ácido fólico e B12), sal, corantes (caramelo natural e marrom artificial), estabilizante lecitina de soja, fermentos químicos e aromatizantes";
 // · Mix de castanhas da Opereta (informação da produção, 02/07/2026) — cada
 //   espécie declarada nos alérgicos (RDC 26/2015); damasco não é alérgeno.
 export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, damasco, avelã e pistache";
@@ -65,11 +76,11 @@ export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, dam
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
    · Creme de pistache (ex-"Creme de Pistache G") — Dubai gelato e picolé
-   · Biscoito sabor chocolate sem açúcar ("Black", da Low Sugar) — Cookies & Cream:
-     falta a ficha (confirmar trigo, dextrose oculta, lecitina/soja)
-   · Pasta de pistache: produção informa Selection PURA (MEC3) — anexar a ficha
    · "Emulsificante" da base de gelato sem nome/INS na composição declarada
-   RESOLVIDOS: Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
+   · Biscoito black: fonte atual é descrição de varejo — pedir a ficha oficial
+     Lowçucar (conferir gordura trans da gordura hidrogenada)
+   RESOLVIDOS: pasta de pistache MEC3 (com GLÚTEN!), biscoito black Lowçucar,
+   Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
    (consts acima); stracciatella DESCONTINUADA; Base Limone 50 DESCONTINUADA →
    suco concentrado de limão (sem açúcar adicionado; macros do Limão marcados como
    estimados até nova análise); castanhas da Opereta por espécie; leite confirmado
@@ -180,7 +191,7 @@ export const PRODUCTS = [
   { id:"cookies-cream", name:"Cookies & Cream", category:"gelato", sub:"Creme · cookies zero", emoji:"🍪", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#E8E0D2",mid:"#B8AE9A",deep:"#3A332A",swirl:"#1F1A14",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito sabor chocolate sem açúcar (tipo black)",qty:"180 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito recheado sem adição de açúcares (tipo black)",qty:"180 g",note:BISCOITO_BLACK},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
     nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate meio amargo. O clássico americano, 11g de proteína." },
@@ -284,8 +295,9 @@ export const ALLERGENS = {
   "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
   "bentole-prestigio":  ["LEITE","SOJA"],
 };
-// Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
-export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHA-DE-CAJU","CASTANHA-DO-PARÁ","AMÊNDOA","PISTACHE","AVELÃ","TRIGO","SOJA"];
+// Produção compartilhada na mesma gelateria + "pode conter" das fichas dos
+// insumos (o mais extenso é o da pasta de pistache MEC3).
+export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTANHA-DE-CAJU","CASTANHA-DO-PARÁ","MACADÂMIA","NOZES","PECÃ","PISTACHE","TRIGO","CENTEIO","CEVADA","AVEIA","SOJA"];
 
 // LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
 // Whey e leite em pó contêm lactose → sabor com LEITE nos alérgicos contém lactose,
@@ -295,9 +307,13 @@ export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHA-DE-CAJU","CASTANHA-DO-P
 // Glúten só vem de kadaif e cookies (trigo) → só sabores com TRIGO contêm glúten.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
 const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
+// A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição
+// (cereais no "pode conter"; a Lei 10.674 é binária) → sabores com essa pasta
+// declaram glúten mesmo sem TRIGO nos alérgicos.
+const CONTEM_GLUTEN_PELA_PASTA_PISTACHE = ["pistache", "bentole-pistache-cb"];
 for (const p of PRODUCTS) {
   p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE") && !ZERO_LACTOSE_APESAR_DE_LEITE.includes(p.id);
-  p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO");
+  p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO") || CONTEM_GLUTEN_PELA_PASTA_PISTACHE.includes(p.id);
 }
 
 // BASE dos picolés foi reformulada (sem maltitol/sorbitol). Substitui o 1º ingrediente
