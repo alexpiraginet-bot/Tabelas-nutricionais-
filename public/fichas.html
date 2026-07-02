@@ -97,6 +97,33 @@ button.act:disabled{opacity:.5;cursor:wait}
 .ficha .foot .line{border-bottom:1px solid var(--ink);height:34px;margin-bottom:4px}
 .ficha .small{font-size:10.5px;color:var(--soft)}
 
+/* ---------- insumos & receitas ---------- */
+select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;font:inherit;font-size:13px;transition:border-color .15s,box-shadow .15s}
+select:focus{outline:none;border-color:var(--pist);box-shadow:0 0 0 3px rgba(70,88,58,.12)}
+.pill.man{background:#EBE7DB;color:var(--soft)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:10px;margin-top:12px}
+.card{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);padding:12px 14px;cursor:pointer;box-shadow:var(--shadow);transition:border-color .15s,transform .1s}
+.card:hover{border-color:var(--pist)}
+.card:active{transform:translateY(1px)}
+.card .nm{font-weight:700;font-size:13.5px;margin-bottom:2px}
+.card .sub{font-size:11px;color:var(--soft)}
+.ac{position:relative;flex:2;min-width:170px}
+.acbox{position:absolute;top:calc(100% + 2px);left:0;right:0;z-index:7;background:#fff;border:1px solid var(--border);border-radius:9px;max-height:250px;overflow:auto;box-shadow:var(--shadow)}
+.acbox button{display:block;width:100%;text-align:left;padding:8px 10px;border:0;border-bottom:1px solid var(--bg);background:none;font:inherit;font-size:12.5px;cursor:pointer}
+.acbox button:hover{background:var(--bg)}
+.acbox .sub{display:block;font-size:10px;color:var(--soft)}
+.acbox .acempty{padding:8px 10px;font-size:12px;color:var(--soft);font-style:italic}
+.ritem{display:flex;gap:6px;align-items:center;margin:6px 0}
+.ritem .ri-qty{width:110px;flex:0 0 auto}
+.ritem .ri-del{flex:0 0 auto;border:1px solid var(--border);background:none;border-radius:9px;padding:8px 11px;cursor:pointer;color:var(--red);font:inherit;min-height:36px}
+.ritem .ri-del:hover{border-color:var(--red)}
+.ck{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 0}
+.ck input{width:auto}
+.calcbox table{border-collapse:collapse;width:100%;max-width:560px;background:#fff}
+.calcbox th,.calcbox td{border:1px solid var(--border);padding:4px 8px;font-size:12px;text-align:right}
+.calcbox th:first-child,.calcbox td:first-child{text-align:left}
+.calcbox th{background:var(--bg);font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+
 /* ---------- dossiê (print only) ---------- */
 #dossier{display:none}
 #dossier .capa{background:#fff;border:1.5px solid var(--ink);padding:48px 40px}
@@ -132,6 +159,9 @@ button.act:disabled{opacity:.5;cursor:wait}
   .ficha table{min-width:400px}
   .ficha .nut{max-width:none}
   .tablewrap table{min-width:400px}
+  .cards{grid-template-columns:1fr}
+  .ritem .ri-qty{width:88px}
+  .calcbox table{min-width:400px}
 }
 /* ---------- print ---------- */
 @media print{
@@ -214,7 +244,7 @@ const auth=()=>({Authorization:"Bearer "+KEY,"Content-Type":"application/json"})
 const items=()=>[...DATA.products,...(DATA.shakes||[])];
 const byCat=(c)=>items().filter(p=>p.category===c);
 const findItem=(id)=>items().find(x=>x.id===id);
-const isShake=(m)=>m.category==="shake";
+const isShake=(m)=>m.category==="shake"&&!m.isReceita;
 const cfg=()=>DRAFTS._config||{};
 const blank=(v)=>(v&&String(v).trim())?escH(v):"____________";
 const ftCode=(m)=>m.code||("FT-"+String(m.id).toUpperCase());
@@ -233,7 +263,7 @@ function merged(p){
   const draft=Object.keys(d).filter(k=>k!=="_meta"&&k!=="_rev").length>0;
   return {...p,...d,nutrition,draft};
 }
-const revOf=(m)=>{const d=DRAFTS[m.id]||{};return String(d._rev||(m.draft?1:0)).padStart(3,"0")};
+const revOf=(m)=>{const d=DRAFTS[m.id]||{};return String(m._rev??(d._rev||(m.draft?1:0))).padStart(3,"0")};
 function denomDefault(m){
   if(isShake(m))return "Shake proteico sabor "+m.name.replace(/^shake\s*/i,"").toLowerCase()+" (preparado na hora)";
   const base=(m.category==="gelato"?"Gelato sabor ":"Picolé (Bentôlé) sabor ")+m.name.toLowerCase();
@@ -289,13 +319,28 @@ function pills(m){
   return h;
 }
 function nav(){
-  $("#cats").innerHTML=CATS.map(([c,l])=>`<button data-cat="${c}" class="${CAT===c?"on":""}">${l}<span class="n">${byCat(c).length}</span></button>`).join("");
+  const modN={insumos:insumosAll().length,receitas:Object.keys(RECEITAS).length};
+  $("#cats").innerHTML=CATS.map(([c,l])=>`<button data-cat="${c}" class="${CAT===c?"on":""}">${l}<span class="n">${byCat(c).length}</span></button>`).join("")
+    +MODS.map(([c,l])=>`<button data-cat="${c}" class="${CAT===c?"on":""}">${l}<span class="n">${modN[c]}</span></button>`).join("");
   document.querySelectorAll("#cats button").forEach(b=>b.onclick=()=>{
     CAT=b.dataset.cat;
-    const list=byCat(CAT);
-    if(!list.some(p=>p.id===CUR))CUR=list[0]?list[0].id:null;
+    if(CAT!=="insumos"&&CAT!=="receitas"){
+      const list=byCat(CAT);
+      if(!list.some(p=>p.id===CUR))CUR=list[0]?list[0].id:null;
+    }
     render();
   });
+  if(CAT==="insumos"){
+    $("#nav").innerHTML=insumosAll().map(i=>{const [st,lb]=insStatus(i);
+      return `<button data-ins="${escH(i.id)}" class="${INS_EDIT&&INS_EDIT.id===i.id?"on":""}">${escH(i.nome)}<span class="pill ${PILL_CLS[st]}">${lb}</span></button>`;}).join("");
+    document.querySelectorAll("#nav [data-ins]").forEach(b=>b.onclick=()=>openInsumo(b.dataset.ins));
+    return;
+  }
+  if(CAT==="receitas"){
+    $("#nav").innerHTML=recList().map(r=>`<button data-rec="${escH(r.id)}" class="${REC_EDIT&&REC_EDIT.id===r.id?"on":""}">${escH(r.nome||r.id)}<span class="mono" style="color:var(--soft);display:block;font-size:9px">${escH(REC_CAT_LABEL[r.categoria]||r.categoria||"")}</span></button>`).join("");
+    document.querySelectorAll("#nav [data-rec]").forEach(b=>b.onclick=()=>openReceita(b.dataset.rec));
+    return;
+  }
   $("#nav").innerHTML=byCat(CAT).map(p=>{const m=merged(p);
     return `<button data-id="${p.id}" class="${CUR===p.id?"on":""}">${escH(p.name)}
       <span class="mono" style="color:var(--soft);display:block;font-size:9px">${escH(m.linha)}</span>
@@ -339,7 +384,7 @@ function fichaHTML(m){
         <p class="small">Lista em ordem decrescente de quantidade; composições dos ingredientes compostos entre parênteses (RDC 727/2022).</p></div>
       <div class="sect"><div class="st">3. ALERGÊNICOS (RDC 26/2015)</div>
         <p class="b">${escH(alergicosTexto(m))}</p>
-        <p class="b">ALÉRGICOS: PODE CONTER ${DATA.podeConter.join(", ")}.</p>
+        ${(m.podeConterList||DATA.podeConter).length?`<p class="b">ALÉRGICOS: PODE CONTER ${(m.podeConterList||DATA.podeConter).join(", ")}.</p>`:""}
         ${glutenLactose(m).map(x=>`<p class="b">${escH(x)}</p>`).join("")}</div>
       <div class="sect"><div class="st">4. INFORMAÇÃO NUTRICIONAL (RDC 429/2020 · IN 75/2020)</div>
         ${isShake(m)?nutTableShake(m):nutTableProduto(m)}</div>
@@ -370,6 +415,8 @@ function fichaHTML(m){
 /* ===== editor ===== */
 function render(){
   nav();
+  if(CAT==="insumos"){renderInsumos();return}
+  if(CAT==="receitas"){renderReceitas();return}
   const p=findItem(CUR);
   if(!p){$("#sec").innerHTML="<p class='status'>Selecione um sabor.</p>";return}
   const m=merged(p),meta=(DRAFTS[p.id]||{})._meta;
@@ -462,6 +509,457 @@ async function analyze(){
   b.disabled=false;b.textContent="🧠 Analisar conformidade (IA)";
 }
 
+/* ===================================================================== */
+/* ===== MÓDULO INSUMOS + RECEITAS (cadastro, TACO, anexos, ChefPro) ===== */
+/* ===================================================================== */
+const MODS=[["insumos","🧺 Insumos"],["receitas","👩‍🍳 Receitas"]];
+const INS_CATS=["base","pasta","cobertura","láteo","proteína","complemento","líquido","fruta","outro"];
+const MAC_FIELDS=[["kcal","Energia (kcal)"],["carb","Carboidratos (g)"],["sugars","Açúcares totais (g)"],["addedSugars","Açúcares adicionados (g)"],["polyols","Polióis (g)"],["prot","Proteínas (g)"],["fat","Gorduras totais (g)"],["sat","Gorduras saturadas (g)"],["trans","Gorduras trans (g)"],["fiber","Fibras alimentares (g)"],["na","Sódio (mg)"]];
+const MAC_KEYS=MAC_FIELDS.map(([k])=>k);
+const REC_CATS=[["gelato","Gelato"],["bentole","Bentôlé"],["shake","Shake"],["outro","Outro"]];
+const REC_CAT_LABEL=Object.fromEntries(REC_CATS);
+const PILL_CLS={ficha:"ok",taco:"calc",manual:"man",pendente:"draft"};
+const INS_STATUS_LABEL={ficha:"📋 ficha",taco:"🔬 TACO",manual:"✍️ manual",pendente:"⚠️ pendente"};
+// insumo embutido: água potável (macros zero) — sempre disponível nas receitas
+const AGUA={id:"agua",nome:"Água",categoria:"líquido",origem:"manual",fonte:"",composicao:"Água",alergenos:[],podeConter:[],gluten:false,lactoseZero:true,macros100:{kcal:0,carb:0,sugars:0,addedSugars:0,polyols:0,prot:0,fat:0,sat:0,trans:0,fiber:0,na:0},notas:"Insumo embutido — água potável, macros zero.",builtin:true};
+let SEED=[],INS_KV={},RECEITAS={},TACO=null,INS_EDIT=null,REC_EDIT=null,INS_Q="",INS_FCAT="",INS_FST="";
+const norm=(s)=>String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+const slug=(s)=>norm(s).replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)||("item-"+Date.now());
+const splitList=(s)=>String(s||"").split(/[,;]+/).map(t=>t.trim()).filter(Boolean).map(t=>t.toUpperCase());
+const numOrNull=(v)=>{const n=parseFloat(String(v??"").replace(",","."));return Number.isFinite(n)?n:null};
+
+// mescla seed + KV por id (KV vence) + água embutida
+function insumosAll(){
+  const map={};
+  for(const i of SEED)if(i&&i.id)map[i.id]={...i};
+  for(const [id,v] of Object.entries(INS_KV))map[id]={...(map[id]||{}),...v,id};
+  if(!map.agua)map.agua={...AGUA};
+  return Object.values(map).sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"));
+}
+function insumosMap(){const m={};insumosAll().forEach(i=>{m[i.id]=i});return m}
+function insStatus(i){
+  if(!i.macros100)return ["pendente",INS_STATUS_LABEL.pendente];
+  if(i.tacoId||i.origem==="taco")return ["taco",INS_STATUS_LABEL.taco];
+  if(i.origem==="ficha"||(i.fonte&&String(i.fonte).trim()))return ["ficha",INS_STATUS_LABEL.ficha];
+  return ["manual",INS_STATUS_LABEL.manual];
+}
+function recList(){return Object.entries(RECEITAS).map(([id,v])=>({id,...v})).sort((a,b)=>String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"))}
+
+/* ---- autocomplete genérico (TACO e insumos) — sem libs ---- */
+function attachAuto(inp,box,source,onPick){
+  const show=()=>{
+    const q=norm(inp.value.trim());
+    if(q.length<2){box.hidden=true;box.innerHTML="";return}
+    const hits=source(q).slice(0,12);
+    box.innerHTML=hits.length?hits.map((h,i)=>`<button type="button" data-i="${i}">${h.html}</button>`).join(""):'<div class="acempty">Nenhum resultado.</div>';
+    box.hidden=false;
+    box.querySelectorAll("button").forEach(b=>{b.onmousedown=(ev)=>{ev.preventDefault();onPick(hits[+b.dataset.i]);box.hidden=true}});
+  };
+  inp.addEventListener("input",show);
+  inp.addEventListener("focus",show);
+  inp.addEventListener("blur",()=>setTimeout(()=>{box.hidden=true},150));
+}
+async function ensureTaco(){
+  if(TACO)return TACO;
+  const j=await (await fetch("/taco.json",{cache:"force-cache"})).json();
+  TACO=j.alimentos||[];
+  return TACO;
+}
+const tacoFilter=(q)=>(TACO||[]).filter(a=>norm(a.nome).includes(q));
+
+/* ---- upload da ficha do fornecedor (sign + PUT direto no storage) ---- */
+async function uploadFichaArquivo(file){
+  if(!/\.(pdf|jpe?g|png)$/i.test(file.name))throw new Error("Formato não aceito — use PDF, JPG ou PNG.");
+  if(file.size>15*1024*1024)throw new Error("Arquivo acima de 15 MB — reduza antes de anexar.");
+  const r=await fetch("/api/upload",{method:"POST",headers:auth(),body:JSON.stringify({action:"sign",name:file.name})});
+  const j=await r.json().catch(()=>({}));
+  if(!j.ok||!j.uploadUrl)throw new Error(j.error||("Falha ao preparar o upload ("+r.status+")"));
+  const up=await fetch(j.uploadUrl,{method:"PUT",headers:{"Content-Type":file.type||"application/octet-stream"},body:file});
+  if(!up.ok)throw new Error("Falha no envio do arquivo ("+up.status+")");
+  return {fichaUrl:j.publicUrl,fichaNome:file.name};
+}
+
+/* ===== INSUMOS — lista/grade + editor ===== */
+function renderInsumos(){
+  if(INS_EDIT){renderInsumoEditor();return}
+  const list=insumosAll();
+  $("#sec").innerHTML=`
+    <h2>🧺 Insumos <span class="pill calc">${list.length} cadastrados</span></h2>
+    <p class="status">Seed auditado + cadastros salvos (edições sobrescrevem o seed pelo id). Insumos sem macros ficam <b>⚠️ pendentes</b> — nunca invente valores.</p>
+    <div class="noprint">
+      <div class="row" style="margin:14px 0 4px">
+        <input id="insq" placeholder="🔍 Buscar insumo…" style="flex:2;min-width:170px;width:auto" value="${escH(INS_Q)}"/>
+        <select id="insfcat" style="flex:1;min-width:140px;width:auto"><option value="">Todas as categorias</option>${INS_CATS.map(c=>`<option value="${c}" ${INS_FCAT===c?"selected":""}>${c}</option>`).join("")}</select>
+        <select id="insfst" style="flex:1;min-width:140px;width:auto"><option value="">Todos os status</option>${Object.entries(INS_STATUS_LABEL).map(([v,l])=>`<option value="${v}" ${INS_FST===v?"selected":""}>${l}</option>`).join("")}</select>
+        <button class="act" id="insnew">➕ Novo insumo</button>
+      </div>
+      <div id="insgrid" class="cards"></div>
+    </div>`;
+  $("#insq").oninput=(e)=>{INS_Q=e.target.value;drawInsGrid()};
+  $("#insfcat").onchange=(e)=>{INS_FCAT=e.target.value;drawInsGrid()};
+  $("#insfst").onchange=(e)=>{INS_FST=e.target.value;drawInsGrid()};
+  $("#insnew").onclick=()=>openInsumo(null);
+  drawInsGrid();
+}
+function drawInsGrid(){
+  const q=norm(INS_Q);
+  const list=insumosAll().filter(i=>{
+    const [st]=insStatus(i);
+    return (!q||norm(i.nome).includes(q))&&(!INS_FCAT||i.categoria===INS_FCAT)&&(!INS_FST||st===INS_FST);
+  });
+  $("#insgrid").innerHTML=list.length?list.map(i=>{
+    const [st,lb]=insStatus(i);
+    return `<div class="card" data-id="${escH(i.id)}">
+      <div class="nm">${escH(i.nome)} <span class="pill ${PILL_CLS[st]}">${lb}</span></div>
+      <div class="sub">${escH(i.categoria||"—")} · ${i.macros100?br(i.macros100.kcal)+" kcal/100 g":"macros pendentes"}</div>
+      ${i.tacoNome?`<div class="sub">🔬 ${escH(i.tacoNome)}</div>`:""}
+      ${i.fichaUrl?`<div class="sub">📎 ${escH(i.fichaNome||"ficha anexada")}</div>`:""}
+    </div>`;
+  }).join(""):'<p class="status">Nenhum insumo com esses filtros.</p>';
+  document.querySelectorAll("#insgrid .card").forEach(c=>{c.onclick=()=>openInsumo(c.dataset.id)});
+}
+function openInsumo(id){
+  CAT="insumos";
+  const i=id?insumosMap()[id]:null;
+  INS_EDIT=i?JSON.parse(JSON.stringify(i)):{id:null,nome:"",categoria:"outro",origem:"manual",fonte:"",composicao:"",alergenos:[],podeConter:[],gluten:false,lactoseZero:false,notas:"",macros100:null,tacoId:null,tacoNome:null,tacoQuery:null,fichaUrl:null,fichaNome:null};
+  render();
+  ensureTaco().catch(()=>{});
+}
+function renderInsumoEditor(){
+  const e=INS_EDIT,m=e.macros100||{};
+  const isNew=!e.id,kv=!!(e.id&&INS_KV[e.id]),inSeed=!!(e.id&&SEED.some(s=>s.id===e.id));
+  const [st,lb]=insStatus(e);
+  $("#sec").innerHTML=`
+    <div class="noprint">
+    <button class="act sec" id="insback" style="margin-bottom:10px">← Voltar à lista</button>
+    <h2>${isNew?"➕ Novo insumo":"🧺 "+escH(e.nome)} ${isNew?"":`<span class="pill ${PILL_CLS[st]}">${lb}</span>`}</h2>
+    <p class="status">${e._meta?`Editado por ${escH(e._meta.by||"?")} em ${new Date(e._meta.at).toLocaleString("pt-BR")}`:(inSeed?"Versão do seed auditado — salvar cria uma edição que sobrescreve o seed.":"")}</p>
+    <h3>Identificação</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+      <div style="grid-column:1/-1"><label>Nome do insumo</label><input id="e_nome" value="${escH(e.nome)}"/></div>
+      <div><label>Categoria</label><select id="e_cat">${INS_CATS.map(c=>`<option value="${c}" ${e.categoria===c?"selected":""}>${c}</option>`).join("")}</select></div>
+      <div><label>Fonte (ficha do fornecedor, rótulo…)</label><input id="e_fonte" value="${escH(e.fonte||"")}"/></div>
+      <div style="grid-column:1/-1"><label>Composição declarada (sai entre parênteses no rótulo)</label><textarea id="e_comp">${escH(e.composicao||"")}</textarea></div>
+      <div style="grid-column:1/-1"><label>Alérgenos — CONTÉM (separar por vírgula)</label><input id="e_alerg" value="${escH((e.alergenos||[]).join(", "))}" placeholder="ex.: LEITE, SOJA"/></div>
+      <div style="grid-column:1/-1"><label>Pode conter (separar por vírgula)</label><input id="e_pode" value="${escH((e.podeConter||[]).join(", "))}" placeholder="ex.: AMENDOIM, CASTANHAS"/></div>
+      <div><div class="ck"><input type="checkbox" id="e_gluten" ${e.gluten?"checked":""}/><span>Contém glúten</span></div></div>
+      <div><div class="ck"><input type="checkbox" id="e_lac" ${e.lactoseZero?"checked":""}/><span>Zero lactose</span></div></div>
+      <div style="grid-column:1/-1"><label>Notas internas</label><textarea id="e_notas">${escH(e.notas||"")}</textarea></div>
+    </div>
+    <h3>🔬 Vínculo TACO — busca direta de macros</h3>
+    <div id="tacocur"></div>
+    <div class="row" style="margin:8px 0">
+      <div class="ac"><input id="tacoq" placeholder="Buscar alimento na tabela TACO (597 alimentos, por 100 g)…"/><div class="acbox" id="tacobox" hidden></div></div>
+      ${e.tacoQuery&&!e.tacoId?`<button class="act sec" id="tacopre">🔬 Buscar na TACO</button>`:""}
+    </div>
+    <p class="hint">Ao selecionar, os macros por 100 g vêm da TACO (kcal, carboidratos, proteínas, gorduras, saturadas, fibras, sódio). Açúcares, polióis e trans ficam em branco — a TACO não os informa; complete com a ficha do fornecedor.</p>
+    <h3>📎 Ficha do fornecedor</h3>
+    <div id="anexocur"></div>
+    <div class="row" style="margin:8px 0">
+      <button class="act sec" id="anexobtn">📎 Anexar ficha do fornecedor (PDF/JPG/PNG)</button>
+      <input type="file" id="anexofile" accept=".pdf,.jpg,.jpeg,.png" hidden/>
+    </div>
+    <h3>Macros por 100 g${e.macros100?"":" — ⚠️ pendente"}</h3>
+    <p class="hint">Deixe em branco o que a ficha não informa — o insumo fica “pendente”; nunca invente valores.</p>
+    <div class="grid">
+      ${MAC_FIELDS.map(([k,l])=>`<div><label>${l}</label><input id="m_${k}" type="number" step="0.01" value="${m[k]??""}"/></div>`).join("")}
+    </div>
+    <div class="row">
+      <button class="act" id="inssave">Salvar insumo</button>
+      ${kv?`<button class="act sec" id="insdel" style="color:var(--red);border-color:var(--red)">🗑 Excluir${inSeed?" (volta ao seed)":""}</button>`:""}
+    </div>
+    <div class="status" id="insmsg"></div>
+    </div>`;
+  drawTacoCur();drawAnexoCur();
+  $("#insback").onclick=()=>{INS_EDIT=null;render()};
+  $("#inssave").onclick=saveInsumo;
+  const del=$("#insdel");if(del)del.onclick=delInsumo;
+  const tq=$("#tacoq");
+  attachAuto(tq,$("#tacobox"),(q)=>{
+    if(!TACO){ensureTaco().then(()=>{if(document.activeElement===tq)tq.dispatchEvent(new Event("input"))}).catch(()=>{});return []}
+    return tacoFilter(q).map(a=>({a,html:`${escH(a.nome)}<span class="sub">${escH(a.cat)} · ${br(a.kcal)} kcal/100 g</span>`}));
+  },(h)=>pickTaco(h.a));
+  const pre=$("#tacopre");
+  if(pre)pre.onclick=async()=>{try{await ensureTaco()}catch{$("#insmsg").textContent="Não consegui carregar a TACO — tente de novo.";return}tq.value=INS_EDIT.tacoQuery||"";tq.focus();tq.dispatchEvent(new Event("input"))};
+  $("#anexobtn").onclick=()=>$("#anexofile").click();
+  $("#anexofile").onchange=async(ev)=>{
+    const f=ev.target.files&&ev.target.files[0];if(!f)return;
+    $("#insmsg").textContent="Enviando anexo…";
+    try{
+      const u=await uploadFichaArquivo(f);
+      INS_EDIT.fichaUrl=u.fichaUrl;INS_EDIT.fichaNome=u.fichaNome;
+      drawAnexoCur();
+      $("#insmsg").textContent="Anexo enviado ✔ — clique em “Salvar insumo” para gravar.";
+    }catch(err){$("#insmsg").textContent="Erro no anexo: "+err.message}
+    ev.target.value="";
+  };
+}
+function drawTacoCur(){
+  $("#tacocur").innerHTML=INS_EDIT.tacoId
+    ?`<p style="font-size:13px;margin:4px 0">🔬 Vinculado a <b>${escH(INS_EDIT.tacoNome||INS_EDIT.tacoId)}</b> (TACO #${escH(String(INS_EDIT.tacoId))}) <button class="act sec" id="tacounlink" style="padding:3px 10px;font-size:11px">desvincular</button></p>`
+    :`<p class="hint" style="margin:4px 0">Sem vínculo TACO${INS_EDIT.tacoQuery?` — sugestão de busca: “${escH(INS_EDIT.tacoQuery)}”`:""}.</p>`;
+  const u=$("#tacounlink");if(u)u.onclick=()=>{INS_EDIT.tacoId=null;INS_EDIT.tacoNome=null;drawTacoCur()};
+}
+function pickTaco(a){
+  INS_EDIT.tacoId=a.id;INS_EDIT.tacoNome=a.nome;
+  const set=(k,v)=>{const el=$("#m_"+k);if(el)el.value=(v==null?"":Math.round(v*100)/100)};
+  set("kcal",a.kcal);set("carb",a.carb);set("prot",a.prot);set("fat",a.fat);set("sat",a.sat);set("fiber",a.fiber);set("na",a.na);
+  set("sugars",null);set("addedSugars",null);set("polyols",null);set("trans",null);
+  $("#tacoq").value="";drawTacoCur();
+  $("#insmsg").textContent="Macros TACO preenchidos ✔ — açúcares/polióis/trans em branco (a TACO não informa). Salve o insumo.";
+}
+function drawAnexoCur(){
+  $("#anexocur").innerHTML=INS_EDIT.fichaUrl
+    ?`<p style="font-size:12.5px;margin:4px 0">📎 <a href="${escH(INS_EDIT.fichaUrl)}" target="_blank" rel="noopener">${escH(INS_EDIT.fichaNome||"ficha anexada")}</a> <button class="act sec" id="anexorm" style="padding:3px 10px;font-size:11px">remover</button></p>`
+    :`<p class="hint" style="margin:4px 0">Nenhuma ficha anexada.</p>`;
+  const r=$("#anexorm");if(r)r.onclick=()=>{INS_EDIT.fichaUrl=null;INS_EDIT.fichaNome=null;drawAnexoCur()};
+}
+async function saveInsumo(){
+  const nome=$("#e_nome").value.trim();
+  if(!nome){$("#insmsg").textContent="Informe o nome do insumo.";return}
+  const macros={};let any=false;
+  MAC_KEYS.forEach(k=>{const v=numOrNull($("#m_"+k).value);macros[k]=v;if(v!==null)any=true});
+  const fonte=$("#e_fonte").value.trim();
+  const id=INS_EDIT.id||slug(nome);
+  const patch={
+    nome,categoria:$("#e_cat").value,composicao:$("#e_comp").value.trim(),
+    alergenos:splitList($("#e_alerg").value),podeConter:splitList($("#e_pode").value),
+    gluten:$("#e_gluten").checked,lactoseZero:$("#e_lac").checked,
+    fonte,notas:$("#e_notas").value.trim(),
+    macros100:any?macros:null,
+    tacoId:INS_EDIT.tacoId||null,tacoNome:INS_EDIT.tacoNome||null,tacoQuery:INS_EDIT.tacoQuery||null,
+    fichaUrl:INS_EDIT.fichaUrl||null,fichaNome:INS_EDIT.fichaNome||null,
+    origem:INS_EDIT.tacoId?"taco":((fonte&&any)?"ficha":"manual"),
+  };
+  $("#insmsg").textContent="Salvando…";
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"insumo-save",id,by:NAME,patch})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){
+    INS_KV=j.insumos||INS_KV;
+    openInsumo(id);
+    $("#insmsg").textContent="Insumo salvo ✔"+(any?"":" — macros pendentes (complete quando tiver a ficha).");
+  }else $("#insmsg").textContent="Erro ao salvar: "+(j.error||r.status);
+}
+async function delInsumo(){
+  const inSeed=SEED.some(s=>s.id===INS_EDIT.id);
+  if(!confirm(inSeed?"Excluir as edições salvas deste insumo? Ele voltará à versão auditada do seed.":"Excluir o insumo “"+(INS_EDIT.nome||INS_EDIT.id)+"” do cadastro?"))return;
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"insumo-del",id:INS_EDIT.id})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){INS_KV=j.insumos||{};INS_EDIT=null;render()}
+  else $("#insmsg").textContent="Erro ao excluir: "+(j.error||r.status);
+}
+
+/* ===== RECEITAS — criador de ficha estilo ChefPro ===== */
+// soma(qty × macro100/100) ÷ rendimento × porção — nunca inventa macros:
+// insumo sem macros100 entra na lista "missing" e o cálculo fica parcial.
+function computeReceita(rec){
+  const map=insumosMap();
+  const rows=(rec.itens||[]).map(it=>({qty:+it.qty,ins:map[it.insumoId]})).filter(r=>r.ins&&Number.isFinite(r.qty)&&r.qty>0);
+  const soma=rows.reduce((s,r)=>s+r.qty,0);
+  const rend=(+rec.rendimento>0)?+rec.rendimento:soma;
+  const por=(+rec.porcao>0)?+rec.porcao:100;
+  const tot={};MAC_KEYS.forEach(k=>{tot[k]=0});
+  const missing=[];let sugarNull=false;
+  rows.forEach(r=>{
+    const mm=r.ins.macros100;
+    if(!mm){missing.push(r.ins.nome);return}
+    if(mm.sugars==null||mm.addedSugars==null)sugarNull=true;
+    MAC_KEYS.forEach(k=>{const v=+mm[k];if(Number.isFinite(v))tot[k]+=r.qty*v/100});
+  });
+  const f=rend>0?1/rend:0;
+  const perP={},per100={};
+  MAC_KEYS.forEach(k=>{perP[k]=tot[k]*f*por;per100[k]=tot[k]*f*100});
+  const uni=(key)=>{const s=new Set();rows.forEach(r=>(r.ins[key]||[]).forEach(a=>s.add(String(a).toUpperCase())));return [...s]};
+  const allergens=uni("alergenos"),podeConter=uni("podeConter");
+  const gluten=rows.some(r=>!!r.ins.gluten);
+  const lactose=rows.some(r=>(r.ins.alergenos||[]).some(a=>/leite/i.test(a))&&r.ins.lactoseZero===false);
+  const polyols=rows.some(r=>(r.ins.macros100&&+r.ins.macros100.polyols>0)||/maltitol|sorbitol/i.test(r.ins.composicao||""));
+  const ings=rows.map(r=>({name:r.ins.nome,qty:String(r.qty),note:(r.ins.composicao&&norm(r.ins.composicao)!==norm(r.ins.nome))?r.ins.composicao:""}));
+  const rotulo=rows.length?ordered(ings).map(i=>i.note?`${i.name} (${i.note.toLowerCase()})`:i.name).join(", ")+".":"";
+  const partial=missing.length>0;
+  // claims — mesmas regras do painel (RDC 54/2012 e RDC 429/2020); suspensos se faltarem dados
+  const claims={sugar:null,sugarNote:null,protein:null,lupa:[]};
+  if(!partial){
+    if(!sugarNull&&(per100.addedSugars||0)<=0){
+      claims.sugar=per100.sugars<=0.5?"ZERO AÇÚCARES":"SEM ADIÇÃO DE AÇÚCARES";
+      if(claims.sugar==="SEM ADIÇÃO DE AÇÚCARES")claims.sugarNote=DATA.fraseAcucaresProprios||"Contém açúcares próprios dos ingredientes.";
+    }
+    if(perP.prot>=12)claims.protein="ALTO TEOR DE PROTEÍNA";
+    else if(perP.prot>=6)claims.protein="FONTE DE PROTEÍNA";
+    if(per100.addedSugars>=15)claims.lupa.push("AÇÚCAR ADICIONADO");
+    if(per100.sat>=6)claims.lupa.push("GORDURA SATURADA");
+    if(per100.na>=600)claims.lupa.push("SÓDIO");
+  }
+  return {rows,soma,rend,por,perP,per100,missing,sugarNull,allergens,podeConter,gluten,lactose,polyols,rotulo,claims,partial};
+}
+// monta o objeto compatível com fichaHTML() (mesma ficha padrão indústria, seções 1–8)
+function receitaFichaM(rec,c){
+  const obs=[];
+  if(c.partial)obs.push("⚠ Cálculo parcial — insumo(s) sem macros: "+c.missing.join(", ")+". Não protocolar sem completar o cadastro.");
+  if(c.sugarNull)obs.push("Açúcares/polióis de insumos vinculados à TACO não são informados pela tabela — completar com as fichas dos fornecedores antes de rotular.");
+  return {
+    id:"rec-"+(rec.id||slug(rec.nome||"receita")),
+    code:"FT-REC-"+slug(rec.nome||"receita").toUpperCase(),
+    _rev:rec._rev||1,isReceita:true,draft:false,estimated:false,
+    name:rec.nome||"Receita sem nome",category:rec.categoria||"outro",
+    linha:"Receita — "+(REC_CAT_LABEL[rec.categoria]||rec.categoria||"outro"),
+    denominacao:rec.nome||"Receita sem nome",
+    serving:c.por,portionLabel:`1 porção (${br(c.por)} g)`,yield:`${br(c.rend)} g`,
+    nutrition:{kcal:c.perP.kcal,carbs:c.perP.carb,sugars:c.perP.sugars,addedSugars:c.perP.addedSugars,protein:c.perP.prot,fat:c.perP.fat,satFat:c.perP.sat,transFat:c.perP.trans,fiber:c.perP.fiber,sodium:c.perP.na},
+    ingredients:[],ingredientesText:c.rotulo||"—",
+    allergens:c.allergens,alergicosText:"",
+    podeConterList:c.podeConter,
+    flags:{gluten:c.gluten,lactose:c.lactose},
+    hasPolyols:c.polyols,
+    claims:{sugar:c.claims.sugar,sugarNote:c.claims.sugarNote,protein:c.claims.protein,lupa:c.claims.lupa},
+    obs:obs.join(" "),
+  };
+}
+function renderReceitas(){
+  if(REC_EDIT){renderReceitaEditor();return}
+  const list=recList();
+  $("#sec").innerHTML=`
+    <h2>👩‍🍳 Receitas <span class="pill calc">${list.length} salvas</span></h2>
+    <p class="status">Criador de receitas estilo ChefPro: monte a receita com os insumos cadastrados, veja os macros calculados ao vivo e gere a ficha técnica padrão indústria.</p>
+    <div class="noprint">
+      <div class="row"><button class="act" id="recnew">➕ Nova receita</button></div>
+      <div class="cards" id="recgrid">${list.map(r=>{
+        const c=computeReceita(r);
+        return `<div class="card" data-id="${escH(r.id)}">
+          <div class="nm">${escH(r.nome||r.id)}</div>
+          <div class="sub">${escH(REC_CAT_LABEL[r.categoria]||r.categoria||"—")} · ${(r.itens||[]).length} ingrediente(s) · ${br(c.perP.kcal)} kcal/porção${c.missing.length?" · ⚠️ parcial":""}</div>
+          ${r._meta?`<div class="sub">✎ ${escH(r._meta.by||"?")} — ${new Date(r._meta.at).toLocaleDateString("pt-BR")}</div>`:""}
+        </div>`;}).join("")||'<p class="status">Nenhuma receita salva ainda — clique em “➕ Nova receita”.</p>'}</div>
+    </div>`;
+  $("#recnew").onclick=()=>openReceita(null);
+  document.querySelectorAll("#recgrid .card").forEach(c=>{c.onclick=()=>openReceita(c.dataset.id)});
+}
+function openReceita(id){
+  CAT="receitas";
+  const r=id&&RECEITAS[id]?RECEITAS[id]:null;
+  REC_EDIT=r?JSON.parse(JSON.stringify({id,...r})):{id:null,nome:"",categoria:"gelato",itens:[{insumoId:null,qty:null}],rendimento:null,porcao:100};
+  if(!Array.isArray(REC_EDIT.itens)||!REC_EDIT.itens.length)REC_EDIT.itens=[{insumoId:null,qty:null}];
+  render();
+}
+function renderReceitaEditor(){
+  const r=REC_EDIT;
+  $("#sec").innerHTML=`
+    <div class="noprint">
+    <button class="act sec" id="recback" style="margin-bottom:10px">← Voltar à lista</button>
+    <h2>👩‍🍳 ${r.id?escH(r.nome||r.id):"Nova receita"}</h2>
+    ${r._meta?`<p class="status">Salva por ${escH(r._meta.by||"?")} em ${new Date(r._meta.at).toLocaleString("pt-BR")}</p>`:""}
+    <h3>Receita</h3>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+      <div style="grid-column:1/-1"><label>Nome da receita</label><input id="r_nome" value="${escH(r.nome||"")}" placeholder="ex.: Gelato de pistache zero"/></div>
+      <div><label>Categoria</label><select id="r_cat">${REC_CATS.map(([v,l])=>`<option value="${v}" ${r.categoria===v?"selected":""}>${l}</option>`).join("")}</select></div>
+      <div><label>Rendimento total (g)</label><input id="r_rend" type="number" min="0" step="1" value="${r.rendimento??""}" placeholder="vazio = soma dos insumos"/></div>
+      <div><label>Porção (g)</label><input id="r_porc" type="number" min="0" step="1" value="${r.porcao??100}"/></div>
+    </div>
+    <h3>Ingredientes — insumo do cadastro + quantidade (g/mL)</h3>
+    <div id="recitens"></div>
+    <div class="row" style="margin:8px 0"><button class="act sec" id="recadd">➕ Adicionar ingrediente</button></div>
+    <h3>Cálculo nutricional ao vivo</h3>
+    <div id="reccalc"></div>
+    <div class="row">
+      <button class="act" id="recsave">Salvar receita</button>
+      <button class="act gold" id="recgerar">🧾 Gerar ficha técnica</button>
+      <button class="act sec" id="recprint">🖨 Imprimir ficha</button>
+      ${r.id&&RECEITAS[r.id]?'<button class="act sec" id="recdel" style="color:var(--red);border-color:var(--red)">🗑 Excluir receita</button>':""}
+    </div>
+    <div class="status" id="recmsg"></div>
+    </div>
+    <div id="recficha"></div>`;
+  $("#recback").onclick=()=>{REC_EDIT=null;render()};
+  $("#r_nome").oninput=(e)=>{REC_EDIT.nome=e.target.value};
+  $("#r_cat").onchange=(e)=>{REC_EDIT.categoria=e.target.value};
+  $("#r_rend").oninput=(e)=>{REC_EDIT.rendimento=e.target.value===""?null:+e.target.value;recalcReceita()};
+  $("#r_porc").oninput=(e)=>{REC_EDIT.porcao=e.target.value===""?null:+e.target.value;recalcReceita()};
+  $("#recadd").onclick=()=>{REC_EDIT.itens.push({insumoId:null,qty:null});drawRecItens();recalcReceita()};
+  $("#recsave").onclick=saveReceita;
+  $("#recgerar").onclick=()=>{gerarFichaReceita();const f=$("#recficha");if(f.scrollIntoView)f.scrollIntoView({behavior:"smooth"})};
+  $("#recprint").onclick=()=>{gerarFichaReceita();window.print()};
+  const del=$("#recdel");if(del)del.onclick=delReceita;
+  drawRecItens();recalcReceita();
+}
+function drawRecItens(){
+  const map=insumosMap();
+  $("#recitens").innerHTML=REC_EDIT.itens.map((it,idx)=>{
+    const ins=it.insumoId?map[it.insumoId]:null;
+    return `<div class="ritem" data-idx="${idx}">
+      <div class="ac"><input class="ri-nome" placeholder="Buscar insumo no cadastro…" value="${escH(ins?ins.nome:"")}"/><div class="acbox" hidden></div></div>
+      <input class="ri-qty" type="number" min="0" step="1" placeholder="g / mL" value="${it.qty??""}"/>
+      <button class="ri-del" type="button" title="Remover ingrediente">✕</button>
+    </div>`;}).join("");
+  document.querySelectorAll("#recitens .ritem").forEach(row=>{
+    const idx=+row.dataset.idx,inp=row.querySelector(".ri-nome"),box=row.querySelector(".acbox"),qty=row.querySelector(".ri-qty");
+    attachAuto(inp,box,(q)=>insumosAll().filter(i=>norm(i.nome).includes(q)).map(i=>{
+      const [,lb]=insStatus(i);
+      return {i,html:`${escH(i.nome)}<span class="sub">${escH(i.categoria||"—")} · ${i.macros100?br(i.macros100.kcal)+" kcal/100 g":lb}</span>`};
+    }),(h)=>{REC_EDIT.itens[idx].insumoId=h.i.id;inp.value=h.i.nome;recalcReceita()});
+    inp.addEventListener("input",()=>{
+      const cur=REC_EDIT.itens[idx].insumoId?insumosMap()[REC_EDIT.itens[idx].insumoId]:null;
+      if(cur&&norm(inp.value)!==norm(cur.nome)){REC_EDIT.itens[idx].insumoId=null;recalcReceita()}
+    });
+    qty.oninput=()=>{REC_EDIT.itens[idx].qty=qty.value===""?null:+qty.value;recalcReceita()};
+    row.querySelector(".ri-del").onclick=()=>{
+      REC_EDIT.itens.splice(idx,1);
+      if(!REC_EDIT.itens.length)REC_EDIT.itens.push({insumoId:null,qty:null});
+      drawRecItens();recalcReceita();
+    };
+  });
+}
+function recalcReceita(){
+  const c=computeReceita(REC_EDIT);
+  const NUTMAP={kcal:"kcal",carbs:"carb",sugars:"sugars",addedSugars:"addedSugars",protein:"prot",fat:"fat",satFat:"sat",transFat:"trans",fiber:"fiber",sodium:"na"};
+  const rows=NUT.map(([k,l])=>{
+    const mk=NUTMAP[k],v=c.perP[mk],vd=VD[k]?Math.round(v/VD[k]*100):null;
+    return `<tr><td>${l}</td><td>${br(c.per100[mk])}</td><td>${br(v)}</td><td>${vd===null?"—":vd+"%"}</td></tr>`;
+  }).join("")+`<tr><td>Polióis (g)</td><td>${br(c.per100.polyols)}</td><td>${br(c.perP.polyols)}</td><td>—</td></tr>`;
+  const alegs=[c.claims.sugar,c.claims.sugarNote,c.claims.protein,...(c.claims.lupa||[]).map(l=>"LUPA FRONTAL: ALTO EM "+l)].filter(Boolean);
+  $("#reccalc").innerHTML=`
+    ${c.missing.length?`<div class="ai" style="margin:0 0 10px"><span class="atencao">⚠️ ${c.missing.length} insumo(s) sem macros — valores parciais:</span> ${c.missing.map(escH).join(", ")}</div>`:""}
+    <p class="status">Soma dos insumos: ${br(c.soma)} g · Rendimento: ${br(c.rend)} g · Porção: ${br(c.por)} g</p>
+    <div class="tablewrap calcbox"><table>
+      <tr><th>Informação nutricional</th><th>100 g</th><th>Porção (${br(c.por)} g)</th><th>%VD*</th></tr>${rows}
+    </table></div>
+    <p class="hint">*%VD com base em dieta de 2.000 kcal (RDC 429/2020 · IN 75/2020).${c.sugarNull?" Açúcares/polióis de insumos TACO não informados — soma parcial nessas linhas.":""}</p>
+    <div class="ai" style="margin-top:10px">
+      <div class="mono" style="margin-bottom:6px;color:var(--pist)">Derivações do rótulo</div>
+      ${c.rotulo?`<p style="font-size:13px"><b>INGREDIENTES:</b> ${escH(c.rotulo)}</p>`:'<p class="hint">Adicione ingredientes para gerar a lista do rótulo.</p>'}
+      <p style="font-size:13px"><b>${c.allergens.length?"ALÉRGICOS: CONTÉM "+escH(c.allergens.join(", "))+".":"ALÉRGICOS: NÃO CONTÉM ALÉRGENOS DE DECLARAÇÃO OBRIGATÓRIA."}</b></p>
+      ${c.podeConter.length?`<p style="font-size:13px"><b>ALÉRGICOS: PODE CONTER ${escH(c.podeConter.join(", "))}.</b></p>`:""}
+      <p style="font-size:13px"><b>${c.gluten?"CONTÉM GLÚTEN.":"NÃO CONTÉM GLÚTEN."} ${c.lactose?"CONTÉM LACTOSE.":"NÃO CONTÉM LACTOSE."}</b></p>
+      ${c.polyols?`<p style="font-size:13px"><span class="atencao">⚠️ CONTÉM POLIÓIS</span> — ${escH((DATA.avisoPoliol||"Este produto pode ter efeito laxativo.").toUpperCase())} (advertência RDC 727/2022)</p>`:""}
+      ${c.partial?'<p class="hint">Alegações suspensas — complete os macros dos insumos pendentes.</p>':`<p style="font-size:13px"><b>Alegações (RDC 54/2012):</b> ${alegs.length?alegs.map(escH).join(" · "):"nenhuma"}${c.sugarNull?' <span class="hint">(alegação de açúcar suspensa — insumo TACO sem dado de açúcares)</span>':""}</p>`}
+    </div>`;
+}
+function gerarFichaReceita(){
+  REC_EDIT.nome=($("#r_nome").value||"").trim()||REC_EDIT.nome||"Receita sem nome";
+  const c=computeReceita(REC_EDIT);
+  const m=receitaFichaM(REC_EDIT,c);
+  $("#recficha").innerHTML='<h3>Ficha técnica — padrão indústria (prévia de impressão)</h3>'+fichaHTML(m);
+}
+async function saveReceita(){
+  const nome=($("#r_nome").value||"").trim();
+  if(!nome){$("#recmsg").textContent="Dê um nome à receita.";return}
+  const itens=REC_EDIT.itens.filter(it=>it.insumoId&&Number.isFinite(+it.qty)&&+it.qty>0).map(it=>({insumoId:it.insumoId,qty:+it.qty}));
+  if(!itens.length){$("#recmsg").textContent="Adicione ao menos um ingrediente com quantidade.";return}
+  const id=REC_EDIT.id||slug(nome);
+  const patch={nome,categoria:REC_EDIT.categoria||"outro",itens,rendimento:(+REC_EDIT.rendimento>0)?+REC_EDIT.rendimento:null,porcao:(+REC_EDIT.porcao>0)?+REC_EDIT.porcao:100,_rev:((RECEITAS[id]||{})._rev||0)+1};
+  $("#recmsg").textContent="Salvando…";
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"receita-save",id,by:NAME,patch})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){RECEITAS=j.receitas||RECEITAS;REC_EDIT.id=id;REC_EDIT._rev=patch._rev;nav();$("#recmsg").textContent="Receita salva ✔"}
+  else $("#recmsg").textContent="Erro ao salvar: "+(j.error||r.status);
+}
+async function delReceita(){
+  if(!confirm("Excluir a receita “"+(REC_EDIT.nome||REC_EDIT.id)+"”?"))return;
+  const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"receita-del",id:REC_EDIT.id})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){RECEITAS=j.receitas||{};REC_EDIT=null;render()}
+  else $("#recmsg").textContent="Erro ao excluir: "+(j.error||r.status);
+}
+
 /* ===== config global (_config no KV — mesmo endpoint /api/fichas) ===== */
 function openCfg(){
   const c=cfg();
@@ -511,10 +1009,11 @@ $("#expjson").onclick=()=>{
 async function boot(){
   const r=await fetch("/api/fichas",{headers:auth(),cache:"no-store"});
   if(r.status===401)throw new Error("401");
-  const j=await r.json();DRAFTS=j.drafts||{};
+  const j=await r.json();DRAFTS=j.drafts||{};INS_KV=j.insumos||{};RECEITAS=j.receitas||{};
   if(!DATA)DATA=await (await fetch("/fichas-data.json",{cache:"no-store"})).json();
+  if(!SEED.length){try{SEED=(await (await fetch("/insumos-seed.json",{cache:"no-store"})).json()).insumos||[]}catch{SEED=[]}}
   if(!CUR){CUR=DATA.products[0].id}
-  const cur=findItem(CUR);if(cur)CAT=cur.category;
+  const cur=findItem(CUR);if(cur&&CAT!=="insumos"&&CAT!=="receitas")CAT=cur.category;
   $("#gate").style.display="none";render();
 }
 $("#gbtn").onclick=async()=>{
