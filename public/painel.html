@@ -77,6 +77,35 @@
   .tag.conv{color:var(--gold);border-color:rgba(227,196,106,.4)}
   .bar{height:6px;border-radius:4px;background:linear-gradient(90deg,var(--pistD),var(--pist));}
   .barwrap{background:#222b1a;border-radius:4px;overflow:hidden;width:100%}
+  /* 🎉 Eventos — leads agrupados por WhatsApp em pilha vertical de tópicos */
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .chips button{min-height:44px;background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--soft);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+  .chips button:hover{color:var(--ink);border-color:var(--pistD)}
+  .chips button.on{background:var(--pist);border-color:var(--pist);color:#0c0f0a}
+  .chips button .n{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:10px;font-weight:800;background:var(--panel2);color:var(--soft);border-radius:999px;padding:2px 7px;min-width:16px;text-align:center}
+  .chips button.on .n{background:rgba(0,0,0,.18);color:#0c0f0a}
+  .lstack{display:flex;flex-direction:column;gap:10px}
+  .topic{border:1px solid var(--line);border-radius:12px;background:#0e120b}
+  .topic[open]{border-color:var(--pistD)}
+  .topic>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:44px;padding:11px 13px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .topic>summary::-webkit-details-marker{display:none}
+  .topic .tmid{flex:1;min-width:0}
+  .topic .tnm{font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .topic .tnm.anon{color:var(--soft);font-style:italic;font-weight:600}
+  .topic .twa{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;margin-top:2px;color:var(--soft)}
+  .topic .twa a{color:var(--pist);text-decoration:none;display:inline-block;padding:4px 0}
+  .topic .tright{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+  .topic .tct{font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--gold);border:1px solid rgba(227,196,106,.4);border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .topic .tts{font-size:10.5px;color:var(--soft)}
+  .topic .chev{color:var(--soft);font-size:17px;line-height:1;flex-shrink:0;transition:transform .15s ease}
+  .topic[open]>summary .chev{transform:rotate(90deg)}
+  .qrow{border-top:1px solid var(--line);padding:10px 13px;display:flex;flex-direction:column;gap:5px}
+  .qrow .ql1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .qrow .qwhen{font-size:11.5px;color:var(--soft)}
+  .qrow .qtot{margin-left:auto;font-size:13px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+  .qrow .ql2{font-size:12.5px;color:var(--ink);line-height:1.45;overflow-wrap:break-word}
+  .qrow .ql3{display:flex;gap:16px;flex-wrap:wrap}
+  .qrow .qact{display:inline-flex;align-items:center;min-height:44px;font-size:12px;font-weight:700;text-decoration:none;color:var(--pist)}
   /* Login */
   .gate{position:fixed;inset:0;background:rgba(8,10,7,.92);display:flex;align-items:center;justify-content:center;padding:18px;z-index:50}
   .gate .box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px;max-width:360px;width:100%;text-align:center}
@@ -248,12 +277,8 @@
 
   <div class="card pane" data-pane="eventos" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center"><span>🎉 Orçamentos de eventos — leads</span><span id="leadsCount" class="mono" style="color:var(--gold);font-size:13px"></span></h3>
-    <div class="tblscroll">
-      <table id="leadsTbl">
-        <thead><tr><th>Quando</th><th>Nome</th><th>WhatsApp</th><th class="num">Convid.</th><th>Evento</th><th class="num">Total</th><th>Etapa</th><th>Orçamento</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <div class="chips" id="leadChips"></div>
+    <div class="lstack" id="leadsStack"></div>
     <div class="empty" id="leadsEmpty" style="display:none">Nenhum orçamento ainda. Quando alguém gerar um orçamento de evento, o contato aparece aqui na hora. 🎉</div>
   </div>
 
@@ -448,32 +473,112 @@ async function loadLeads(){
   if(!r.ok) return;
   renderLeads(await r.json());
 }
+// Leads de eventos — agrupados por WhatsApp (só dígitos) em tópicos <details>, com chips de categoria.
+var _leadsData = null;      // último payload de /api/leads (p/ re-render ao trocar de filtro)
+var _leadFilter = "Todos";  // chip ativo
+var _leadOpen = {};         // tópicos abertos (persistem entre atualizações de 30s)
+function leadDigits(p){ return String(p||"").replace(/\D/g,""); }
+function leadFone(dig){
+  var d = (dig.length>11 && dig.slice(0,2)==="55") ? dig.slice(2) : dig;
+  var f = d.replace(/^(\d{2})(\d{4,5})(\d{4})$/, "($1) $2-$3");
+  return f || dig;
+}
+function leadTipo(l){ var t=String((l&&l.tipo)||"").trim(); return t ? (t.charAt(0).toUpperCase()+t.slice(1)) : ""; }
+function leadMatch(t, f){
+  if(f==="Todos") return true;
+  if(f==="Recorrentes") return t.quotes.length>=2;
+  if(f==="Com nome") return !!t.nome;
+  if(f==="Sem nome") return !t.nome;
+  return t.quotes.some(function(l){ return leadTipo(l)===f; });
+}
+function leadQuoteRow(l){
+  var row = document.createElement("div"); row.className = "qrow";
+  var quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+  var total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  var stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
+  var det = [
+    l.convidados ? ("👥 "+l.convidados+" convid.") : "",
+    leadTipo(l),
+    l.data ? ("📅 "+fmtDateBR(l.data)+(l.hora?(" ⏰ "+l.hora):"")) : "",
+    l.local ? ("📍 "+l.local) : ""
+  ].filter(Boolean).join(" · ");
+  var acts = [];
+  if(l.link && /^https?:\/\//i.test(l.link)) acts.push('<a class="qact" href="'+escapeHtml(l.link)+'" target="_blank" rel="noopener">📄 Abrir orçamento</a>');
+  if(l.data) acts.push('<a class="qact resBook" href="#" data-d="'+escapeHtml(l.data)+'" data-h="'+escapeHtml(l.hora||"")+'" style="color:var(--gold)">📅 Reservar data</a>');
+  row.innerHTML = '<div class="ql1"><span class="mono qwhen">'+quando+'</span>'+stageTag+'<span class="mono qtot">'+total+'</span></div>'
+    + (det ? '<div class="ql2">'+escapeHtml(det)+'</div>' : '')
+    + (acts.length ? '<div class="ql3">'+acts.join("")+'</div>' : '');
+  return row;
+}
 function renderLeads(d){
-  const leads = (d && d.leads) || [];
+  _leadsData = d;
+  var leads = (d && d.leads) || [];
   $("#leadsCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgEventos", leads.length);
-  const tb = $("#leadsTbl tbody"); tb.innerHTML = "";
-  leads.forEach(l=>{
-    const dig = String(l.phone||"").replace(/\D/g,"");
-    const wa = dig.length>=10 ? ("https://wa.me/"+(dig.length<=11?"55":"")+dig) : null;
-    const quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-    const total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-    const evento = [l.data, l.hora?("⏰ "+l.hora):"", l.local, l.tipo].filter(Boolean).join(" · ");
-    const stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
-    const orc = l.link ? `<a class="docs" href="${escapeHtml(l.link)}" target="_blank" rel="noopener">📄 Abrir</a>` : "—";
-    const res = l.data ? ` · <a href="#" class="resBook" data-d="${escapeHtml(l.data)}" data-h="${escapeHtml(l.hora||"")}" style="color:var(--gold);text-decoration:none">reservar</a>` : "";
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td class="mono" style="white-space:nowrap">${quando}</td>
-      <td>${escapeHtml(l.nome||"—")}</td>
-      <td>${wa?`<a class="docs" href="${wa}" target="_blank" rel="noopener">${escapeHtml(l.phone)}</a>`:escapeHtml(l.phone||"—")}</td>
-      <td class="num">${l.convidados||"—"}</td>
-      <td>${escapeHtml(evento||"—")}${res}</td>
-      <td class="num">${total}</td>
-      <td>${stageTag}</td>
-      <td>${orc}</td>`;
-    tb.appendChild(tr);
-  });
-  tb.querySelectorAll(".resBook").forEach(a=>a.onclick=(e)=>{ e.preventDefault(); bookAction("add", a.getAttribute("data-d"), a.getAttribute("data-h")); });
   $("#leadsEmpty").style.display = leads.length ? "none" : "block";
+
+  // 1) tópicos: agrupa pelo WhatsApp normalizado; sem número = tópico individual
+  var topics = {}, order = [];
+  leads.slice().sort(function(a,b){ return (b.ts||0)-(a.ts||0); }).forEach(function(l,i){
+    var dig = leadDigits(l.phone);
+    var key = dig || ("solo:"+i+":"+(l.ts||0));
+    if(!topics[key]){ topics[key] = { key:key, dig:dig, nome:"", quotes:[], last:0 }; order.push(key); }
+    var t = topics[key];
+    t.quotes.push(l); // já em ordem decrescente de data
+    if(!t.nome && l.nome) t.nome = l.nome; // melhor nome = mais recente não vazio
+    if((l.ts||0) > t.last) t.last = l.ts||0;
+  }); // order[] fica ordenado pelo orçamento mais recente primeiro
+
+  // 2) chips de categoria (derivadas dos dados)
+  var tipos = {};
+  leads.forEach(function(l){ var tp = leadTipo(l); if(tp) tipos[tp] = 1; });
+  var filters = ["Todos"].concat(Object.keys(tipos).sort(function(a,b){ return a.localeCompare(b,"pt-BR"); }));
+  if(!Object.keys(tipos).length) filters = filters.concat(["Com nome","Sem nome"]);
+  filters.push("Recorrentes");
+  if(filters.indexOf(_leadFilter) < 0) _leadFilter = "Todos";
+  var chips = $("#leadChips"); chips.innerHTML = "";
+  chips.style.display = leads.length ? "flex" : "none";
+  filters.forEach(function(f){
+    var n = order.reduce(function(s,k){ return s + (leadMatch(topics[k], f) ? 1 : 0); }, 0);
+    if(f!=="Todos" && n===0) return;
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = f===_leadFilter ? "on" : "";
+    b.innerHTML = escapeHtml(f==="Recorrentes" ? "🔁 Recorrentes (2+)" : f) + ' <span class="n">'+n+'</span>';
+    b.onclick = function(){ _leadFilter = f; renderLeads(_leadsData); };
+    chips.appendChild(b);
+  });
+
+  // 3) pilha vertical de tópicos
+  var box = $("#leadsStack"); box.innerHTML = "";
+  var shown = 0;
+  order.forEach(function(k){
+    var t = topics[k];
+    if(!leadMatch(t, _leadFilter)) return;
+    shown++;
+    var wa = t.dig.length>=10 ? ("https://wa.me/"+(t.dig.length<=11?"55":"")+t.dig) : null;
+    var lastStr = new Date(t.last||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    var det = document.createElement("details"); det.className = "topic";
+    if(_leadOpen[t.key]) det.open = true;
+    det.addEventListener("toggle", function(){ _leadOpen[t.key] = det.open; });
+    var sum = document.createElement("summary");
+    sum.innerHTML = '<div class="tmid">'
+      + '<div class="tnm'+(t.nome?'':' anon')+'">'+escapeHtml(t.nome||"Sem nome")+'</div>'
+      + '<div class="twa">'+(wa ? '<a href="'+wa+'" target="_blank" rel="noopener">'+escapeHtml(leadFone(t.dig))+'</a>' : 'sem WhatsApp')+'</div>'
+      + '</div>'
+      + '<div class="tright"><span class="tct">'+t.quotes.length+' orçamento'+(t.quotes.length>1?'s':'')+'</span><span class="tts mono">'+lastStr+'</span></div>'
+      + '<span class="chev">›</span>';
+    var waLink = sum.querySelector(".twa a");
+    if(waLink) waLink.addEventListener("click", function(e){ e.stopPropagation(); }); // abre o WhatsApp sem abrir/fechar o tópico
+    det.appendChild(sum);
+    t.quotes.forEach(function(l){ det.appendChild(leadQuoteRow(l)); });
+    box.appendChild(det);
+  });
+  if(!shown && leads.length){
+    var none = document.createElement("div"); none.className = "empty"; none.style.padding = "18px";
+    none.textContent = "Nenhum lead nesta categoria.";
+    box.appendChild(none);
+  }
+  box.querySelectorAll(".resBook").forEach(function(a){ a.onclick = function(e){ e.preventDefault(); bookAction("add", a.getAttribute("data-d"), a.getAttribute("data-h")); }; });
 }
 
 function fmtDateBR(d){ const p=String(d).split("-"); return p.length===3 ? (p[2]+"/"+p[1]+"/"+p[0]) : d; }
