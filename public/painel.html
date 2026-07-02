@@ -477,7 +477,12 @@ async function loadLeads(){
 var _leadsData = null;      // último payload de /api/leads (p/ re-render ao trocar de filtro)
 var _leadFilter = "Todos";  // chip ativo
 var _leadOpen = {};         // tópicos abertos (persistem entre atualizações de 30s)
-function leadDigits(p){ return String(p||"").replace(/\D/g,""); }
+function leadDigits(p){
+  var d = String(p||"").replace(/\D/g,"");
+  // canoniza sem o DDI 55: "5527999..." e "27999..." caem no MESMO tópico
+  if (d.length > 11 && d.slice(0,2) === "55") d = d.slice(2);
+  return d;
+}
 function leadFone(dig){
   var d = (dig.length>11 && dig.slice(0,2)==="55") ? dig.slice(2) : dig;
   var f = d.replace(/^(\d{2})(\d{4,5})(\d{4})$/, "($1) $2-$3");
