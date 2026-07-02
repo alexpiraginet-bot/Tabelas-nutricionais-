@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Upload de artes — Bentô</title>
+<style>
+  :root{--bg:#0c0f0a;--card:#141910;--line:#2a3122;--ink:#EDEBDF;--soft:#9aa08a;--pist:#8FA050;--gold:#C9A24A;--err:#d98a8a}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:18px}
+  .wrap{max-width:760px;margin:0 auto}
+  h1{font-size:19px;margin:6px 0 2px} .sub{color:var(--soft);font-size:12.5px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  input[type=password]{width:100%;background:#0e120b;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:14px}
+  button{cursor:pointer;border:none;border-radius:10px;padding:11px 16px;font-weight:700;font-size:13px}
+  .go{background:var(--pist);color:#0c0f0a} .ghost{background:transparent;border:1px solid var(--line);color:var(--soft)}
+  #drop{border:2px dashed var(--line);border-radius:14px;padding:34px 16px;text-align:center;color:var(--soft);transition:.15s}
+  #drop.on{border-color:var(--gold);color:var(--gold);background:rgba(201,162,74,.06)}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+  .item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .st{font-size:11px;color:var(--soft);white-space:nowrap}
+  .st.ok{color:var(--pist)} .st.err{color:var(--err)}
+  .url{width:100%;background:#0e120b;border:1px solid var(--line);color:var(--soft);border-radius:8px;padding:6px 8px;font-size:11px;font-family:ui-monospace,monospace;margin-top:6px;word-break:break-all}
+  .cp{background:transparent;border:1px solid var(--line);color:var(--pist);padding:6px 10px;font-size:11px;font-weight:700}
+  .hint{font-size:12px;color:var(--soft);line-height:1.55}
+  .hint b{color:var(--ink)} .hint code{background:#0e120b;border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+  #setup{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📤 Upload de artes — Bentô</h1>
+  <div class="sub">Suba fotos/artes em resolução cheia (sem limite do chat) e copie os links públicos.</div>
+
+  <div class="card" id="gate">
+    <div style="display:flex;gap:8">
+      <input id="key" type="password" placeholder="Senha do painel" autocomplete="current-password">
+      <button class="go" id="enter">Entrar</button>
+    </div>
+    <div class="st err" id="gateMsg" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card" id="setup">
+    <b>⚙️ Falta configurar o Supabase (uma vez só):</b>
+    <div class="hint" style="margin-top:8px">
+      1. Crie um projeto gratuito em <b>supabase.com</b>.<br>
+      2. Em <b>Storage → New bucket</b>, crie o bucket <code>artes</code> marcando <b>Public bucket</b>.<br>
+      3. Em <b>Settings → API</b>, copie a <b>Project URL</b> e a chave <b>service_role</b>.<br>
+      4. Na <b>Vercel → Settings → Environment Variables</b> do site, adicione:<br>
+      &nbsp;&nbsp;<code>SUPABASE_URL</code> = Project URL · <code>SUPABASE_SERVICE_KEY</code> = service_role<br>
+      5. Faça <b>Redeploy</b> e recarregue esta página. Pronto para sempre. ✅
+    </div>
+  </div>
+
+  <div class="card" id="app" style="display:none">
+    <div id="drop">Arraste as imagens aqui<br>ou <label style="color:var(--gold);cursor:pointer;text-decoration:underline">escolha os arquivos<input id="file" type="file" multiple accept="image/*,.pdf" style="display:none"></label></div>
+    <div id="list" style="margin-top:8px"></div>
+    <div style="display:flex;gap:8;margin-top:12px">
+      <button class="go" id="copyAll" style="display:none">Copiar todos os links</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const KEYSTORE="bento:panelkey";
+let PUBLIC_URLS=[];
+
+async function check(){
+  const key=localStorage.getItem(KEYSTORE)||"";
+  if(!key) return false;
+  try{
+    const r=await fetch("/api/upload",{headers:{Authorization:"Bearer "+key}});
+    if(r.status===401) return false;
+    const j=await r.json();
+    $("#gate").style.display="none";
+    if(j.configured){ $("#app").style.display="block"; $("#setup").style.display="none"; }
+    else { $("#setup").style.display="block"; }
+    return true;
+  }catch(e){ $("#gateMsg").textContent="Erro de conexão."; return false; }
+}
+$("#enter").onclick=async()=>{
+  localStorage.setItem(KEYSTORE,$("#key").value.trim());
+  if(!(await check())) $("#gateMsg").textContent="Senha incorreta.";
+};
+$("#key").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#enter").click(); });
+
+function row(name){
+  const div=document.createElement("div"); div.className="item";
+  div.innerHTML='<div class="nm">'+name.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))+'</div><div class="st">enviando…</div>';
+  $("#list").appendChild(div); return div;
+}
+async function sendFile(f){
+  const div=row(f.name); const st=div.querySelector(".st");
+  try{
+    const key=localStorage.getItem(KEYSTORE)||"";
+    const r=await fetch("/api/upload",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"sign",name:f.name})});
+    const j=await r.json();
+    if(!j.ok) throw new Error(j.error||"sign");
+    const up=await fetch(j.uploadUrl,{method:"PUT",headers:{"Content-Type":f.type||"application/octet-stream"},body:f});
+    if(!up.ok) throw new Error("upload "+up.status);
+    st.textContent="✓ enviado"; st.className="st ok";
+    PUBLIC_URLS.push(j.publicUrl);
+    const url=document.createElement("div"); url.className="url"; url.textContent=j.publicUrl;
+    const cp=document.createElement("button"); cp.className="cp"; cp.textContent="Copiar";
+    cp.onclick=()=>{ navigator.clipboard.writeText(j.publicUrl); cp.textContent="Copiado!"; setTimeout(()=>cp.textContent="Copiar",1400); };
+    div.appendChild(cp); div.after(url);
+    $("#copyAll").style.display=PUBLIC_URLS.length>1?"inline-block":"none";
+  }catch(e){ st.textContent="✗ "+(e.message||"falhou"); st.className="st err"; }
+}
+function handle(files){ [...files].forEach(sendFile); }
+$("#file").onchange=e=>handle(e.target.files);
+const drop=$("#drop");
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("on");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("on");}));
+drop.addEventListener("drop",e=>handle(e.dataTransfer.files));
+$("#copyAll").onclick=()=>{ navigator.clipboard.writeText(PUBLIC_URLS.join("\n")); $("#copyAll").textContent="Copiados!"; setTimeout(()=>$("#copyAll").textContent="Copiar todos os links",1400); };
+check();
+</script>
+</body>
+</html>
