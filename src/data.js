@@ -54,18 +54,37 @@ export const COBERTURA_MEIO_AMARGO = "Gordura vegetal, cacau em pó, edulcorante
 //   38 g de polióis/100 g (MALTITOL). Pode conter: avelã, amendoim,
 //   castanha-de-caju, pistache e amêndoa.
 export const COBERTURA_AO_LEITE = "Gordura vegetal, leite em pó integral zero lactose, cacau em pó, edulcorante maltitol, emulsificante lecitina de soja e aromatizante";
+// · Pasta de pistache = MEC3 "Pasta Pistacchio 100% Califórnia" (FT 105514552,
+//   rev. 02, 14/09/2023 — docs/fichas-fornecedores/). Sem açúcar adicionado ✔,
+//   sem polióis. ATENÇÃO: a ficha declara CONTÉM GLÚTEN (Lei 10.674; cereais no
+//   "pode conter") e contato cruzado extenso (trigo, centeio, cevada, aveia, ovos,
+//   amendoim, soja, leite, amêndoa, avelã, castanha-de-caju, castanha-do-pará,
+//   macadâmia, nozes e pecã) → exceção de glúten na derivação de flags e
+//   PODE_CONTER ampliado.
+export const PASTA_PISTACHE = "Pasta de pistache e corante clorofila (INS 141(i))";
+// · Biscoito black = "Biscoito Recheado Lowçucar sabor Dark Vanilla, Linha Black"
+//   (fonte: descrição de varejo — anexar a ficha oficial Lowçucar quando possível).
+//   Zero adição de açúcares ✔ (adoçado com estévia/sucralose) e sem lactose.
+//   Contém MALTITOL e SORBITOL (polióis), maltodextrina (não é açúcar) e gordura
+//   vegetal HIDROGENADA (conferir gordura trans na análise). CONTÉM TRIGO e SOJA.
+export const BISCOITO_BLACK = "Farinha de trigo enriquecida com ferro e ácido fólico, maltitol, gordura vegetal hidrogenada, gordura vegetal, polidextrose, maltodextrina, amido de milho, sorbitol, cacau em pó, vitaminas (A, D, B1, B2, B6, ácido fólico e B12), sal, corantes (caramelo natural e marrom artificial), estabilizante lecitina de soja, fermentos químicos e aromatizantes";
+// · Mix de castanhas da Opereta (informação da produção, 02/07/2026) — cada
+//   espécie declarada nos alérgicos (RDC 26/2015); damasco não é alérgeno.
+export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, damasco, avelã e pistache";
 
 /* ===== PENDENTE-AUDITORIA (insumos compostos ainda sem ficha do fornecedor) =====
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
-   · Creme de pistache (ex-"Creme de Pistache G") · Pasta de pistache (ex-"Selection")
-   · Preparado para sorbet de limão — ex-"Base Limone 50"
-   · Biscoito tipo cookie sem adição de açúcares — ex-"Cookies Zero"
-   · "Castanhas" (Opereta) — RDC 26/2015 exige a espécie (caju? do-pará?)
+   · Creme de pistache (ex-"Creme de Pistache G") — Dubai gelato e picolé
    · "Emulsificante" da base de gelato sem nome/INS na composição declarada
-   RESOLVIDOS: Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
-   (zero lactose/branca, meio amargo, ao leite — consts acima); stracciatella
-   DESCONTINUADA; leite confirmado como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
+   · Biscoito black: fonte atual é descrição de varejo — pedir a ficha oficial
+     Lowçucar (conferir gordura trans da gordura hidrogenada)
+   RESOLVIDOS: pasta de pistache MEC3 (com GLÚTEN!), biscoito black Lowçucar,
+   Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
+   (consts acima); stracciatella DESCONTINUADA; Base Limone 50 DESCONTINUADA →
+   suco concentrado de limão (sem açúcar adicionado; macros do Limão marcados como
+   estimados até nova análise); castanhas da Opereta por espécie; leite confirmado
+   como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
    Alulose: AUSENTE de todas as listas e fichas auditadas (proibida pela ANVISA). */
 
 export const PRODUCTS = [
@@ -76,11 +95,11 @@ export const PRODUCTS = [
     nutrition:{kcal:120,carbs:21,sugars:1.8,addedSugars:0,protein:5.7,fat:4.0,satFat:0.8,transFat:0,fiber:0.8,sodium:8},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"O clássico reinventado sem açúcar adicionado. Cremoso italiano sabor gianduia enriquecido com whey hidrolisado." },
-  { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋",
+  { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋", estimated:true, // fórmula nova (suco de limão no lugar da base pronta): reanalisar macros
     moods:["refrescante","leve","zerocal"], palette:{base:"#F4E78A",mid:"#D9C447",deep:"#8B7A1E",swirl:"#5C5114",hl:"#FFF8C4"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:BASE_NOME,qty:"1.050 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Preparado para sorbet de limão",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
-    nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:1.4,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
+    ingredients:[{name:BASE_NOME,qty:"1.050 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Suco concentrado de limão",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
+    nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:0,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
     flags:{gluten:false,lactose:false}, yield:"2.000 mL",
     description:"Sorbet de limão siciliano com colágeno hidrolisado. Zero gordura, alta fibra. O gelato mais leve do cardápio." },
   { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100%", emoji:"🖤",
@@ -121,7 +140,7 @@ export const PRODUCTS = [
   { id:"pistache", name:"Pistache", category:"gelato", sub:"Pasta de pistache italiano", emoji:"💚",
     moods:["premium","proteina","comfort"], palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta de pistache",qty:"160 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta de pistache",qty:"160 g",note:PASTA_PISTACHE}],
     nutrition:{kcal:130,carbs:21,sugars:4.4,addedSugars:0,protein:10,fat:4.5,satFat:2.1,transFat:0,fiber:0,sodium:40},
     flags:{gluten:true,lactose:false}, yield:"5.000 mL",
     description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, zero açúcar adicionado." },
@@ -172,7 +191,7 @@ export const PRODUCTS = [
   { id:"cookies-cream", name:"Cookies & Cream", category:"gelato", sub:"Creme · cookies zero", emoji:"🍪", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#E8E0D2",mid:"#B8AE9A",deep:"#3A332A",swirl:"#1F1A14",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito tipo cookie sem adição de açúcares",qty:"180 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito recheado sem adição de açúcares (tipo black)",qty:"180 g",note:BISCOITO_BLACK},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
     nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate meio amargo. O clássico americano, 11g de proteína." },
@@ -222,14 +241,14 @@ export const PRODUCTS = [
   { id:"bentole-opereta", name:"Opereta", category:"bentole", sub:"Choco branco · castanhas", emoji:"🌰",
     moods:["premium","proteina","comfort"], palette:{base:"#EADCB8",mid:"#C9A878",deep:"#7A5A2E",swirl:"#3E2D14",hl:"#FFF2CE"}, image:"/sabores/bentole-opereta.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"700 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Castanhas",qty:"100 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"700 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Mix de castanhas e damasco",qty:"100 g",note:MIX_CASTANHAS}],
     nutrition:{kcal:86,carbs:14,sugars:3.5,addedSugars:0,protein:9.9,fat:3.0,satFat:1.4,transFat:0,fiber:0.2,sodium:28},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"Chocolate branco com castanhas selecionadas. 9,9g de proteína. Elegante, crocante, sofisticado." },
   { id:"bentole-pistache-cb", name:"Pistache & Choco Branco", category:"bentole", sub:"Recheio + cobertura + pistaches inteiros", emoji:"💚",
     moods:["premium","proteina","postreino"], palette:{base:"#F0E4C8",mid:"#C9D49A",deep:"#5A6A2E",swirl:"#3E4A18",hl:"#FFFFFF"}, image:"/sabores/bentole-pistache-cb.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Cobertura sabor chocolate branco zero lactose",qty:"30 g",note:COBERTURA_ZERO_LACTOSE}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g",note:PASTA_PISTACHE},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Cobertura sabor chocolate branco zero lactose",qty:"30 g",note:COBERTURA_ZERO_LACTOSE}],
     nutrition:{kcal:61,carbs:10,sugars:5.7,addedSugars:0,protein:10,fat:2.4,satFat:0.9,transFat:0,fiber:3.7,sodium:21},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O campeão da linha: 10g de proteína com apenas 61 kcal. Pasta de pistache selecionada, cobertura de chocolate branco, pistaches inteiros." },
@@ -272,12 +291,13 @@ export const ALLERGENS = {
   "bentole-choco-dubai":["LEITE","PISTACHE","TRIGO","SOJA"],
   "bentole-snickers":   ["LEITE","AMENDOIM","SOJA"],
   "bentole-franui":     ["LEITE","SOJA"],
-  "bentole-opereta":    ["LEITE","CASTANHAS"],  // lattíssimo: soja só "pode conter"
+  "bentole-opereta":    ["LEITE","AMÊNDOA","CASTANHA-DO-PARÁ","CASTANHA-DE-CAJU","AVELÃ","PISTACHE"],  // mix por espécie (RDC 26/2015); soja do lattíssimo só "pode conter"
   "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
   "bentole-prestigio":  ["LEITE","SOJA"],
 };
-// Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
-export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","AMÊNDOA","PISTACHE","AVELÃ","TRIGO","SOJA"];
+// Produção compartilhada na mesma gelateria + "pode conter" das fichas dos
+// insumos (o mais extenso é o da pasta de pistache MEC3).
+export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTANHA-DE-CAJU","CASTANHA-DO-PARÁ","MACADÂMIA","NOZES","PECÃ","PISTACHE","TRIGO","CENTEIO","CEVADA","AVEIA","SOJA"];
 
 // LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
 // Whey e leite em pó contêm lactose → sabor com LEITE nos alérgicos contém lactose,
@@ -287,9 +307,13 @@ export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","AMÊNDOA","PISTACHE"
 // Glúten só vem de kadaif e cookies (trigo) → só sabores com TRIGO contêm glúten.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
 const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
+// A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição
+// (cereais no "pode conter"; a Lei 10.674 é binária) → sabores com essa pasta
+// declaram glúten mesmo sem TRIGO nos alérgicos.
+const CONTEM_GLUTEN_PELA_PASTA_PISTACHE = ["pistache", "bentole-pistache-cb"];
 for (const p of PRODUCTS) {
   p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE") && !ZERO_LACTOSE_APESAR_DE_LEITE.includes(p.id);
-  p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO");
+  p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO") || CONTEM_GLUTEN_PELA_PASTA_PISTACHE.includes(p.id);
 }
 
 // BASE dos picolés foi reformulada (sem maltitol/sorbitol). Substitui o 1º ingrediente
