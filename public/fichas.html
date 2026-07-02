@@ -1,6 +1,7 @@
 <!doctype html><html lang="pt-BR"><head>
 <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="robots" content="noindex,nofollow"/>
+<meta name="theme-color" content="#F6F1E7"/>
 <title>Fichas Técnicas · Nutri & P&D — Bentô</title>
 <style>
 :root{--bg:#F6F1E7;--surface:#FFFDF7;--ink:#232619;--soft:#5E6353;--pist:#46583A;--border:#E4DCC9;--gold:#C9A24A;--red:#8A2A00;--warn:#7A5320}
@@ -33,9 +34,29 @@ button.sec{background:none;color:var(--pist)}button.act:disabled{opacity:.5;curs
 .ai .critico{color:var(--red);font-weight:700}.ai .atencao{color:var(--warn);font-weight:700}.ai .info{color:var(--pist);font-weight:700}
 .ai li{margin:6px 0;font-size:13px}
 #gate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9}
-#gate>div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:320px;text-align:center}
+#gate>div{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:28px;width:min(320px,calc(100vw - 32px));text-align:center}
 .status{font-size:12px;color:var(--soft);min-height:18px}
-@media print{header,nav,.noprint,#gate{display:none!important}main{display:block}section{max-width:none;padding:0}.ficha{border-width:2px;page-break-inside:avoid}}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:760px){
+  main{display:block;min-height:auto}
+  header{flex-wrap:wrap;padding:10px 14px;gap:6px 14px}
+  header>.mono:first-child{display:none}
+  header h1{flex:1 1 100%;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  header .hspace{display:none}
+  header a.mono{font-size:9px;padding:4px 0}
+  nav{display:flex;overflow-x:auto;overflow-y:hidden;border-right:0;border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch;position:sticky;top:0;z-index:2}
+  nav button{flex:0 0 auto;width:auto;white-space:nowrap;border-bottom:0;border-right:1px solid var(--border);padding:10px 12px;min-height:44px}
+  nav button.on{box-shadow:inset 0 -3px 0 var(--pist)}
+  nav button>.mono{display:none!important}
+  section{padding:14px 12px;max-width:none}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  input,textarea{font-size:16px}
+  button.act{min-height:44px}
+  .row button.act{flex:1 1 auto}
+  .ficha{padding:12px}
+  .ficha table{max-width:none;min-width:400px}
+}
+@media print{header,nav,.noprint,#gate{display:none!important}main{display:block}section{max-width:none;padding:0}.tablewrap{overflow:visible}.ficha{border-width:2px;page-break-inside:avoid}.ficha table{max-width:460px;min-width:0}}
 </style></head><body>
 <div id="gate"><div>
   <div class="mono" style="color:var(--pist);margin-bottom:10px">Bentô · Fichas Técnicas</div>
@@ -49,7 +70,7 @@ button.sec{background:none;color:var(--pist)}button.act:disabled{opacity:.5;curs
 <header>
   <div class="mono">Bentô Functional Nutrition</div>
   <h1>Fichas Técnicas — Nutri & P&D</h1>
-  <span style="flex:1"></span>
+  <span class="hspace" style="flex:1"></span>
   <a class="mono noprint" href="/tabela-nutricional.csv" download style="color:var(--pist)">CSV nutricional</a>
   <a class="mono noprint" href="/ficha-tecnica.csv" download style="color:var(--pist)">CSV produção</a>
   <button class="act sec noprint" id="expjson" style="padding:6px 10px;font-size:12px">Exportar JSON</button>
@@ -115,7 +136,7 @@ function fichaHTML(m){
     <p><span class="b">INGREDIENTES:</span> ${rotuloIngredientes(m)}</p>
     <p class="b">${alergicosTexto(m)}</p>
     ${advertencias(m).map(a=>`<p class="b">${a}</p>`).join("")}
-    <table><tr><th>INFORMAÇÃO NUTRICIONAL</th><th>100 g</th><th>${m.portionLabel}</th><th>%VD*</th></tr>${rows}</table>
+    <div class="tablewrap"><table><tr><th>INFORMAÇÃO NUTRICIONAL</th><th>100 g</th><th>${m.portionLabel}</th><th>%VD*</th></tr>${rows}</table></div>
     <p style="font-size:11px">*Percentual de valores diários fornecidos pela porção com base em uma dieta de 2.000 kcal ou 8.400 kJ. Seus valores diários podem ser maiores ou menores dependendo de suas necessidades energéticas.</p>
     ${alegs.length?`<p><span class="b">Alegações:</span> ${alegs.join(" · ")}</p>`:""}
     ${m.obs?`<p><span class="b">Observações internas:</span> ${m.obs}</p>`:""}
