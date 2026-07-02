@@ -27,3 +27,5 @@ Stracciatella: DESCONTINUADA — hoje só 3 coberturas Lukau (branca zero lactos
 Descontinuados em 02/07/2026: sabor Cookies & Cream (e com ele o biscoito black
 Lowçucar). Nota: Limão e Maracujá levam colágeno (origem animal) — a base é
 vegana, mas esses sorbets NÃO devem receber claim "vegano"; só o Extra Dark.
+| aromitalia-ESP-4361BR-creme-pistache-mesclado-senza-pecatto.pdf | Creme de pistache (Dubai gelato e picolé) | Sem adição de açúcares ✔, sem dextrose, sem glúten, sem soja (lecitina de girassol); MALTITOL 38 g polióis/100 g; CONTÉM PISTACHE; ficha exige "COLORIDO ARTIFICIALMENTE" no rótulo |
+| bebida-vegetal-amendoa-rotulo.jpeg | Bebida vegetal de amêndoa (Extra Dark, 2 L/receita) | Zero açúcares ✔; CONTÉM AMÊNDOAS (caju só em "pode conter"); sem glúten; lecitina de girassol |
