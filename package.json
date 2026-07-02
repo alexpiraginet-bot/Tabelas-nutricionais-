@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run fichas && vite build",
+    "build": "npm run fichas && vite build && node scripts/generate-share-pages.mjs",
     "preview": "vite preview",
     "lint": "eslint src/",
     "video": "remotion render src/video/index.ts BentoStory out/bento-story.mp4",

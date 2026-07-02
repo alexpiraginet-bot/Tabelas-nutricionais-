@@ -15,6 +15,15 @@
     }
   ],
   "rewrites": [
+    { "source": "/", "has": [{ "type": "query", "key": "tabelas" }], "destination": "/share/tabelas.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "tabela" }], "destination": "/share/tabelas.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "cardapio" }], "destination": "/share/cardapio.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "delivery" }], "destination": "/share/delivery.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "eventos" }], "destination": "/share/eventos.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "parceria" }], "destination": "/share/parceria.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "franquia" }], "destination": "/share/parceria.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "vagas" }], "destination": "/share/vagas.html" },
+    { "source": "/", "has": [{ "type": "query", "key": "portfolio" }], "destination": "/share/portfolio.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
