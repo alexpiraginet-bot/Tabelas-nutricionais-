@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer, Clock } from "lucide-react";
-import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
+import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim, sugarClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
@@ -501,13 +501,18 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               <p className="fb" style={{fontSize:13.5,color:T.inkSoft,lineHeight:1.6}}>{product.description}</p>
               <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center",marginTop:14}}>{product.moods.map(m=><MoodChip key={m} mood={m}/>)}</div>
               <div className="hd" style={{margin:"16px 0"}}/>
+              {/* Alegações nutricionais — nomenclatura RDC 54/2012 (açúcares, proteína, fibras) */}
               <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}}>
                 <Chip tone={product.flags.gluten?"warn":"good"}>{product.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
                 {!product.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
-                {n.addedSugars===0&&<Chip tone="good">Sem Açúcar Adicionado</Chip>}
+                {sugarClaim(product)&&<Chip tone="good">{sugarClaim(product).label==="ZERO AÇÚCARES"?"Zero Açúcares":"Sem Adição de Açúcares"}</Chip>}
                 {claim&&<Chip tone="good">{claim}</Chip>}
-                {n.fiber>=5&&<Chip tone="good">Alto em Fibras</Chip>}
+                {n.fiber*100/product.serving>=6?<Chip tone="good">Alto Teor de Fibras</Chip>:n.fiber*100/product.serving>=3?<Chip tone="good">Fonte de Fibras</Chip>:null}
               </div>
+              {/* Frase complementar OBRIGATÓRIA junto à alegação (RDC 54/2012) quando há açúcares próprios */}
+              {sugarClaim(product)?.note&&(
+                <p className="fb" style={{fontSize:11,color:T.inkSoft,fontStyle:"italic",marginTop:8,lineHeight:1.4}}>{sugarClaim(product).note}</p>
+              )}
               {onCulpa&&product.category==="gelato"&&(
                 <button onClick={()=>tk("Ficha · Sem culpa-ômetro",onCulpa)} className="fm no-print" style={{marginTop:14,fontSize:9.5,letterSpacing:"0.14em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"9px 16px",cursor:"pointer"}}>Sem culpa-ômetro · vs sorvete comum →</button>
               )}
@@ -570,10 +575,11 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
                 ))}
               </div>
               <div style={{background:T.bgWarm,padding:"10px 20px",borderTop:`1px solid ${T.border}`}}>
-                <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5}}>*Percentual de valores diários fornecidos pela porção.</p>
+                <p className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5}}>*Percentual de valores diários fornecidos pela porção (dieta de 2.000 kcal — IN 75/2020).</p>
+                <p className="fb" style={{fontSize:10,color:T.inkSoft,lineHeight:1.5,marginTop:4}}>Tabela nutricional conforme <strong>RDC 429/2020</strong> e <strong>IN 75/2020</strong> · alegações nutricionais conforme <strong>RDC 54/2012</strong> (ANVISA).</p>
                 {product.hasPolyols&&(
                 <p className="fb" style={{fontSize:10.5,color:"#6B5010",lineHeight:1.5,marginTop:6,paddingTop:6,borderTop:`1px dashed #D4B840`}}>
-                  Contém polióis. <strong>{AVISO_POLIOL}</strong>
+                  Contém polióis. <strong>{AVISO_POLIOL}</strong> <span style={{opacity:.75}}>(RDC 727/2022, art. 25)</span>
                 </p>
                 )}
                 {product.estimated&&(

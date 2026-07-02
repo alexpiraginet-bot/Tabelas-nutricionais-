@@ -2,7 +2,7 @@
 //   - public/tabela-nutricional.csv : 1 linha por sabor, com toda a tabela nutricional
 //   - public/ficha-tecnica.csv      : 1 linha por ingrediente, com colunas de custo p/ preencher
 // Uso: npm run fichas
-import { PRODUCTS, BASE, ALLERGENS } from "../src/data.js";
+import { PRODUCTS, BASE, ALLERGENS, sugarClaim, proteinClaim, lupaFrontal, AVISO_POLIOL } from "../src/data.js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -26,14 +26,24 @@ const nutHeader = [
   "Energia (kcal)", "Carboidratos (g)", "Açúcares totais (g)", "Açúcares adic. (g)",
   "Proteínas (g)", "Gorduras totais (g)", "Gord. saturadas (g)", "Gord. trans (g)",
   "Fibra alimentar (g)", "Sódio (mg)", "Contém glúten", "Contém lactose", "ALÉRGICOS: CONTÉM",
+  "Alegação de açúcares (RDC 54/2012)", "Frase complementar obrigatória",
+  "Alegação de proteína (RDC 54/2012)", "Lupa frontal (RDC 429/2020)",
+  "Advertência polióis (RDC 727/2022)", "Valores estimados (confirmar em laboratório)",
 ];
 const nutRows = PRODUCTS.map((p) => {
   const n = p.nutrition;
+  const sc = sugarClaim(p);
   return [
     p.name, cat(p.category), p.portionLabel, p.yield,
     n.kcal, n.carbs, n.sugars, n.addedSugars, n.protein, n.fat, n.satFat,
     n.transFat, n.fiber, n.sodium, p.flags.gluten ? "sim" : "não", p.flags.lactose ? "sim" : "não",
     (ALLERGENS[p.id] || []).join(", "),
+    sc ? sc.label : "NÃO ALEGAR (contém açúcares adicionados)",
+    sc && sc.note ? sc.note : "",
+    proteinClaim(p) || "",
+    lupaFrontal(p).join(", ") || "não se aplica",
+    p.hasPolyols ? AVISO_POLIOL : "não se aplica (base sem polióis)",
+    p.estimated ? "SIM — não usar em rótulo sem análise" : "não",
   ];
 });
 writeFileSync(join(OUT, "tabela-nutricional.csv"), toCSV([nutHeader, ...nutRows]));

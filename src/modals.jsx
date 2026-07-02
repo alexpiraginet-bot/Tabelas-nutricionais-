@@ -1048,7 +1048,7 @@ const FAQ=[
   {q:"Posso comer na dieta?",a:"Sim, com equilíbrio! Nossos gelatos não levam açúcar adicionado e são ricos em proteína (whey WPH). Mas atenção: não são alimentos de baixo valor energético — cada sabor tem sua ficha nutricional completa aqui no app, com calorias e macros por porção, pra você encaixar na sua meta."},
   {q:"Quem tem diabetes pode consumir?",a:"Nossos produtos não têm açúcar adicionado — a doçura vem de polióis e stévia. Porém, contêm carboidratos e açúcares próprios dos ingredientes (frutas, leite). Por isso, a recomendação responsável é: consulte seu médico ou nutricionista e confira a ficha nutricional de cada sabor antes de incluir na sua rotina."},
   {q:"O que são polióis? Por que o aviso de efeito laxativo?",a:"Polióis (como maltitol e sorbitol) são adoçantes que usamos no lugar do açúcar. São seguros e amplamente utilizados, mas — como todo poliol — em consumo excessivo podem ter efeito laxativo em pessoas sensíveis. Por isso mantemos o aviso nas fichas, por transparência."},
-  {q:"Tem lactose?",a:"A maioria dos sabores contém leite e whey (derivado do leite). Os sorbets de fruta, como Limão Siciliano e Maracujá, não levam leite na receita. Confira o selo 'sem lactose' na ficha de cada sabor aqui no app — é a fonte mais segura."},
+  {q:"Tem lactose?",a:"A maioria dos sabores contém leite e whey (derivado do leite). Os sorbets de fruta, como Limão Siciliano e Maracujá, não levam leite na receita. Confira o selo 'Zero Lactose' na ficha de cada sabor aqui no app — é a fonte mais segura."},
   {q:"Tem glúten?",a:"A grande maioria dos sabores não contém glúten. As exceções são sabores com ingredientes como kadaif ou cookies (ex.: Chocolate Dubai, Cookies & Cream), sempre indicadas na ficha do sabor. Todos os produtos trazem a declaração de alérgenos conforme a RDC 26/2015."},
   {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey WPH (proteína hidrolisada, de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
   {q:"Como conservar em casa?",a:"Mantenha sempre no freezer. Para a textura perfeita de gelato, tire alguns minutos antes de consumir e evite descongelar e recongelar — isso preserva a cremosidade e a qualidade do produto."},
@@ -1445,7 +1445,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
     <div key="s5">
       <PitchKicker n={5} total={10} label="Engenharia & conformidade" gold={gold}/>
       <h1 style={H1}>Técnica que o<br/>“fit” não entrega.</h1>
-      <p style={{...BODY,marginTop:22}}>Balanço PAC/POD calibrado para textura cremosa real, whey hidrolisado e chocolates zero açúcar (Lukau). Rotulagem limpa, auditável e pronta para escala.</p>
+      <p style={{...BODY,marginTop:22}}>Balanço PAC/POD calibrado para textura cremosa real, whey hidrolisado e chocolates sem adição de açúcar (Lukau). Rotulagem limpa, auditável e pronta para escala.</p>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:26}}>{["RDC 429/2020","IN 75/2020","RDC 26/2015 · alérgicos","RDC 727/2022"].map(pill)}</div>
     </div>,
     // 6 — Transparência / app
