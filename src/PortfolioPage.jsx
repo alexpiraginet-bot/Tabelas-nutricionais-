@@ -4,9 +4,9 @@ const SERIF="'Fraunces',Georgia,serif", SANS="'DM Sans',system-ui,sans-serif", M
 
 const PICOLES=[
   {n:"Pistache & Choco Branco", d:"Recheio + cobertura + pistaches inteiros", prot:"10 g", kcal:61, img:"/portfolio/heros/pistache-choco-branco.jpg"},
-  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · stracciatella", prot:"10 g", kcal:108, img:"/portfolio/heros/chocolate-dubai.jpg"},
+  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · choco meio amargo", prot:"10 g", kcal:108, img:"/portfolio/heros/chocolate-dubai.jpg"},
   {n:"Opereta", d:"Chocolate branco · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
-  {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
+  {n:"Snickers", d:"Amendoim · doce de leite · chocolate meio amargo", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
   {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/portfolio/heros/prestigio.jpg"},
   {n:"Franuí", d:"Framboesa · cobertura zero lactose — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
   {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/portfolio/heros/magnesio.jpg"},

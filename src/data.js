@@ -41,19 +41,31 @@ export const DOCE_LEITE_ZERO = "Leite pasteurizado integral, edulcorantes maltit
 //   "cobertura sabor chocolate branco", não "chocolate". Pode conter: avelã,
 //   amendoim, castanha-de-caju, pistache e amêndoa.
 export const COBERTURA_ZERO_LACTOSE = "Gordura vegetal, leite em pó integral zero lactose, edulcorante maltitol, emulsificante lecitina de soja e aromatizante";
+// · Cobertura meio amargo = barra "Lukau Meio Amargo" (rótulo do fabricante).
+//   Sem adição de açúcares ✔ (açúcares totais 0). SEM LEITE na composição (leite só
+//   em "pode conter"); CONTÉM SOJA (lecitina). 46 g de polióis/100 g (MALTITOL).
+//   Sem massa de cacau (gordura vegetal + cacau em pó) → denominação "cobertura",
+//   não "chocolate 70%". Pode conter: leite, avelã, amendoim, castanha-de-caju,
+//   pistache e amêndoa.
+export const COBERTURA_MEIO_AMARGO = "Gordura vegetal, cacau em pó, edulcorante maltitol e emulsificante lecitina de soja";
+// · Cobertura ao leite zero lactose = barra "Lukau Ao Leite Zero Lactose" (rótulo
+//   do fabricante). Sem adição de açúcares ✔ (8 g/100 g de açúcares próprios do
+//   leite; galactose 4 g). ZERO LACTOSE, mas CONTÉM LEITE (proteína) e SOJA.
+//   38 g de polióis/100 g (MALTITOL). Pode conter: avelã, amendoim,
+//   castanha-de-caju, pistache e amêndoa.
+export const COBERTURA_AO_LEITE = "Gordura vegetal, leite em pó integral zero lactose, cacau em pó, edulcorante maltitol, emulsificante lecitina de soja e aromatizante";
 
 /* ===== PENDENTE-AUDITORIA (insumos compostos ainda sem ficha do fornecedor) =====
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
-   · Chocolates 70%/ao leite/branco e stracciatella "sem adição de açúcares" —
-     ex-linha "Lukau Zero" (a variante ZERO LACTOSE do Franuí já foi auditada)
    · Creme de pistache (ex-"Creme de Pistache G") · Pasta de pistache (ex-"Selection")
    · Preparado para sorbet de limão — ex-"Base Limone 50"
    · Biscoito tipo cookie sem adição de açúcares — ex-"Cookies Zero"
    · "Castanhas" (Opereta) — RDC 26/2015 exige a espécie (caju? do-pará?)
    · "Emulsificante" da base de gelato sem nome/INS na composição declarada
-   RESOLVIDOS: Lattíssimo, Gianduiella, Doce de leite zero (consts acima); leite
-   confirmado como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
+   RESOLVIDOS: Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
+   (zero lactose/branca, meio amargo, ao leite — consts acima); stracciatella
+   DESCONTINUADA; leite confirmado como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
    Alulose: AUSENTE de todas as listas e fichas auditadas (proibida pela ANVISA). */
 
 export const PRODUCTS = [
@@ -102,10 +114,10 @@ export const PRODUCTS = [
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"100 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"50 g"}],
     nutrition:{kcal:162,carbs:27,sugars:4.5,addedSugars:0.1,protein:12,fat:6.6,satFat:2.9,transFat:0,fiber:2.5,sodium:47},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
-    description:"A tendência do Dubai em formato gelato. Cacau 70%, creme de pistache e kadaif crocante. 12g de proteína." },
+    description:"A tendência do Dubai em formato gelato. Chocolate meio amargo, creme de pistache e kadaif crocante. 12g de proteína." },
   { id:"pistache", name:"Pistache", category:"gelato", sub:"Pasta de pistache italiano", emoji:"💚",
     moods:["premium","proteina","comfort"], palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -160,21 +172,21 @@ export const PRODUCTS = [
   { id:"cookies-cream", name:"Cookies & Cream", category:"gelato", sub:"Creme · cookies zero", emoji:"🍪", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#E8E0D2",mid:"#B8AE9A",deep:"#3A332A",swirl:"#1F1A14",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito tipo cookie sem adição de açúcares",qty:"180 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"40 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito tipo cookie sem adição de açúcares",qty:"180 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
     nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
-    description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate 70%. O clássico americano, 11g de proteína." },
-  { id:"menta", name:"Menta Intensa", category:"gelato", sub:"Menta · cacau 70%", emoji:"🌿", estimated:true,
+    description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate meio amargo. O clássico americano, 11g de proteína." },
+  { id:"menta", name:"Menta Intensa", category:"gelato", sub:"Menta · choco meio amargo", emoji:"🌿", estimated:true,
     moods:["refrescante","premium","proteina"], palette:{base:"#A8E0C4",mid:"#5FB890",deep:"#2A6A4A",swirl:"#1A3E2A",hl:"#D8F5E6"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Extrato natural de menta",qty:"8 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"80 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Extrato natural de menta",qty:"8 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"80 g",note:COBERTURA_MEIO_AMARGO}],
     nutrition:{kcal:120,carbs:18,sugars:3.2,addedSugars:0,protein:9.5,fat:4.6,satFat:2.4,transFat:0,fiber:1.6,sodium:44},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Menta refrescante com lascas de chocolate 70% zero. Sofisticado e proteico. 9,5g de proteína." },
+    description:"Menta refrescante com lascas de chocolate meio amargo sem adição de açúcar. Sofisticado e proteico. 9,5g de proteína." },
   { id:"brigadeiro", name:"Brigadeiro", category:"gelato", sub:"Chocolate ao leite brasileiro", emoji:"🍫", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#6E4A38",mid:"#4A2E20",deep:"#241410",swirl:"#120A06",hl:"#A87C5A"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"180 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"180 g"},{name:"Cobertura sabor chocolate ao leite zero lactose",qty:"120 g",note:COBERTURA_AO_LEITE}],
     nutrition:{kcal:140,carbs:21,sugars:5.0,addedSugars:0,protein:12,fat:5.0,satFat:2.8,transFat:0,fiber:2.0,sodium:54},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"O brigadeiro brasileiro em gelato: cacau e chocolate ao leite sem adição de açúcar. 12g de proteína, alto teor." },
@@ -186,20 +198,20 @@ export const PRODUCTS = [
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Banana real com canela do Ceilão e whey hidrolisado. Doçura natural da fruta, zero açúcar adicionado. Ótimo pós-treino." },
 
-  { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · stracciatella", emoji:"✨",
+  { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · choco meio amargo", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:"/sabores/bentole-choco-dubai.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g"},{name:"Raspas de chocolate sem adição de açúcares (stracciatella)",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g"},{name:"Cobertura sabor chocolate meio amargo",qty:"150 g",note:COBERTURA_MEIO_AMARGO},{name:"Kadaif",qty:"70 g"}],
     nutrition:{kcal:108,carbs:17,sugars:3.6,addedSugars:0.1,protein:10,fat:4.3,satFat:1.7,transFat:0,fiber:1.5,sodium:33},
     flags:{gluten:true,lactose:true}, yield:"~100 picolés",
-    description:"O Dubai em formato mini picolé. Cacau escuro, pistache, stracciatella e kadaif crocante. 10g de proteína." },
-  { id:"bentole-snickers", name:"Snickers", category:"bentole", sub:"Amendoim · doce de leite · choco 70%", emoji:"🥜",
+    description:"O Dubai em formato mini picolé. Cacau escuro, pistache, chocolate meio amargo e kadaif crocante. 10g de proteína." },
+  { id:"bentole-snickers", name:"Snickers", category:"bentole", sub:"Amendoim · doce de leite · choco meio amargo", emoji:"🥜",
     moods:["postreino","proteina","indulgente"], palette:{base:"#A87545",mid:"#7A4F2A",deep:"#3E2511",swirl:"#1A0D05",hl:"#D9A878"}, image:"/sabores/bentole-snickers.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite sem adição de açúcares",qty:"250 g",note:DOCE_LEITE_ZERO},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite sem adição de açúcares",qty:"250 g",note:DOCE_LEITE_ZERO},{name:"Cobertura sabor chocolate meio amargo",qty:"30 g",note:COBERTURA_MEIO_AMARGO}],
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
-    description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate 70%. 9,6g de proteína." },
+    description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate meio amargo. 9,6g de proteína." },
   { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · cobertura zero lactose", emoji:"🫐",
     moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:"/sabores/bentole-franui.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
@@ -217,14 +229,14 @@ export const PRODUCTS = [
   { id:"bentole-pistache-cb", name:"Pistache & Choco Branco", category:"bentole", sub:"Recheio + cobertura + pistaches inteiros", emoji:"💚",
     moods:["premium","proteina","postreino"], palette:{base:"#F0E4C8",mid:"#C9D49A",deep:"#5A6A2E",swirl:"#3E4A18",hl:"#FFFFFF"}, image:"/sabores/bentole-pistache-cb.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Chocolate branco sem adição de açúcares",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Cobertura sabor chocolate branco zero lactose",qty:"30 g",note:COBERTURA_ZERO_LACTOSE}],
     nutrition:{kcal:61,carbs:10,sugars:5.7,addedSugars:0,protein:10,fat:2.4,satFat:0.9,transFat:0,fiber:3.7,sodium:21},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O campeão da linha: 10g de proteína com apenas 61 kcal. Pasta de pistache selecionada, cobertura de chocolate branco, pistaches inteiros." },
   { id:"bentole-prestigio", name:"Prestígio", category:"bentole", sub:"Coco cremoso · cobertura de chocolate", emoji:"🥥", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#6E4A2E",swirl:"#3A2414",hl:"#FFFEF8"}, image:"/sabores/bentole-prestigio.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"},{name:"Coco ralado",qty:"60 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"},{name:"Cobertura sabor chocolate ao leite zero lactose",qty:"120 g",note:COBERTURA_AO_LEITE},{name:"Coco ralado",qty:"60 g"}],
     nutrition:{kcal:91,carbs:13,sugars:3.5,addedSugars:0,protein:8,fat:4.0,satFat:3.0,transFat:0,fiber:1.0,sodium:30},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O clássico Prestígio em mini picolé: coco cremoso com cobertura de chocolate. 8g de proteína, sem açúcar adicionado. 91 kcal (55g) · 182 kcal (110g)." },
@@ -265,7 +277,7 @@ export const ALLERGENS = {
   "bentole-prestigio":  ["LEITE","SOJA"],
 };
 // Produção compartilhada na mesma gelateria: contato cruzado possível com todos estes.
-export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","TRIGO","SOJA"];
+export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","AMÊNDOA","PISTACHE","AVELÃ","TRIGO","SOJA"];
 
 // LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
 // Whey e leite em pó contêm lactose → sabor com LEITE nos alérgicos contém lactose,
