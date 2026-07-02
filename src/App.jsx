@@ -337,7 +337,7 @@ function ShakesPage({onBack,onDelivery}){
             <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Pedir um shake no iFood</button>
           </div>
         )}
-        <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey True (truesource/vivatrue, por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
+        <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey utilizado (por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
       </div>
     </div>
   );
@@ -668,7 +668,7 @@ function TabelasIntro({onClose}){
   const ref={kcal:Math.round(207*s),sugars:Math.round(21*s),protein:3.5*s};
   const data=[
     {l:"Açúcar adicionado · por porção",bento:pis.nutrition.addedSugars,comum:ref.sugars,dec:0,note:"zero açúcar adicionado · só o natural do leite/fruta"},
-    {l:"Proteína · por porção",bento:pis.nutrition.protein,comum:ref.protein,dec:1,note:"quase 5× mais · whey WPH"},
+    {l:"Proteína · por porção",bento:pis.nutrition.protein,comum:ref.protein,dec:1,note:"quase 5× mais · whey hidrolisado"},
   ];
   const reduce=useMemo(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}},[]);
   const[go,setGo]=useState(reduce);

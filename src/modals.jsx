@@ -472,10 +472,10 @@ const CARDAPIO = [
     { name:"Tamanho P", info:"120 g · 1–2 sabores · p/ viagem", price:"23,90", img:"/cardapio/gelato-p.jpg" },
   ]},
   { cat:"Shakes", emoji:"🥤", items:[
-    { name:"Shake Morango c/ Maracujá", info:"Whey True Yummy Milk + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
-    { name:"Shake Frutas Vermelhas", info:"Whey True Fior di Latte + 200 g de fruta", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
-    { name:"Shake Açaí com Banana", info:"Whey de Coco True + 100 g açaí + 100 g banana", price:"37,90", img:"/cardapio/acai-banana.jpg" },
-    { name:"Shake Choco Power", info:"Whey True Dark Chocolate + cacau 100%", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
+    { name:"Shake Morango c/ Maracujá", info:"Whey sabor leite + 200 g de fruta", price:"29,90", img:"/cardapio/morango-maracuja.jpg" },
+    { name:"Shake Frutas Vermelhas", info:"Whey fior di latte + 200 g de fruta", price:"37,90", img:"/cardapio/frutas-vermelhas.jpg" },
+    { name:"Shake Açaí com Banana", info:"Whey de coco + 100 g açaí + 100 g banana", price:"37,90", img:"/cardapio/acai-banana.jpg" },
+    { name:"Shake Choco Power", info:"Whey sabor chocolate + cacau 100%", price:"37,90", img:"/cardapio/dark-chocolate.jpg" },
     { name:"Milkshake Pistache Zero", info:"gelato pistache zero batido c/ leite", price:"39,90", img:"/cardapio/milkshake-pistache.jpg" },
     { name:"Milkshake Doce de Leite Zero", info:"400 ml · gelato doce de leite zero", price:"39,90", img:"/cardapio/milkshake-doce-leite.jpg" },
   ]},
@@ -1045,12 +1045,12 @@ export function EventosModal({onClose}){
 /* ========== FAQ NUTRICIONAL ========== */
 
 const FAQ=[
-  {q:"Posso comer na dieta?",a:"Sim, com equilíbrio! Nossos gelatos não levam açúcar adicionado e são ricos em proteína (whey WPH). Mas atenção: não são alimentos de baixo valor energético — cada sabor tem sua ficha nutricional completa aqui no app, com calorias e macros por porção, pra você encaixar na sua meta."},
+  {q:"Posso comer na dieta?",a:"Sim, com equilíbrio! Nossos gelatos não levam açúcar adicionado e são ricos em proteína (whey hidrolisado). Mas atenção: não são alimentos de baixo valor energético — cada sabor tem sua ficha nutricional completa aqui no app, com calorias e macros por porção, pra você encaixar na sua meta."},
   {q:"Quem tem diabetes pode consumir?",a:"Nossos produtos não têm açúcar adicionado — a doçura vem de polióis e stévia. Porém, contêm carboidratos e açúcares próprios dos ingredientes (frutas, leite). Por isso, a recomendação responsável é: consulte seu médico ou nutricionista e confira a ficha nutricional de cada sabor antes de incluir na sua rotina."},
   {q:"O que são polióis? Por que o aviso de efeito laxativo?",a:"Polióis (como maltitol e sorbitol) são adoçantes que usamos no lugar do açúcar. São seguros e amplamente utilizados, mas — como todo poliol — em consumo excessivo podem ter efeito laxativo em pessoas sensíveis. Por isso mantemos o aviso nas fichas, por transparência."},
   {q:"Tem lactose?",a:"A maioria dos sabores contém leite e whey (derivado do leite). Os sorbets de fruta, como Limão Siciliano e Maracujá, não levam leite na receita. Confira o selo 'Zero Lactose' na ficha de cada sabor aqui no app — é a fonte mais segura."},
   {q:"Tem glúten?",a:"A grande maioria dos sabores não contém glúten. As exceções são sabores com ingredientes como kadaif ou cookies (ex.: Chocolate Dubai, Cookies & Cream), sempre indicadas na ficha do sabor. Todos os produtos trazem a declaração de alérgenos conforme a RDC 26/2015."},
-  {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey WPH (proteína hidrolisada, de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
+  {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey hidrolisado (proteína de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
   {q:"Como conservar em casa?",a:"Mantenha sempre no freezer. Para a textura perfeita de gelato, tire alguns minutos antes de consumir e evite descongelar e recongelar — isso preserva a cremosidade e a qualidade do produto."},
   {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa, pelo iFood — é só tocar no botão Delivery na tela inicial. 🛵"},
 ];
@@ -1410,7 +1410,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
       <PitchKicker n={2} total={10} label="A solução" gold={gold}/>
       <h1 style={H1}>Gelato italiano,<br/>reformulado do zero.</h1>
       <p style={{...BODY,marginTop:22}}>Reengenharia de formulação para unir cremosidade real e desempenho nutricional — sem sacarose adicionada em toda a linha.</p>
-      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:30}}>{[["Base ZERO","fibras e polióis no lugar do açúcar"],["Whey WPH","proteína hidrolisada, alta absorção"],["0 g sacarose","adoçado por stévia e polióis"]].map(([t,d])=>card(t,d))}</div>
+      <div style={{display:"flex",gap:12,flexWrap:"wrap",marginTop:30}}>{[["Base ZERO","fibras e polióis no lugar do açúcar"],["Whey hidrolisado","proteína de alta absorção"],["0 g sacarose","adoçado por stévia e polióis"]].map(([t,d])=>card(t,d))}</div>
     </div>,
     // 3 — Portfólio
     <div key="s3">
@@ -1445,7 +1445,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
     <div key="s5">
       <PitchKicker n={5} total={10} label="Engenharia & conformidade" gold={gold}/>
       <h1 style={H1}>Técnica que o<br/>“fit” não entrega.</h1>
-      <p style={{...BODY,marginTop:22}}>Balanço PAC/POD calibrado para textura cremosa real, whey hidrolisado e chocolates sem adição de açúcar (Lukau). Rotulagem limpa, auditável e pronta para escala.</p>
+      <p style={{...BODY,marginTop:22}}>Balanço PAC/POD calibrado para textura cremosa real, whey hidrolisado e chocolates sem adição de açúcar. Rotulagem limpa, auditável e pronta para escala.</p>
       <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:26}}>{["RDC 429/2020","IN 75/2020","RDC 26/2015 · alérgicos","RDC 727/2022"].map(pill)}</div>
     </div>,
     // 6 — Transparência / app
