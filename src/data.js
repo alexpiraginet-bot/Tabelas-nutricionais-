@@ -2,14 +2,23 @@
 // pelos geradores de ficha técnica (scripts/) e por material derivado.
 // NÃO duplique estes dados em outro lugar: edite apenas aqui.
 
-// Base dos GELATOS — denominação brand-free p/ rotulagem (RDC 727/2022).
-// Insumo comercial de referência: "Base FRUTA 300 ZERO" (ficha técnica Ice Cream
-// Mix Italia, rev. 31/05/2026). Zero açúcar; 65 g de polióis/100 g; sem alérgenos
-// de declaração obrigatória.
-// PENDENTE-AUDITORIA: "emulsificante" sem nome específico/INS — obter da ficha
-// do fornecedor (RDC 727/2022 exige função + nome ou nº INS do aditivo).
+// Bases dos GELATOS — denominação brand-free p/ rotulagem (RDC 727/2022).
+// Fichas oficiais Ice Cream Mix Italia (PDFs em docs/fichas-fornecedores/,
+// rev. 31/05/2026): zero açúcar, sem alérgenos de declaração obrigatória,
+// "CONTÉM POLIÓIS" com advertência laxativa na própria ficha.
+// PENDENTE-AUDITORIA: ambas declaram "emulsificante" sem nome/INS — cobrar do
+// fornecedor (RDC 727/2022 exige função + nome ou nº INS do aditivo).
+// · Gelatos à base de LEITE: "Base FRUTA 300 ZERO" (65 g polióis/100 g,
+//   6,6 g gordura/100 g).
 export const BASE_NOME = "Preparado em pó para gelato";
 export const BASE = "Maltitol, sorbitol, polidextrose, gordura vegetal, emulsificante, goma guar, carboximetilcelulose sódica (CMC) e goma tara";
+// · SORBETS (Limão, Maracujá) e sabores VEGANOS (Extra Dark): "Base Vegana
+//   Sugar Free" (cód. 8BNOSF; 68 g polióis/100 g, gordura ZERO — coerente com
+//   os sorbets declararem gordura 0). ATENÇÃO: Limão e Maracujá levam COLÁGENO
+//   HIDROLISADO (origem ANIMAL) — a base é vegana, mas esses sorbets NÃO são;
+//   não usar claim "vegano" neles. Vegano de fato: só o Extra Dark.
+export const BASE_SORBET_NOME = "Preparado em pó vegano para gelato";
+export const BASE_SORBET = "Maltitol, polidextrose, sorbitol, emulsificante, goma guar, carboximetilcelulose sódica (CMC) e goma tara";
 
 // Base reformulada dos PICOLÉS (Bentôlé) — SEM polióis laxativos (maltitol/
 // sorbitol), logo sem advertência de efeito laxativo pela base. Nome comercial
@@ -62,12 +71,6 @@ export const COBERTURA_AO_LEITE = "Gordura vegetal, leite em pó integral zero l
 //   macadâmia, nozes e pecã) → exceção de glúten na derivação de flags e
 //   PODE_CONTER ampliado.
 export const PASTA_PISTACHE = "Pasta de pistache e corante clorofila (INS 141(i))";
-// · Biscoito black = "Biscoito Recheado Lowçucar sabor Dark Vanilla, Linha Black"
-//   (fonte: descrição de varejo — anexar a ficha oficial Lowçucar quando possível).
-//   Zero adição de açúcares ✔ (adoçado com estévia/sucralose) e sem lactose.
-//   Contém MALTITOL e SORBITOL (polióis), maltodextrina (não é açúcar) e gordura
-//   vegetal HIDROGENADA (conferir gordura trans na análise). CONTÉM TRIGO e SOJA.
-export const BISCOITO_BLACK = "Farinha de trigo enriquecida com ferro e ácido fólico, maltitol, gordura vegetal hidrogenada, gordura vegetal, polidextrose, maltodextrina, amido de milho, sorbitol, cacau em pó, vitaminas (A, D, B1, B2, B6, ácido fólico e B12), sal, corantes (caramelo natural e marrom artificial), estabilizante lecitina de soja, fermentos químicos e aromatizantes";
 // · Mix de castanhas da Opereta (informação da produção, 02/07/2026) — cada
 //   espécie declarada nos alérgicos (RDC 26/2015); damasco não é alérgeno.
 export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, damasco, avelã e pistache";
@@ -76,15 +79,16 @@ export const MIX_CASTANHAS = "Amêndoa, castanha-do-pará, castanha-de-caju, dam
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
    · Creme de pistache (ex-"Creme de Pistache G") — Dubai gelato e picolé
-   · "Emulsificante" da base de gelato sem nome/INS na composição declarada
-   · Biscoito black: fonte atual é descrição de varejo — pedir a ficha oficial
-     Lowçucar (conferir gordura trans da gordura hidrogenada)
-   RESOLVIDOS: pasta de pistache MEC3 (com GLÚTEN!), biscoito black Lowçucar,
+   · "Emulsificante" das DUAS bases de gelato sem nome/INS na composição
+     declarada (fichas oficiais recebidas, mas o aditivo segue genérico)
+   DESCONTINUADOS: sabor Cookies & Cream (fora do ar em 02/07/2026, junto com o
+   biscoito black Lowçucar), stracciatella e Base Limone 50.
+   RESOLVIDOS: bases de gelato com ficha oficial (FRUTA 300 ZERO p/ leite e
+   Vegana Sugar Free p/ sorbet), pasta de pistache MEC3 (com GLÚTEN!),
    Lattíssimo, Gianduiella, Doce de leite zero e as 3 coberturas Lukau
-   (consts acima); stracciatella DESCONTINUADA; Base Limone 50 DESCONTINUADA →
-   suco concentrado de limão (sem açúcar adicionado; macros do Limão marcados como
-   estimados até nova análise); castanhas da Opereta por espécie; leite confirmado
-   como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
+   (consts acima); Limão com suco concentrado de limão (sem açúcar adicionado;
+   macros marcados como estimados até nova análise); castanhas da Opereta por
+   espécie; leite confirmado como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
    Alulose: AUSENTE de todas as listas e fichas auditadas (proibida pela ANVISA). */
 
 export const PRODUCTS = [
@@ -98,17 +102,17 @@ export const PRODUCTS = [
   { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋", estimated:true, // fórmula nova (suco de limão no lugar da base pronta): reanalisar macros
     moods:["refrescante","leve","zerocal"], palette:{base:"#F4E78A",mid:"#D9C447",deep:"#8B7A1E",swirl:"#5C5114",hl:"#FFF8C4"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:BASE_NOME,qty:"1.050 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Suco concentrado de limão",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
+    ingredients:[{name:BASE_SORBET_NOME,qty:"1.050 g",note:BASE_SORBET},{name:"Água",qty:"2.500 mL"},{name:"Suco concentrado de limão",qty:"100 g"},{name:"Colágeno Hidrolisado",qty:"50 g"}],
     nutrition:{kcal:68,carbs:15,sugars:2.1,addedSugars:0,protein:1.2,fat:0,satFat:0,transFat:0,fiber:14,sodium:14},
     flags:{gluten:false,lactose:false}, yield:"2.000 mL",
     description:"Sorbet de limão siciliano com colágeno hidrolisado. Zero gordura, alta fibra. O gelato mais leve do cardápio." },
-  { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100%", emoji:"🖤",
+  { id:"extra-dark", name:"Extra Dark", category:"gelato", sub:"Cacau intenso 100% · vegano", emoji:"🖤", estimated:true, // reformulado (base vegana + bebida vegetal): reanalisar macros e gramatura da bebida
     moods:["zerocal","leve","premium"], palette:{base:"#5A3A22",mid:"#3A2418",deep:"#1A0E08",swirl:"#0A0503",hl:"#A87545"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Cacau em pó",qty:"250 g"}],
+    ingredients:[{name:BASE_SORBET_NOME,qty:"1.000 g",note:BASE_SORBET},{name:"Água",qty:"2.500 mL"},{name:"Bebida vegetal de amêndoa e castanha-de-caju",qty:"a confirmar"},{name:"Cacau em pó",qty:"250 g"}],
     nutrition:{kcal:70,carbs:20,sugars:0.1,addedSugars:0.1,protein:1.2,fat:0.8,satFat:0.5,transFat:0,fiber:2.2,sodium:1.24},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade, zero lactose, zero glúten. Para quem não abre mão do chocolate." },
+    description:"Apenas 70 kcal por porção. Cacau puro de alta intensidade com bebida vegetal de amêndoas e castanha-de-caju. 100% vegetal, zero lactose, zero glúten." },
   { id:"pacoca", name:"Paçoca", category:"gelato", sub:"Amendoim cremoso", emoji:"🥜",
     moods:["postreino","comfort","proteina"], palette:{base:"#D9B574",mid:"#B08A48",deep:"#6E5224",swirl:"#3E2D11",hl:"#F2DDA8"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -184,17 +188,10 @@ export const PRODUCTS = [
   { id:"maracuja", name:"Maracujá", category:"gelato", sub:"Sorbet funcional", emoji:"💛", estimated:true,
     moods:["refrescante","leve","zerocal"], palette:{base:"#F2D24A",mid:"#D9A823",deep:"#8B6A14",swirl:"#5C4A10",hl:"#FFF0A0"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:BASE_NOME,qty:"1.050 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Polpa de maracujá",qty:"700 g"},{name:"Colágeno Hidrolisado",qty:"60 g"}],
+    ingredients:[{name:BASE_SORBET_NOME,qty:"1.050 g",note:BASE_SORBET},{name:"Água",qty:"2.500 mL"},{name:"Polpa de maracujá",qty:"700 g"},{name:"Colágeno Hidrolisado",qty:"60 g"}],
     nutrition:{kcal:74,carbs:16,sugars:3.6,addedSugars:0.8,protein:2.6,fat:0.4,satFat:0.1,transFat:0,fiber:12,sodium:12},
     flags:{gluten:false,lactose:false}, yield:"2.000 mL",
     description:"Sorbet de maracujá com colágeno hidrolisado. Refrescante, alta fibra e zero gordura. O par perfeito do Limão Siciliano." },
-  { id:"cookies-cream", name:"Cookies & Cream", category:"gelato", sub:"Creme · cookies zero", emoji:"🍪", estimated:true,
-    moods:["indulgente","comfort","proteina"], palette:{base:"#E8E0D2",mid:"#B8AE9A",deep:"#3A332A",swirl:"#1F1A14",hl:"#FFFFFF"}, image:null,
-    serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito recheado sem adição de açúcares (tipo black)",qty:"180 g",note:BISCOITO_BLACK},{name:"Cobertura sabor chocolate meio amargo",qty:"40 g",note:COBERTURA_MEIO_AMARGO}],
-    nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
-    flags:{gluten:true,lactose:true}, yield:"5.000 mL",
-    description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate meio amargo. O clássico americano, 11g de proteína." },
   { id:"menta", name:"Menta Intensa", category:"gelato", sub:"Menta · choco meio amargo", emoji:"🌿", estimated:true,
     moods:["refrescante","premium","proteina"], palette:{base:"#A8E0C4",mid:"#5FB890",deep:"#2A6A4A",swirl:"#1A3E2A",hl:"#D8F5E6"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -272,7 +269,7 @@ export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
 export const ALLERGENS = {
   "ninho-nutella":      ["LEITE"],  // gianduiella auditada: SEM avelã e SEM soja; leite = leite em pó + whey
   "limao-siciliano":    [],
-  "extra-dark":         [],
+  "extra-dark":         ["AMÊNDOA","CASTANHA-DE-CAJU"],  // bebida vegetal da receita reformulada
   "pacoca":             ["LEITE","AMENDOIM"],
   "chocolate-branco":   ["LEITE"],  // lattíssimo: lecitina de girassol; soja só "pode conter"
   "coco":               ["LEITE"],
@@ -284,7 +281,6 @@ export const ALLERGENS = {
   "avela":              ["LEITE","AVELÃ"],
   "cafe":               ["LEITE"],
   "maracuja":           [],
-  "cookies-cream":      ["LEITE","TRIGO","SOJA"],
   "menta":              ["LEITE","SOJA"],
   "brigadeiro":         ["LEITE","SOJA"],
   "banana-canela":      ["LEITE"],
@@ -304,7 +300,9 @@ export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTA
 // EXCETO quando todos os insumos lácteos são zero lactose (proteína láctea presente
 // → alérgeno LEITE permanece, mas lactose = 0). Caso auditado: Franuí, cuja única
 // fonte láctea é a cobertura Lukau zero lactose ("NÃO CONTÉM LACTOSE" no rótulo).
-// Glúten só vem de kadaif e cookies (trigo) → só sabores com TRIGO contêm glúten.
+// Glúten: sabores com TRIGO nos alérgicos (kadaif) E, por declaração do
+// fornecedor, os que levam pasta de pistache MEC3 — a ficha diz "CONTÉM GLÚTEN"
+// sem trigo na composição (Lei 10.674 é binária); ver exceção logo abaixo.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
 const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
 // A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição

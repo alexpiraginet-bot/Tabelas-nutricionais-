@@ -96,10 +96,16 @@ export const br=v=>Number.isInteger(v)?String(v):String(v).replace(".",",");
 // Ordem da lista de ingredientes: decrescente de quantidade na receita
 // (RDC 727/2022, art. 22 — obrigatória no rótulo). g e mL são tratados como
 // equivalentes só para ordenar (densidades ≈ 1); empate mantém a ordem da receita.
+// Qty não numérica (ex.: "a confirmar") NÃO vira zero: o ingrediente preserva a
+// posição em que foi declarado na receita até a gramatura ser definida.
 
 export function orderIngredients(ings){
-  const grams=q=>parseFloat(String(q).replace(/\./g,""))||0; // "2.500 mL" → 2500
-  return ings.map((ing,i)=>({ing,i,g:grams(ing.qty)}))
-    .sort((a,b)=>b.g-a.g||a.i-b.i)
-    .map(x=>x.ing);
+  const grams=q=>{const g=parseFloat(String(q).replace(/\./g,""));return Number.isFinite(g)?g:null;}; // "2.500 mL" → 2500
+  const all=ings.map((ing,i)=>({ing,i,g:grams(ing.qty)}));
+  const sorted=all.filter(x=>x.g!==null).sort((a,b)=>b.g-a.g||a.i-b.i);
+  let k=0;
+  return all.map(x=>{
+    const pin=all.find(y=>y.g===null&&y.i===x.i);
+    return pin?pin.ing:sorted[k++].ing;
+  });
 }

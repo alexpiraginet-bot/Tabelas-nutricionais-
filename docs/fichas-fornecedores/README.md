@@ -21,3 +21,9 @@ Atualização 02/07/2026:
 Stracciatella: DESCONTINUADA — hoje só 3 coberturas Lukau (branca zero lactose, meio amargo, ao leite zero lactose).
 | mec3-pasta-pistacchio-100-california-FT-105514552.jpeg | Pasta de pistache (MEC3, FT 105514552 rev. 02) | Sem açúcar adicionado ✔; pistache + corante clorofila INS 141(i); **CONTÉM GLÚTEN** (Lei 10.674) e "pode conter" extenso (trigo, centeio, cevada, aveia, ovos, amendoim, soja, leite, amêndoa, avelã, caju, do-pará, macadâmia, nozes, pecã) |
 | lowcucar-biscoito-black-dark-vanilla-ingredientes.jpeg | Biscoito recheado sem adição de açúcares tipo black (Lowçucar Dark Vanilla) | Zero adição de açúcares ✔, sem lactose; maltitol + sorbitol (polióis); gordura vegetal hidrogenada (conferir trans); CONTÉM trigo e soja. Fonte: descrição de varejo — pedir ficha oficial |
+| icecreammix-base-fruta-300-zero-FT-rev-2026-05-31.pdf | Preparado em pó para gelato (base dos gelatos à base de LEITE) | Ficha oficial: zero açúcares ✔, sem alérgenos; 65 g polióis/100 g (maltitol/sorbitol); "emulsificante" ainda sem INS |
+| icecreammix-base-vegana-sugar-free-8BNOSF-FT-rev-2026-05-31.pdf | Preparado em pó vegano para gelato (sorbets Limão/Maracujá + Extra Dark) | Ficha oficial: zero açúcares ✔, sem alérgenos, gordura 0; 68 g polióis/100 g; "emulsificante" ainda sem INS |
+
+Descontinuados em 02/07/2026: sabor Cookies & Cream (e com ele o biscoito black
+Lowçucar). Nota: Limão e Maracujá levam colágeno (origem animal) — a base é
+vegana, mas esses sorbets NÃO devem receber claim "vegano"; só o Extra Dark.
