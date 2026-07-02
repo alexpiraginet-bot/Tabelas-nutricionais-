@@ -17,29 +17,41 @@ export const BASE = "Maltitol, sorbitol, polidextrose, gordura vegetal, emulsifi
 export const BASE_PICOLE_NOME = "Preparado em pó para picolé";
 export const BASE_PICOLE = "Inulina, polidextrose, stévia e goma tara";
 
-/* ===== PENDENTE-AUDITORIA (insumos compostos sem ficha do fornecedor no repo) =====
-   Para os itens abaixo a lista usa a denominação técnica do insumo; a composição
-   completa (entre parênteses, na lista final do rótulo) DEPENDE da ficha técnica
-   do fornecedor. Verificar em especial DEXTROSE/açúcares ocultos (invalidariam
-   "sem adição de açúcares") e MALTITOL nos chocolates "zero" (polióis → possível
-   advertência laxativa também nos Bentôlé):
-   · Creme de gianduia (avelã e cacau) — ex-"Creme de Gianduia"
+// Composições AUDITADAS nas fichas dos fornecedores (docs/fichas-fornecedores/):
+// · Pasta sabor leite = ex-"Lattíssimo" (Aromitalia "Mesclado Lattissimo Senza
+//   Peccato", ESP-955603 rev. 000, 23/04/2025). Sem adição de açúcar, sem dextrose.
+//   CONTÉM LEITE e lactose; soja apenas em "pode conter"; sem glúten. Tem MALTITOL.
+export const PASTA_LEITE = "Leite em pó integral, óleo vegetal, soro de leite em pó, gordura vegetal, manteiga de cacau, edulcorante maltitol (INS 965), polidextrose (INS 1200), emulsificante lecitina de girassol (INS 322(i)) e aromatizante";
+// · Preparado de cacau = ex-"Gianduiella 50" (Aromitalia "Gianduiella 50 Senza
+//   Peccato", ESP-955801 rev. 000, 26/05/2025). Sem adição de açúcares, sem dextrose.
+//   SEM ALÉRGENOS: não contém avelã, leite nem soja (apesar do nome "gianduia" —
+//   sabor vem de aromatizante). Tem MALTITOL e ERITRITOL. (A ficha grafa eritritol
+//   como "INS 915"; o INS usual do eritritol é 968 — conferir com o fornecedor.)
+export const PREPARADO_CACAU = "Cacau em pó, edulcorantes maltitol (INS 965) e eritritol, antiumectante dióxido de silício (INS 551) e aromatizante";
+// · Doce de leite = Veneza "Doce de Leite Zero Adição de Açúcares" (rótulo do
+//   fabricante, venezalacteos.com.br — NÃO confundir com o Tradicional, que tem
+//   açúcar). Sem adição de açúcares ✔. CONTÉM LEITE e lactose. Tem MALTITOL e
+//   eritritol. Rótulo avisa "Diabéticos: contém glicose".
+export const DOCE_LEITE_ZERO = "Leite pasteurizado integral, edulcorantes maltitol, eritritol, polidextrose e sucralose, estabilizante citrato de sódio e conservador sorbato de potássio";
+
+/* ===== PENDENTE-AUDITORIA (insumos compostos ainda sem ficha do fornecedor) =====
+   Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
+   MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
+   · Chocolates e stracciatella "sem adição de açúcares" — ex-linha "Lukau Zero"
+   · Creme de pistache (ex-"Creme de Pistache G") · Pasta de pistache (ex-"Selection")
    · Preparado para sorbet de limão — ex-"Base Limone 50"
-   · Preparado sabor chocolate branco — ex-"Latissimo"
-   · Creme de pistache — ex-"Creme de Pistache G"
-   · Pasta de pistache — ex-"Pasta Pistache Selection"
-   · Chocolates/stracciatella sem adição de açúcares — ex-linha "Lukau Zero"
-   · Doce de leite sem adição de açúcares — ex-"Doce de leite Zero Veneza"
    · Biscoito tipo cookie sem adição de açúcares — ex-"Cookies Zero"
-   · "Leite" (ex-"Leite Piracanjuba") — confirmar se integral/desnatado, fluido ou pó
    · "Castanhas" (Opereta) — RDC 26/2015 exige a espécie (caju? do-pará?)
-   Alulose: AUSENTE de todas as listas (proibida pela ANVISA) — manter assim. */
+   · "Emulsificante" da base de gelato sem nome/INS na composição declarada
+   RESOLVIDOS: Lattíssimo, Gianduiella, Doce de leite zero (consts acima); leite
+   confirmado como LEITE EM PÓ DESNATADO (produção, 02/07/2026).
+   Alulose: AUSENTE de todas as listas e fichas auditadas (proibida pela ANVISA). */
 
 export const PRODUCTS = [
   { id:"ninho-nutella", name:"Ninho com Nutella", category:"gelato", sub:"Cremoso avelã & leite", emoji:"🍫",
     moods:["indulgente","comfort"], palette:{base:"#E8C896",mid:"#C49862",deep:"#7B5328",swirl:"#3E2511",hl:"#FFF1D8"}, image:null,
     serving:100, portionLabel:"100 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Creme de gianduia (avelã e cacau)",qty:"400 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Preparado de cacau sabor gianduia",qty:"400 g",note:PREPARADO_CACAU}],
     nutrition:{kcal:120,carbs:21,sugars:1.8,addedSugars:0,protein:5.7,fat:4.0,satFat:0.8,transFat:0,fiber:0.8,sodium:8},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"O clássico reinventado sem açúcar adicionado. Cremoso italiano com avelã e creme de gianduia enriquecido com whey hidrolisado." },
@@ -60,35 +72,35 @@ export const PRODUCTS = [
   { id:"pacoca", name:"Paçoca", category:"gelato", sub:"Amendoim cremoso", emoji:"🥜",
     moods:["postreino","comfort","proteina"], palette:{base:"#D9B574",mid:"#B08A48",deep:"#6E5224",swirl:"#3E2D11",hl:"#F2DDA8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Leite",qty:"350 g"},{name:"Pasta de amendoim",qty:"420 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Pasta de amendoim",qty:"420 g"}],
     nutrition:{kcal:166,carbs:22,sugars:5.1,addedSugars:0,protein:13,fat:7.7,satFat:2.7,transFat:0,fiber:0.6,sodium:86},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"13g de proteína por porção. Pasta de amendoim de verdade com whey WPH. Pós-treino que parece sobremesa." },
   { id:"chocolate-branco", name:"Chocolate Branco", category:"gelato", sub:"Veludo lácteo", emoji:"🤍",
     moods:["indulgente","comfort","proteina"], palette:{base:"#F4EAD2",mid:"#E0CFA8",deep:"#A8916A",swirl:"#6E5C3D",hl:"#FFF8E8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Preparado sabor chocolate branco",qty:"250 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta sabor leite",qty:"250 g",note:PASTA_LEITE}],
     nutrition:{kcal:144,carbs:23,sugars:5.4,addedSugars:0,protein:11,fat:5.2,satFat:2.4,transFat:0,fiber:0.3,sodium:51},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Textura aveludada com Latissimo e whey WPH. 11g de proteína, sem açúcar adicionado. Suavidade sem culpa." },
   { id:"coco", name:"Coco", category:"gelato", sub:"Tropical cremoso", emoji:"🥥",
     moods:["refrescante","comfort"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#A89C7C",swirl:"#5E5440",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Leite",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
     nutrition:{kcal:159,carbs:22,sugars:3.8,addedSugars:0,protein:6.7,fat:5.5,satFat:4.2,transFat:0,fiber:0,sodium:41},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Leite de coco em pó real com textura densa e aroma tropical. Sem açúcar adicionado, sem glúten." },
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"250 g"},{name:"Creme de pistache",qty:"200 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"100 g"},{name:"Kadaif",qty:"50 g"}],
     nutrition:{kcal:162,carbs:27,sugars:4.5,addedSugars:0.1,protein:12,fat:6.6,satFat:2.9,transFat:0,fiber:2.5,sodium:47},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"A tendência do Dubai em formato gelato. Cacau 70%, creme de pistache e kadaif crocante. 12g de proteína." },
   { id:"pistache", name:"Pistache", category:"gelato", sub:"Pasta de pistache italiano", emoji:"💚",
     moods:["premium","proteina","comfort"], palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta de pistache",qty:"160 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta de pistache",qty:"160 g"}],
     nutrition:{kcal:130,carbs:21,sugars:4.4,addedSugars:0,protein:10,fat:4.5,satFat:2.1,transFat:0,fiber:0,sodium:40},
     flags:{gluten:true,lactose:false}, yield:"5.000 mL",
     description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, zero açúcar adicionado." },
@@ -97,35 +109,35 @@ export const PRODUCTS = [
   { id:"morango", name:"Morango", category:"gelato", sub:"Cremoso de fruta", emoji:"🍓", estimated:true,
     moods:["refrescante","leve","proteina"], palette:{base:"#F2A6B0",mid:"#D9657A",deep:"#8B2A3E",swirl:"#FFD9DF",hl:"#FFEBEF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Polpa de morango",qty:"600 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"320 g"},{name:"Leite",qty:"300 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Polpa de morango",qty:"600 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"320 g"},{name:"Leite em pó desnatado",qty:"300 g"}],
     nutrition:{kcal:96,carbs:17,sugars:4.6,addedSugars:0,protein:7.6,fat:1.8,satFat:0.9,transFat:0,fiber:1.6,sodium:34},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Morango de verdade com whey WPH. Refrescante, cremoso e leve. 7,6g de proteína, sem açúcar adicionado." },
   { id:"baunilha", name:"Baunilha de Madagascar", category:"gelato", sub:"Fior di latte · fava de baunilha", emoji:"🤍", estimated:true,
     moods:["comfort","proteina","indulgente"], palette:{base:"#F5E9CC",mid:"#E6D2A0",deep:"#B89B5E",swirl:"#8A6E3A",hl:"#FFF8E6"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Fava de baunilha Madagascar",qty:"6 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Fava de baunilha Madagascar",qty:"6 g"}],
     nutrition:{kcal:112,carbs:16,sugars:5.0,addedSugars:0,protein:9.2,fat:3.6,satFat:2.1,transFat:0,fiber:0.2,sodium:46},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"A baunilha clássica reinventada: fava de Madagascar e whey WPH. Base perfeita, cremosa e proteica." },
   { id:"doce-de-leite", name:"Doce de Leite", category:"gelato", sub:"Doce de leite · sem adição de açúcar", emoji:"🍯", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#D9A86A",mid:"#B07C3E",deep:"#6E4A1E",swirl:"#3E2A10",hl:"#F2D9A8"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Doce de leite sem adição de açúcares",qty:"350 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Doce de leite sem adição de açúcares",qty:"350 g",note:DOCE_LEITE_ZERO}],
     nutrition:{kcal:138,carbs:20,sugars:6.0,addedSugars:0,protein:11,fat:4.4,satFat:2.6,transFat:0,fiber:0.2,sodium:72},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Doce de leite sem adição de açúcar (Veneza) com whey WPH. O sabor afetivo brasileiro, 11g de proteína." },
   { id:"avela", name:"Avelã", category:"gelato", sub:"Nocciola · pasta de avelã", emoji:"🌰", estimated:true,
     moods:["premium","comfort","proteina"], palette:{base:"#C9A074",mid:"#9E7344",deep:"#5E3E1E",swirl:"#3A2410",hl:"#E8CBA0"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Pasta de avelã",qty:"200 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Pasta de avelã",qty:"200 g"}],
     nutrition:{kcal:166,carbs:18,sugars:4.0,addedSugars:0,protein:11,fat:8.6,satFat:1.8,transFat:0,fiber:1.3,sodium:40},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Pasta de avelã pura (nocciola italiana) com whey WPH. Intenso e aveludado. 11g de proteína." },
   { id:"cafe", name:"Café Espresso", category:"gelato", sub:"Espresso italiano", emoji:"☕", estimated:true,
     moods:["comfort","proteina","premium"], palette:{base:"#8A6244",mid:"#5E3E26",deep:"#2E1A0E",swirl:"#1A0E06",hl:"#C9A07A"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"380 g"},{name:"Café espresso",qty:"180 mL"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"380 g"},{name:"Café espresso",qty:"180 mL"}],
     nutrition:{kcal:114,carbs:16,sugars:4.4,addedSugars:0,protein:10,fat:3.4,satFat:2.0,transFat:0,fiber:0.5,sodium:48},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Espresso intenso com whey WPH. Para quem ama café de verdade. 10g de proteína, sem açúcar adicionado." },
@@ -139,28 +151,28 @@ export const PRODUCTS = [
   { id:"cookies-cream", name:"Cookies & Cream", category:"gelato", sub:"Creme · cookies zero", emoji:"🍪", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#E8E0D2",mid:"#B8AE9A",deep:"#3A332A",swirl:"#1F1A14",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito tipo cookie sem adição de açúcares",qty:"180 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"40 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"400 g"},{name:"Biscoito tipo cookie sem adição de açúcares",qty:"180 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"40 g"}],
     nutrition:{kcal:150,carbs:22,sugars:5.0,addedSugars:0,protein:11,fat:5.0,satFat:2.5,transFat:0,fiber:0.9,sodium:76},
     flags:{gluten:true,lactose:true}, yield:"5.000 mL",
     description:"Creme proteico com pedaços de cookies sem adição de açúcar e chocolate 70%. O clássico americano, 11g de proteína." },
   { id:"menta", name:"Menta Intensa", category:"gelato", sub:"Menta · cacau 70%", emoji:"🌿", estimated:true,
     moods:["refrescante","premium","proteina"], palette:{base:"#A8E0C4",mid:"#5FB890",deep:"#2A6A4A",swirl:"#1A3E2A",hl:"#D8F5E6"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Extrato natural de menta",qty:"8 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"80 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"350 g"},{name:"Extrato natural de menta",qty:"8 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"80 g"}],
     nutrition:{kcal:120,carbs:18,sugars:3.2,addedSugars:0,protein:9.5,fat:4.6,satFat:2.4,transFat:0,fiber:1.6,sodium:44},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Menta refrescante com lascas de chocolate 70% zero. Sofisticado e proteico. 9,5g de proteína." },
   { id:"brigadeiro", name:"Brigadeiro", category:"gelato", sub:"Chocolate ao leite brasileiro", emoji:"🍫", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#6E4A38",mid:"#4A2E20",deep:"#241410",swirl:"#120A06",hl:"#A87C5A"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"180 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Cacau em pó",qty:"180 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"}],
     nutrition:{kcal:140,carbs:21,sugars:5.0,addedSugars:0,protein:12,fat:5.0,satFat:2.8,transFat:0,fiber:2.0,sodium:54},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"O brigadeiro brasileiro em gelato: cacau e chocolate ao leite sem adição de açúcar. 12g de proteína, alto teor." },
   { id:"banana-canela", name:"Banana com Canela", category:"gelato", sub:"Banana · canela do Ceilão", emoji:"🍌", estimated:true,
     moods:["postreino","comfort","leve"], palette:{base:"#F2E2A0",mid:"#D9C25E",deep:"#A88A2E",swirl:"#6E5A1A",hl:"#FFF8D0"}, image:null,
     serving:60, portionLabel:"60 g",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Banana",qty:"500 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"300 g"},{name:"Leite",qty:"300 g"},{name:"Canela do Ceilão",qty:"5 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Banana",qty:"500 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"300 g"},{name:"Leite em pó desnatado",qty:"300 g"},{name:"Canela do Ceilão",qty:"5 g"}],
     nutrition:{kcal:110,carbs:21,sugars:7.0,addedSugars:0,protein:7.4,fat:1.5,satFat:0.7,transFat:0,fiber:1.8,sodium:30},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
     description:"Banana real com canela do Ceilão e whey WPH. Doçura natural da fruta, zero açúcar adicionado. Ótimo pós-treino." },
@@ -168,14 +180,14 @@ export const PRODUCTS = [
   { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · stracciatella", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:"/sabores/bentole-choco-dubai.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g"},{name:"Raspas de chocolate sem adição de açúcares (stracciatella)",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"600 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Cacau em pó",qty:"300 g"},{name:"Creme de pistache",qty:"300 g"},{name:"Raspas de chocolate sem adição de açúcares (stracciatella)",qty:"150 g"},{name:"Kadaif",qty:"70 g"}],
     nutrition:{kcal:108,carbs:17,sugars:3.6,addedSugars:0.1,protein:10,fat:4.3,satFat:1.7,transFat:0,fiber:1.5,sodium:33},
     flags:{gluten:true,lactose:true}, yield:"~100 picolés",
     description:"O Dubai em formato mini picolé. Cacau escuro, pistache, stracciatella e kadaif crocante. 10g de proteína." },
   { id:"bentole-snickers", name:"Snickers", category:"bentole", sub:"Amendoim · doce de leite · choco 70%", emoji:"🥜",
     moods:["postreino","proteina","indulgente"], palette:{base:"#A87545",mid:"#7A4F2A",deep:"#3E2511",swirl:"#1A0D05",hl:"#D9A878"}, image:"/sabores/bentole-snickers.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite sem adição de açúcares",qty:"250 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Pasta de amendoim",qty:"420 g"},{name:"Doce de leite sem adição de açúcares",qty:"250 g",note:DOCE_LEITE_ZERO},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"30 g"}],
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
     description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate 70%. 9,6g de proteína." },
@@ -189,21 +201,21 @@ export const PRODUCTS = [
   { id:"bentole-opereta", name:"Opereta", category:"bentole", sub:"Choco branco · castanhas", emoji:"🌰",
     moods:["premium","proteina","comfort"], palette:{base:"#EADCB8",mid:"#C9A878",deep:"#7A5A2E",swirl:"#3E2D14",hl:"#FFF2CE"}, image:"/sabores/bentole-opereta.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"700 g"},{name:"Preparado sabor chocolate branco",qty:"200 g"},{name:"Castanhas",qty:"100 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"700 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Castanhas",qty:"100 g"}],
     nutrition:{kcal:86,carbs:14,sugars:3.5,addedSugars:0,protein:9.9,fat:3.0,satFat:1.4,transFat:0,fiber:0.2,sodium:28},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"Chocolate branco Latissimo com castanhas selecionadas. 9,9g de proteína. Elegante, crocante, sofisticado." },
   { id:"bentole-pistache-cb", name:"Pistache & Choco Branco", category:"bentole", sub:"Recheio + cobertura + pistaches inteiros", emoji:"💚",
     moods:["premium","proteina","postreino"], palette:{base:"#F0E4C8",mid:"#C9D49A",deep:"#5A6A2E",swirl:"#3E4A18",hl:"#FFFFFF"}, image:"/sabores/bentole-pistache-cb.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g"},{name:"Preparado sabor chocolate branco",qty:"200 g"},{name:"Chocolate branco sem adição de açúcares",qty:"30 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"680 g"},{name:"Pasta de pistache",qty:"170 g"},{name:"Pasta sabor leite",qty:"200 g",note:PASTA_LEITE},{name:"Chocolate branco sem adição de açúcares",qty:"30 g"}],
     nutrition:{kcal:61,carbs:10,sugars:5.7,addedSugars:0,protein:10,fat:2.4,satFat:0.9,transFat:0,fiber:3.7,sodium:21},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O campeão da linha: 10g de proteína com apenas 61 kcal. Pasta de pistache selecionada, cobertura de chocolate branco, pistaches inteiros." },
   { id:"bentole-prestigio", name:"Prestígio", category:"bentole", sub:"Coco cremoso · cobertura de chocolate", emoji:"🥥", estimated:true,
     moods:["indulgente","comfort","proteina"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#6E4A2E",swirl:"#3A2414",hl:"#FFFEF8"}, image:"/sabores/bentole-prestigio.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Leite",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"},{name:"Coco ralado",qty:"60 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"},{name:"Chocolate ao leite sem adição de açúcares",qty:"120 g"},{name:"Coco ralado",qty:"60 g"}],
     nutrition:{kcal:91,carbs:13,sugars:3.5,addedSugars:0,protein:8,fat:4.0,satFat:3.0,transFat:0,fiber:1.0,sodium:30},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
     description:"O clássico Prestígio em mini picolé: coco cremoso com cobertura de chocolate. 8g de proteína, sem açúcar adicionado. 91 kcal (55g) · 182 kcal (110g)." },
@@ -212,18 +224,17 @@ export const PRODUCTS = [
 // Advertência de polióis (maltitol/sorbitol da Base FRUTA 300 ZERO — 65 g/100 g na base).
 // Texto oficial da RDC 727/2022, art. 25 (exibido em negrito no rótulo).
 export const AVISO_POLIOL = "Este produto pode ter efeito laxativo.";
-// Apenas os gelatos usam a Base FRUTA 300 (maltitol/sorbitol); os picolés foram
-// reformulados com base sem polióis. Logo, só os gelatos declaram polióis.
-export const POLIOL_IDS = PRODUCTS.filter(p => p.category === "gelato").map(p => p.id);
+// POLIOL_IDS é derivado de hasPolyols, calculado mais abaixo (após a troca de
+// base dos picolés), a partir das composições auditadas dos insumos.
 
 // ALÉRGICOS por produto (RDC 26/2015) — derivado dos insumos de cada receita.
 // PRELIMINAR: SOJA (lecitina dos chocolates/cremes) marcada onde provável — confirmar nas fichas dos fornecedores.
 export const ALLERGENS = {
-  "ninho-nutella":      ["LEITE","AVELÃ","SOJA"],
+  "ninho-nutella":      ["LEITE"],  // gianduiella auditada: SEM avelã e SEM soja; leite = leite em pó + whey
   "limao-siciliano":    [],
   "extra-dark":         [],
   "pacoca":             ["LEITE","AMENDOIM"],
-  "chocolate-branco":   ["LEITE","SOJA"],
+  "chocolate-branco":   ["LEITE"],  // lattíssimo: lecitina de girassol; soja só "pode conter"
   "coco":               ["LEITE"],
   "chocolate-dubai":    ["LEITE","PISTACHE","TRIGO","SOJA"],
   "pistache":           ["LEITE","PISTACHE"],
@@ -240,7 +251,7 @@ export const ALLERGENS = {
   "bentole-choco-dubai":["LEITE","PISTACHE","TRIGO","SOJA"],
   "bentole-snickers":   ["LEITE","AMENDOIM","SOJA"],
   "bentole-franui":     ["LEITE","SOJA"],
-  "bentole-opereta":    ["LEITE","CASTANHAS","SOJA"],
+  "bentole-opereta":    ["LEITE","CASTANHAS"],  // lattíssimo: soja só "pode conter"
   "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
   "bentole-prestigio":  ["LEITE","SOJA"],
 };
@@ -263,9 +274,14 @@ for (const p of PRODUCTS) if (p.category === "bentole") {
   p.ingredients[0] = { name: BASE_PICOLE_NOME, qty: p.ingredients[0].qty, note: BASE_PICOLE };
 }
 
-// POLIÓIS = presença de polióis (maltitol/sorbitol), provenientes da Base FRUTA 300.
-// Só os gelatos usam essa base; os picolés (base reformulada) não declaram polióis.
-for (const p of PRODUCTS) p.hasPolyols = p.ingredients[0].name === BASE_NOME;
+// POLIÓIS = maltitol/sorbitol em QUALQUER insumo do produto, detectado na
+// composição declarada (note): base dos gelatos, pasta sabor leite (Lattíssimo),
+// preparado de cacau (Gianduiella) e doce de leite zero. Com isso, Bentôlés que
+// levam esses insumos (Opereta, Pistache & Choco Branco, Snickers) também exibem
+// a advertência laxativa da RDC 727/2022, apesar da base sem polióis.
+// Fichas pendentes (chocolates "zero") podem incluir outros — ver PENDENTE-AUDITORIA.
+for (const p of PRODUCTS) p.hasPolyols = p.ingredients.some(i => (i.note || "").toLowerCase().includes("maltitol"));
+export const POLIOL_IDS = PRODUCTS.filter(p => p.hasPolyols).map(p => p.id);
 
 // Rotulagem nutricional frontal (RDC 429/2020 — limites para sólidos, por 100 g):
 // açúcares adicionados ≥ 15 g · gordura saturada ≥ 6 g · sódio ≥ 600 mg.
