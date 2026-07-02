@@ -8,7 +8,7 @@ const PICOLES=[
   {n:"Opereta", d:"Chocolate branco · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
   {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
   {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/portfolio/heros/prestigio.jpg"},
-  {n:"Franuí", d:"Framboesa · choco branco · choco 70% — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
+  {n:"Franuí", d:"Framboesa · cobertura zero lactose — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
   {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/portfolio/heros/magnesio.jpg"},
 ];
 const POTES=[

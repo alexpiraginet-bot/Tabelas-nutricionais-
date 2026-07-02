@@ -33,11 +33,20 @@ export const PREPARADO_CACAU = "Cacau em pó, edulcorantes maltitol (INS 965) e 
 //   açúcar). Sem adição de açúcares ✔. CONTÉM LEITE e lactose. Tem MALTITOL e
 //   eritritol. Rótulo avisa "Diabéticos: contém glicose".
 export const DOCE_LEITE_ZERO = "Leite pasteurizado integral, edulcorantes maltitol, eritritol, polidextrose e sucralose, estabilizante citrato de sódio e conservador sorbato de potássio";
+// · Cobertura zero lactose = barra "Lukau Zero Lactose" (rótulo do fabricante) —
+//   recheio E cobertura do Franuí reformulado. Sem adição de açúcares ✔ (10 g/100 g
+//   de açúcares próprios do leite; galactose 5 g). ZERO LACTOSE, mas CONTÉM LEITE
+//   (proteína láctea) e SOJA (lecitina) — alérgenos mantidos. 43 g de polióis/100 g
+//   (MALTITOL) → advertência laxativa. Sem cacau na composição → denominação
+//   "cobertura sabor chocolate branco", não "chocolate". Pode conter: avelã,
+//   amendoim, castanha-de-caju, pistache e amêndoa.
+export const COBERTURA_ZERO_LACTOSE = "Gordura vegetal, leite em pó integral zero lactose, edulcorante maltitol, emulsificante lecitina de soja e aromatizante";
 
 /* ===== PENDENTE-AUDITORIA (insumos compostos ainda sem ficha do fornecedor) =====
    Verificar DEXTROSE/açúcares ocultos (invalidariam "sem adição de açúcares") e
    MALTITOL (polióis → advertência laxativa) nas fichas que faltam:
-   · Chocolates e stracciatella "sem adição de açúcares" — ex-linha "Lukau Zero"
+   · Chocolates 70%/ao leite/branco e stracciatella "sem adição de açúcares" —
+     ex-linha "Lukau Zero" (a variante ZERO LACTOSE do Franuí já foi auditada)
    · Creme de pistache (ex-"Creme de Pistache G") · Pasta de pistache (ex-"Selection")
    · Preparado para sorbet de limão — ex-"Base Limone 50"
    · Biscoito tipo cookie sem adição de açúcares — ex-"Cookies Zero"
@@ -191,13 +200,13 @@ export const PRODUCTS = [
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
     description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate 70%. 9,6g de proteína." },
-  { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · choco branco · choco 70%", emoji:"🫐",
+  { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · cobertura zero lactose", emoji:"🫐",
     moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:"/sabores/bentole-franui.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
-    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Chocolate branco sem adição de açúcares",qty:"30 g"},{name:"Chocolate amargo 70% cacau sem adição de açúcares",qty:"15 g"}],
+    ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Cobertura sabor chocolate branco zero lactose",qty:"45 g",note:COBERTURA_ZERO_LACTOSE}],
     nutrition:{kcal:42,carbs:8.9,sugars:1.4,addedSugars:0,protein:1.2,fat:0.3,satFat:0.1,transFat:0,fiber:7.7,sodium:4.64},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
-    description:"Apenas 42 kcal. Framboesa real, colágeno, cobertura dupla de chocolate. O mais leve e frutado da linha." },
+    description:"Apenas 42 kcal. Framboesa real, colágeno e cobertura de chocolate zero lactose. O mais leve e frutado da linha." },
   { id:"bentole-opereta", name:"Opereta", category:"bentole", sub:"Choco branco · castanhas", emoji:"🌰",
     moods:["premium","proteina","comfort"], palette:{base:"#EADCB8",mid:"#C9A878",deep:"#7A5A2E",swirl:"#3E2D14",hl:"#FFF2CE"}, image:"/sabores/bentole-opereta.jpg",
     serving:60, portionLabel:"60 g (mini picolé)",
@@ -259,12 +268,15 @@ export const ALLERGENS = {
 export const PODE_CONTER = ["LEITE","AMENDOIM","CASTANHAS","PISTACHE","AVELÃ","TRIGO","SOJA"];
 
 // LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
-// Whey WPH e Leite contêm lactose → todo sabor com LEITE nos alérgicos contém lactose.
-// (Apenas Limão, Extra Dark e Maracujá, sem leite/whey, são zero lactose.)
+// Whey e leite em pó contêm lactose → sabor com LEITE nos alérgicos contém lactose,
+// EXCETO quando todos os insumos lácteos são zero lactose (proteína láctea presente
+// → alérgeno LEITE permanece, mas lactose = 0). Caso auditado: Franuí, cuja única
+// fonte láctea é a cobertura Lukau zero lactose ("NÃO CONTÉM LACTOSE" no rótulo).
 // Glúten só vem de kadaif e cookies (trigo) → só sabores com TRIGO contêm glúten.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
+const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
 for (const p of PRODUCTS) {
-  p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE");
+  p.flags.lactose = (ALLERGENS[p.id] || []).includes("LEITE") && !ZERO_LACTOSE_APESAR_DE_LEITE.includes(p.id);
   p.flags.gluten  = (ALLERGENS[p.id] || []).includes("TRIGO");
 }
 
