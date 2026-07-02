@@ -300,7 +300,9 @@ export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTA
 // EXCETO quando todos os insumos lácteos são zero lactose (proteína láctea presente
 // → alérgeno LEITE permanece, mas lactose = 0). Caso auditado: Franuí, cuja única
 // fonte láctea é a cobertura Lukau zero lactose ("NÃO CONTÉM LACTOSE" no rótulo).
-// Glúten vem de kadaif (trigo) → sabores com TRIGO contêm glúten.
+// Glúten: sabores com TRIGO nos alérgicos (kadaif) E, por declaração do
+// fornecedor, os que levam pasta de pistache MEC3 — a ficha diz "CONTÉM GLÚTEN"
+// sem trigo na composição (Lei 10.674 é binária); ver exceção logo abaixo.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
 const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui"];
 // A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição
