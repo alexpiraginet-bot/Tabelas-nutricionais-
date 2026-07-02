@@ -93,17 +93,13 @@ export const VD={kcal:2000,carbs:300,addedSugars:50,protein:50,fat:65,satFat:20,
 // Arredondamento/formatação pt-BR (vírgula decimal); sódio < 5 mg = não significativo → "0"
 
 export const br=v=>Number.isInteger(v)?String(v):String(v).replace(".",",");
-// Ordem de leitura dos ingredientes: fruta primeiro (gelatos de fruta), depois
-// whey, água e leite — os de maior composição — e por fim o restante (ordem original).
+// Ordem da lista de ingredientes: decrescente de quantidade na receita
+// (RDC 727/2022, art. 22 — obrigatória no rótulo). g e mL são tratados como
+// equivalentes só para ordenar (densidades ≈ 1); empate mantém a ordem da receita.
 
 export function orderIngredients(ings){
-  const rank=name=>{
-    const n=name.toLowerCase();
-    if(n.startsWith("polpa")) return 0;
-    if(n.includes("whey")) return 1;
-    if(n==="água"||n==="agua") return 2;
-    if(n.startsWith("leite piracanjuba")) return 3;
-    return 4;
-  };
-  return ings.map((ing,i)=>({ing,i})).sort((a,b)=>rank(a.ing.name)-rank(b.ing.name)||a.i-b.i).map(x=>x.ing);
+  const grams=q=>parseFloat(String(q).replace(/\./g,""))||0; // "2.500 mL" → 2500
+  return ings.map((ing,i)=>({ing,i,g:grams(ing.qty)}))
+    .sort((a,b)=>b.g-a.g||a.i-b.i)
+    .map(x=>x.ing);
 }
