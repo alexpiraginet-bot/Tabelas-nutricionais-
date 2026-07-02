@@ -3,7 +3,7 @@
 //   - public/ficha-tecnica.csv      : 1 linha por ingrediente, com colunas de custo p/ preencher
 //   - public/fichas-data.json       : base de dados do painel /fichas.html (nutri & P&D)
 // Uso: npm run fichas
-import { PRODUCTS, BASE, ALLERGENS, PODE_CONTER, sugarClaim, proteinClaim, lupaFrontal, AVISO_POLIOL, FRASE_ACUCARES_PROPRIOS } from "../src/data.js";
+import { PRODUCTS, SHAKES, BASE, ALLERGENS, PODE_CONTER, sugarClaim, proteinClaim, lupaFrontal, AVISO_POLIOL, FRASE_ACUCARES_PROPRIOS } from "../src/data.js";
 import { writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -90,10 +90,17 @@ const fichasData = {
       },
     };
   }),
+  shakes: SHAKES.map((s) => ({
+    id: s.id, code: s.code, name: s.name, emoji: s.emoji,
+    category: "shake", linha: "Shake (preparado na hora)",
+    description: s.description, sub: s.sub, prep: s.prep, protein: s.protein,
+    ingredients: s.ingredients.map((i) => ({ name: i.name, qty: i.qty, note: i.note || "" })),
+    nutrition: s.nutrition,
+  })),
 };
 writeFileSync(join(OUT, "fichas-data.json"), JSON.stringify(fichasData, null, 1));
 
-console.log(`OK  ${PRODUCTS.length} sabores`);
+console.log(`OK  ${PRODUCTS.length} sabores + ${SHAKES.length} shakes`);
 console.log(`  → public/tabela-nutricional.csv (${nutRows.length} linhas)`);
 console.log(`  → public/ficha-tecnica.csv (${fichaRows.length} linhas)`);
-console.log(`  → public/fichas-data.json (${fichasData.products.length} SKUs)`);
+console.log(`  → public/fichas-data.json (${fichasData.products.length} SKUs + ${fichasData.shakes.length} shakes)`);
