@@ -552,7 +552,8 @@ function rotuloFromItens(itens){
   const map=insumosMap();
   const ings=(itens||[]).map(it=>{
     const ins=it&&it.insumoId?map[it.insumoId]:null;if(!ins)return null;
-    return {name:ins.nome,qty:String(+it.qty||0),note:(ins.composicao&&norm(ins.composicao)!==norm(ins.nome))?ins.composicao:""};
+    // qty ausente fica não numérica ("") para ordered() manter a posição da receita, em vez de virar 0 e ir para o fim
+    return {name:ins.nome,qty:(+it.qty>0)?String(+it.qty):"",note:(ins.composicao&&norm(ins.composicao)!==norm(ins.nome))?ins.composicao:""};
   }).filter(Boolean);
   return ings.length?ordered(ings).map(i=>i.note?`${i.name} (${i.note.toLowerCase()})`:i.name).join(", ")+".":null;
 }
@@ -575,27 +576,36 @@ function recalcProdRec(m){
   const noQty=PREC.itens.filter(x=>x.insumoId&&!(+x.qty>0)).length;
   const rows=NUT.map(([k,l])=>{
     const mk=NUTMAP[k];
+    // açúcares sem dado em algum insumo: exibe "—" para não passar a impressão de zero real
+    const unk=c.sugarNull&&(mk==="sugars"||mk==="addedSugars");
     const calc=c.per100[mk]*por/100;
     const pub=(m.nutrition[k]??0)*por/m.serving;
     const dp=pub>0?(calc-pub)/pub*100:(calc>0.05?Infinity:0);
-    const dv=Math.abs(dp)>5;
-    return `<tr><td>${l}</td><td${dv?' class="dv"':""}>${br(calc)}</td><td>${br(pub)}</td><td${dv?' class="dv"':""}>${Number.isFinite(dp)?(dp>0?"+":"")+Math.round(dp)+"%":"—"}</td></tr>`;
+    const dv=!unk&&Math.abs(dp)>5;
+    return `<tr><td>${l}</td><td${dv?' class="dv"':""}>${unk?"—":br(calc)}</td><td>${br(pub)}</td><td${dv?' class="dv"':""}>${unk?"—":(Number.isFinite(dp)?(dp>0?"+":"")+Math.round(dp)+"%":"—")}</td></tr>`;
   }).join("");
+  const pubLabel=(DRAFTS[m.id]&&DRAFTS[m.id].nutrition)?"Ficha atual (com rascunho)":"Publicado no site";
   $("#pr_calc").innerHTML=`
     ${c.missing.length?`<div class="ai" style="margin:0 0 10px"><span class="atencao">⚠️ ${c.missing.length} insumo(s) sem macros — soma parcial (claims não recalculados):</span> ${c.missing.map(escH).join(", ")}</div>`:""}
     <p class="status">Soma dos insumos: ${br(c.soma)} g · Rendimento: ${br(c.rend)} g/mL · Porção do cálculo: ${br(por)} g${noQty?` · <span class="atencao">⚠️ ${noQty} item(ns) sem quantidade — fora da soma</span>`:""}</p>
     <div class="tablewrap calcbox"><table>
-      <tr><th>Por porção de ${br(por)} g</th><th>Calculado da receita</th><th>Publicado no site</th><th>Δ</th></tr>${rows}
+      <tr><th>Por porção de ${br(por)} g</th><th>Calculado da receita</th><th>${pubLabel}</th><th>Δ</th></tr>${rows}
     </table></div>
-    <p class="hint">Divergência acima de 5% destacada em vermelho.${c.sugarNull?" Açúcares/trans de insumos TACO não informados — soma parcial nessas linhas.":""} Alegações/claims do rótulo não são recalculados aqui — revisão do RT.</p>
+    <p class="hint">Divergência acima de 5% destacada em vermelho.${c.sugarNull?" Açúcares totais/adicionados exibidos como “—”: há insumo sem esse dado na base TACO/TBCA ou na ficha — complete o cadastro.":""} Alegações/claims do rótulo não são recalculados aqui — revisão do RT.</p>
     ${c.rotulo?`<p class="hint" style="margin-top:6px"><b>Ingredientes derivados (rótulo):</b> ${escH(c.rotulo)}</p>`:""}
     <div class="row" style="margin:8px 0 0"><button class="act sec" id="pr_apply"${c.rows.length?"":" disabled"}>→ Aplicar calculado nos campos</button></div>`;
   $("#pr_apply").onclick=()=>{
     const sv=+$("#f_serving").value||m.serving;
-    NUT.forEach(([k])=>{$("#n_"+k).value=Math.round(c.per100[NUTMAP[k]]*sv/100*10)/10});
+    NUT.forEach(([k])=>{
+      const mk=NUTMAP[k];
+      if(c.sugarNull&&(mk==="sugars"||mk==="addedSugars"))return; // sem dado ≠ zero — não sobrescrever
+      $("#n_"+k).value=Math.round(c.per100[mk]*sv/100*10)/10;
+    });
     $("#msg").textContent=c.partial
       ?"Valores calculados copiados — ⚠️ soma PARCIAL (insumos sem macros); complete o cadastro antes de salvar."
-      :"Valores calculados copiados para a tabela nutricional — revise e salve o rascunho.";
+      :(c.sugarNull
+        ?"Valores calculados copiados — açúcares NÃO copiados (insumo sem esse dado); complete o cadastro ou preencha pela ficha."
+        :"Valores calculados copiados para a tabela nutricional — revise e salve o rascunho.");
   };
 }
 
@@ -994,7 +1004,7 @@ function drawItens(wrapSel,rec,onChange){
     }),(h)=>{rec.itens[idx].insumoId=h.i.id;delete rec.itens[idx]._nome;inp.value=h.i.nome;qty.classList.toggle("miss",qty.value==="");onChange()});
     inp.addEventListener("input",()=>{
       const cur=rec.itens[idx].insumoId?insumosMap()[rec.itens[idx].insumoId]:null;
-      if(cur&&norm(inp.value)!==norm(cur.nome)){rec.itens[idx].insumoId=null;onChange()}
+      if(cur&&norm(inp.value)!==norm(cur.nome)){rec.itens[idx].insumoId=null;qty.classList.remove("miss");onChange()}
     });
     qty.oninput=()=>{rec.itens[idx].qty=qty.value===""?null:+qty.value;qty.classList.toggle("miss",qty.value===""&&!!rec.itens[idx].insumoId);onChange()};
     row.querySelector(".ri-del").onclick=()=>{
@@ -1009,7 +1019,9 @@ function recalcReceita(){
   const c=computeReceita(REC_EDIT);
   const rows=NUT.map(([k,l])=>{
     const mk=NUTMAP[k],v=c.perP[mk],vd=VD[k]?Math.round(v/VD[k]*100):null;
-    return `<tr><td>${l}</td><td>${br(c.per100[mk])}</td><td>${br(v)}</td><td>${vd===null?"—":vd+"%"}</td></tr>`;
+    // açúcares sem dado em algum insumo: "—" em vez de um falso zero (e sem %VD)
+    const unk=c.sugarNull&&(mk==="sugars"||mk==="addedSugars");
+    return `<tr><td>${l}</td><td>${unk?"—":br(c.per100[mk])}</td><td>${unk?"—":br(v)}</td><td>${(unk||vd===null)?"—":vd+"%"}</td></tr>`;
   }).join("")+`<tr><td>Polióis (g)</td><td>${br(c.per100.polyols)}</td><td>${br(c.perP.polyols)}</td><td>—</td></tr>`;
   const alegs=[c.claims.sugar,c.claims.sugarNote,c.claims.protein,...(c.claims.lupa||[]).map(l=>"LUPA FRONTAL: ALTO EM "+l)].filter(Boolean);
   $("#reccalc").innerHTML=`
@@ -1018,7 +1030,7 @@ function recalcReceita(){
     <div class="tablewrap calcbox"><table>
       <tr><th>Informação nutricional</th><th>100 g</th><th>Porção (${br(c.por)} g)</th><th>%VD*</th></tr>${rows}
     </table></div>
-    <p class="hint">*%VD com base em dieta de 2.000 kcal (RDC 429/2020 · IN 75/2020).${c.sugarNull?" Açúcares/polióis de insumos TACO não informados — soma parcial nessas linhas.":""}</p>
+    <p class="hint">*%VD com base em dieta de 2.000 kcal (RDC 429/2020 · IN 75/2020).${c.sugarNull?" Açúcares totais/adicionados exibidos como “—”: há insumo sem esse dado na base TACO/TBCA ou na ficha — complete o cadastro.":""}</p>
     <div class="ai" style="margin-top:10px">
       <div class="mono" style="margin-bottom:6px;color:var(--pist)">Derivações do rótulo</div>
       ${c.rotulo?`<p style="font-size:13px"><b>INGREDIENTES:</b> ${escH(c.rotulo)}</p>`:'<p class="hint">Adicione ingredientes para gerar a lista do rótulo.</p>'}
@@ -1026,7 +1038,7 @@ function recalcReceita(){
       ${c.podeConter.length?`<p style="font-size:13px"><b>ALÉRGICOS: PODE CONTER ${escH(c.podeConter.join(", "))}.</b></p>`:""}
       <p style="font-size:13px"><b>${c.gluten?"CONTÉM GLÚTEN.":"NÃO CONTÉM GLÚTEN."} ${c.lactose?"CONTÉM LACTOSE.":"NÃO CONTÉM LACTOSE."}</b></p>
       ${c.polyols?`<p style="font-size:13px"><span class="atencao">⚠️ CONTÉM POLIÓIS</span> — ${escH((DATA.avisoPoliol||"Este produto pode ter efeito laxativo.").toUpperCase())} (advertência RDC 727/2022)</p>`:""}
-      ${c.partial?'<p class="hint">Alegações suspensas — complete os macros dos insumos pendentes.</p>':`<p style="font-size:13px"><b>Alegações (RDC 54/2012):</b> ${alegs.length?alegs.map(escH).join(" · "):"nenhuma"}${c.sugarNull?' <span class="hint">(alegação de açúcar suspensa — insumo TACO sem dado de açúcares)</span>':""}</p>`}
+      ${c.partial?'<p class="hint">Alegações suspensas — complete os macros dos insumos pendentes.</p>':`<p style="font-size:13px"><b>Alegações (RDC 54/2012):</b> ${alegs.length?alegs.map(escH).join(" · "):"nenhuma"}${c.sugarNull?' <span class="hint">(alegação de açúcar suspensa — insumo sem dado de açúcares na base/ficha)</span>':""}</p>`}
     </div>`;
 }
 function gerarFichaReceita(){
