@@ -4,11 +4,11 @@ const SERIF="'Fraunces',Georgia,serif", SANS="'DM Sans',system-ui,sans-serif", M
 
 const PICOLES=[
   {n:"Pistache & Choco Branco", d:"Recheio + cobertura + pistaches inteiros", prot:"10 g", kcal:61, img:"/portfolio/heros/pistache-choco-branco.jpg"},
-  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · stracciatella", prot:"10 g", kcal:108, img:"/portfolio/heros/chocolate-dubai.jpg"},
-  {n:"Opereta", d:"Chocolate branco Latissimo · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
-  {n:"Snickers", d:"Amendoim · doce de leite · chocolate 70%", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
+  {n:"Chocolate Dubai", d:"Cacau · pistache · kadaif · choco meio amargo", prot:"10 g", kcal:108, img:"/portfolio/heros/chocolate-dubai.jpg"},
+  {n:"Opereta", d:"Chocolate branco · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
+  {n:"Snickers", d:"Amendoim · doce de leite · chocolate meio amargo", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
   {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/portfolio/heros/prestigio.jpg"},
-  {n:"Franuí", d:"Framboesa · choco branco · choco 70% — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
+  {n:"Franuí", d:"Framboesa · cobertura zero lactose — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/franui.jpg"},
   {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/portfolio/heros/magnesio.jpg"},
 ];
 const POTES=[
@@ -46,13 +46,13 @@ export default function PortfolioPage(){
           <img src="/bento-logo.webp" alt="Bentô" width={84} height={84} style={{borderRadius:"50%"}}/>
           <div style={{...sectionTag,marginTop:14}}>Bentô Gelatos · para parceiros</div>
           <h1 style={{fontFamily:SERIF,fontSize:"clamp(34px,6vw,60px)",lineHeight:1.02,margin:"10px 0 8px",fontWeight:600,letterSpacing:"-0.02em"}}>Portfólio de Produtos</h1>
-          <p style={{fontSize:15,color:C.soft,maxWidth:560,margin:"0 auto",lineHeight:1.5}}>Linha proteica, sem açúcar adicionado e rótulo limpo. Picolés Bentôlé e potes selados de 140 ml — premium, com whey WPH e margem atrativa para o parceiro.</p>
+          <p style={{fontSize:15,color:C.soft,maxWidth:560,margin:"0 auto",lineHeight:1.5}}>Linha proteica, sem açúcar adicionado e rótulo limpo. Picolés Bentôlé e potes selados de 140 ml — premium, com whey hidrolisado e margem atrativa para o parceiro.</p>
         </header>
 
         {/* PROPOSTA */}
         <div className="pf-sec" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:50}}>
           {[["Premium","Estética sofisticada e percepção de valor superior ao congelado comum."],
-            ["Proteico","Whey WPH — diálogo direto com o público fitness e wellness."],
+            ["Proteico","Whey hidrolisado — diálogo direto com o público fitness e wellness."],
             ["Sem açúcar adicionado","Rótulo limpo · opções low-carb e para controle glicêmico."],
             ["Margem atrativa","Picolés e potes 140 ml com boa margem e alto giro."]].map(([t,d])=>(
             <div key={t} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 16px"}}>

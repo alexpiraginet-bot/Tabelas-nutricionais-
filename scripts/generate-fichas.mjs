@@ -42,7 +42,7 @@ const nutRows = PRODUCTS.map((p) => {
     sc && sc.note ? sc.note : "",
     proteinClaim(p) || "",
     lupaFrontal(p).join(", ") || "não se aplica",
-    p.hasPolyols ? AVISO_POLIOL : "não se aplica (base sem polióis)",
+    p.hasPolyols ? AVISO_POLIOL : "não detectado nas composições declaradas (insumos sem ficha: ver PENDENTE-AUDITORIA em src/data.js)",
     p.estimated ? "SIM — não usar em rótulo sem análise" : "não",
   ];
 });
