@@ -55,13 +55,18 @@ const esc = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g
 const base = readFileSync(join(ROOT, "dist", "index.html"), "utf8");
 mkdirSync(join(ROOT, "dist", "share"), { recursive: true });
 
-// troca o conteúdo de uma metatag preservando o resto do documento
+// troca uma tag preservando o resto do documento; FALHA o build se a tag não
+// existir no index.html — um preview silenciosamente errado é pior que build quebrado
+const mustReplace = (html, re, replacement, what) => {
+  if (!re.test(html)) throw new Error(`share pages: "${what}" não encontrada no dist/index.html — a estrutura mudou; atualize scripts/generate-share-pages.mjs`);
+  return html.replace(re, replacement);
+};
 const setMeta = (html, attr, key, value) =>
-  html.replace(new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`), `$1${esc(value)}$2`);
+  mustReplace(html, new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`), `$1${esc(value)}$2`, `meta ${key}`);
 
 for (const [view, v] of Object.entries(VIEWS)) {
   let html = base;
-  html = html.replace(/<title>[^<]*<\/title>/, `<title>${v.title.replace(/</g, "&lt;")}</title>`);
+  html = mustReplace(html, /<title>[^<]*<\/title>/, `<title>${v.title.replace(/</g, "&lt;")}</title>`, "title");
   html = setMeta(html, "name", "description", v.desc);
   html = setMeta(html, "property", "og:title", v.title);
   html = setMeta(html, "property", "og:description", v.desc);
@@ -70,8 +75,7 @@ for (const [view, v] of Object.entries(VIEWS)) {
   html = setMeta(html, "name", "twitter:title", v.title);
   html = setMeta(html, "name", "twitter:description", v.desc);
   html = setMeta(html, "name", "twitter:image", SITE + v.image);
-  html = html.replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${SITE}/?${view}$2`);
-  if (html === base) throw new Error(`share/${view}.html: nenhuma metatag substituída — confira o index.html`);
+  html = mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${SITE}/?${view}$2`, "link canonical");
   writeFileSync(join(ROOT, "dist", "share", `${view}.html`), html);
 }
 console.log(`OK  ${Object.keys(VIEWS).length} páginas de compartilhamento → dist/share/`);
