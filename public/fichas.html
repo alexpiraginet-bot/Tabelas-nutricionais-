@@ -532,9 +532,10 @@ function unresolvedItem(sel,rec){
     const it=rec&&rec.itens[+row.dataset.idx];return it&&!it.insumoId;
   });
 }
-// grava sem re-render (não pode roubar o foco de quem digita)
-async function pushSilent(keepalive){
-  if(SAVING)return;
+// grava sem re-render (não pode roubar o foco de quem digita);
+// force = descarga de saída (pagehide): não espera o salvamento em voo
+async function pushSilent(force){
+  if(SAVING&&!force)return;
   let action=null,id=null,patch=null;
   if(CAT==="insumos"){
     if(!INS_EDIT||!INS_EDIT.id||!$("#e_nome")||!$("#e_nome").value.trim())return; // novo insumo: 1º salvamento é manual (define o id)
@@ -554,7 +555,8 @@ async function pushSilent(keepalive){
   }
   SAVING=true;cloud("saving");
   try{
-    const r=await fetch("/api/fichas",{method:"POST",headers:auth(),keepalive:!!keepalive,body:JSON.stringify({action,id,by:NAME,patch})});
+    // keepalive sempre: se a aba fechar com o request em voo, o navegador conclui o envio
+    const r=await fetch("/api/fichas",{method:"POST",headers:auth(),keepalive:true,body:JSON.stringify({action,id,by:NAME,patch})});
     const j=await r.json().catch(()=>({}));
     if(!j.ok)throw new Error(j.error||r.status);
     if(action==="save"){DRAFTS=j.drafts;if(PREC&&PREC.id===id)PREC.src="rascunho"}
@@ -600,15 +602,23 @@ setInterval(syncPull,45000);
 async function publish(){
   const m=findItem(CUR);
   if(!confirm(`Publicar a tabela nutricional de “${m.name}” no site público?\n\n• Porção, rótulo da porção e valores da tabela do rascunho substituem os do site.\n• Claims (RDC 54) e lupa frontal (RDC 429) são recalculados automaticamente.\n• Gera um commit auditável e o site atualiza em ~2 minutos.`))return;
+  if(SAVING){$("#msg").textContent="Salvamento em andamento — aguarde alguns segundos e tente de novo.";return}
   clearTimeout(AS_TIMER);
   $("#msg").textContent="Salvando rascunho antes de publicar…";
   await pushSilent();
+  // pushSilent pode ter adiado (item sem insumo escolhido, falha de rede): nunca publicar KV desatualizado
+  if(DIRTY||SAVING){$("#msg").textContent="Não publiquei: há edições ainda não salvas — confira itens sem insumo selecionado (destacados) ou use “Salvar rascunho” e tente de novo.";return}
   $("#msg").textContent="Publicando (commit + deploy)…";
   const r=await fetch("/api/fichas-publish",{method:"POST",headers:auth(),body:JSON.stringify({id:CUR,by:NAME})});
   const j=await r.json().catch(()=>({}));
   if(j.ok){
     DRAFTS=j.drafts||DRAFTS;render();
-    $("#msg").innerHTML=`🚀 Publicado (rev ${String((j.pub&&j.pub.rev)||0).padStart(3,"0")}) — o site atualiza em ~2 min.${j.commit?` <a href="${j.commit}" target="_blank" rel="noopener">ver commit</a>`:""}`;
+    const msg=$("#msg");
+    msg.textContent=`🚀 Publicado (rev ${String((j.pub&&j.pub.rev)||0).padStart(3,"0")}) — o site atualiza em ~2 min.`;
+    if(j.commit&&/^https:\/\/github\.com\//.test(String(j.commit))){
+      const a=document.createElement("a");a.href=j.commit;a.target="_blank";a.rel="noopener";a.textContent="ver commit";
+      msg.append(" ");msg.append(a);
+    }
   }else $("#msg").textContent="Erro ao publicar: "+(j.error||r.status);
 }
 async function clearDraft(){

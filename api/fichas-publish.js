@@ -83,8 +83,14 @@ export default async function handler(req, res) {
   if (!id || id === "_config") { res.status(400).json({ ok: false, error: "id" }); return; }
 
   // fonte da publicação = rascunho salvo no KV (o que a nutricionista vê é o que publica)
-  const raw = await kv(["GET", "fichas:drafts"]);
-  let drafts = {}; try { drafts = raw ? JSON.parse(raw) : {}; } catch { drafts = {}; }
+  let drafts = {};
+  try {
+    const raw = await kv(["GET", "fichas:drafts"]);
+    drafts = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    res.status(502).json({ ok: false, error: "Não consegui ler os rascunhos no banco (KV) — tente novamente em instantes." });
+    return;
+  }
   const d = drafts[id];
   if (!d) { res.status(400).json({ ok: false, error: "Sem rascunho salvo para este SKU — salve antes de publicar." }); return; }
 
