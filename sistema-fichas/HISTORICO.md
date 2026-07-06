@@ -1,4 +1,4 @@
-# Histórico e trilha de auditoria (02/07/2026 — PRs #161 a #171)
+# Histórico e trilha de auditoria (06/07/2026 — PRs #161 a #175)
 
 Registro do trabalho que originou este sistema, para contexto de quem for
 mantê-lo no app de indústria.
@@ -17,6 +17,10 @@ mantê-lo no app de indústria.
 | #168/#169 | Todas as abas do admin no padrão de cards verticais |
 | #170 | **Bentôlé G** (6 SKUs 2×) + painel premium com categorias + **ficha padrão indústria** + **dossiê ANVISA** |
 | #171 | **Editor de insumos e receitas (ChefPro)**: TACO oficial embarcada, seed auditado, anexo de fichas, cálculo automático |
+| #172 | **Receita de produção editável nos 29 SKUs existentes** (hidratação via `recipeMap`, cálculo calculado × publicado, rótulo derivado dos itens) + **base TACO+TBCA com 6.265 alimentos** (TBCA 7.2 traz açúcar de adição e trans) + conciliação TACO nos insumos (33 no seed) |
+| #173 | Previews de link por seção (OG por query param via Edge Middleware) — não afeta o sistema de fichas |
+| #174 | App instalável (PWA): ícone oficial, manifest, service worker — não afeta o sistema de fichas |
+| #175 | **☁️ Salvamento automático** (2,5 s, keepalive na saída, guardas anti-perda) + **sincronização entre dispositivos** (45 s/foco) + **🚀 Publicar tabela no site** (`api/fichas-publish.js`: commit auditável em `src/data-overrides.js`, claims/lupa recalculados no build) |
 
 ## Decisões de compliance relevantes (com fonte)
 

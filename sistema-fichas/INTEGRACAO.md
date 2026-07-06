@@ -78,34 +78,56 @@ público `artes`). Sem passar pelo limite de payload da Vercel.
 Rascunho de SKU: qualquer subconjunto de `{serving, portionLabel, nutrition{...},
 ingredientesText, alergicosText, denominacao, conservacao, obs, _rev}`.
 
+### `POST /api/fichas-publish` · mesmo auth · corpo `{ "id": "<skuId>", "by": "nome" }`
+Publica a tabela do rascunho no site público via **commit auditável**:
+1. Lê `fichas:drafts[id]` no KV (o que a nutricionista vê é o que publica).
+2. Valida: porção > 0, valores numéricos ≥ 0; escopo publicável = `serving`,
+   `portionLabel` e os 10 campos de `nutrition`.
+3. `PUT /repos/<FICHAS_GH_REPO>/contents/src/data-overrides.js` na `main` com a
+   mensagem `Publica tabela <sku> — rev NNN (por <nome>, via painel de fichas)`.
+4. O build do site aplica os overrides ANTES das derivações → claims (RDC 54),
+   lupa (RDC 429) e CSVs recalculam sobre os valores publicados; deploy ~2 min.
+5. Registra `_pub: {by, at, rev}` de volta no KV (o painel exibe o estado).
+Resposta: `{ ok, drafts, commit: "<url do commit>", pub: {by, at, rev} }`.
+Erros controlados: 400 (sem rascunho/valores inválidos), 502 (KV/GitHub), 503
+(sem `GITHUB_TOKEN`).
+
 ## 3. Dados de referência (estáticos, versionados)
 
-- `taco.json`: `{fonte, alimentos:[{id, nome, cat, kcal, prot, fat, sat, carb, fiber, na}]}`
-  — por 100 g. Origem: TACO 4ª ed. NEPA/UNICAMP.
-- `insumos-seed.json`: os 18 insumos auditados; **cada registro cita o documento
-  fonte** em `docs/fichas-fornecedores/`. Ao transplantar, mantenha os documentos
-  juntos — são a defesa em fiscalização.
+- `taco.json`: `{fonte, alimentos:[{id, nome, cat, kcal, prot, fat, sat, carb, fiber, na, sugarAdd?, trans?}]}`
+  — por 100 g. Origem combinada: TACO 4ª ed. NEPA/UNICAMP (597, ids numéricos) +
+  **TBCA 7.2 USP/FoRC (5.668, ids = código oficial, `cat` prefixada com
+  "TBCA · ")**. Itens TBCA trazem açúcar de adição (`sugarAdd`) e trans; campos
+  omitidos = dado não informado (pendente). Convenções da conversão: vírgula
+  decimal → ponto; `tr` (traço) → 0; `NA`/`-` → omitido.
+- `insumos-seed.json`: `{insumos: [33 auditados], recipeMap: {nome do
+  ingrediente publicado → insumoId}}`; **cada insumo cita o documento fonte** em
+  `docs/fichas-fornecedores/`. O `recipeMap` hidrata a receita de produção
+  editável dos SKUs existentes (cobertura total dos 29). Ao transplantar,
+  mantenha os documentos juntos — são a defesa em fiscalização.
 - `fichas-data.json`: SKUs do site (29 produtos + 4 shakes) com ingredientes,
   macros, alérgenos, claims e flags — regenerado no site por
   `npm run fichas` a partir de `src/data.js`.
 
-## 4. Fluxo indústria ↔ site (proposto)
+## 4. Fluxo indústria ↔ site (IMPLEMENTADO — botão 🚀 Publicar)
 
 ```
 [App indústria]  nutricionista edita insumos/receitas/fichas  (fonte da verdade)
+      │  ☁️ salvamento automático no KV (2,5 s) + sincronização entre aparelhos
       │  validação (IA + RT) → ficha aprovada
       ▼
-[Export JSON]  botão "Exportar JSON" do painel (ou GET /api/fichas)
-      │
+[🚀 Publicar tabela no site]  api/fichas-publish.js
+      │  commit auditável em src/data-overrides.js do repo do site
+      │  ("Publica tabela <sku> — rev NNN (por <nome>)")
       ▼
-[Site]  PR atualizando src/data.js (agente/dev aplica os valores aprovados)
-      │  npm run fichas regenera fichas-data.json/CSVs no build
+[Site]  build aplica overrides → claims/lupa/CSVs recalculam → deploy (~2 min)
       ▼
 [Consumidor]  tabelas do site sempre em sincronia com a indústria
 ```
-Automação sugerida quando o repo da indústria existir: um GitHub Action no repo
-da indústria que, ao aprovar uma ficha, abre PR no repo do site com o diff de
-`src/data.js` (os dois lados já falam o mesmo JSON).
+Para o app da indústria publicar no site, basta configurar `GITHUB_TOKEN` +
+`FICHAS_GH_REPO` apontando para o repo do site — nenhum GitHub Action é
+necessário. Se indústria e site compartilharem o MESMO Upstash/KV, os dois
+painéis são espelhos em tempo real (sincronização a cada 45 s).
 
 ## 5. Variáveis de ambiente
 
@@ -117,6 +139,8 @@ da indústria que, ao aprovar uma ficha, abre PR no repo do site com o diff de
 | `ANTHROPIC_API_KEY` | análise IA | opcional |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | anexos de fichas | opcional |
 | `SUPABASE_BUCKET` | bucket (default `artes`) | opcional |
+| `GITHUB_TOKEN` (ou `FICHAS_GH_TOKEN`) | PAT fine-grained, contents:write no repo do site — botão 🚀 Publicar | p/ publicar |
+| `FICHAS_GH_REPO` | repo alvo da publicação (default `alexpiraginet-bot/Tabelas-nutricionais-`) | — |
 
 ## 6. Segurança
 
