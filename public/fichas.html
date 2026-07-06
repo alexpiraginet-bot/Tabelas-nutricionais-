@@ -196,6 +196,7 @@ select:focus{outline:none;border-color:var(--pist);box-shadow:0 0 0 3px rgba(70,
     <h1>Fichas Técnicas — Nutri & P&D</h1>
   </div>
   <span class="hspace"></span>
+  <span class="mono noprint" id="cloud" title="Salvamento automático na nuvem">☁️</span>
   <a class="mono noprint" href="/tabela-nutricional.csv" download>CSV nutricional</a>
   <a class="mono noprint" href="/ficha-tecnica.csv" download>CSV produção</a>
   <button class="act sec noprint" id="expjson" style="padding:6px 10px;font-size:12px">Exportar JSON</button>
@@ -429,7 +430,7 @@ function render(){
   if(!shake&&(!PREC||PREC.id!==p.id))PREC=hydrateProdRec(p,m);
   $("#sec").innerHTML=`
     <h2>${m.emoji?escH(m.emoji)+" ":""}${escH(m.name)} ${pills(m)}</h2>
-    <p class="status">${meta?`Rascunho salvo por ${escH(meta.by||"?")} em ${new Date(meta.at).toLocaleString("pt-BR")}`:"Sem edições pendentes — exibindo dados publicados."}</p>
+    <p class="status">${meta?`Rascunho salvo por ${escH(meta.by||"?")} em ${new Date(meta.at).toLocaleString("pt-BR")}`:"Sem edições pendentes — exibindo dados publicados."}${(DRAFTS[p.id]||{})._pub?` · 🚀 Tabela publicada no site: rev ${String((DRAFTS[p.id]._pub.rev||0)).padStart(3,"0")} por ${escH(DRAFTS[p.id]._pub.by||"?")} em ${new Date(DRAFTS[p.id]._pub.at).toLocaleString("pt-BR")}`:""}</p>
     <div class="noprint">
       <h3>Denominação, conservação & observações</h3>
       <div class="grid" style="grid-template-columns:1fr">
@@ -462,6 +463,7 @@ function render(){
         <button class="act" id="save">Salvar rascunho</button>
         <button class="act sec" id="clear">Descartar rascunho</button>
         <button class="act" id="ai">🧠 Analisar conformidade (IA)</button>
+        ${shake?"":'<button class="act gold" id="pub">🚀 Publicar tabela no site</button>'}
         <button class="act sec" onclick="window.print()">🖨 Imprimir esta ficha</button>
       </div>
       <div class="status" id="msg"></div>
@@ -470,6 +472,7 @@ function render(){
     <h3>Ficha técnica — padrão indústria (prévia de impressão)</h3>
     ${fichaHTML(m)}`;
   $("#save").onclick=save;$("#clear").onclick=clearDraft;$("#ai").onclick=analyze;
+  const pb=$("#pub");if(pb)pb.onclick=publish;
   if(!shake){
     const onCh=()=>recalcProdRec(m);
     $("#pr_rend").oninput=(e)=>{PREC.rendimento=e.target.value===""?null:+e.target.value;onCh()};
@@ -498,7 +501,10 @@ function collectPatch(m){
       patch.porcao=(+PREC.porcao>0&&+PREC.porcao!==+(patch.serving||m.serving))?+PREC.porcao:null;
     }
   }
-  patch._rev=((DRAFTS[m.id]||{})._rev||0)+1; // nº de revisão da ficha (Revisão NNN)
+  // nº de revisão (Revisão NNN): com autosave, incrementa só 1× por sessão de edição
+  const curRev=(DRAFTS[m.id]||{})._rev||0;
+  patch._rev=REV_BUMPED.has(m.id)?curRev:curRev+1;
+  REV_BUMPED.add(m.id);
   return patch;
 }
 async function save(){
@@ -506,13 +512,119 @@ async function save(){
   const m=findItem(CUR);
   const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"save",id:CUR,by:NAME,patch:collectPatch(m)})});
   const j=await r.json().catch(()=>({}));
-  if(j.ok){if(PREC&&PREC.id===CUR)PREC.src="rascunho";DRAFTS=j.drafts;render();$("#msg").textContent="Rascunho salvo ✔ (o site público só muda após aplicação no código)."}
+  if(j.ok){if(PREC&&PREC.id===CUR)PREC.src="rascunho";DRAFTS=j.drafts;DIRTY=false;cloud("ok");render();$("#msg").textContent="Rascunho salvo ✔ (o site público só muda ao publicar)."}
   else $("#msg").textContent="Erro: "+(j.error||r.status);
+}
+
+/* ===== ☁️ salvamento automático + sincronização entre dispositivos ===== */
+const REV_BUMPED=new Set(); // 1 incremento de revisão por registro por sessão
+let DIRTY=false,AS_TIMER=null,SAVING=false;
+function cloud(state,extra){
+  const el=$("#cloud");if(!el)return;
+  const at=()=>new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  el.textContent={typing:"✍️ editando…",saving:"☁️ salvando…",ok:"☁️ salvo "+at(),err:"⚠️ falha ao salvar — tento de novo",sync:"🔄 sincronizado "+at(),remote:"🔄 alterações recebidas de outro dispositivo"}[state]||"☁️";
+  if(extra)el.title=extra;
+}
+// item com nome digitado mas sem insumo escolhido = troca em andamento — não persistir esse estado
+function unresolvedItem(sel,rec){
+  return [...document.querySelectorAll(sel+" .ritem")].some(row=>{
+    const i=row.querySelector(".ri-nome");if(!i||!i.value.trim())return false;
+    const it=rec&&rec.itens[+row.dataset.idx];return it&&!it.insumoId;
+  });
+}
+// grava sem re-render (não pode roubar o foco de quem digita);
+// force = descarga de saída (pagehide): não espera o salvamento em voo
+async function pushSilent(force){
+  if(SAVING&&!force)return;
+  let action=null,id=null,patch=null;
+  if(CAT==="insumos"){
+    if(!INS_EDIT||!INS_EDIT.id||!$("#e_nome")||!$("#e_nome").value.trim())return; // novo insumo: 1º salvamento é manual (define o id)
+    action="insumo-save";id=INS_EDIT.id;patch=buildInsumoPatch();
+  }else if(CAT==="receitas"){
+    if(!REC_EDIT||!REC_EDIT.id||!$("#r_nome"))return; // nova receita: 1º salvamento manual
+    if(unresolvedItem("#recitens",REC_EDIT))return;
+    const itens=REC_EDIT.itens.filter(it=>it.insumoId&&Number.isFinite(+it.qty)&&+it.qty>0).map(it=>({insumoId:it.insumoId,qty:+it.qty}));
+    if(!itens.length)return; // nunca sobrescrever receita salva com lista vazia por engano
+    action="receita-save";id=REC_EDIT.id;
+    patch={nome:($("#r_nome").value||"").trim()||REC_EDIT.nome,categoria:REC_EDIT.categoria||"outro",itens,rendimento:(+REC_EDIT.rendimento>0)?+REC_EDIT.rendimento:null,porcao:(+REC_EDIT.porcao>0)?+REC_EDIT.porcao:100,_rev:(RECEITAS[id]||{})._rev||1};
+  }else{
+    const m=findItem(CUR);
+    if(!m||!$("#f_denominacao"))return;
+    if(PREC&&unresolvedItem("#pr_itens",PREC))return;
+    action="save";id=CUR;patch=collectPatch(m);
+  }
+  SAVING=true;cloud("saving");
+  try{
+    // keepalive sempre: se a aba fechar com o request em voo, o navegador conclui o envio
+    const r=await fetch("/api/fichas",{method:"POST",headers:auth(),keepalive:true,body:JSON.stringify({action,id,by:NAME,patch})});
+    const j=await r.json().catch(()=>({}));
+    if(!j.ok)throw new Error(j.error||r.status);
+    if(action==="save"){DRAFTS=j.drafts;if(PREC&&PREC.id===id)PREC.src="rascunho"}
+    else if(action==="insumo-save")INS_KV=j.insumos||INS_KV;
+    else RECEITAS=j.receitas||RECEITAS;
+    DIRTY=false;cloud("ok");
+  }catch(e){cloud("err",String(e.message||e));setTimeout(()=>{if(DIRTY)pushSilent()},8000)}
+  SAVING=false;
+}
+function scheduleAutosave(){
+  DIRTY=true;cloud("typing");
+  clearTimeout(AS_TIMER);
+  AS_TIMER=setTimeout(pushSilent,2500);
+}
+// delegado: qualquer edição nos editores agenda o salvamento
+["input","change"].forEach(ev=>$("#sec").addEventListener(ev,(e)=>{
+  const t=e.target;
+  if(!t||!/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))return;
+  if(CAT==="insumos"&&!INS_EDIT)return;           // busca/filtros da grade não são edição
+  if(CAT==="receitas"&&!REC_EDIT)return;
+  scheduleAutosave();
+}));
+// não perder nada ao fechar/trocar de app: descarga imediata
+window.addEventListener("pagehide",()=>{if(DIRTY){clearTimeout(AS_TIMER);pushSilent(true)}});
+document.addEventListener("visibilitychange",()=>{
+  if(document.hidden){if(DIRTY){clearTimeout(AS_TIMER);pushSilent(true)}}
+  else syncPull();
+});
+// sincronização: puxa o estado da nuvem quando ocioso (45 s) e ao voltar à aba
+async function syncPull(){
+  if(document.hidden||SAVING||DIRTY)return;
+  let j;try{const r=await fetch("/api/fichas",{headers:auth(),cache:"no-store"});if(!r.ok)return;j=await r.json()}catch{return}
+  const changed=JSON.stringify(j.drafts||{})!==JSON.stringify(DRAFTS)||JSON.stringify(j.insumos||{})!==JSON.stringify(INS_KV)||JSON.stringify(j.receitas||{})!==JSON.stringify(RECEITAS);
+  if(!changed)return;
+  DRAFTS=j.drafts||{};INS_KV=j.insumos||{};RECEITAS=j.receitas||{};
+  const ae=document.activeElement;
+  const typing=ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)&&$("#sec").contains(ae);
+  if(typing){cloud("remote")}          // não re-renderizar embaixo dos dedos de quem digita
+  else{PREC=null;render();cloud("sync")}
+}
+setInterval(syncPull,45000);
+// 🚀 publica a tabela do rascunho no site público (commit auditável + deploy)
+async function publish(){
+  const m=findItem(CUR);
+  if(!confirm(`Publicar a tabela nutricional de “${m.name}” no site público?\n\n• Porção, rótulo da porção e valores da tabela do rascunho substituem os do site.\n• Claims (RDC 54) e lupa frontal (RDC 429) são recalculados automaticamente.\n• Gera um commit auditável e o site atualiza em ~2 minutos.`))return;
+  if(SAVING){$("#msg").textContent="Salvamento em andamento — aguarde alguns segundos e tente de novo.";return}
+  clearTimeout(AS_TIMER);
+  $("#msg").textContent="Salvando rascunho antes de publicar…";
+  await pushSilent();
+  // pushSilent pode ter adiado (item sem insumo escolhido, falha de rede): nunca publicar KV desatualizado
+  if(DIRTY||SAVING){$("#msg").textContent="Não publiquei: há edições ainda não salvas — confira itens sem insumo selecionado (destacados) ou use “Salvar rascunho” e tente de novo.";return}
+  $("#msg").textContent="Publicando (commit + deploy)…";
+  const r=await fetch("/api/fichas-publish",{method:"POST",headers:auth(),body:JSON.stringify({id:CUR,by:NAME})});
+  const j=await r.json().catch(()=>({}));
+  if(j.ok){
+    DRAFTS=j.drafts||DRAFTS;render();
+    const msg=$("#msg");
+    msg.textContent=`🚀 Publicado (rev ${String((j.pub&&j.pub.rev)||0).padStart(3,"0")}) — o site atualiza em ~2 min.`;
+    if(j.commit&&/^https:\/\/github\.com\//.test(String(j.commit))){
+      const a=document.createElement("a");a.href=j.commit;a.target="_blank";a.rel="noopener";a.textContent="ver commit";
+      msg.append(" ");msg.append(a);
+    }
+  }else $("#msg").textContent="Erro ao publicar: "+(j.error||r.status);
 }
 async function clearDraft(){
   if(!confirm("Descartar o rascunho deste sabor?"))return;
   const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"clear",id:CUR})});
-  const j=await r.json().catch(()=>({}));if(j.ok){DRAFTS=j.drafts;PREC=null;render()}
+  const j=await r.json().catch(()=>({}));if(j.ok){DRAFTS=j.drafts;PREC=null;REV_BUMPED.delete(CUR);DIRTY=false;render()}
 }
 async function analyze(){
   const b=$("#ai");b.disabled=true;b.textContent="Analisando… (até 1 min)";$("#aiout").innerHTML="";
@@ -534,7 +646,7 @@ async function analyze(){
       ${isShake(p)?"":'<button class="act sec" style="margin-top:8px" id="aiApply">Copiar lista sugerida p/ o rascunho</button>'}
     </div>`;
     const ap=$("#aiApply");
-    if(ap)ap.onclick=()=>{$("#f_ingredientesText").value=a.rotulo_sugerido.lista_ingredientes;$("#msg").textContent="Lista sugerida copiada — revise e salve o rascunho."};
+    if(ap)ap.onclick=()=>{$("#f_ingredientesText").value=a.rotulo_sugerido.lista_ingredientes;scheduleAutosave();$("#msg").textContent="Lista sugerida copiada — salvando automaticamente; revise."};
   }catch(e){$("#aiout").innerHTML=`<div class="ai"><span class="critico">Erro na análise:</span> ${escH(e.message)}</div>`}
   b.disabled=false;b.textContent="🧠 Analisar conformidade (IA)";
 }
@@ -790,7 +902,8 @@ function renderInsumoEditor(){
       const u=await uploadFichaArquivo(f);
       INS_EDIT.fichaUrl=u.fichaUrl;INS_EDIT.fichaNome=u.fichaNome;
       drawAnexoCur();
-      $("#insmsg").textContent="Anexo enviado ✔ — clique em “Salvar insumo” para gravar.";
+      if(INS_EDIT.id){scheduleAutosave();$("#insmsg").textContent="Anexo enviado ✔ — salvando automaticamente."}
+      else $("#insmsg").textContent="Anexo enviado ✔ — clique em “Salvar insumo” para gravar.";
     }catch(err){$("#insmsg").textContent="Erro no anexo: "+err.message}
     ev.target.value="";
   };
@@ -799,7 +912,7 @@ function drawTacoCur(){
   $("#tacocur").innerHTML=INS_EDIT.tacoId
     ?`<p style="font-size:13px;margin:4px 0">🔬 Vinculado a <b>${escH(INS_EDIT.tacoNome||INS_EDIT.tacoId)}</b> (TACO #${escH(String(INS_EDIT.tacoId))}) <button class="act sec" id="tacounlink" style="padding:3px 10px;font-size:11px">desvincular</button></p>`
     :`<p class="hint" style="margin:4px 0">Sem vínculo TACO${INS_EDIT.tacoQuery?` — sugestão de busca: “${escH(INS_EDIT.tacoQuery)}”`:""}.</p>`;
-  const u=$("#tacounlink");if(u)u.onclick=()=>{INS_EDIT.tacoId=null;INS_EDIT.tacoNome=null;drawTacoCur()};
+  const u=$("#tacounlink");if(u)u.onclick=()=>{INS_EDIT.tacoId=null;INS_EDIT.tacoNome=null;drawTacoCur();if(INS_EDIT.id)scheduleAutosave()};
 }
 function pickTaco(a){
   INS_EDIT.tacoId=a.id;INS_EDIT.tacoNome=a.nome;
@@ -808,9 +921,10 @@ function pickTaco(a){
   const tbca=typeof a.id==="string"; // itens TBCA (código ex.: C0113T) trazem açúcar de adição e trans; TACO (id numérico) não
   set("sugars",null);set("addedSugars",tbca?a.sugarAdd:null);set("polyols",null);set("trans",tbca?a.trans:null);
   $("#tacoq").value="";drawTacoCur();
+  if(INS_EDIT.id)scheduleAutosave();
   $("#insmsg").textContent=tbca
-    ?"Macros TBCA preenchidos ✔ — açúcares totais e polióis em branco (a tabela não informa); complete com a ficha do fornecedor. Salve o insumo."
-    :"Macros TACO preenchidos ✔ — açúcares/polióis/trans em branco (a TACO não informa). Salve o insumo.";
+    ?"Macros TBCA preenchidos ✔ — açúcares totais e polióis em branco (a tabela não informa); complete com a ficha do fornecedor."+(INS_EDIT.id?"":" Salve o insumo.")
+    :"Macros TACO preenchidos ✔ — açúcares/polióis/trans em branco (a TACO não informa)."+(INS_EDIT.id?"":" Salve o insumo.");
 }
 function drawAnexoCur(){
   $("#anexocur").innerHTML=INS_EDIT.fichaUrl
@@ -818,14 +932,12 @@ function drawAnexoCur(){
     :`<p class="hint" style="margin:4px 0">Nenhuma ficha anexada.</p>`;
   const r=$("#anexorm");if(r)r.onclick=()=>{INS_EDIT.fichaUrl=null;INS_EDIT.fichaNome=null;drawAnexoCur()};
 }
-async function saveInsumo(){
+function buildInsumoPatch(){
   const nome=$("#e_nome").value.trim();
-  if(!nome){$("#insmsg").textContent="Informe o nome do insumo.";return}
   const macros={};let any=false;
   MAC_KEYS.forEach(k=>{const v=numOrNull($("#m_"+k).value);macros[k]=v;if(v!==null)any=true});
   const fonte=$("#e_fonte").value.trim();
-  const id=INS_EDIT.id||slug(nome);
-  const patch={
+  return {
     nome,categoria:$("#e_cat").value,composicao:$("#e_comp").value.trim(),
     alergenos:splitList($("#e_alerg").value),podeConter:splitList($("#e_pode").value),
     gluten:$("#e_gluten").checked,lactoseZero:$("#e_lac").checked,
@@ -835,6 +947,13 @@ async function saveInsumo(){
     fichaUrl:INS_EDIT.fichaUrl||null,fichaNome:INS_EDIT.fichaNome||null,
     origem:INS_EDIT.tacoId?"taco":((fonte&&any)?"ficha":"manual"),
   };
+}
+async function saveInsumo(){
+  const nome=$("#e_nome").value.trim();
+  if(!nome){$("#insmsg").textContent="Informe o nome do insumo.";return}
+  const patch=buildInsumoPatch();
+  const any=!!patch.macros100;
+  const id=INS_EDIT.id||slug(nome);
   $("#insmsg").textContent="Salvando…";
   const r=await fetch("/api/fichas",{method:"POST",headers:auth(),body:JSON.stringify({action:"insumo-save",id,by:NAME,patch})});
   const j=await r.json().catch(()=>({}));
@@ -1122,7 +1241,7 @@ async function boot(){
   if(!SEED.length){try{const sj=await (await fetch("/insumos-seed.json",{cache:"no-store"})).json();SEED=sj.insumos||[];RMAP=sj.recipeMap||{}}catch{SEED=[]}}
   if(!CUR){CUR=DATA.products[0].id}
   const cur=findItem(CUR);if(cur&&CAT!=="insumos"&&CAT!=="receitas")CAT=cur.category;
-  $("#gate").style.display="none";render();
+  $("#gate").style.display="none";render();cloud("sync");
 }
 $("#gbtn").onclick=async()=>{
   KEY=$("#gkey").value.trim();NAME=$("#gname").value.trim()||NAME;

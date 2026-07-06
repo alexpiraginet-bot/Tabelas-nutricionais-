@@ -355,6 +355,18 @@ for (const p of PRODUCTS) if (p.category === "bentole") {
   p.ingredients[0] = { name: BASE_PICOLE_NOME, qty: p.ingredients[0].qty, note: BASE_PICOLE };
 }
 
+// Tabelas publicadas pela nutricionista/RT no painel de fichas (commits gerados
+// por api/fichas-publish.js). Aplicadas ANTES das derivações: claims (RDC 54),
+// lupa frontal (RDC 429) e CSVs recalculam sozinhos sobre os valores publicados.
+import OVERRIDES from "./data-overrides.js";
+for (const p of PRODUCTS) {
+  const o = OVERRIDES[p.id];
+  if (!o) continue;
+  if (+o.serving > 0) p.serving = +o.serving;
+  if (o.portionLabel) p.portionLabel = o.portionLabel;
+  if (o.nutrition) Object.assign(p.nutrition, o.nutrition);
+}
+
 // POLIÓIS = maltitol/sorbitol em QUALQUER insumo do produto, detectado na
 // composição declarada (note): base dos gelatos, pasta sabor leite (Lattíssimo),
 // preparado de cacau (Gianduiella) e doce de leite zero. Com isso, Bentôlés que
