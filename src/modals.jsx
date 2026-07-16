@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
-import { tk, award, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 
 /* Cabeçalho de modal com a arte (banner) no topo + botão de fechar flutuante. */
 export function ModalArtHeader({img,alt,onClose}){
@@ -1086,15 +1086,8 @@ export function FaqModal({onClose}){
 }
 
 /* ========== DELIVERY (IFOOD) ========== */
-
-const LOJAS=[
-  {id:"praia-do-canto",nome:"Praia do Canto",bairro:"Praia do Canto · Vitória-ES",lat:-20.2947,lng:-40.2925,
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share",
-   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Praia do Canto Vitória ES")},
-  {id:"jardim-camburi",nome:"Jardim Camburi",bairro:"Jardim Camburi · Vitória-ES",lat:-20.2547,lng:-40.2670,
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share",
-   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Jardim Camburi Vitória ES")},
-];
+// LOJAS vem da fonte única em src/shared.jsx (compartilhada com a Home e o
+// banner de horários) — importada no topo deste arquivo.
 
 export function DeliveryModal({onClose}){
   useModal(onClose);
