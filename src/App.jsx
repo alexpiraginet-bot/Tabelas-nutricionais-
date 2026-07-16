@@ -3,7 +3,7 @@ import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X,
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim, sugarClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
-import { tk, T, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 
 /* ===== Modais e overlays: carregados sob demanda (code-split) ===== */
 const QuizModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.QuizModal })));
@@ -228,24 +228,11 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
 }
 
 /* ========== VENHA NOS VISITAR (lojas + mapa, fim da home) ========== */
-// Coordenadas = as mesmas do seletor "loja mais próxima" do Delivery.
-// endereco:null = número oficial ainda não confirmado — a UI mostra o bairro
-// e aponta para o Google Maps (nunca publicar endereço não verificado).
-const VISITAS=[
-  {id:"praia-do-canto",nome:"Praia do Canto",endereco:null,bairro:"Praia do Canto · Vitória-ES",
-   lat:-20.2947,lng:-40.2925,zap:"5527999159995",zapLabel:"(27) 99915-9995",
-   horarios:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]],
-   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Praia do Canto Vitória ES"),
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"},
-  {id:"jardim-camburi",nome:"Jardim Camburi",endereco:null,bairro:"Jardim Camburi · Vitória-ES",
-   lat:-20.2547,lng:-40.2670,zap:"5527999159995",zapLabel:"(27) 99915-9995",
-   horarios:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]],
-   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Jardim Camburi Vitória ES"),
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"},
-];
+// Fonte única: LOJAS (src/shared.jsx) — mesma usada pelo Delivery e pelo
+// banner de horários. Endereços = os do JSON-LD de SEO do index.html.
 function VisitSection(){
-  const[cur,setCur]=useState(VISITAS[0].id);
-  const l=VISITAS.find(x=>x.id===cur)||VISITAS[0];
+  const[cur,setCur]=useState(LOJAS[0].id);
+  const l=LOJAS.find(x=>x.id===cur)||LOJAS[0];
   const btn=(primary)=>({display:"inline-flex",alignItems:"center",gap:6,fontSize:11,letterSpacing:"0.14em",textTransform:"uppercase",textDecoration:"none",cursor:"pointer",borderRadius:10,padding:"10px 16px",fontWeight:600,
     background:primary?T.pistacheDark:T.surface,color:primary?T.surface:T.pistacheDark,border:`1px solid ${primary?T.pistacheDark:T.border}`});
   return(
@@ -254,7 +241,7 @@ function VisitSection(){
       <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,textAlign:"center",margin:"6px 0 14px"}}>Venha nos visitar</h2>
       {/* seletor de loja */}
       <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:14}}>
-        {VISITAS.map(v=>(
+        {LOJAS.map(v=>(
           <button key={v.id} onClick={()=>{setCur(v.id);tk("Visite · "+v.nome);}}
             className="fm" aria-pressed={v.id===cur}
             style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",cursor:"pointer",borderRadius:999,padding:"9px 18px",
@@ -283,7 +270,7 @@ function VisitSection(){
           <a href={"https://wa.me/"+l.zap} target="_blank" rel="noopener" onClick={()=>tk("Visite · WhatsApp")}
             className="fb" style={{fontSize:14,color:T.pistacheDark,textDecoration:"none"}}>💬 WhatsApp: <b>{l.zapLabel}</b></a>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:"4px 12px"}}>
-            {l.horarios.map(([d,h])=>(
+            {l.resumo.map(([d,h])=>(
               <div key={d} className="fb" style={{fontSize:12.5,color:h==="fechado"?T.inkSoft:T.ink}}>
                 <span className="fm" style={{fontSize:9,letterSpacing:"0.15em",color:T.inkSoft,textTransform:"uppercase"}}>{d}</span><br/>{h}
               </div>
@@ -751,13 +738,8 @@ function TabelasIntro({onClose}){
 }
 
 /* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
-// dias: 0=Dom … 6=Sáb · [abre, fecha] em horas (24h) · null = fechado
-const HORARIOS=[
-  {loja:"Praia do Canto", dias:{0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[10,20]},
-    resumo:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]]},
-  {loja:"Jardim Camburi", dias:{0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]},
-    resumo:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]]},
-];
+// derivado da fonte única LOJAS (src/shared.jsx) — dias/resumo vivem lá
+const HORARIOS=LOJAS.map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
 function nowSP(){
   try{
     const p=new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
