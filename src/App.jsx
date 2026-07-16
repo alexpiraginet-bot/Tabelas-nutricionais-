@@ -220,7 +220,82 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             img="/banners/carreira.webp" alt="Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"
             delay="430ms"/>
         </div>
+
+        <VisitSection/>
       </section>
+    </div>
+  );
+}
+
+/* ========== VENHA NOS VISITAR (lojas + mapa, fim da home) ========== */
+// Coordenadas = as mesmas do seletor "loja mais próxima" do Delivery.
+// endereco:null = número oficial ainda não confirmado — a UI mostra o bairro
+// e aponta para o Google Maps (nunca publicar endereço não verificado).
+const VISITAS=[
+  {id:"praia-do-canto",nome:"Praia do Canto",endereco:null,bairro:"Praia do Canto · Vitória-ES",
+   lat:-20.2947,lng:-40.2925,zap:"5527999159995",zapLabel:"(27) 99915-9995",
+   horarios:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]],
+   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Praia do Canto Vitória ES"),
+   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"},
+  {id:"jardim-camburi",nome:"Jardim Camburi",endereco:null,bairro:"Jardim Camburi · Vitória-ES",
+   lat:-20.2547,lng:-40.2670,zap:"5527999159995",zapLabel:"(27) 99915-9995",
+   horarios:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]],
+   maps:"https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("Bentô Gelatos Jardim Camburi Vitória ES"),
+   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"},
+];
+function VisitSection(){
+  const[cur,setCur]=useState(VISITAS[0].id);
+  const l=VISITAS.find(x=>x.id===cur)||VISITAS[0];
+  const btn=(primary)=>({display:"inline-flex",alignItems:"center",gap:6,fontSize:11,letterSpacing:"0.14em",textTransform:"uppercase",textDecoration:"none",cursor:"pointer",borderRadius:10,padding:"10px 16px",fontWeight:600,
+    background:primary?T.pistacheDark:T.surface,color:primary?T.surface:T.pistacheDark,border:`1px solid ${primary?T.pistacheDark:T.border}`});
+  return(
+    <div style={{width:"100%",marginTop:40}}>
+      <div className="fm" style={{fontSize:10,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase",textAlign:"center"}}>Nossas lojas · Vitória-ES</div>
+      <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,textAlign:"center",margin:"6px 0 14px"}}>Venha nos visitar</h2>
+      {/* seletor de loja */}
+      <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:14}}>
+        {VISITAS.map(v=>(
+          <button key={v.id} onClick={()=>{setCur(v.id);tk("Visite · "+v.nome);}}
+            className="fm" aria-pressed={v.id===cur}
+            style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",cursor:"pointer",borderRadius:999,padding:"9px 18px",
+              background:v.id===cur?T.pistacheDark:T.surface,color:v.id===cur?T.surface:T.pistacheDark,
+              border:`1px solid ${v.id===cur?T.pistacheDark:T.border}`}}>
+            {v.nome}
+          </button>
+        ))}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(290px,1fr))",gap:14,alignItems:"stretch"}}>
+        {/* mapa — embed público do Google (sem chave), centrado no pino da loja */}
+        <div style={{borderRadius:18,overflow:"hidden",border:`1px solid ${T.border}`,minHeight:300,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)"}}>
+          <iframe key={l.id} title={"Mapa — Bentô "+l.nome} loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+            src={`https://www.google.com/maps?q=${l.lat},${l.lng}&z=16&hl=pt-BR&output=embed`}
+            style={{display:"block",width:"100%",height:"100%",minHeight:300,border:0}} allowFullScreen/>
+        </div>
+        {/* cartão da loja */}
+        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"22px 22px 20px",boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",display:"flex",flexDirection:"column",gap:12,textAlign:"left"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+            <h3 className="fd" style={{fontSize:22,color:T.pistacheDark,margin:0,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vitória — {l.nome}</h3>
+            <span className="fm" style={{fontSize:9,letterSpacing:"0.2em",background:T.accent,color:T.surface,borderRadius:999,padding:"5px 12px",textTransform:"uppercase"}}>Loja</span>
+          </div>
+          <div className="fb" style={{fontSize:14,color:T.ink,lineHeight:1.55}}>
+            📍 {l.endereco||<>Bairro {l.bairro} — toque em <b>Ver no Google Maps</b> para o endereço e a rota exatos.</>}
+          </div>
+          <a href={"https://wa.me/"+l.zap} target="_blank" rel="noopener" onClick={()=>tk("Visite · WhatsApp")}
+            className="fb" style={{fontSize:14,color:T.pistacheDark,textDecoration:"none"}}>💬 WhatsApp: <b>{l.zapLabel}</b></a>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(120px,1fr))",gap:"4px 12px"}}>
+            {l.horarios.map(([d,h])=>(
+              <div key={d} className="fb" style={{fontSize:12.5,color:h==="fechado"?T.inkSoft:T.ink}}>
+                <span className="fm" style={{fontSize:9,letterSpacing:"0.15em",color:T.inkSoft,textTransform:"uppercase"}}>{d}</span><br/>{h}
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:"auto"}}>
+            <a href={l.maps} target="_blank" rel="noopener" onClick={()=>tk("Visite · Google Maps")} className="fm" style={btn(true)}>Ver no Google Maps</a>
+            <a href={`https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`} target="_blank" rel="noopener" onClick={()=>tk("Visite · Rota")} className="fm" style={btn(false)}>Como chegar</a>
+            <a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood")} className="fm" style={btn(false)}>Pedir no iFood</a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
