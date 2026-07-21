@@ -64,9 +64,9 @@ async function cmd(args) {
 }
 function originOk(req) {
   const o = req.headers.origin || req.headers.referer || "";
-  if (!o) return true;
+  if (!o) return true; // sem header (apps nativos/proxies) segue; header PRESENTE precisa validar
   try { const h = new URL(o).hostname; return h === "bentogelateria.com" || h.endsWith(".bentogelateria.com") || h.endsWith(".vercel.app"); }
-  catch { return true; }
+  catch { return false; } // header malformado = falha fechada
 }
 function ipOf(req) { return String(req.headers["x-forwarded-for"] || "").split(",")[0].trim(); }
 async function rateOk(ip, bucket, limit) {
@@ -104,7 +104,10 @@ function classifica(q, cat) {
     if (inList("estrutura", "frota refrigerada própria", "centro de distribuição")) pts += 2;
     if (inList("estrutura", "câmara", "equipe comercial")) pts += 1;
   } else if (cat === "franquia") {
-    if (has("investimento", "300 mil", "acima de r$ 500")) pts += 3; if (has("investimento", "150 mil a")) pts += 2;
+    // faixas mutuamente exclusivas: "300 mil a" só casa com R$300–500k (a faixa
+    // R$150–300k termina em "300 mil" sem o "a")
+    if (has("investimento", "300 mil a", "acima de r$ 500")) pts += 3;
+    else if (has("investimento", "150 mil a")) pts += 2;
     if (inList("experiencia", "varejo", "alimentação", "gestão", "franquias")) pts += 2;
     if (has("ponto", "sim", "negociando")) pts += 1;
     if (has("prazo", "até 3 meses", "4 a 6")) pts += 1;
@@ -113,7 +116,9 @@ function classifica(q, cat) {
   } else if (cat === "internacional") {
     if (inList("experiencia", "expansão", "franquias", "importação", "industrial", "refrigerada")) pts += 3;
     if (inList("estrutura", "empresa estabelecida", "centro de distribuição", "frota", "parceiro industrial")) pts += 2;
-    if (has("capital", "us$ 500", "acima de us$ 1")) pts += 3; if (has("capital", "us$ 250 mil a")) pts += 2;
+    // mesmo cuidado com sobreposição: "us$ 500 mil a" não casa com US$250–500k
+    if (has("capital", "us$ 500 mil a", "acima de us$ 1")) pts += 3;
+    else if (has("capital", "us$ 250 mil a")) pts += 2;
     if (has("capital", "será captado")) pts -= 2;
     if (has("unidades", "6 a 15", "16 a 30", "mais de 30")) pts += 2;
   } else if (cat === "parceria") {
@@ -193,7 +198,10 @@ export default async function handler(req, res) {
       ["INCR", "sejabento:count"],
     ]);
     try {
-      const wa = "https://wa.me/" + (phoneDigits.length <= 11 ? "55" : "") + phoneDigits;
+      // DDI 55 só para leads do Brasil (ou país não informado) — número
+      // internacional curto sem código do país não ganha prefixo errado
+      const isBR = !lead.pais || /brasil|brazil/i.test(lead.pais);
+      const wa = "https://wa.me/" + (isBR && phoneDigits.length <= 11 ? "55" : "") + phoneDigits;
       const CAT_LABEL = { revenda: "🏪 Revenda", distribuicao: "🚚 Distribuição", franquia: "🏬 Franquia", internacional: "🌎 Internacional", parceria: "🤝 Parceria" };
       const POT = { alto: "🔥 POTENCIAL ALTO — responder em 1 dia útil", medio: "⭐ potencial intermediário", inicial: "🌱 potencial inicial (nutrição)" };
       const resumo = Object.entries(lead.q).map(([k, v]) => `• ${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join("\n");

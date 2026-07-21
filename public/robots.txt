@@ -1,6 +1,8 @@
+# /seja-bento fica FORA do Disallow de propósito: o crawler precisa acessar a
+# página para ver o noindex (meta + X-Robots-Tag) — bloquear o crawl deixaria
+# a URL indexável sem conteúdo.
 User-agent: *
 Allow: /
 Disallow: /share/
-Disallow: /seja-bento
 
 Sitemap: https://bentogelateria.com/sitemap.xml

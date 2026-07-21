@@ -16,6 +16,7 @@
   ],
   "rewrites": [
     { "source": "/seja-bento", "destination": "/seja-bento.html" },
+    { "source": "/seja-bento/", "destination": "/seja-bento.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
@@ -33,6 +34,12 @@
       "source": "/assets/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/seja-bento(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
     },
     {

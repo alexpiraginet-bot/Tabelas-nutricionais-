@@ -954,7 +954,7 @@ async function loadSejaBento(){
 function renderSejaBento(d){
   _sbData = d;
   var leads = (d && d.leads) || [];
-  $("#sbCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgSejaBento", leads.length);
+  $("#sbCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgSejaBento", Math.max(Number((d&&d.total)||0), leads.length));
   var catOf = function(l){ return SB_CAT[l.categoria] || "🤝 Parceria"; };
 
   // chips: potenciais primeiro (triagem), depois categorias

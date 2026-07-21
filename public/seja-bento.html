@@ -72,6 +72,8 @@
   <p class="sub">Selecione o tipo de oportunidade e conte brevemente sobre sua estrutura. Leva menos de 4 minutos.</p>
   <div class="prog" id="prog"><span class="on"></span><span></span><span></span><span></span></div>
   <div class="card" id="box"></div>
+  <!-- honeypot FORA do #box: sobrevive aos re-renders das etapas -->
+  <input class="hp" type="text" id="site_url" name="site_url" tabindex="-1" autocomplete="off" aria-hidden="true"/>
 </main>
 <footer>© ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45 · <a href="/?privacidade=1" style="color:inherit">Política de Privacidade</a></footer>
 
@@ -168,7 +170,6 @@ function step1(){
       <div>${field("cidade","Cidade",1)}</div>
       <div>${field("link","Site, Instagram ou LinkedIn (opcional)",0)}</div>
     </div>
-    <input class="hp" type="text" id="site_url" tabindex="-1" autocomplete="off"/>
     ${navBtns(false)}`;
   $("#next").onclick=()=>{
     ["nome","whatsapp","email","empresa","pais","estado","cidade","link"].forEach(k=>{S.id[k]=$("#"+k).value.trim()});
