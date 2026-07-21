@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /share/
+Disallow: /seja-bento
 
 Sitemap: https://bentogelateria.com/sitemap.xml

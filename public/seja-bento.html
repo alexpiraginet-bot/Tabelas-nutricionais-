@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<!-- Página de funil B2B — acesso somente por link direto enviado aos leads -->
+<meta name="robots" content="noindex,nofollow"/>
+<meta name="theme-color" content="#F6F1E7"/>
+<title>Quer crescer com a Bentô? — Seja Bentô</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"/>
+<style>
+  :root{--bg:#F6F1E7;--surface:#FFFDF7;--ink:#232619;--soft:#5E6353;--pist:#7C8C66;--pistD:#46583A;--line:#E4DCC9;--gold:#C9A24A;--red:#A2402E}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+  .fd{font-family:'Fraunces',Georgia,serif}.fm{font-family:'JetBrains Mono',ui-monospace,monospace}
+  header{max-width:760px;margin:0 auto;padding:26px 20px 0;display:flex;align-items:center;gap:12px}
+  header img{width:44px;height:44px}
+  header .b{line-height:1.2}
+  header .fm{font-size:9px;letter-spacing:.28em;color:var(--soft);text-transform:uppercase}
+  main{max-width:760px;margin:0 auto;padding:18px 20px 60px}
+  h1{font-size:clamp(26px,5.4vw,38px);font-weight:600;margin:14px 0 8px}
+  .sub{color:var(--soft);font-size:15px;line-height:1.55;max-width:560px}
+  .prog{display:flex;gap:6px;margin:22px 0 18px}
+  .prog span{height:4px;flex:1;border-radius:99px;background:var(--line);transition:background .3s}
+  .prog span.on{background:var(--pistD)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px 22px;box-shadow:0 14px 34px -26px rgba(35,38,25,.55)}
+  h2{font-size:20px;font-weight:600;margin-bottom:4px}
+  .hint{font-size:12.5px;color:var(--soft);line-height:1.5;margin-bottom:14px}
+  label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin:14px 0 5px}
+  label b{color:var(--red)}
+  input[type=text],input[type=tel],input[type=email],textarea,select{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 13px;font:inherit;font-size:15px;color:var(--ink)}
+  input:focus,textarea:focus,select:focus{outline:2px solid var(--pist);border-color:var(--pist)}
+  textarea{min-height:88px;resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+  @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+  .opts{display:flex;flex-wrap:wrap;gap:8px}
+  .opts button{font:inherit;font-size:13.5px;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:999px;padding:10px 16px;color:var(--ink);transition:all .12s}
+  .opts button.on{background:var(--pistD);border-color:var(--pistD);color:#fff}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:6px}
+  .cards button{font:inherit;text-align:left;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 15px;transition:all .12s}
+  .cards button:hover{border-color:var(--pist)}
+  .cards button.on{border-color:var(--pistD);background:#f2f4ec;box-shadow:0 0 0 1px var(--pistD)}
+  .cards .em{font-size:22px;display:block;margin-bottom:6px}
+  .cards .t{font-weight:600;font-size:14.5px;line-height:1.3}
+  .aviso{background:#f7f2e2;border:1px solid #e8dcb4;border-radius:10px;padding:11px 13px;font-size:12.5px;color:#6b5a22;line-height:1.5;margin-top:14px}
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:22px}
+  .btn{font:inherit;font-size:14px;font-weight:600;cursor:pointer;border-radius:11px;padding:13px 26px;border:1px solid var(--pistD);background:var(--pistD);color:#fff}
+  .btn:disabled{opacity:.55;cursor:default}
+  .btn.sec{background:transparent;color:var(--pistD)}
+  .err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+  .ck{display:flex;gap:10px;align-items:flex-start;margin-top:16px;font-size:13.5px;line-height:1.5;color:var(--soft)}
+  .ck input{width:18px;height:18px;margin-top:2px;accent-color:var(--pistD);flex-shrink:0}
+  .ck a{color:var(--pistD)}
+  .ok{text-align:center;padding:40px 10px}
+  .ok .em{font-size:44px}
+  .ok h2{font-size:26px;margin:12px 0 10px}
+  .ok p{color:var(--soft);font-size:14.5px;line-height:1.65;max-width:520px;margin:0 auto 10px}
+  .hp{position:absolute;left:-9999px;opacity:0}
+  footer{max-width:760px;margin:0 auto;padding:0 20px 30px;font-size:10px;color:var(--soft);text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <img src="/bento-logo.webp" alt="Bentô" onerror="this.src='/bento-logo.png'"/>
+  <div class="b"><div class="fd" style="font-size:18px">Bentô</div><div class="fm">Functional Nutrition</div></div>
+</header>
+<main>
+  <h1 class="fd">Quer crescer com a Bentô?</h1>
+  <p class="sub">Selecione o tipo de oportunidade e conte brevemente sobre sua estrutura. Leva menos de 4 minutos.</p>
+  <div class="prog" id="prog"><span class="on"></span><span></span><span></span><span></span></div>
+  <div class="card" id="box"></div>
+</main>
+<footer>© ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45 · <a href="/?privacidade=1" style="color:inherit">Política de Privacidade</a></footer>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s);
+const escH=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* ===== estado ===== */
+const S={step:1,cat:null,card:null,id:{},q:{},fim:{}};
+const UTM=(()=>{const p=new URLSearchParams(location.search);return{source:p.get("utm_source")||"",medium:p.get("utm_medium")||"",campaign:p.get("utm_campaign")||""}})();
+
+/* ===== etapa 2 — cards de oportunidade (card → categoria interna) ===== */
+const CARDS=[
+  ["🏪","Revender em meu estabelecimento","revenda"],
+  ["🚚","Distribuir em minha região","distribuicao"],
+  ["🏬","Abrir uma franquia","franquia"],
+  ["🗺️","Desenvolver um estado ou país","internacional"],
+  ["🚢","Importar e distribuir","internacional"],
+  ["🤝","Propor uma parceria estratégica","parceria"],
+];
+
+/* ===== etapa 3 — perguntas por caminho (dados → render automático) ===== */
+const RADIO="radio",MULTI="multi",TEXT="text";
+const QS={
+revenda:[
+ {k:"tipoEstab",t:RADIO,l:"Qual é o seu estabelecimento?",o:["Academia","Mercado","Empório","Loja de suplementos","Restaurante ou cafeteria","Loja especializada","Outro"]},
+ {k:"estagio",t:RADIO,l:"Em qual estágio está?",o:["Já está funcionando","Está em implantação","Ainda estou planejando"]},
+ {k:"pontos",t:RADIO,l:"Quantos pontos de venda possui?",o:["1","2 a 5","6 a 20","Mais de 20"]},
+ {k:"estrutura",t:MULTI,l:"Qual estrutura de congelados possui? Selecione todas:",o:["Freezer expositor","Freezer de armazenamento","Câmara fria","Transporte refrigerado","Ainda não possuo"]},
+ {k:"pedido",t:RADIO,l:"Qual seria o pedido inicial estimado?",o:["Até 100 unidades","101 a 300","301 a 1.000","Acima de 1.000","Ainda não sei"]},
+ {k:"inicio",t:RADIO,l:"Quando gostaria de começar?",o:["Imediatamente","Em até 30 dias","Em 2 a 3 meses","Em 4 a 6 meses","Ainda estou avaliando"]},
+],
+distribuicao:[
+ {k:"clientes",t:MULTI,l:"Quais clientes atende? Selecione todos:",o:["Academias","Mercados","Empórios","Lojas de suplementos","Restaurantes e cafeterias","Farmácias","Lojas de conveniência","Outros distribuidores"]},
+ {k:"clientesAtivos",t:RADIO,l:"Quantos clientes ativos possui?",o:["Até 20","21 a 50","51 a 100","101 a 500","Mais de 500"]},
+ {k:"cobertura",t:RADIO,l:"Qual é sua cobertura?",o:["Uma cidade","Uma região do estado","Todo o estado","Mais de um estado","Cobertura nacional"]},
+ {k:"volume",t:RADIO,l:"Qual volume mensal de congelados comercializa?",o:["Até 1.000 litros","1.001 a 5.000 litros","5.001 a 20.000 litros","20.001 a 50.000 litros","Acima de 50.000 litros"]},
+ {k:"estrutura",t:MULTI,l:"Qual estrutura possui? Selecione todas:",o:["Câmara fria","Centro de distribuição","Frota refrigerada própria","Transporte refrigerado terceirizado","Equipe comercial","Sistema de televendas","Rede de representantes","Loja própria"]},
+ {k:"interesse",t:RADIO,l:"Qual o interesse principal?",o:["Abastecer minha loja","Distribuir para clientes atuais","Desenvolver uma nova carteira","Combinar loja própria e distribuição"]},
+ {k:"exclusividade",t:RADIO,l:"Sobre exclusividade:",o:["Aceito iniciar sem exclusividade","Gostaria que fosse avaliada futuramente","Exclusividade é indispensável","Ainda não defini"]},
+],
+franquia:[
+ {k:"formato",t:RADIO,l:"Formato de maior interesse:",o:["Loja de rua","Loja compacta","Quiosque","Shopping","Ainda não sei"]},
+ {k:"ponto",t:RADIO,l:"Já possui ponto?",o:["Sim","Estou negociando","Ainda não"]},
+ {k:"participacao",t:RADIO,l:"Como participaria da operação?",o:["Diretamente e em tempo integral","Diretamente e em tempo parcial","Como investidor, com operador contratado","Com um sócio operador"]},
+ {k:"experiencia",t:MULTI,l:"Experiência profissional (selecione todas):",o:["Varejo","Alimentação","Gestão empresarial","Vendas","Franquias","Ainda não tenho experiência"]},
+ {k:"investimento",t:RADIO,l:"Faixa de investimento disponível:",o:["Até R$ 150 mil","R$ 150 mil a R$ 300 mil","R$ 300 mil a R$ 500 mil","Acima de R$ 500 mil","Prefiro conversar na reunião"]},
+ {k:"prazo",t:RADIO,l:"Prazo pretendido:",o:["Até 3 meses","4 a 6 meses","7 a 12 meses","Mais de 12 meses","Apenas pesquisando"]},
+],
+internacional:[
+ {k:"modelo",t:RADIO,l:"Qual modelo considera?",o:["Master franquia","Distribuição","Importação","Produção local","Modelo híbrido","Preciso avaliar com a Bentô"]},
+ {k:"experiencia",t:MULTI,l:"Qual experiência possui? Selecione todas:",o:["Expansão de redes","Franquias","Varejo","Alimentação","Importação","Operação industrial","Distribuição refrigerada","Desenvolvimento imobiliário"]},
+ {k:"estrutura",t:MULTI,l:"Qual estrutura já possui?",o:["Empresa estabelecida","Equipe operacional","Equipe comercial","Investidores","Centro de distribuição","Frota refrigerada","Parceiro industrial","Rede de pontos comerciais"]},
+ {k:"unidades",t:RADIO,l:"Quantas unidades imagina desenvolver em 36 meses?",o:["1 unidade piloto","2 a 5","6 a 15","16 a 30","Mais de 30"]},
+ {k:"capital",t:RADIO,l:"Faixa de capital disponível:",o:["Até US$ 250 mil","US$ 250 mil a US$ 500 mil","US$ 500 mil a US$ 1 milhão","Acima de US$ 1 milhão","Capital será captado","Prefiro conversar na reunião"]},
+ {k:"papel",t:RADIO,l:"Qual seria sua participação?",o:["Investidor","Operador","Desenvolvedor territorial","Parceiro industrial","Combinação dessas funções"]},
+],
+parceria:[
+ {k:"tipoParceria",t:RADIO,l:"Tipo de parceria:",o:["Academia ou rede fitness","Influenciador","Evento","Indústria","Investimento","Desenvolvimento de produto","Licenciamento","Outro"]},
+ {k:"oferece",t:MULTI,l:"O que pode oferecer? Selecione todas:",o:["Distribuição","Audiência","Pontos de venda","Capital","Produção","Tecnologia","Logística","Divulgação","Desenvolvimento comercial"]},
+ {k:"proposta",t:TEXT,l:"Resuma a proposta em até 500 caracteres.",max:500},
+],
+};
+const AVISO_FRANQUIA="A Bentô está estruturando seus modelos de expansão. O preenchimento não representa uma oferta formal de franquia.";
+
+/* ===== render ===== */
+function prog(){[...$("#prog").children].forEach((el,i)=>el.classList.toggle("on",i<S.step))}
+function render(){
+  prog();
+  if(S.step===1)return step1();
+  if(S.step===2)return step2();
+  if(S.step===3)return step3();
+  if(S.step===4)return step4();
+}
+function navBtns(back,label){
+  return `<div class="nav">${back?'<button class="btn sec" id="back">← Voltar</button>':"<span></span>"}<button class="btn" id="next">${label||"Continuar"}</button></div><div class="err" id="err"></div>`;
+}
+function field(id,l,req,type,ph){
+  return `<label for="${id}">${l}${req?" <b>*</b>":""}</label><input id="${id}" type="${type||"text"}" value="${escH(S.id[id]||"")}" placeholder="${ph||""}" ${id==="whatsapp"?'inputmode="tel"':""}/>`;
+}
+
+function step1(){
+  $("#box").innerHTML=`
+    <h2 class="fd">Identificação</h2>
+    <p class="hint">Seus dados de contato — usamos apenas para a análise da oportunidade.</p>
+    <div class="grid2">
+      <div>${field("nome","Nome",1)}</div>
+      <div>${field("whatsapp","WhatsApp",1,"tel","(27) 99999-9999")}</div>
+      <div>${field("email","E-mail",1,"email")}</div>
+      <div>${field("empresa","Empresa",1)}</div>
+      <div>${field("pais","País",1,"text","Brasil")}</div>
+      <div>${field("estado","Estado",1)}</div>
+      <div>${field("cidade","Cidade",1)}</div>
+      <div>${field("link","Site, Instagram ou LinkedIn (opcional)",0)}</div>
+    </div>
+    <input class="hp" type="text" id="site_url" tabindex="-1" autocomplete="off"/>
+    ${navBtns(false)}`;
+  $("#next").onclick=()=>{
+    ["nome","whatsapp","email","empresa","pais","estado","cidade","link"].forEach(k=>{S.id[k]=$("#"+k).value.trim()});
+    const falta=["nome","whatsapp","email","empresa","pais","estado","cidade"].filter(k=>!S.id[k]);
+    if(falta.length){$("#err").textContent="Preencha os campos obrigatórios (*)."; $("#"+falta[0]).focus();return}
+    if(S.id.whatsapp.replace(/\D/g,"").length<8){$("#err").textContent="Confira o número de WhatsApp.";return}
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(S.id.email)){$("#err").textContent="Confira o e-mail.";return}
+    S.step=2;render();window.scrollTo({top:0,behavior:"smooth"});
+  };
+}
+
+function step2(){
+  $("#box").innerHTML=`
+    <h2 class="fd">Tipo de oportunidade</h2>
+    <p class="hint">Escolha a opção principal — o formulário se adapta automaticamente.</p>
+    <div class="cards" id="cards">${CARDS.map(([em,t],i)=>`<button type="button" data-i="${i}" class="${S.card===t?"on":""}"><span class="em">${em}</span><span class="t">${t}</span></button>`).join("")}</div>
+    ${navBtns(true)}`;
+  [...$("#cards").children].forEach(b=>b.onclick=()=>{
+    const[,t,cat]=CARDS[+b.dataset.i];
+    if(S.card!==t){S.q={}} // trocou de caminho: zera a qualificação
+    S.card=t;S.cat=cat;
+    [...$("#cards").children].forEach(x=>x.classList.toggle("on",x===b));
+  });
+  $("#back").onclick=()=>{S.step=1;render()};
+  $("#next").onclick=()=>{
+    if(!S.cat){$("#err").textContent="Escolha uma opção para continuar.";return}
+    S.step=3;render();window.scrollTo({top:0,behavior:"smooth"});
+  };
+}
+
+function step3(){
+  const qs=QS[S.cat]||[];
+  $("#box").innerHTML=`
+    <h2 class="fd">${escH(S.card)}</h2>
+    <p class="hint">Perguntas rápidas de múltipla escolha — sem texto longo.</p>
+    ${qs.map(q=>{
+      if(q.t===TEXT)return `<label>${escH(q.l)}</label><textarea data-k="${q.k}" maxlength="${q.max||500}">${escH(S.q[q.k]||"")}</textarea>`;
+      const cur=S.q[q.k];
+      return `<label>${escH(q.l)}</label><div class="opts" data-k="${q.k}" data-t="${q.t}">${q.o.map(o=>{
+        const on=q.t===MULTI?(Array.isArray(cur)&&cur.includes(o)):cur===o;
+        return `<button type="button" class="${on?"on":""}">${escH(o)}</button>`;
+      }).join("")}</div>`;
+    }).join("")}
+    ${S.cat==="franquia"?`<div class="aviso">${AVISO_FRANQUIA}</div>`:""}
+    ${navBtns(true)}`;
+  document.querySelectorAll(".opts").forEach(g=>{
+    const k=g.dataset.k,multi=g.dataset.t===MULTI;
+    [...g.children].forEach(b=>b.onclick=()=>{
+      if(multi){
+        const cur=Array.isArray(S.q[k])?S.q[k]:[];
+        const v=b.textContent;
+        S.q[k]=cur.includes(v)?cur.filter(x=>x!==v):cur.concat(v);
+        b.classList.toggle("on");
+      }else{
+        S.q[k]=b.textContent;
+        [...g.children].forEach(x=>x.classList.toggle("on",x===b));
+      }
+    });
+  });
+  document.querySelectorAll("textarea[data-k]").forEach(t=>t.oninput=()=>{S.q[t.dataset.k]=t.value});
+  $("#back").onclick=()=>{S.step=2;render()};
+  $("#next").onclick=()=>{
+    const faltam=qs.filter(q=>{
+      const v=S.q[q.k];
+      if(q.t===MULTI)return !Array.isArray(v)||!v.length;
+      return !v||!String(v).trim();
+    });
+    if(faltam.length){$("#err").textContent="Responda: "+faltam[0].l;return}
+    S.step=4;render();window.scrollTo({top:0,behavior:"smooth"});
+  };
+}
+
+function step4(){
+  $("#box").innerHTML=`
+    <h2 class="fd">Para finalizar</h2>
+    <label>Melhor período para contato:</label>
+    <div class="opts" data-k="contato">${["Manhã","Tarde","Noite"].map(o=>`<button type="button" class="${S.fim.contato===o?"on":""}">${o}</button>`).join("")}</div>
+    <label>Como conheceu a Bentô?</label>
+    <div class="opts" data-k="origem">${["Instagram","Google","Indicação","Loja","Evento","Imprensa","Outro"].map(o=>`<button type="button" class="${S.fim.origem===o?"on":""}">${o}</button>`).join("")}</div>
+    <label>Há algo importante que gostaria de acrescentar? (opcional)</label>
+    <textarea id="obs" maxlength="600">${escH(S.fim.obs||"")}</textarea>
+    <div class="ck"><input type="checkbox" id="lgpd" ${S.fim.lgpd?"checked":""}/><span>Li e concordo com a <a href="/?privacidade=1" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo o uso destes dados para a análise da oportunidade. <b style="color:var(--red)">*</b></span></div>
+    ${navBtns(true,"Enviar oportunidade")}`;
+  document.querySelectorAll(".opts").forEach(g=>{
+    [...g.children].forEach(b=>b.onclick=()=>{S.fim[g.dataset.k]=b.textContent;[...g.children].forEach(x=>x.classList.toggle("on",x===b))});
+  });
+  $("#back").onclick=()=>{S.fim.obs=$("#obs").value;S.fim.lgpd=$("#lgpd").checked;S.step=3;render()};
+  $("#next").onclick=enviar;
+}
+
+async function enviar(){
+  S.fim.obs=$("#obs").value.trim();S.fim.lgpd=$("#lgpd").checked;
+  if(!S.fim.contato){$("#err").textContent="Escolha o melhor período para contato.";return}
+  if(!S.fim.origem){$("#err").textContent="Conte como conheceu a Bentô.";return}
+  if(!S.fim.lgpd){$("#err").textContent="É preciso concordar com a Política de Privacidade.";return}
+  const btn=$("#next");btn.disabled=true;btn.textContent="Enviando…";
+  const payload={
+    ...S.id,categoria:S.cat,
+    q:{...S.q,oportunidade:S.card},
+    contato:S.fim.contato,origem:S.fim.origem,obs:S.fim.obs,
+    utm:UTM,url:location.href,ref:document.referrer||"",
+    site_url:(document.getElementById("site_url")||{}).value||"",
+  };
+  try{
+    const r=await fetch("/api/seja-bento",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    if(!r.ok&&r.status!==204)throw new Error(r.status);
+    sucesso();
+  }catch{
+    btn.disabled=false;btn.textContent="Enviar oportunidade";
+    $("#err").textContent="Não consegui enviar agora — verifique a conexão e tente de novo.";
+  }
+}
+function sucesso(){
+  prog();
+  $("#box").innerHTML=`<div class="ok">
+    <div class="em">🍨</div>
+    <h2 class="fd">Recebemos sua oportunidade!</h2>
+    <p>Nossa equipe analisará as informações comerciais, operacionais e regionais. Caso exista aderência, entraremos em contato para os próximos passos.</p>
+    <p style="font-size:12.5px">Esta etapa é exploratória e não representa aprovação, exclusividade ou reserva territorial.</p>
+  </div>`;
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+render();
+</script>
+</body>
+</html>

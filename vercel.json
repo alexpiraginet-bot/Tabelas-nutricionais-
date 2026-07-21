@@ -15,6 +15,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/seja-bento", "destination": "/seja-bento.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "headers": [
