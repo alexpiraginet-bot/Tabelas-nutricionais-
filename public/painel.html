@@ -168,6 +168,7 @@
     <button data-t="eventos">🎉 Eventos <span class="tbg" id="bgEventos"></span></button>
     <button data-t="prevendas">🍫 Pré-vendas <span class="tbg" id="bgPrev"></span></button>
     <button data-t="vagas">💼 Vagas <span class="tbg" id="bgVagas"></span></button>
+    <button data-t="sejabento">🤝 Seja Bentô <span class="tbg" id="bgSejaBento"></span></button>
     <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
     <button data-t="clube">👑 Clube <span class="tbg" id="bgClube"></span></button>
     <button data-t="links">🔗 Links</button>
@@ -237,6 +238,19 @@
     <div class="chips" id="vagasChips"></div>
     <div class="lstack" id="vagasStack"></div>
     <div class="empty" id="vagasEmpty" style="display:none">Nenhum candidato ainda. Quando alguém se cadastrar em “Trabalhe conosco”, aparece aqui na hora. 💼</div>
+  </div>
+
+  <div class="card pane" data-pane="sejabento" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+      <span>🤝 Seja Bentô — oportunidades comerciais</span>
+      <span style="display:flex;align-items:center;gap:10px">
+        <a class="mono" href="/seja-bento" target="_blank" rel="noopener" style="color:var(--pist);font-size:11px;text-decoration:none">abrir formulário ↗</a>
+        <span id="sbCount" class="mono" style="color:var(--gold);font-size:13px"></span>
+      </span>
+    </h3>
+    <div class="chips" id="sbChips"></div>
+    <div class="lstack" id="sbStack"></div>
+    <div class="empty" id="sbEmpty" style="display:none">Nenhuma oportunidade ainda. Envie o link <span class="mono">bentogelateria.com/seja-bento</span> aos interessados — os cadastros chegam aqui classificados na hora. 🤝</div>
   </div>
 
   <div class="card pane" data-pane="sorteio" style="margin-bottom:14px">
@@ -927,6 +941,74 @@ function renderVagas(d){
   $("#vagasEmpty").style.display = cands.length ? "none" : "block";
 }
 
+// ---- Seja Bentô (funil comercial /seja-bento): cards com classificação automática ----
+var _sbData = null, _sbFilter = "Todos", _sbOpen = {};
+var SB_CAT = { revenda:"🏪 Revenda", distribuicao:"🚚 Distribuição", franquia:"🏬 Franquia", internacional:"🌎 Internacional", parceria:"🤝 Parceria" };
+var SB_POT = { alto:"🔥 Alto", medio:"⭐ Médio", inicial:"🌱 Inicial" };
+async function loadSejaBento(){
+  const key = localStorage.getItem(KEYSTORE) || "";
+  const r = await fetch("/api/seja-bento", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+  if(!r.ok) return;
+  renderSejaBento(await r.json());
+}
+function renderSejaBento(d){
+  _sbData = d;
+  var leads = (d && d.leads) || [];
+  $("#sbCount").textContent = d && d.total ? (d.total + " no total") : ""; setBadge("bgSejaBento", Math.max(Number((d&&d.total)||0), leads.length));
+  var catOf = function(l){ return SB_CAT[l.categoria] || "🤝 Parceria"; };
+
+  // chips: potenciais primeiro (triagem), depois categorias
+  var counts = {};
+  leads.forEach(function(l){
+    counts[catOf(l)] = (counts[catOf(l)]||0)+1;
+    var p = SB_POT[l.potencial]; if(p) counts[p] = (counts[p]||0)+1;
+  });
+  var filters = ["Todos","🔥 Alto","⭐ Médio","🌱 Inicial"].concat(Object.keys(SB_CAT).map(function(k){ return SB_CAT[k]; }))
+    .filter(function(f){ return f==="Todos" || counts[f]; });
+  if(filters.indexOf(_sbFilter) < 0) _sbFilter = "Todos";
+  stackChips($("#sbChips"), leads.length ? filters.map(function(f){
+    return { label:f, count: f==="Todos" ? leads.length : (counts[f]||0) };
+  }) : [], _sbFilter, function(f){ _sbFilter=f; renderSejaBento(_sbData); });
+
+  var box = $("#sbStack"); box.innerHTML = "";
+  var shown = 0;
+  leads.forEach(function(l,i){
+    var pot = SB_POT[l.potencial] || "";
+    if(_sbFilter!=="Todos" && _sbFilter!==catOf(l) && _sbFilter!==pot) return;
+    shown++;
+    var dig = leadDigits(l.whatsapp);
+    var key = (dig||"x")+":"+(l.ts||i);
+    var det = stackTopic({
+      title: (l.nome||"Sem nome") + (l.empresa ? " · "+l.empresa : ""),
+      dig: dig,
+      badge: catOf(l) + (pot ? " · "+pot : ""),
+      when: stackWhen(l.ts),
+      open: !!_sbOpen[key],
+      onToggle: function(o){ _sbOpen[key] = o; }
+    });
+    var lugar = [l.cidade, l.estado, l.pais].filter(Boolean).join(" · ");
+    var q = l.q || {};
+    var respostas = Object.keys(q).filter(function(k){ return k!=="oportunidade"; }).map(function(k){
+      var v = q[k]; return "• "+k+": "+(Array.isArray(v)?v.join(", "):v);
+    }).join("\n");
+    var utm = l.utm && (l.utm.source||l.utm.medium||l.utm.campaign)
+      ? [l.utm.source,l.utm.medium,l.utm.campaign].filter(Boolean).join(" / ") : "";
+    var row = document.createElement("div"); row.className = "qrow";
+    row.innerHTML =
+      (q.oportunidade?'<div class="ql2">🎯 '+escapeHtml(q.oportunidade)+'</div>':'')
+      + (lugar?'<div class="ql2">📍 '+escapeHtml(lugar)+'</div>':'')
+      + (l.email?'<div class="ql2">✉️ '+escapeHtml(l.email)+(l.link?' · 🔗 '+escapeHtml(l.link):'')+'</div>':'')
+      + (respostas?'<div class="ql2" style="white-space:pre-line">'+escapeHtml(respostas)+'</div>':'')
+      + (l.obs?'<div class="ql2">💬 '+escapeHtml(l.obs)+'</div>':'')
+      + ((l.contato||l.origem)?'<div class="ql2">'+escapeHtml([l.contato?("⏰ "+l.contato):"",l.origem?("📣 "+l.origem):""].filter(Boolean).join(" · "))+'</div>':'')
+      + (utm?'<div class="ql2" style="color:var(--soft)">🏷 '+escapeHtml(utm)+'</div>':'');
+    det.appendChild(row);
+    box.appendChild(det);
+  });
+  if(!shown && leads.length) stackNone(box, "Nenhuma oportunidade neste filtro.");
+  $("#sbEmpty").style.display = leads.length ? "none" : "block";
+}
+
 // ---- Links rápidos (central de links p/ posts/stories) ----
 var SITE = "https://bentogelateria.com", EVENTOS = "https://bentogelateria.com/bytes";
 var TOTEM = "https://totem.bentogelateria.com";
@@ -1168,7 +1250,7 @@ function bindSorteio(){
 bindSorteio();
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
