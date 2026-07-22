@@ -57,6 +57,8 @@ export default async function handler(req, res) {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   const d = body && body.destaque;
   if (!BANNERS_VALIDOS.includes(d)) { res.status(400).json({ ok: false, error: "Banner inválido." }); return; }
-  await kv(["SET", KEY, d]);
+  // Upstash responde result:"OK" no SET — qualquer outra coisa é falha real
+  const r = await kv(["SET", KEY, d]).catch(() => null);
+  if (r !== "OK") { res.status(502).json({ ok: false, error: "Falha ao gravar no banco — tente novamente." }); return; }
   res.status(200).json({ ok: true, destaque: d });
 }
