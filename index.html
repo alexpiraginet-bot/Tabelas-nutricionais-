@@ -51,9 +51,11 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- Logo + primeiro banner são os maiores elementos acima da dobra (LCP): pré-carrega -->
+    <!-- Logo + primeiro banner são os maiores elementos acima da dobra (LCP): pré-carrega.
+         O 1º banner é o destaque padrão (eventos) — se o admin trocar o destaque,
+         a visita seguinte já renderiza na nova ordem (localStorage). -->
     <link rel="preload" as="image" href="/bento-logo.webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="/buttons/album-copa-card.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/banners/eventos.webp" fetchpriority="high" />
 
     <title>Sorvete Sem Açúcar em Vitória ES | Gelato Proteico — Bentô Gelatos</title>
 

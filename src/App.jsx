@@ -134,8 +134,42 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   return <button onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
 }
 
+// ⭐ Banners da home em ordem dinâmica: o 1º card ("destaque") é escolhido no
+// painel admin (Visão geral → Destaque da home) e servido por /api/destaque.
+// Sem escolha salva, EVENTOS abre a home. O valor fica em localStorage para
+// visitas seguintes renderizarem já na ordem certa (sem salto de layout).
+const DESTAQUE_PADRAO="eventos";
+const ORDEM_PADRAO=["eventos","bytes","tabelas","cardapio","delivery","parceiro","conheca","carreira"];
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
+  const[destaque,setDestaque]=useState(()=>{try{return localStorage.getItem("bento:destaque")||DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
+  useEffect(()=>{
+    fetch("/api/destaque",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
+      if(j&&j.destaque&&ORDEM_PADRAO.includes(j.destaque)&&j.destaque!==destaque){
+        try{localStorage.setItem("bento:destaque",j.destaque)}catch{/* */}
+        setDestaque(j.destaque);
+      }
+    }).catch(()=>{});
+  },[]); // roda 1× por visita; "destaque" inicial vem do localStorage de propósito
+  const BANNERS={
+    bytes:{img:"/banners/bytes.webp",as:"a",href:"/bytes/",target:"_blank",tkName:"Lançamento · BentôBytes",
+      alt:"BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"},
+    tabelas:{img:"/banners/tabelas.webp",action:onTabelas,tkName:"Tabelas Nutricionais",
+      alt:"Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz de sabores"},
+    cardapio:{img:"/banners/cardapio.webp",as:"a",href:"https://totem.bentogelateria.com/pedir",target:"_blank",tkName:"Cardápio",
+      alt:"Entrega própria e retirada em loja — peça no site e escolha como receber"},
+    delivery:{img:"/banners/delivery.webp",action:onDelivery,tkName:"Delivery / Nos encontre",
+      alt:"Delivery / Nos encontre — peça no iFood ou veja onde estamos: Praia do Canto e Jardim Camburi"},
+    eventos:{img:"/banners/eventos.webp",action:onEventos,tkName:"Nos leve para seu evento",
+      alt:"Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"},
+    parceiro:{img:"/banners/parceiro.webp",action:onParceria,tkName:"Seja um parceiro",
+      alt:"Seja um parceiro ou futuro franqueado — revenda e expanda a Bentô"},
+    conheca:{img:"/banners/conheca.webp",action:onPitch,tkName:"Conheça a Bentô + FAQ",
+      alt:"Conheça a Bentô e FAQ — nossa proposta, sabores, diferenciais e perguntas frequentes"},
+    carreira:{img:"/banners/carreira.webp",action:onVagas,tkName:"Vagas · Estamos contratando",
+      alt:"Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"},
+  };
+  const ordem=[destaque,...ORDEM_PADRAO.filter(id=>id!==destaque)];
   return(
     <div className="fade">
       <section style={{minHeight:"calc(100svh - 64px)",maxWidth:760,margin:"0 auto",padding:"34px 20px 40px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
@@ -170,55 +204,11 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         )}
 
         <div style={{width:"100%",marginTop:34}}>
-          {/* Álbum Digital da Copa — card clicável (link externo, nova aba) */}
-          <a href="https://totem.bentogelateria.com/album" target="_blank" rel="noopener" onClick={()=>tk("Álbum da Copa")}
-            aria-label="Acesse o álbum digital da Copa Bentô" className="hl rise"
-            style={{display:"block",overflow:"hidden",borderRadius:18,border:`1px solid ${T.border}`,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",textDecoration:"none"}}>
-            <img src="/buttons/album-copa-card.webp" alt="Acesse o álbum digital da Copa Bentô — colecione os 10 sabores oficiais"
-              width={1600} height={800} loading="eager" fetchpriority="high" onError={onImgErr}
-              style={{display:"block",width:"100%",height:"auto"}}/>
-          </a>
-          <AlbumProgress/>
-
-          {/* BentôBytes — arte completa (selo, título, ícones e seta já na imagem) */}
-          <PhotoBanner full as="a" href="/bytes/" target="_blank" onClick={()=>tk("Lançamento · BentôBytes")}
-            img="/banners/bytes.webp" alt="BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"
-            delay="60ms"/>
-
-          {/* Tabelas nutricionais — arte completa (selo, título, ícones e seta já na imagem) */}
-          <PhotoBanner full onClick={()=>tk("Tabelas Nutricionais",onTabelas)}
-            img="/banners/tabelas.webp" alt="Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz de sabores"
-            delay="80ms"/>
-
-          {/* Cardápio / Entrega própria + Retirada — arte completa · ação comercial principal */}
-          <PhotoBanner full as="a" href="https://totem.bentogelateria.com/pedir" target="_blank" onClick={()=>tk("Cardápio")}
-            img="/banners/cardapio.webp" alt="Entrega própria e retirada em loja — peça no site e escolha como receber"
-            delay="120ms"/>
-
-          {/* Delivery / Nos encontre — arte completa (selo, título, ícones e seta já na imagem) */}
-          <PhotoBanner full onClick={()=>tk("Delivery / Nos encontre",onDelivery)}
-            img="/banners/delivery.webp" alt="Delivery / Nos encontre — peça no iFood ou veja onde estamos: Praia do Canto e Jardim Camburi"
-            delay="150ms"/>
-
-          {/* Eventos — arte completa (selo, título, ícones e seta já na imagem) */}
-          <PhotoBanner full onClick={()=>tk("Nos leve para seu evento",onEventos)}
-            img="/banners/eventos.webp" alt="Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"
-            delay="200ms"/>
-
-          {/* Seja um parceiro — arte completa (selo, título, ícones e seta já na imagem) */}
-          <PhotoBanner full onClick={()=>tk("Seja um parceiro",onParceria)}
-            img="/banners/parceiro.webp" alt="Seja um parceiro ou futuro franqueado — revenda e expanda a Bentô"
-            delay="250ms"/>
-
-          {/* Conheça a Bentô + FAQ — acesso único: abre o "Conheça" e de lá leva às Dúvidas */}
-          <PhotoBanner full onClick={()=>tk("Conheça a Bentô + FAQ",onPitch)}
-            img="/banners/conheca.webp" alt="Conheça a Bentô e FAQ — nossa proposta, sabores, diferenciais e perguntas frequentes"
-            delay="300ms"/>
-
-          {/* Carreira — arte completa (selo, título, ícones e seta já na imagem) · último card */}
-          <PhotoBanner full onClick={()=>tk("Vagas · Estamos contratando",onVagas)}
-            img="/banners/carreira.webp" alt="Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"
-            delay="430ms"/>
+          {ordem.map((id,i)=>{
+            const b=BANNERS[id];if(!b)return null;
+            return <PhotoBanner key={id} full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0}
+              {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/>;
+          })}
         </div>
 
         <VisitSection/>
@@ -797,38 +787,6 @@ const BADGES=[
   {id:"mestre-pote",icon:Beaker,title:"Mestre do Pote",desc:"Montou um pote com 20g+ de proteína"},
   {id:"sem-culpa",icon:Sparkles,title:"Sem Culpa",desc:"Compartilhou a Bentô no story"},
 ];
-
-/* ========== PROGRESSO DO ÁLBUM DA COPA (autodeclarado, localStorage) ========== */
-function AlbumProgress(){
-  const[got,setGot]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:album")||"[]");}catch{return[];}});
-  const[open,setOpen]=useState(false);
-  useEffect(()=>{try{localStorage.setItem("bento:album",JSON.stringify(got));}catch{}},[got]);
-  const toggle=(n)=>{setGot(p=>p.includes(n)?p.filter(x=>x!==n):[...p,n]);};
-  const done=got.length;
-  return(
-    <div className="rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:14,marginTop:8,padding:"10px 14px",animationDelay:"90ms"}}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <span className="fm" style={{fontSize:9.5,letterSpacing:"0.14em",textTransform:"uppercase",color:T.pistacheDark,whiteSpace:"nowrap"}}>Meu álbum</span>
-        <div style={{flex:1,height:7,background:T.bgWarm,borderRadius:999,overflow:"hidden"}} role="progressbar" aria-valuenow={done} aria-valuemin={0} aria-valuemax={10} aria-label={`Álbum da Copa: ${done} de 10 figurinhas`}>
-          <div style={{height:"100%",width:`${done*10}%`,background:`linear-gradient(90deg,${T.accent},${T.pistacheDark})`,transition:"width .4s cubic-bezier(.2,.8,.2,1)"}}/>
-        </div>
-        <span className="fm" style={{fontSize:11,color:T.ink,fontWeight:600,whiteSpace:"nowrap"}}>{done}/10</span>
-        <button onClick={()=>{setOpen(o=>!o);if(!open)tk("Álbum · Marcar figurinhas");}} className="fm" style={{fontSize:9,letterSpacing:"0.1em",textTransform:"uppercase",background:open?T.pistacheDark:"transparent",color:open?"#fff":T.pistacheDark,border:`1px solid ${open?T.pistacheDark:T.border}`,borderRadius:999,padding:"6px 11px",cursor:"pointer",whiteSpace:"nowrap"}}>{open?"Pronto":"Marcar"}</button>
-      </div>
-      {open&&(
-        <div style={{marginTop:10}}>
-          <div className="fb" style={{fontSize:11,color:T.inkSoft,marginBottom:8}}>Toque nas figurinhas que você já colecionou:</div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",justifyContent:"center"}}>
-            {Array.from({length:10},(_,i)=>i+1).map(n=>{const on=got.includes(n);return(
-              <button key={n} onClick={()=>toggle(n)} aria-pressed={on} aria-label={`Figurinha ${n}${on?" colecionada":""}`} className="fm" style={{width:34,height:34,borderRadius:"50%",border:`2px solid ${on?T.accent:T.border}`,background:on?T.pistacheDark:T.bg,color:on?"#F2E7C8":T.inkSoft,fontSize:12,fontWeight:700,cursor:"pointer"}}>{n}</button>
-            );})}
-          </div>
-        </div>
-      )}
-      {done===10&&<div className="fb" style={{fontSize:11.5,color:T.pistacheDark,fontWeight:600,textAlign:"center",marginTop:8}}>Álbum completo! Mostre na loja e comemore com a gente.</div>}
-    </div>
-  );
-}
 
 export default function App(){
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
