@@ -8,6 +8,16 @@
   ],
   "redirects": [
     {
+      "source": "/financeiro/consultora",
+      "destination": "https://bento-visao-sebrae.alexpteixe.chatgpt.site",
+      "permanent": false
+    },
+    {
+      "source": "/financeiro/consultora/",
+      "destination": "https://bento-visao-sebrae.alexpteixe.chatgpt.site",
+      "permanent": false
+    },
+    {
       "source": "/financeiro",
       "destination": "https://bento-sala-financeira.alexpteixe.chatgpt.site",
       "permanent": false
