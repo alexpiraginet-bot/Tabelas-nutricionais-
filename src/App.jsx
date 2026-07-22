@@ -4,6 +4,7 @@ import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 import { tk, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import WorldFundo from "./WorldFundo.jsx";
 
 /* ===== Modais e overlays: carregados sob demanda (code-split) ===== */
 const QuizModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.QuizModal })));
@@ -39,7 +40,9 @@ function GStyle(){return(<style>{`
 button{cursor:pointer}
 :focus{outline:none}
 :focus-visible{outline:2px solid ${T.pistacheDark};outline-offset:2px}
-.hdr{position:sticky;top:0;z-index:40;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.hdr{position:sticky;top:0;z-index:40;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
+/* vidro fosco estilo iOS — usado nos painéis que flutuam sobre o filme da home */
+.glass{background:rgba(255,253,247,.62);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.55)}
 .shell{min-height:100dvh}
 .detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
 @media(max-width:760px){.detail-grid{grid-template-columns:1fr}}
@@ -63,7 +66,7 @@ button{cursor:pointer}
 
 function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites,onOpenFavs}){
   return(
-    <header className="hdr no-print" style={{background:`${T.bg}EA`,borderBottom:`1px solid ${T.border}`}}>
+    <header className="hdr no-print" style={{background:`${T.bg}C9`,borderBottom:`1px solid ${T.border}`}}>
       <div style={{maxWidth:1152,margin:"0 auto",padding:"12px 24px",display:"flex",alignItems:"center",justifyContent:"space-between",gap:12}}>
         <button onClick={onHome} aria-label="Início" style={{display:"flex",alignItems:"center",gap:12,background:"none",border:"none"}}>
           <BentoLogo size={38}/>
@@ -111,11 +114,13 @@ const BANNER_DIMS={
    foto real à esquerda (40%) + informação à direita (60%), selo dourado fosco
    e seta discreta. Sem gradientes/bordas coloridas: "luxo silencioso". */
 function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay,full,alt,priority}){
-  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
+  // Translucidez iOS sutil: o card deixa o filme de fundo "respirar" pelas
+  // bordas e pela arte (92%) sem lavar as artes oficiais dos banners.
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:"1px solid rgba(228,220,201,.78)",borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
   const d=BANNER_DIMS[img];
   // Modo "full": a própria arte já traz selo, título, subtítulo e seta — imagem cobre o card todo.
   const inner=full?(
-    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto"}}/>
+    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",opacity:.92}}/>
   ):(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
@@ -173,7 +178,8 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
   return(
     <div className="fade">
       <section style={{minHeight:"calc(100svh - 64px)",maxWidth:760,margin:"0 auto",padding:"34px 20px 40px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
-        {/* Hero premium */}
+        {/* Hero premium — painel de vidro iOS flutuando sobre o filme do atelier */}
+        <div className="glass" style={{width:"100%",borderRadius:28,padding:"28px 18px 26px",display:"flex",flexDirection:"column",alignItems:"center",boxShadow:"0 24px 60px -38px rgba(35,38,25,.45)"}}>
         <div className="rise"><BentoLogo size={84}/></div>
         <h1 className="fd rise" style={{fontSize:"clamp(28px,5.2vw,48px)",lineHeight:1.04,color:T.ink,marginTop:16,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
@@ -202,8 +208,9 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
             <button onClick={()=>tk("Home · Quiz salvo · Refazer",onQuizRefazer)} className="fm" style={{fontSize:9.5,letterSpacing:"0.1em",textTransform:"uppercase",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:999,padding:"7px 12px",cursor:"pointer"}}>Refazer</button>
           </div>
         )}
+        </div>
 
-        <div style={{width:"100%",marginTop:34}}>
+        <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
             const b=BANNERS[id];if(!b)return null;
             return <PhotoBanner key={id} full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0}
@@ -235,8 +242,8 @@ function VisitSection(){
           <button key={v.id} onClick={()=>{setCur(v.id);tk("Visite · "+v.nome);}}
             className="fm" aria-pressed={v.id===cur}
             style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",cursor:"pointer",borderRadius:999,padding:"9px 18px",
-              background:v.id===cur?T.pistacheDark:T.surface,color:v.id===cur?T.surface:T.pistacheDark,
-              border:`1px solid ${v.id===cur?T.pistacheDark:T.border}`}}>
+              background:v.id===cur?T.pistacheDark:"rgba(255,253,247,.66)",color:v.id===cur?T.surface:T.pistacheDark,
+              border:`1px solid ${v.id===cur?T.pistacheDark:"rgba(228,220,201,.8)"}`}}>
             {v.nome}
           </button>
         ))}
@@ -248,8 +255,8 @@ function VisitSection(){
             src={`https://www.google.com/maps?q=${l.lat},${l.lng}&z=16&hl=pt-BR&output=embed`}
             style={{display:"block",width:"100%",height:"100%",minHeight:300,border:0}} allowFullScreen/>
         </div>
-        {/* cartão da loja */}
-        <div style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,padding:"22px 22px 20px",boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",display:"flex",flexDirection:"column",gap:12,textAlign:"left"}}>
+        {/* cartão da loja — vidro iOS sobre o filme */}
+        <div className="glass" style={{borderRadius:18,padding:"22px 22px 20px",boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",display:"flex",flexDirection:"column",gap:12,textAlign:"left"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
             <h3 className="fd" style={{fontSize:22,color:T.pistacheDark,margin:0,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vitória — {l.nome}</h3>
             <span className="fm" style={{fontSize:9,letterSpacing:"0.2em",background:T.accent,color:T.surface,borderRadius:999,padding:"5px 12px",textTransform:"uppercase"}}>Loja</span>
@@ -876,8 +883,10 @@ export default function App(){
   if(portfolio) return(<><GStyle/><Suspense fallback={null}><PortfolioPage/></Suspense></>);
   if(vagas) return(<><GStyle/><Suspense fallback={null}><TrabalhePage/></Suspense></>);
   return(
-    <div className="shell fb gn" style={{background:T.bg,color:T.ink}}>
+    <div className="shell fb gn" style={{background:view==="home"?"transparent":T.bg,color:T.ink}}>
       <GStyle/>
+      {/* filme 3D do atelier atrás dos cards da home (rolagem = tempo do filme) */}
+      {view==="home"&&<WorldFundo/>}
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
       {view==="home"&&<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
@@ -921,7 +930,7 @@ export default function App(){
       {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);setShowDelivery(true);}}/>}
       {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
       </Suspense>
-      <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`}}>
+      <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`,background:view==="home"?"rgba(246,241,231,.7)":"transparent",backdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined,WebkitBackdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
           <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",cursor:"pointer",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Delivery</button>
