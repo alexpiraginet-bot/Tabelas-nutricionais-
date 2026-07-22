@@ -24,6 +24,14 @@ const legPoster = (i, mob) => `/world/leg-${i + 1}${mob ? "-mobile" : ""}-poster
 // frame (mais denso no topo do hero e no rodapé, mais aberto no meio).
 const VEIL =
   "linear-gradient(180deg,rgba(246,241,231,.72),rgba(246,241,231,.38) 26%,rgba(246,241,231,.38) 72%,rgba(246,241,231,.66))";
+// Vinheta escura emoldurando as bordas — dá profundidade e, no mobile (filme
+// em faixa "contain"), fecha as sobras creme como uma tarja de cinema.
+const VIGNETTE =
+  "radial-gradient(125% 90% at 50% 44%, transparent 50%, rgba(24,26,17,.16) 78%, rgba(20,22,15,.34))";
+// Os legs são landscape (1920×1080). No desktop cobrimos a tela (cover); no
+// mobile, cobrir cortaria demais os lados — então mostramos o frame inteiro
+// (contain), sem corte horizontal, com o creme+vinheta ao redor.
+const fitFor = (mob) => (mob ? "contain" : "cover");
 
 export default function WorldFundo() {
   const stageRef = useRef(null);
@@ -35,6 +43,7 @@ export default function WorldFundo() {
     if (!stage || !posterEl || !veilEl) return;
     let mob = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
     posterEl.src = legPoster(0, mob);
+    posterEl.style.objectFit = fitFor(mob);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const saveData = !!(navigator.connection && navigator.connection.saveData);
     if (reduced || saveData) return; // poster estático basta; nenhum vídeo baixa
@@ -46,6 +55,7 @@ export default function WorldFundo() {
     const seekedHandlers = new Map();
     const aborters = [];
     let raf = 0, primed = false, cur = 0, started = false, lastW = window.innerWidth;
+    let gen = 0; // epoch: invalida callbacks de fetch de um breakpoint antigo após resize
 
     const applyActive = () => {
       const v = videos.get(cur);
@@ -68,11 +78,13 @@ export default function WorldFundo() {
     const ensure = (i) => {
       if (i < 0 || i >= LEGS || videos.has(i) || loading.has(i)) return;
       loading.add(i);
+      const myGen = gen; // se o breakpoint trocar durante o download, este fetch fica órfão
       const ac = new AbortController();
       aborters.push(ac);
       fetch(legSrc(i, mob), { signal: ac.signal })
         .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
         .then((b) => {
+          if (myGen !== gen) return; // breakpoint mudou: descarta o vídeo da resolução antiga
           const url = URL.createObjectURL(b);
           blobs.set(i, url);
           const v = document.createElement("video");
@@ -83,13 +95,25 @@ export default function WorldFundo() {
           v.setAttribute("aria-hidden", "true");
           Object.assign(v.style, {
             position: "absolute", inset: "0", width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "center", opacity: "0",
+            objectFit: fitFor(mob), objectPosition: "center", opacity: "0",
             transition: "opacity .35s ease",
           });
           v.src = url;
-          const onLoaded = () => { if (v.readyState >= 2) requestAnimationFrame(applyActive); };
+          // Ao terminar de carregar: se há um seek pendente (scroll ≠ 0 ou parado
+          // antes do load), aplica-o e deixa o onSeeked revelar no frame certo —
+          // sem seek pendente, revela direto. Evita o flash de frame 0 sobre o poster.
+          const onLoaded = () => {
+            if (v.readyState < 2) return;
+            const t = pending.get(i);
+            if (t !== undefined) seek(i, t);
+            else requestAnimationFrame(applyActive);
+          };
           v.addEventListener("loadeddata", onLoaded);
-          const onSeeked = () => { const t = pending.get(i); if (t !== undefined) seek(i, t); };
+          const onSeeked = () => {
+            const t = pending.get(i);
+            if (t !== undefined) { seek(i, t); return; } // coalesceu outro seek: persegue o último
+            requestAnimationFrame(applyActive);          // frame correto pintado → poster→vídeo
+          };
           seekedHandlers.set(i, onSeeked);
           v.addEventListener("seeked", onSeeked);
           videos.set(i, v);
@@ -98,8 +122,8 @@ export default function WorldFundo() {
           const t = pending.get(i);
           if (t !== undefined) seek(i, t);
         })
-        .catch(() => { /* falhou: fica no poster, sem retry loop */ })
-        .finally(() => loading.delete(i));
+        .catch(() => { /* falhou/abortado: fica no poster, sem retry loop */ })
+        .finally(() => { if (myGen === gen) loading.delete(i); }); // não mexe no loading do novo breakpoint
     };
 
     const update = () => {
@@ -128,6 +152,10 @@ export default function WorldFundo() {
       if (window.innerWidth === lastW) return;
       lastW = window.innerWidth;
       mob = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
+      gen++;                              // invalida os callbacks dos fetches em voo do breakpoint antigo
+      aborters.forEach((a) => a.abort()); // cancela downloads em andamento (resolução que não vale mais)
+      aborters.length = 0;
+      loading.clear();                    // libera ensure() a rebaixar tudo no novo breakpoint
       videos.forEach((v, i) => {
         v.removeEventListener("seeked", seekedHandlers.get(i));
         v.remove();
@@ -136,6 +164,7 @@ export default function WorldFundo() {
       });
       videos.clear(); blobs.clear(); seekedHandlers.clear(); pending.clear();
       posterEl.style.opacity = "1";
+      posterEl.style.objectFit = fitFor(mob);
       posterEl.src = legPoster(cur, mob);
       onScroll();
     };
@@ -173,6 +202,7 @@ export default function WorldFundo() {
       <img ref={posterRef} alt="" decoding="async"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", transition: "opacity .35s ease" }} />
       <div ref={veilRef} style={{ position: "absolute", inset: 0, background: VEIL }} />
+      <div style={{ position: "absolute", inset: 0, background: VIGNETTE }} />
     </div>
   );
 }
