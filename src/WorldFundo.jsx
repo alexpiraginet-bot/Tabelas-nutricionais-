@@ -24,6 +24,14 @@ const legPoster = (i, mob) => `/world/leg-${i + 1}${mob ? "-mobile" : ""}-poster
 // frame (mais denso no topo do hero e no rodapé, mais aberto no meio).
 const VEIL =
   "linear-gradient(180deg,rgba(246,241,231,.72),rgba(246,241,231,.38) 26%,rgba(246,241,231,.38) 72%,rgba(246,241,231,.66))";
+// Vinheta escura emoldurando as bordas — dá profundidade e, no mobile (filme
+// em faixa "contain"), fecha as sobras creme como uma tarja de cinema.
+const VIGNETTE =
+  "radial-gradient(125% 90% at 50% 44%, transparent 50%, rgba(24,26,17,.16) 78%, rgba(20,22,15,.34))";
+// Os legs são landscape (1920×1080). No desktop cobrimos a tela (cover); no
+// mobile, cobrir cortaria demais os lados — então mostramos o frame inteiro
+// (contain), sem corte horizontal, com o creme+vinheta ao redor.
+const fitFor = (mob) => (mob ? "contain" : "cover");
 
 export default function WorldFundo() {
   const stageRef = useRef(null);
@@ -35,6 +43,7 @@ export default function WorldFundo() {
     if (!stage || !posterEl || !veilEl) return;
     let mob = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
     posterEl.src = legPoster(0, mob);
+    posterEl.style.objectFit = fitFor(mob);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const saveData = !!(navigator.connection && navigator.connection.saveData);
     if (reduced || saveData) return; // poster estático basta; nenhum vídeo baixa
@@ -86,7 +95,7 @@ export default function WorldFundo() {
           v.setAttribute("aria-hidden", "true");
           Object.assign(v.style, {
             position: "absolute", inset: "0", width: "100%", height: "100%",
-            objectFit: "cover", objectPosition: "center", opacity: "0",
+            objectFit: fitFor(mob), objectPosition: "center", opacity: "0",
             transition: "opacity .35s ease",
           });
           v.src = url;
@@ -155,6 +164,7 @@ export default function WorldFundo() {
       });
       videos.clear(); blobs.clear(); seekedHandlers.clear(); pending.clear();
       posterEl.style.opacity = "1";
+      posterEl.style.objectFit = fitFor(mob);
       posterEl.src = legPoster(cur, mob);
       onScroll();
     };
@@ -192,6 +202,7 @@ export default function WorldFundo() {
       <img ref={posterRef} alt="" decoding="async"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", transition: "opacity .35s ease" }} />
       <div ref={veilRef} style={{ position: "absolute", inset: 0, background: VEIL }} />
+      <div style={{ position: "absolute", inset: 0, background: VIGNETTE }} />
     </div>
   );
 }

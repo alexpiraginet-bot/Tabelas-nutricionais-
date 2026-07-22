@@ -113,10 +113,11 @@ const BANNER_DIMS={
 /* Banner grande — família visual única: superfície creme, borda fina bege,
    foto real à esquerda (40%) + informação à direita (60%), selo dourado fosco
    e seta discreta. Sem gradientes/bordas coloridas: "luxo silencioso". */
-function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay,full,alt,priority}){
+function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay,full,alt,priority,gap}){
   // Translucidez iOS sutil: o card deixa o filme de fundo "respirar" pelas
   // bordas e pela arte (92%) sem lavar as artes oficiais dos banners.
-  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:"1px solid rgba(228,220,201,.78)",borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
+  // "gap" maior na home abre o vão entre cards para o filme 3D aparecer na rolagem.
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:"1px solid rgba(228,220,201,.78)",borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:gap||14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
   const d=BANNER_DIMS[img];
   // Modo "full": a própria arte já traz selo, título, subtítulo e seta — imagem cobre o card todo.
   const inner=full?(
@@ -213,7 +214,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
             const b=BANNERS[id];if(!b)return null;
-            return <PhotoBanner key={id} full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0}
+            return <PhotoBanner key={id} full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
               {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/>;
           })}
         </div>
