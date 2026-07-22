@@ -46,6 +46,7 @@ export default function WorldFundo() {
     const seekedHandlers = new Map();
     const aborters = [];
     let raf = 0, primed = false, cur = 0, started = false, lastW = window.innerWidth;
+    let gen = 0; // epoch: invalida callbacks de fetch de um breakpoint antigo após resize
 
     const applyActive = () => {
       const v = videos.get(cur);
@@ -68,11 +69,13 @@ export default function WorldFundo() {
     const ensure = (i) => {
       if (i < 0 || i >= LEGS || videos.has(i) || loading.has(i)) return;
       loading.add(i);
+      const myGen = gen; // se o breakpoint trocar durante o download, este fetch fica órfão
       const ac = new AbortController();
       aborters.push(ac);
       fetch(legSrc(i, mob), { signal: ac.signal })
         .then((r) => (r.ok ? r.blob() : Promise.reject(new Error(String(r.status)))))
         .then((b) => {
+          if (myGen !== gen) return; // breakpoint mudou: descarta o vídeo da resolução antiga
           const url = URL.createObjectURL(b);
           blobs.set(i, url);
           const v = document.createElement("video");
@@ -87,9 +90,21 @@ export default function WorldFundo() {
             transition: "opacity .35s ease",
           });
           v.src = url;
-          const onLoaded = () => { if (v.readyState >= 2) requestAnimationFrame(applyActive); };
+          // Ao terminar de carregar: se há um seek pendente (scroll ≠ 0 ou parado
+          // antes do load), aplica-o e deixa o onSeeked revelar no frame certo —
+          // sem seek pendente, revela direto. Evita o flash de frame 0 sobre o poster.
+          const onLoaded = () => {
+            if (v.readyState < 2) return;
+            const t = pending.get(i);
+            if (t !== undefined) seek(i, t);
+            else requestAnimationFrame(applyActive);
+          };
           v.addEventListener("loadeddata", onLoaded);
-          const onSeeked = () => { const t = pending.get(i); if (t !== undefined) seek(i, t); };
+          const onSeeked = () => {
+            const t = pending.get(i);
+            if (t !== undefined) { seek(i, t); return; } // coalesceu outro seek: persegue o último
+            requestAnimationFrame(applyActive);          // frame correto pintado → poster→vídeo
+          };
           seekedHandlers.set(i, onSeeked);
           v.addEventListener("seeked", onSeeked);
           videos.set(i, v);
@@ -98,8 +113,8 @@ export default function WorldFundo() {
           const t = pending.get(i);
           if (t !== undefined) seek(i, t);
         })
-        .catch(() => { /* falhou: fica no poster, sem retry loop */ })
-        .finally(() => loading.delete(i));
+        .catch(() => { /* falhou/abortado: fica no poster, sem retry loop */ })
+        .finally(() => { if (myGen === gen) loading.delete(i); }); // não mexe no loading do novo breakpoint
     };
 
     const update = () => {
@@ -128,6 +143,10 @@ export default function WorldFundo() {
       if (window.innerWidth === lastW) return;
       lastW = window.innerWidth;
       mob = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
+      gen++;                              // invalida os callbacks dos fetches em voo do breakpoint antigo
+      aborters.forEach((a) => a.abort()); // cancela downloads em andamento (resolução que não vale mais)
+      aborters.length = 0;
+      loading.clear();                    // libera ensure() a rebaixar tudo no novo breakpoint
       videos.forEach((v, i) => {
         v.removeEventListener("seeked", seekedHandlers.get(i));
         v.remove();
