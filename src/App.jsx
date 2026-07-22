@@ -142,7 +142,7 @@ const DESTAQUE_PADRAO="eventos";
 const ORDEM_PADRAO=["eventos","bytes","tabelas","cardapio","delivery","parceiro","conheca","carreira"];
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
-  const[destaque,setDestaque]=useState(()=>{try{return localStorage.getItem("bento:destaque")||DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
+  const[destaque,setDestaque]=useState(()=>{try{const v=localStorage.getItem("bento:destaque");return ORDEM_PADRAO.includes(v)?v:DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
   useEffect(()=>{
     fetch("/api/destaque",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(j=>{
       if(j&&j.destaque&&ORDEM_PADRAO.includes(j.destaque)&&j.destaque!==destaque){

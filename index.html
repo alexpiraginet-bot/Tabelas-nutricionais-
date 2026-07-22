@@ -58,8 +58,10 @@
     <link rel="preload" as="image" href="/bento-logo.webp" fetchpriority="high" />
     <script>
       try {
-        var _dst = localStorage.getItem("bento:destaque") || "eventos";
-        if (!/^[a-z]+$/.test(_dst)) _dst = "eventos";
+        // whitelist alinhada com ORDEM_PADRAO (src/App.jsx) e BANNERS_VALIDOS (api/destaque.js)
+        var _ok = { eventos: 1, bytes: 1, tabelas: 1, cardapio: 1, delivery: 1, parceiro: 1, conheca: 1, carreira: 1 };
+        var _dst = localStorage.getItem("bento:destaque");
+        if (!_ok[_dst]) _dst = "eventos";
         var _pl = document.createElement("link");
         _pl.rel = "preload"; _pl.as = "image"; _pl.fetchPriority = "high";
         _pl.href = "/banners/" + _dst + ".webp";
