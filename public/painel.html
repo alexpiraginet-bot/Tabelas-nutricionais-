@@ -182,6 +182,14 @@
     <div class="card kpi"><div class="lab">Botão campeão</div><div class="val accent-blue" id="kTop" style="font-size:20px">—</div><div class="hint" id="kTopHint"></div></div>
   </div>
 
+  <div class="card pane" data-pane="geral" style="margin-bottom:14px">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+      <span>⭐ Destaque da home — 1º card do site</span>
+      <span class="mono" id="dstMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
+    </h3>
+    <div class="chips" id="dstChips" style="display:flex"></div>
+  </div>
+
   <div class="card pane" data-pane="links" style="margin-bottom:14px">
     <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
       <span>🔗 Links rápidos — para posts e stories</span>
@@ -941,6 +949,41 @@ function renderVagas(d){
   $("#vagasEmpty").style.display = cands.length ? "none" : "block";
 }
 
+// ---- ⭐ Destaque da home: escolhe qual banner abre o site (KV via /api/destaque) ----
+var DST_BANNERS = [["eventos","🎉 Eventos"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Cardápio"],["delivery","📍 Delivery"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
+var _dstAtual = null;
+function drawDestaque(){
+  var el = $("#dstChips"); if(!el) return;
+  el.innerHTML = "";
+  DST_BANNERS.forEach(function(p){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = p[0]===_dstAtual ? "on" : "";
+    b.textContent = p[1];
+    b.onclick = function(){ setDestaque(p[0], p[1]); };
+    el.appendChild(b);
+  });
+}
+async function loadDestaque(){
+  try{
+    var r = await fetch("/api/destaque", { cache:"no-store" });
+    if(!r.ok) return;
+    _dstAtual = ((await r.json())||{}).destaque || "eventos";
+    drawDestaque();
+  }catch(e){/* mantém último estado */}
+}
+async function setDestaque(id, label){
+  var key = localStorage.getItem(KEYSTORE) || "";
+  $("#dstMsg").textContent = "salvando…";
+  try{
+    var r = await fetch("/api/destaque", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key }, body: JSON.stringify({ destaque:id }) });
+    var j = await r.json().catch(function(){ return {}; });
+    if(!j.ok) throw new Error(j.error || r.status);
+    _dstAtual = id; drawDestaque();
+    $("#dstMsg").textContent = label+" agora abre a home ✔ (site aplica em ~1 min)";
+  }catch(e){ $("#dstMsg").textContent = "erro: "+e.message; }
+}
+
 // ---- Seja Bentô (funil comercial /seja-bento): cards com classificação automática ----
 var _sbData = null, _sbFilter = "Todos", _sbOpen = {};
 var SB_CAT = { revenda:"🏪 Revenda", distribuicao:"🚚 Distribuição", franquia:"🏬 Franquia", internacional:"🌎 Internacional", parceria:"🤝 Parceria" };
@@ -1250,7 +1293,7 @@ function bindSorteio(){
 bindSorteio();
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadDestaque().catch(()=>{}); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
