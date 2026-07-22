@@ -45,8 +45,11 @@ export default function WorldFundo() {
     posterEl.src = legPoster(0, mob);
     posterEl.style.objectFit = fitFor(mob);
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const saveData = !!(navigator.connection && navigator.connection.saveData);
-    if (reduced || saveData) return; // poster estático basta; nenhum vídeo baixa
+    // Em rede lenta ou economia de dados, fica só no poster — nenhum vídeo baixa.
+    const conn = navigator.connection || navigator.webkitConnection;
+    const et = (conn && conn.effectiveType) || "";
+    const slowNet = !!(conn && (conn.saveData || et === "2g" || et === "slow-2g"));
+    if (reduced || slowNet) return; // poster estático já conta a história
 
     const videos = new Map();
     const blobs = new Map(); // retidos para rolagem reversa sem re-download
