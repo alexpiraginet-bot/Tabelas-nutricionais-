@@ -8,6 +8,16 @@
   ],
   "redirects": [
     {
+      "source": "/financeiro",
+      "destination": "https://bento-sala-financeira.alexpteixe.chatgpt.site",
+      "permanent": false
+    },
+    {
+      "source": "/financeiro/",
+      "destination": "https://bento-sala-financeira.alexpteixe.chatgpt.site",
+      "permanent": false
+    },
+    {
       "source": "/(.*)",
       "has": [{ "type": "host", "value": "eventos.bentogelateria.com" }],
       "destination": "https://bentogelateria.com/bytes/",
