@@ -85,7 +85,7 @@ const S5: React.FC = () => (
       </div>
     </Rise>
     {gap(26)}
-    <Rise delay={20}><Sub>Sem açúcar adicionado · rico em proteína · rótulo limpo.</Sub></Rise>
+    <Rise delay={20}><Sub>Sem adição de açúcares · rico em proteína · rótulo limpo.</Sub></Rise>
   </Scene>
 );
 

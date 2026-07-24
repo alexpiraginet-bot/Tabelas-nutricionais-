@@ -47,7 +47,7 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
       x.fillStyle="#fff"; x.fillText(p.name, 540, 600);
       x.fillStyle="#E3C46A"; x.font="800 96px Helvetica"; x.fillText(`${p.nutrition.protein}g de proteína`, 540, 780);
       x.fillStyle="#E9EFDC"; x.font="600 40px Helvetica";
-      x.fillText(`${p.nutrition.kcal} kcal · ${p.nutrition.addedSugars>0?p.nutrition.addedSugars+"g açúcar adic.":"zero açúcar adicionado"}`, 540, 860);
+      x.fillText(`${p.nutrition.kcal} kcal · ${p.nutrition.addedSugars>0?p.nutrition.addedSugars+"g açúcar adic.":"sem adição de açúcares"}`, 540, 860);
       x.fillStyle="#B8C97A"; x.font="italic 700 44px Georgia, serif"; x.fillText("Qual é o seu? Faça o quiz:", 540, 1150);
       x.fillStyle="#9FB089"; x.font="500 32px Helvetica"; x.fillText("bentogelateria.com", 540, 1215);
       c.toBlob(b=>resolve(b),"image/png");
@@ -482,7 +482,7 @@ const CARDAPIO = [
   { cat:"Bebidas", emoji:"🧃", items:[
     { name:"Brain-Up True", info:"lata", price:"14,90", img:"/cardapio/brain-up.jpg" },
     { name:"Pro Force", info:"bebida láctea proteica", price:"9,90", img:"/cardapio/pro-force.jpg" },
-    { name:"Cold Brew 200 ml", info:"zero açúcar", price:"24,90", img:"/cardapio/cold-brew.jpg" },
+    { name:"Cold Brew 200 ml", info:"sem adição de açúcares", price:"24,90", img:"/cardapio/cold-brew.jpg" },
   ]},
   { cat:"Cafeteria", emoji:"☕", items:[
     { name:"Café Expresso", info:"especial 85 pontos", price:"8,90", img:"/cardapio/cafe-expresso.jpg" },
@@ -1388,7 +1388,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
       <BentoLogo size={104}/>
       <h1 style={{...H1,marginTop:26,fontSize:"clamp(38px,8vw,76px)"}}>Gelato com <i style={{color:pist,fontStyle:"italic"}}>propósito</i></h1>
       <p style={{...BODY,marginTop:18,opacity:0.85}}>A primeira linha brasileira de gelato funcional: sabor de sobremesa, ficha técnica de suplemento.</p>
-      <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:28}}>{["Zero açúcar adicionado","Rico em proteína","Rótulo limpo"].map(pill)}</div>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:28}}>{["Sem adição de açúcares","Rico em proteína","Rótulo limpo"].map(pill)}</div>
       <div className="fm" style={{fontSize:11,letterSpacing:"0.3em",color:"#9A9C86",marginTop:34,textTransform:"uppercase"}}>Espírito Santo · Brasil</div>
     </div>,
     // 1 — Problema
@@ -1469,7 +1469,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
     <div key="s9" style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
       <PitchKicker n={9} total={10} label="Visão" gold={gold}/>
       <h1 style={{...H1,fontSize:"clamp(32px,7vw,64px)"}}>A referência nacional<br/>em sobremesa funcional.</h1>
-      <p style={{...BODY,marginTop:20,textAlign:"center"}}>Zero açúcar adicionado. Alta proteína. Rótulo limpo. Sem abrir mão do prazer.</p>
+      <p style={{...BODY,marginTop:20,textAlign:"center"}}>Sem adição de açúcares. Alta proteína. Rótulo limpo. Sem abrir mão do prazer.</p>
       <div style={{display:"flex",gap:12,flexWrap:"wrap",justifyContent:"center",marginTop:34}}>
         <a href={DECK_URL} target="_blank" rel="noopener noreferrer" className="fb" style={{background:gold,color:ink,border:"none",borderRadius:11,padding:"13px 24px",fontSize:14,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}><Printer size={15}/>Baixar PDF</a>
         <button onClick={onCatalog} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:11,padding:"13px 24px",fontSize:14,display:"flex",alignItems:"center",gap:8}}>Explorar catálogo <ChevronRight size={14}/></button>
@@ -1627,7 +1627,7 @@ export function CulpaModal({onClose,onDelivery,productId}){
 
           <div style={{display:"flex",alignItems:"center",gap:10,background:"#EFF5E5",border:"1px solid #CBD9A6",borderRadius:16,padding:"12px 14px",marginBottom:4}}>
             <div className="fd" style={{fontSize:26,color:T.pistacheDark,fontWeight:600,lineHeight:1,whiteSpace:"nowrap"}}>{bKcal} kcal</div>
-            <div className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem açúcar adicionado</b> e com {bProt} g de proteína. <span style={{color:T.inkSoft}}>(comum ≈ {cKcal} kcal)</span></div>
+            <div className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.35}}>por porção de {pis.portionLabel} — leve, <b style={{color:T.ink}}>sem adição de açúcares</b> e com {bProt} g de proteína. <span style={{color:T.inkSoft}}>(comum ≈ {cKcal} kcal)</span></div>
           </div>
 
           <div style={{display:"flex",gap:8,marginTop:6,flexWrap:"wrap"}}>
@@ -1661,7 +1661,7 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
         </div>
         <div style={{padding:22}}>
           <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:8,lineHeight:1.55}}>Análogos de <strong>GLP-1</strong> (como semaglutida e tirzepatida) reduzem o apetite. Comendo menos, fica difícil bater a <strong>proteína do dia</strong> — e é ela que protege a sua <strong>massa magra</strong>.</div>
-          <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:16,lineHeight:1.55}}>O Bentô resolve isso: <strong>muita proteína numa porção pequena</strong>, fácil de comer mesmo sem fome, com <strong>zero açúcar adicionado</strong>.</div>
+          <div className="fb" style={{fontSize:13.5,color:T.ink,marginBottom:16,lineHeight:1.55}}>O Bentô resolve isso: <strong>muita proteína numa porção pequena</strong>, fácil de comer mesmo sem fome e <strong>sem adição de açúcares</strong>.</div>
 
           <div style={{display:"flex",gap:10,marginBottom:18}}>
             <div style={{flex:1,background:"#EAF0F8",border:"1px solid #BFD2EC",borderRadius:16,padding:"14px 8px",textAlign:"center"}}>
@@ -1708,4 +1708,3 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
     </div>
   );
 }
-

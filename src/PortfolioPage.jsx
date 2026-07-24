@@ -46,14 +46,14 @@ export default function PortfolioPage(){
           <img src="/bento-logo.webp" alt="Bentô" width={84} height={84} style={{borderRadius:"50%"}}/>
           <div style={{...sectionTag,marginTop:14}}>Bentô Gelatos · para parceiros</div>
           <h1 style={{fontFamily:SERIF,fontSize:"clamp(34px,6vw,60px)",lineHeight:1.02,margin:"10px 0 8px",fontWeight:600,letterSpacing:"-0.02em"}}>Portfólio de Produtos</h1>
-          <p style={{fontSize:15,color:C.soft,maxWidth:560,margin:"0 auto",lineHeight:1.5}}>Linha proteica, sem açúcar adicionado e rótulo limpo. Picolés Bentôlé e potes selados de 140 ml — premium, com whey hidrolisado e margem atrativa para o parceiro.</p>
+          <p style={{fontSize:15,color:C.soft,maxWidth:560,margin:"0 auto",lineHeight:1.5}}>Linha proteica, sem adição de açúcares e rótulo limpo. Picolés Bentôlé e potes selados de 140 ml — premium, com whey hidrolisado e margem atrativa para o parceiro.</p>
         </header>
 
         {/* PROPOSTA */}
         <div className="pf-sec" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:12,marginBottom:50}}>
           {[["Premium","Estética sofisticada e percepção de valor superior ao congelado comum."],
             ["Proteico","Whey hidrolisado — diálogo direto com o público fitness e wellness."],
-            ["Sem açúcar adicionado","Rótulo limpo · opções low-carb e para controle glicêmico."],
+            ["Sem adição de açúcares","Rótulo limpo · opções low-carb e para controle glicêmico."],
             ["Margem atrativa","Picolés e potes 140 ml com boa margem e alto giro."]].map(([t,d])=>(
             <div key={t} style={{background:C.surface,border:`1px solid ${C.border}`,borderRadius:10,padding:"16px 16px"}}>
               <div style={{fontFamily:SERIF,fontSize:18,color:C.pist,marginBottom:4}}>{t}</div>
@@ -112,7 +112,7 @@ export default function PortfolioPage(){
               </div>
             ))}
           </div>
-          <p style={{fontSize:11,color:C.soft,marginTop:12,lineHeight:1.5}}>Proteína de referência por porção de 60 g. Sem açúcar adicionado. Pote selado de 140 ml.</p>
+          <p style={{fontSize:11,color:C.soft,marginTop:12,lineHeight:1.5}}>Proteína de referência por porção de 60 g. Sem adição de açúcares. Pote selado de 140 ml.</p>
         </section>
 
         {/* CONTATO */}

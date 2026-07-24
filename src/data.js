@@ -111,7 +111,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Preparado de cacau sabor gianduia",qty:"400 g",note:PREPARADO_CACAU}],
     nutrition:{kcal:120,carbs:21,sugars:1.8,addedSugars:0,protein:5.7,fat:4.0,satFat:0.8,transFat:0,fiber:0.8,sodium:8},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"O clássico reinventado sem açúcar adicionado. Cremoso italiano sabor gianduia enriquecido com whey hidrolisado." },
+    description:"O clássico reinventado sem adição de açúcares. Cremoso italiano sabor gianduia enriquecido com whey hidrolisado." },
   { id:"limao-siciliano", name:"Limão Siciliano", category:"gelato", sub:"Sorbet funcional", emoji:"🍋", estimated:true, // fórmula nova (suco de limão no lugar da base pronta): reanalisar macros
     moods:["refrescante","leve","zerocal"], palette:{base:"#F4E78A",mid:"#D9C447",deep:"#8B7A1E",swirl:"#5C5114",hl:"#FFF8C4"}, image:null,
     serving:100, portionLabel:"100 g",
@@ -139,14 +139,14 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta sabor leite",qty:"250 g",note:PASTA_LEITE}],
     nutrition:{kcal:144,carbs:23,sugars:5.4,addedSugars:0,protein:11,fat:5.2,satFat:2.4,transFat:0,fiber:0.3,sodium:51},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Textura aveludada de chocolate branco com whey hidrolisado. 11g de proteína, sem açúcar adicionado. Suavidade sem culpa." },
+    description:"Textura aveludada de chocolate branco com whey hidrolisado. 11g de proteína, sem adição de açúcares. Suavidade sem culpa." },
   { id:"coco", name:"Coco", category:"gelato", sub:"Tropical cremoso", emoji:"🥥",
     moods:["refrescante","comfort"], palette:{base:"#FBF7EE",mid:"#E5DCC5",deep:"#A89C7C",swirl:"#5E5440",hl:"#FFFFFF"}, image:null,
     serving:60, portionLabel:"60 g",
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"250 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"}],
     nutrition:{kcal:159,carbs:22,sugars:3.8,addedSugars:0,protein:6.7,fat:5.5,satFat:4.2,transFat:0,fiber:0,sodium:41},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Leite de coco em pó real com textura densa e aroma tropical. Sem açúcar adicionado, sem glúten." },
+    description:"Leite de coco em pó real com textura densa e aroma tropical. Sem adição de açúcares, sem glúten." },
   { id:"chocolate-dubai", name:"Chocolate Dubai", category:"gelato", sub:"Cacau · pistache · kadaif", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#5A3D24",mid:"#3A2614",deep:"#1F1408",swirl:"#A4B96A",hl:"#D4B074"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -160,7 +160,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"420 g"},{name:"Pasta de pistache",qty:"160 g",note:PASTA_PISTACHE}],
     nutrition:{kcal:130,carbs:21,sugars:4.4,addedSugars:0,protein:10,fat:4.5,satFat:2.1,transFat:0,fiber:0,sodium:40},
     flags:{gluten:true,lactose:false}, yield:"5.000 mL",
-    description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, zero açúcar adicionado." },
+    description:"Pasta de pistache selecionada, origem italiana. Cor natural, sabor intenso. 10g de proteína, sem adição de açúcares." },
 
   /* ===== 10 novos sabores — macros ESTIMADOS por analogia (estimated:true). Confirmar com análise laboratorial antes de uso em rótulo. ===== */
   { id:"morango", name:"Morango", category:"gelato", sub:"Cremoso de fruta", emoji:"🍓", estimated:true,
@@ -169,7 +169,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Polpa de morango",qty:"600 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"320 g"},{name:"Leite em pó desnatado",qty:"300 g"}],
     nutrition:{kcal:96,carbs:17,sugars:4.6,addedSugars:0,protein:7.6,fat:1.8,satFat:0.9,transFat:0,fiber:1.6,sodium:34},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Morango de verdade com whey hidrolisado. Refrescante, cremoso e leve. 7,6g de proteína, sem açúcar adicionado." },
+    description:"Morango de verdade com whey hidrolisado. Refrescante, cremoso e leve. 7,6g de proteína, sem adição de açúcares." },
   { id:"baunilha", name:"Baunilha de Madagascar", category:"gelato", sub:"Fior di latte · fava de baunilha", emoji:"🤍", estimated:true,
     moods:["comfort","proteina","indulgente"], palette:{base:"#F5E9CC",mid:"#E6D2A0",deep:"#B89B5E",swirl:"#8A6E3A",hl:"#FFF8E6"}, image:null,
     serving:60, portionLabel:"60 g",
@@ -197,7 +197,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"380 g"},{name:"Café espresso",qty:"180 mL"}],
     nutrition:{kcal:114,carbs:16,sugars:4.4,addedSugars:0,protein:10,fat:3.4,satFat:2.0,transFat:0,fiber:0.5,sodium:48},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Espresso intenso com whey hidrolisado. Para quem ama café de verdade. 10g de proteína, sem açúcar adicionado." },
+    description:"Espresso intenso com whey hidrolisado. Para quem ama café de verdade. 10g de proteína, sem adição de açúcares." },
   { id:"maracuja", name:"Maracujá", category:"gelato", sub:"Sorbet funcional", emoji:"💛", estimated:true,
     moods:["refrescante","leve","zerocal"], palette:{base:"#F2D24A",mid:"#D9A823",deep:"#8B6A14",swirl:"#5C4A10",hl:"#FFF0A0"}, image:null,
     serving:100, portionLabel:"100 g",
@@ -225,7 +225,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Banana",qty:"500 g"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"300 g"},{name:"Leite em pó desnatado",qty:"300 g"},{name:"Canela do Ceilão",qty:"5 g"}],
     nutrition:{kcal:110,carbs:21,sugars:7.0,addedSugars:0,protein:7.4,fat:1.5,satFat:0.7,transFat:0,fiber:1.8,sodium:30},
     flags:{gluten:false,lactose:false}, yield:"5.000 mL",
-    description:"Banana real com canela do Ceilão e whey hidrolisado. Doçura natural da fruta, zero açúcar adicionado. Ótimo pós-treino." },
+    description:"Banana real com canela do Ceilão e whey hidrolisado. Doçura natural da fruta, sem adição de açúcares. Ótimo pós-treino." },
 
   { id:"bentole-choco-dubai", name:"Chocolate Dubai", category:"bentole", sub:"Cacau · pistache · kadaif · choco meio amargo", emoji:"✨",
     moods:["premium","indulgente","proteina"], palette:{base:"#3D2818",mid:"#2A1A0E",deep:"#140A05",swirl:"#A4B96A",hl:"#E4C9A0"}, image:"/sabores/bentole-choco-dubai.jpg",
@@ -268,7 +268,7 @@ export const PRODUCTS = [
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Proteína do soro de leite hidrolisada (whey)",qty:"650 g"},{name:"Leite em pó desnatado",qty:"350 g"},{name:"Leite de coco em pó",qty:"280 g"},{name:"Cobertura sabor chocolate ao leite zero lactose",qty:"120 g",note:COBERTURA_AO_LEITE},{name:"Coco ralado",qty:"60 g"}],
     nutrition:{kcal:91,carbs:13,sugars:3.5,addedSugars:0,protein:8,fat:4.0,satFat:3.0,transFat:0,fiber:1.0,sodium:30},
     flags:{gluten:false,lactose:true}, yield:"~100 picolés",
-    description:"O clássico Prestígio em mini picolé: coco cremoso com cobertura de chocolate. 8g de proteína, sem açúcar adicionado. 91 kcal (55g) · 182 kcal (110g)." },
+    description:"O clássico Prestígio em mini picolé: coco cremoso com cobertura de chocolate. 8g de proteína, sem adição de açúcares. 91 kcal (55g) · 182 kcal (110g)." },
 ];
 
 // Advertência de polióis (maltitol/sorbitol da Base FRUTA 300 ZERO — 65 g/100 g na base).
@@ -395,17 +395,20 @@ export function proteinClaim(p){
 }
 
 // Alegação de açúcares (RDC 54/2012) — FONTE ÚNICA para app, fichas e CSV:
-//  · "ZERO AÇÚCARES" (absoluto): nenhum açúcar adicionado E ≤ 0,5 g de açúcares totais/100 g.
-//  · "SEM ADIÇÃO DE AÇÚCARES": nenhum açúcar adicionado no processamento; quando o alimento
+// Política Bentô: a interface nunca publica "zero açúcar/zero açúcares", mesmo
+// quando o critério absoluto seria atendido. A única alegação exibível é
+// "SEM ADIÇÃO DE AÇÚCARES": nenhum açúcar adicionado no processamento; quando o alimento
 //    contém açúcares próprios (lactose do leite/whey, frutose das frutas, etc.), a alegação
 //    DEVE vir acompanhada da frase "Contém açúcares próprios dos ingredientes."
 //  · Qualquer adição (mesmo residual, ex.: 0,1 g vinda de um insumo açucarado) → SEM alegação.
 export const FRASE_ACUCARES_PROPRIOS = "Contém açúcares próprios dos ingredientes.";
 export function sugarClaim(p){
-  const n = p.nutrition, f = 100 / p.serving;
+  const n = p.nutrition;
   if ((n.addedSugars || 0) > 0) return null;                       // houve adição → não alega
-  if ((n.sugars || 0) * f <= 0.5) return { label: "ZERO AÇÚCARES", note: null };
-  return { label: "SEM ADIÇÃO DE AÇÚCARES", note: FRASE_ACUCARES_PROPRIOS };
+  return {
+    label: "SEM ADIÇÃO DE AÇÚCARES",
+    note: (n.sugars || 0) > 0 ? FRASE_ACUCARES_PROPRIOS : null,
+  };
 }
 
 export const MOOD_META = {

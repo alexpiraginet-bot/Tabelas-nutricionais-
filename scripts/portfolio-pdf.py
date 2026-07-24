@@ -103,7 +103,7 @@ d.text((690,1142),"Imagem meramente ilustrativa",font=F(SANS,16),fill=(150,148,1
 # rodapé
 d.line([(90,1300),(W-90,1300)],fill=LINE,width=2)
 d.text((90,1340),"Do pré-treino à sobremesa.",font=F(SERIFB,40),fill=INK)
-para(d,90,1410,"A Bentô transforma proteína em sobremesa — sem açúcar adicionado, rótulo limpo e whey WPH. Linha de picolés e potes premium para o seu negócio.",F(SANS,24),SOFT,640,34,3)
+para(d,90,1410,"A Bentô transforma proteína em sobremesa — sem adição de açúcares, rótulo limpo e whey WPH. Linha de picolés e potes premium para o seu negócio.",F(SANS,24),SOFT,640,34,3)
 lbl="PORTFÓLIO · PARCEIROS"; d.text((W-90-tw(d,lbl,F(SANSB,22)),1620),lbl,font=F(SANSB,22),fill=GOLD)
 pages.append(c)
 
@@ -172,11 +172,11 @@ PICOLES=[
    dollop="public/portfolio/dollops/opereta.png",photo="public/sabores/bentole-opereta.jpg",
    specs=[("Proteína","9,9 g"),("Valor energético","86 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,2 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
  dict(name="Snickers",sub="Amendoim, doce de leite e chocolate 70%",
-   desc="Inspirado no clássico, em versão proteica: amendoim real, doce de leite zero açúcar e chocolate 70%.",
+   desc="Inspirado no clássico, em versão proteica: amendoim real, doce de leite sem adição de açúcares e chocolate 70%.",
    dollop="public/portfolio/dollops/snickers.png",photo="public/sabores/bentole-snickers.jpg",
    specs=[("Proteína","9,6 g"),("Valor energético","95 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,5 g"),SZ,("Restrições","Sem glúten · sem lactose")]),
  dict(name="Prestígio",sub="Coco cremoso e cobertura de chocolate",
-   desc="O clássico Prestígio reinventado em mini picolé proteico: coco cremoso com cobertura de chocolate, sem açúcar adicionado.",
+   desc="O clássico Prestígio reinventado em mini picolé proteico: coco cremoso com cobertura de chocolate, sem adição de açúcares.",
    dollop="public/portfolio/dollops/prestigio.png",photo="public/sabores/bentole-prestigio.jpg",
    specs=[("Proteína","8 g"),("Valor energético","91 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","1 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
  dict(name="Franuí",sub="Framboesa, chocolate branco e chocolate 70%",
@@ -198,7 +198,7 @@ POTES=[
    dollop="public/portfolio/dollops/pistache.png",photo="public/sabores/pistache.jpg",
    specs=[("Proteína","10 g"),("Valor energético","130 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0 g"),("Formato","Pote selado · 140 ml"),("Restrições","Contém glúten · sem lactose")]),
  dict(name="Doce de Leite",sub="Doce de leite mesclado e granela",
-   desc="O sabor afetivo brasileiro, zero açúcar adicionado, com whey WPH — em pote selado de 140 ml.",
+   desc="O sabor afetivo brasileiro, sem adição de açúcares, com whey WPH — em pote selado de 140 ml.",
    dollop="public/portfolio/dollops/doce.png",photo="public/sabores/doce-de-leite.jpg",
    specs=[("Proteína","11 g"),("Valor energético","138 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","0,2 g"),("Formato","Pote selado · 140 ml"),("Restrições","Sem glúten · sem lactose")]),
 ]
@@ -206,11 +206,11 @@ ING={
  "Pistache & Choco Branco":"Pasta de pistache italiana selecionada, whey WPH, cobertura de chocolate branco zero, pistaches inteiros e leite.",
  "Chocolate Dubai":"Whey WPH, cacau, creme de pistache, stracciatella zero, kadaif crocante e leite.",
  "Opereta":"Whey WPH, chocolate branco, castanhas selecionadas e leite.",
- "Snickers":"Whey WPH, pasta de amendoim, doce de leite zero açúcar, chocolate 70% e leite.",
+ "Snickers":"Whey WPH, pasta de amendoim, doce de leite sem adição de açúcares, chocolate 70% e leite.",
  "Prestígio":"Whey WPH, leite de coco, coco ralado e cobertura de chocolate ao leite zero.",
  "Franuí":"Framboesa real, colágeno hidrolisado e cobertura dupla de chocolate (branco e 70% zero).",
  "Pistache":"Pasta de pistache italiana selecionada, whey WPH e leite.",
- "Doce de Leite":"Doce de leite zero açúcar, whey WPH e leite.",
+ "Doce de Leite":"Doce de leite sem adição de açúcares, whey WPH e leite.",
 }
 def slug(s):
     s=unicodedata.normalize("NFKD",s).encode("ascii","ignore").decode().lower()

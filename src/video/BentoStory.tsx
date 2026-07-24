@@ -187,7 +187,7 @@ const STabelas: React.FC = () => (
     <Rise delay={18}>
       <div>
         <Pill>Proteína</Pill>
-        <Pill>Sem açúcar adicionado</Pill>
+        <Pill>Sem adição de açúcares</Pill>
         <Pill>Rótulo limpo</Pill>
       </div>
     </Rise>

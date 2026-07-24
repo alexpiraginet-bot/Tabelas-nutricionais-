@@ -31,7 +31,7 @@ async function poster(items, { title, subtitle, cols, file }) {
     <rect x="0" y="0" width="${W}" height="${headH}" fill="${OLIVE}"/>
     <text x="${W/2}" y="170" fill="#F1ECDD" font-family="Georgia, serif" font-size="92" font-weight="600" text-anchor="middle" letter-spacing="6">${esc(title)}</text>
     <text x="${W/2}" y="232" fill="${GOLD}" font-family="Georgia, serif" font-size="40" font-style="italic" text-anchor="middle">${esc(subtitle)}</text>
-    <text x="${W/2}" y="300" fill="#D8C7AE" font-family="monospace" font-size="24" text-anchor="middle" letter-spacing="6">ZERO AÇÚCAR ADICIONADO · RICO EM PROTEÍNA · RÓTULO LIMPO</text>`;
+    <text x="${W/2}" y="300" fill="#D8C7AE" font-family="monospace" font-size="24" text-anchor="middle" letter-spacing="6">SEM ADIÇÃO DE AÇÚCARES · RICO EM PROTEÍNA · RÓTULO LIMPO</text>`;
 
   items.forEach((p, i) => {
     const cx = Math.round(colW * (i % cols) + colW / 2);

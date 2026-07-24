@@ -123,7 +123,7 @@ const SCal: React.FC = () => (
     {gap(34)}
     <Rise delay={22}>
       <div style={{ display: "inline-block", background: C.pist, color: "#fff", fontFamily: SANS, fontWeight: 700, fontSize: 40, padding: "20px 38px", borderRadius: 999 }}>
-        sem açúcar adicionado · 10 g de proteína
+        sem adição de açúcares · 10 g de proteína
       </div>
     </Rise>
   </Scene>
@@ -147,7 +147,7 @@ const SFim: React.FC = () => (
     {gap(34)}
     <Rise delay={8}>
       <div>
-        <Pill solid>Sem açúcar adicionado</Pill>
+        <Pill solid>Sem adição de açúcares</Pill>
         <Pill solid>Rico em proteína</Pill>
         <Pill solid>Rótulo limpo</Pill>
       </div>
@@ -172,7 +172,7 @@ export const SemCulpaStory: React.FC = () => {
         <TransitionSeries.Sequence durationInFrames={95}><SHook /></TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={fade()} />
         <TransitionSeries.Sequence durationInFrames={130}>
-          <Metric tag="Açúcar adicionado / porção" title="Zero açúcar adicionado" bento={0} comum={13} unit="g" dec={0} bentoWins note="só o natural do leite/fruta" />
+          <Metric tag="Açúcar adicionado / porção" title="Sem adição de açúcares" bento={0} comum={13} unit="g" dec={0} bentoWins note="só o natural do leite/fruta" />
         </TransitionSeries.Sequence>
         <TransitionSeries.Transition timing={t} presentation={sr()} />
         <TransitionSeries.Sequence durationInFrames={130}>

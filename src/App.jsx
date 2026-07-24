@@ -188,7 +188,7 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
           Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
         </h1>
         <p className="fb rise" style={{maxWidth:400,margin:"10px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.6,animationDelay:"100ms"}}>
-          Sobremesas funcionais com estética premium. Zero açúcar adicionado, alto padrão nutricional.
+          Sobremesas funcionais com estética premium. Sem adição de açúcares, alto padrão nutricional.
         </p>
         <div className="rise" style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:20,animationDelay:"150ms"}}>
           <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
@@ -483,7 +483,7 @@ function ProductCard({product:p,onClick,delay,inCompare,canCompare,onToggleCompa
           <Chip tone={p.flags.gluten?"warn":"good"}>{p.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
           {!p.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
           {proteinClaim(p)&&<Chip tone="good">{proteinClaim(p)}</Chip>}
-          {p.nutrition.addedSugars===0&&<Chip tone="good">Sem Açúcar Adicionado</Chip>}
+          {p.nutrition.addedSugars===0&&<Chip tone="good">Sem Adição de Açúcares</Chip>}
           {p.estimated&&<Chip tone="neutral">Macros Estimados</Chip>}
         </div>
         {lupaFrontal(p).map(l=>(
@@ -567,7 +567,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
               <div style={{display:"flex",flexWrap:"wrap",gap:6,justifyContent:"center"}}>
                 <Chip tone={product.flags.gluten?"warn":"good"}>{product.flags.gluten?"Contém Glúten":"Não Contém Glúten"}</Chip>
                 {!product.flags.lactose&&<Chip tone="good">Zero Lactose</Chip>}
-                {sugarClaim(product)&&<Chip tone="good">{sugarClaim(product).label==="ZERO AÇÚCARES"?"Zero Açúcares":"Sem Adição de Açúcares"}</Chip>}
+                {sugarClaim(product)&&<Chip tone="good">Sem Adição de Açúcares</Chip>}
                 {claim&&<Chip tone="good">{claim}</Chip>}
                 {n.fiber*100/product.serving>=6?<Chip tone="good">Alto Teor de Fibras</Chip>:n.fiber*100/product.serving>=3?<Chip tone="good">Fonte de Fibras</Chip>:null}
               </div>
@@ -730,7 +730,7 @@ function TabelasIntro({onClose}){
   // 130 kcal — manter em sincronia com src/data.js ao regravar a arte.
   return(
     <div className="fade" role="dialog" aria-modal="true" aria-label="Bentô comparado ao sorvete comum" onClick={onClose} style={{position:"fixed",inset:0,zIndex:250,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
-      <button className="rise gn" onClick={onClose} aria-label="Bentô × sorvete comum: zero açúcar adicionado e quase 5 vezes mais proteína. Toque para ver as fichas." style={{background:"none",border:"none",padding:0,cursor:"pointer",maxWidth:520,width:"100%"}}>
+      <button className="rise gn" onClick={onClose} aria-label="Bentô × sorvete comum: sem adição de açúcares e quase 5 vezes mais proteína. Toque para ver as fichas." style={{background:"none",border:"none",padding:0,cursor:"pointer",maxWidth:520,width:"100%"}}>
         <img src="/banners/push-culpa.webp" alt="" width={1120} height={1400} style={{display:"block",width:"100%",height:"auto",maxHeight:"92dvh",objectFit:"contain",borderRadius:20,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}/>
       </button>
     </div>

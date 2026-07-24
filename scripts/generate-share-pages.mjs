@@ -21,7 +21,7 @@ const VIEWS = {
   },
   cardapio: {
     title: "Cardápio — Bentô Gelatos",
-    desc: "Gelatos e picolés proteicos sem açúcar adicionado. Peça no site com entrega própria ou retire na loja.",
+    desc: "Gelatos e picolés proteicos sem adição de açúcares. Peça no site com entrega própria ou retire na loja.",
     image: "/og-share/cardapio.jpg",
   },
   delivery: {
@@ -36,7 +36,7 @@ const VIEWS = {
   },
   parceria: {
     title: "Seja um parceiro — Bentô Gelatos",
-    desc: "Revenda, franquia e parcerias comerciais: leve o gelato proteico sem açúcar adicionado para o seu negócio.",
+    desc: "Revenda, franquia e parcerias comerciais: leve o gelato proteico sem adição de açúcares para o seu negócio.",
     image: "/og-share/parceria.jpg",
   },
   vagas: {
@@ -46,7 +46,7 @@ const VIEWS = {
   },
   portfolio: {
     title: "Conheça a Bentô — Gelato com propósito",
-    desc: "Nossa história, nossas lojas e o propósito por trás do gelato proteico sem açúcar adicionado de Vitória-ES.",
+    desc: "Nossa história, nossas lojas e o propósito por trás do gelato proteico sem adição de açúcares de Vitória-ES.",
     image: "/og-share/portfolio.jpg",
   },
 };
