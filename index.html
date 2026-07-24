@@ -59,7 +59,7 @@
     <script>
       try {
         // whitelist alinhada com ORDEM_PADRAO (src/App.jsx) e BANNERS_VALIDOS (api/destaque.js)
-        var _ok = { eventos: 1, bytes: 1, tabelas: 1, cardapio: 1, delivery: 1, parceiro: 1, conheca: 1, carreira: 1 };
+        var _ok = { eventos: 1, studio: 1, bytes: 1, tabelas: 1, cardapio: 1, delivery: 1, parceiro: 1, conheca: 1, carreira: 1 };
         var _dst = localStorage.getItem("bento:destaque");
         if (!_ok[_dst]) _dst = "eventos";
         var _pl = document.createElement("link");

@@ -18,7 +18,7 @@ const { url: KV_URL, token: KV_TOKEN } = findKV();
 const PANEL_KEY = process.env.PANEL_KEY;
 const KEY = "home:destaque";
 // mesma lista de ORDEM_PADRAO em src/App.jsx — manter em sincronia ao criar banner novo
-export const BANNERS_VALIDOS = ["eventos", "bytes", "tabelas", "cardapio", "delivery", "parceiro", "conheca", "carreira"];
+export const BANNERS_VALIDOS = ["eventos", "studio", "bytes", "tabelas", "cardapio", "delivery", "parceiro", "conheca", "carreira"];
 const PADRAO = "eventos";
 
 async function kv(args) {

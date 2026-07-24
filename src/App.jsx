@@ -102,7 +102,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites,onOpenFavs})
 /* Dimensões reais das artes (px) — reservam o espaço do banner e zeram o CLS
    sem cortar a imagem (a proporção é a da própria arte). */
 const BANNER_DIMS={
-  "/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,533],"/banners/delivery.webp":[1600,686],
+  "/banners/studio.webp":[1600,686],"/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,533],"/banners/delivery.webp":[1600,686],
   "/banners/cardapio.webp":[1600,686],"/banners/eventos.webp":[1600,686],
   "/banners/parceiro.webp":[1600,533],"/banners/conheca.webp":[1600,533],"/banners/carreira.webp":[1600,533],
   "/banners/tab-gelatos.webp":[1600,533],"/banners/tab-bentole.webp":[1600,533],"/banners/tab-shakes.webp":[1600,533],
@@ -145,7 +145,7 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 // Sem escolha salva, EVENTOS abre a home. O valor fica em localStorage para
 // visitas seguintes renderizarem já na ordem certa (sem salto de layout).
 const DESTAQUE_PADRAO="eventos";
-const ORDEM_PADRAO=["eventos","bytes","tabelas","cardapio","delivery","parceiro","conheca","carreira"];
+const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","delivery","parceiro","conheca","carreira"];
 function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   const[destaque,setDestaque]=useState(()=>{try{const v=localStorage.getItem("bento:destaque");return ORDEM_PADRAO.includes(v)?v:DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
@@ -158,6 +158,8 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
     }).catch(()=>{});
   },[]); // roda 1× por visita; "destaque" inicial vem do localStorage de propósito
   const BANNERS={
+    studio:{img:"/banners/studio.webp",as:"a",href:"https://totem.bentogelateria.com/meu-studio",tkName:"Bentô Meu Studio · Abrir",
+      alt:"Bentô Meu Studio — crie uma pequena edição personalizada de Bentôlés com sabor e rótulo comemorativo"},
     bytes:{img:"/banners/bytes.webp",as:"a",href:"/bytes/",target:"_blank",tkName:"Lançamento · BentôBytes",
       alt:"BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"},
     tabelas:{img:"/banners/tabelas.webp",action:onTabelas,tkName:"Tabelas Nutricionais",
@@ -963,4 +965,3 @@ export default function App(){
     </div>
   );
 }
-
