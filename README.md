@@ -15,7 +15,7 @@
 
 ## 💡 O que é & motivação
 
-A **Bentô Gelatos** produz gelato e picolé **proteico, sem açúcar adicionado**, com opções low-carb e para diabéticos — e para esse público a **informação nutricional não é detalhe, é decisão de compra**.
+A **Bentô Gelatos** produz gelato e picolé **proteico, sem adição de açúcares**, com opções low-carb e para diabéticos — e para esse público a **informação nutricional não é detalhe, é decisão de compra**.
 
 Este projeto resolve isso de ponta a ponta:
 
@@ -55,7 +55,7 @@ python3 -m http.server 8000   # abra http://localhost:8000
 ## 🧪 Como testar (usuários & recrutadores)
 
 1. **Abra** 👉 <https://project-my3gq.vercel.app> — de preferência **no celular**, como um cliente na loja faria (o QR code da página do hub abre direto).
-2. Navegue até a **tabela nutricional** de um produto e repare no rótulo limpo: proteína, zero açúcar adicionado, opções low-carb.
+2. Navegue até a **tabela nutricional** de um produto e repare no rótulo limpo: proteína, sem adição de açúcares, opções low-carb.
 3. **Recrutadores:** o interessante aqui é o pipeline de conteúdo — ficha técnica → salvamento automático → sincronização → **publicação no site em um clique**. As telas (desktop + mobile) e o status de disponibilidade ficam sempre atualizados na [página do hub](https://alex-hub-three.vercel.app/repo/tabelas-nutricionais).
 
 ## 🔗 Links

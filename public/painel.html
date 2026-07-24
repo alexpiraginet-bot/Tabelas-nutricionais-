@@ -950,7 +950,7 @@ function renderVagas(d){
 }
 
 // ---- ⭐ Destaque da home: escolhe qual banner abre o site (KV via /api/destaque) ----
-var DST_BANNERS = [["eventos","🎉 Eventos"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Cardápio"],["delivery","📍 Delivery"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
+var DST_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Cardápio"],["delivery","📍 Delivery"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
 var _dstAtual = null;
 function drawDestaque(){
   var el = $("#dstChips"); if(!el) return;
@@ -1058,6 +1058,7 @@ var TOTEM = "https://totem.bentogelateria.com";
 var LINKS = [
   ["Site principal", [
     ["🏠","Página inicial", SITE+"/"],
+    ["✨","Bentô Meu Studio", TOTEM+"/meu-studio"],
     ["📊","Tabelas nutricionais", SITE+"/?tabela"],
     ["🛵","Delivery / Nos encontre", SITE+"/?delivery"],
     ["🎉","Eventos (orçamento na hora)", SITE+"/?eventos"],

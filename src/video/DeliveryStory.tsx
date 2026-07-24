@@ -46,7 +46,7 @@ const S3: React.FC = () => (
     {gap(20)}
     <Rise delay={16}>
       <div>
-        <Pill solid>Sem açúcar adicionado</Pill>
+        <Pill solid>Sem adição de açúcares</Pill>
         <Pill solid>Proteico</Pill>
         <Pill solid>Rótulo limpo</Pill>
       </div>

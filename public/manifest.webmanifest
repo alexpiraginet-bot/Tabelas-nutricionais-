@@ -1,7 +1,7 @@
 {
   "name": "Bentô Gelatos",
   "short_name": "Bentô",
-  "description": "Gelato proteico sem açúcar adicionado — cardápio, tabelas nutricionais, clube e delivery.",
+  "description": "Gelato proteico sem adição de açúcares — cardápio, tabelas nutricionais, clube e delivery.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
