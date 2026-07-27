@@ -222,8 +222,35 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <VisitSection/>
+        <SejaBentoFinal/>
       </section>
     </div>
+  );
+}
+
+/* ========== CARD FINAL — REVENDA / FRANQUIA (funil /seja-bento) ==========
+   Fecha a home com a chamada de conversão para quem quer revender ou abrir
+   franquia: leva ao questionário adaptativo em /seja-bento (proposta sob
+   medida). Selo dourado (sinal premium), ação em pistache (regra da marca:
+   dourado é selo, nunca botão). */
+function SejaBentoFinal(){
+  return(
+    <a href="/seja-bento" onClick={()=>tk("Home · Seja Bentô · Card final")}
+      className="hl rise" style={{display:"block",width:"100%",marginTop:40,textDecoration:"none",
+        borderRadius:24,padding:"clamp(26px,4vw,38px) clamp(20px,4vw,32px)",textAlign:"center",
+        background:"rgba(255,253,247,.72)",backdropFilter:"blur(22px) saturate(170%)",WebkitBackdropFilter:"blur(22px) saturate(170%)",
+        border:`1px solid ${T.accent}66`,boxShadow:"0 24px 60px -38px rgba(35,38,25,.5)"}}>
+      <span className="fm" style={{fontSize:10,letterSpacing:"0.28em",textTransform:"uppercase",color:T.accent}}>Revenda · Franquia · Parceria</span>
+      <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,margin:"10px 0 8px",lineHeight:1.1}}>
+        Quer crescer com a <em style={{color:T.pistacheDark,fontStyle:"italic"}}>Bentô</em>?
+      </h2>
+      <p className="fb" style={{fontSize:14,color:T.inkSoft,lineHeight:1.6,maxWidth:470,margin:"0 auto 18px"}}>
+        Revenda em seu estabelecimento ou abra uma franquia. Responda um questionário rápido e receba uma proposta sob medida para o seu perfil.
+      </p>
+      <span className="fb" style={{display:"inline-flex",alignItems:"center",gap:8,background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"13px 26px",fontSize:14,fontWeight:600}}>
+        Responder questionário <ChevronRight size={17} strokeWidth={2}/>
+      </span>
+    </a>
   );
 }
 
