@@ -940,6 +940,9 @@ export default function App(){
     }catch{/* */}
   },[]);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
+  // Algum overlay aberto? (inclui os que abrem por querystring: ?cardapio,
+  // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
+  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showDelivery||showFaq||showCulpa||showGLP1||showEventos;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
   const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
@@ -1026,7 +1029,10 @@ export default function App(){
           </div>
         </div>
       );})()}
-      {view==="home"&&<VagaPush/>}
+      {/* o push nunca monta sobre outro overlay: dois useModal disputariam o Esc
+          (fechando o modal de baixo junto) e a arte cobriria o conteúdo aberto.
+          Com todos fechados, o timer recomeça e o push aparece normalmente. */}
+      {view==="home"&&!overlayAberto&&<VagaPush/>}
       <StoreHours/>
       <Analytics/>
     </div>

@@ -86,7 +86,10 @@ export default function TrabalhePage() {
   const [sent, setSent] = useState(false);
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
   // ao trocar de vaga, zera a unidade se ela não existir mais nas opções
-  const pickVaga = (i) => { setVi(i); setF((s) => ({ ...s, unidade: "" })); };
+  // Trocar de vaga volta ao formulário: "sent" é de UMA candidatura, não da
+  // página — sem isso, quem se candidatou a uma vaga veria a tela de sucesso
+  // (e nenhum formulário) ao escolher a outra.
+  const pickVaga = (i) => { setVi(i); setF((s) => ({ ...s, unidade: "" })); setSent(false); };
   // unidade efetiva: se a vaga só tem uma, assume-a
   const unidadeFinal = f.unidade || (unidadeOpts.length === 1 ? unidadeOpts[0] : "");
   const phoneOk = f.phone.replace(/\D/g, "").length >= 10;
