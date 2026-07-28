@@ -222,8 +222,35 @@ function Home({onTabelas,onCardapio,onPitch,onParceria,onDelivery,onFaq,onEvento
         </div>
 
         <VisitSection/>
+        <SejaBentoFinal/>
       </section>
     </div>
+  );
+}
+
+/* ========== CARD FINAL — REVENDA / FRANQUIA (funil /seja-bento) ==========
+   Fecha a home com a chamada de conversão para quem quer revender ou abrir
+   franquia: leva ao questionário adaptativo em /seja-bento (proposta sob
+   medida). Selo dourado (sinal premium), ação em pistache (regra da marca:
+   dourado é selo, nunca botão). */
+function SejaBentoFinal(){
+  return(
+    <a href="/seja-bento" onClick={()=>tk("Home · Seja Bentô · Card final")}
+      className="hl rise" style={{display:"block",width:"100%",marginTop:40,textDecoration:"none",
+        borderRadius:24,padding:"clamp(26px,4vw,38px) clamp(20px,4vw,32px)",textAlign:"center",
+        background:"rgba(255,253,247,.72)",backdropFilter:"blur(22px) saturate(170%)",WebkitBackdropFilter:"blur(22px) saturate(170%)",
+        border:`1px solid ${T.accent}66`,boxShadow:"0 24px 60px -38px rgba(35,38,25,.5)"}}>
+      <span className="fm" style={{fontSize:10,letterSpacing:"0.28em",textTransform:"uppercase",color:T.accent}}>Revenda · Franquia · Parceria</span>
+      <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,margin:"10px 0 8px",lineHeight:1.1}}>
+        Quer crescer com a <em style={{color:T.pistacheDark,fontStyle:"italic"}}>Bentô</em>?
+      </h2>
+      <p className="fb" style={{fontSize:14,color:T.inkSoft,lineHeight:1.6,maxWidth:470,margin:"0 auto 18px"}}>
+        Revenda em seu estabelecimento ou abra uma franquia. Responda um questionário rápido e receba uma proposta sob medida para o seu perfil.
+      </p>
+      <span className="fb" style={{display:"inline-flex",alignItems:"center",gap:8,background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"13px 26px",fontSize:14,fontWeight:600}}>
+        Responder questionário <ChevronRight size={17} strokeWidth={2}/>
+      </span>
+    </a>
   );
 }
 
@@ -737,6 +764,45 @@ function TabelasIntro({onClose}){
   );
 }
 
+/* ========== PUSH DE CAMPANHA — VAGA SOCIAL MEDIA (home, 1x por sessão) ==========
+   Arte estática em /banners/push-vaga-social.webp. Tocar na arte leva para a
+   página de vagas (?vagas); o ✕ dispensa. Some sozinho depois da sessão.
+   Ao encerrar a vaga, basta remover <VagaPush/> da home. */
+function VagaPush(){
+  const[open,setOpen]=useState(false);
+  useEffect(()=>{
+    try{ if(sessionStorage.getItem("bento:push:vaga")) return; }catch{/* */}
+    const t=setTimeout(()=>{
+      try{ sessionStorage.setItem("bento:push:vaga","1"); }catch{/* */}
+      setOpen(true);
+    },2600);
+    return()=>clearTimeout(t);
+  },[]);
+  const fechar=useCallback(()=>setOpen(false),[]);
+  // useModal trava o scroll do fundo já na montagem: só pode ser chamado com o
+  // push realmente aberto — daí o componente interno.
+  return open?<VagaPushModal onClose={fechar}/>:null;
+}
+function VagaPushModal({onClose:fechar}){
+  useModal(fechar);
+  return(
+    <div className="fade no-print" role="dialog" aria-modal="true" aria-label="Vaga aberta: Social Media" onClick={fechar}
+      style={{position:"fixed",inset:0,zIndex:420,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
+      <div className="rise" style={{position:"relative",maxWidth:470,width:"100%"}} onClick={(e)=>e.stopPropagation()}>
+        <a href="/?vagas" onClick={()=>tk("Push · Vaga Social Media")} style={{display:"block",borderRadius:20,overflow:"hidden"}}>
+          <img src="/banners/push-vaga-social.webp" width={1120} height={1400} alt="Vaga aberta: Social Media na Bentô — Vitória-ES, híbrido, CLT. Toque para se candidatar."
+            style={{display:"block",width:"100%",height:"auto",maxHeight:"88dvh",objectFit:"contain",borderRadius:20,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}/>
+        </a>
+        <button onClick={fechar} aria-label="Fechar"
+          style={{position:"absolute",top:10,right:10,width:38,height:38,borderRadius:"50%",border:"none",cursor:"pointer",
+            background:"rgba(31,35,23,.55)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+          <X size={19}/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
 // derivado da fonte única LOJAS (src/shared.jsx) — dias/resumo vivem lá
 const HORARIOS=LOJAS.map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
@@ -874,6 +940,9 @@ export default function App(){
     }catch{/* */}
   },[]);
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
+  // Algum overlay aberto? (inclui os que abrem por querystring: ?cardapio,
+  // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
+  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showDelivery||showFaq||showCulpa||showGLP1||showEventos;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
   const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
@@ -960,6 +1029,10 @@ export default function App(){
           </div>
         </div>
       );})()}
+      {/* o push nunca monta sobre outro overlay: dois useModal disputariam o Esc
+          (fechando o modal de baixo junto) e a arte cobriria o conteúdo aberto.
+          Com todos fechados, o timer recomeça e o push aparece normalmente. */}
+      {view==="home"&&!overlayAberto&&<VagaPush/>}
       <StoreHours/>
       <Analytics/>
     </div>
