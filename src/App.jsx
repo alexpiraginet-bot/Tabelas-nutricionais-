@@ -764,6 +764,45 @@ function TabelasIntro({onClose}){
   );
 }
 
+/* ========== PUSH DE CAMPANHA — VAGA SOCIAL MEDIA (home, 1x por sessão) ==========
+   Arte estática em /banners/push-vaga-social.webp. Tocar na arte leva para a
+   página de vagas (?vagas); o ✕ dispensa. Some sozinho depois da sessão.
+   Ao encerrar a vaga, basta remover <VagaPush/> da home. */
+function VagaPush(){
+  const[open,setOpen]=useState(false);
+  useEffect(()=>{
+    try{ if(sessionStorage.getItem("bento:push:vaga")) return; }catch{/* */}
+    const t=setTimeout(()=>{
+      try{ sessionStorage.setItem("bento:push:vaga","1"); }catch{/* */}
+      setOpen(true);
+    },2600);
+    return()=>clearTimeout(t);
+  },[]);
+  const fechar=useCallback(()=>setOpen(false),[]);
+  // useModal trava o scroll do fundo já na montagem: só pode ser chamado com o
+  // push realmente aberto — daí o componente interno.
+  return open?<VagaPushModal onClose={fechar}/>:null;
+}
+function VagaPushModal({onClose:fechar}){
+  useModal(fechar);
+  return(
+    <div className="fade no-print" role="dialog" aria-modal="true" aria-label="Vaga aberta: Social Media" onClick={fechar}
+      style={{position:"fixed",inset:0,zIndex:420,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
+      <div className="rise" style={{position:"relative",maxWidth:470,width:"100%"}} onClick={(e)=>e.stopPropagation()}>
+        <a href="/?vagas" onClick={()=>tk("Push · Vaga Social Media")} style={{display:"block",borderRadius:20,overflow:"hidden"}}>
+          <img src="/banners/push-vaga-social.webp" width={1120} height={1400} alt="Vaga aberta: Social Media na Bentô — Vitória-ES, híbrido, CLT. Toque para se candidatar."
+            style={{display:"block",width:"100%",height:"auto",maxHeight:"88dvh",objectFit:"contain",borderRadius:20,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}/>
+        </a>
+        <button onClick={fechar} aria-label="Fechar"
+          style={{position:"absolute",top:10,right:10,width:38,height:38,borderRadius:"50%",border:"none",cursor:"pointer",
+            background:"rgba(31,35,23,.55)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
+          <X size={19}/>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
 // derivado da fonte única LOJAS (src/shared.jsx) — dias/resumo vivem lá
 const HORARIOS=LOJAS.map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
@@ -987,6 +1026,7 @@ export default function App(){
           </div>
         </div>
       );})()}
+      {view==="home"&&<VagaPush/>}
       <StoreHours/>
       <Analytics/>
     </div>

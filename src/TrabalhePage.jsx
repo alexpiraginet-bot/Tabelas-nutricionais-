@@ -6,9 +6,33 @@ import { T, tk, BentoLogo } from "./shared.jsx";
 const WHATS = "5527999159995"; // DDI+DDD+número, só dígitos
 
 // ===== VAGAS ABERTAS (edite aqui para adicionar/trocar funções) =====
-// Cada vaga: { cargo, unidades:[...], desc? }. Para abrir uma vaga rápida sem
-// mexer no código, use o link: /?vagas=NomeDaVaga  (e, opcional, &unidades=A,B)
+// Cada vaga: { cargo, unidades:[...], dias?, regime?, faz?:[...], busca?:[...] }.
+// Sem "dias", vale a escala padrão de loja (DIAS_PADRAO). Para abrir uma vaga
+// rápida sem mexer no código: /?vagas=NomeDaVaga  (e, opcional, &unidades=A,B)
+const DIAS_PADRAO = ["Terça a domingo", "(folga às segundas)"];
 const VAGAS = [
+  {
+    cargo: "Social Media",
+    unidades: ["Vitória-ES · híbrido"],
+    regime: "CLT · efetivo",
+    labelExp: "Portfólio, @ do Instagram ou trabalhos",
+    phExp: "Ex.: @seu.perfil, link do drive/behance…",
+    dias: ["Segunda a sexta", "(com gravações pontuais em fins de semana e eventos)"],
+    faz: [
+      "Gravar e editar Reels, stories e fotos nas lojas",
+      "Planejar e manter o calendário de posts",
+      "Escrever legendas e cuidar do tom da marca",
+      "Responder comentários e direct",
+      "Acompanhar métricas e propor o que repetir",
+    ],
+    busca: [
+      "Portfólio ou @ que a gente possa ver (vale conta pessoal)",
+      "Domínio de edição no celular (CapCut, InShot ou similar)",
+      "Boa escrita em português",
+      "Morar em Vitória ou região — a captação é presencial",
+      "Experiência formal é bem-vinda, mas o portfólio pesa mais",
+    ],
+  },
   { cargo: "Atendente", unidades: ["Jardim Camburi", "Praia do Canto"] },
 ];
 const TODAS_UNIDADES = ["Jardim Camburi", "Praia do Canto"];
@@ -132,8 +156,16 @@ export default function TrabalhePage() {
               </div>
               <div>
                 <div style={lbl}>📅 Dias de trabalho</div>
-                <div className="fb" style={{ fontSize: 15, color: T.ink }}>Terça a domingo <span className="fb" style={{ fontSize: 12.5, color: T.inkSoft }}>(folga às segundas)</span></div>
+                <div className="fb" style={{ fontSize: 15, color: T.ink }}>
+                  {(vaga.dias || DIAS_PADRAO)[0]} <span className="fb" style={{ fontSize: 12.5, color: T.inkSoft }}>{(vaga.dias || DIAS_PADRAO)[1]}</span>
+                </div>
               </div>
+              {vaga.regime && (
+                <div>
+                  <div style={lbl}>📄 Contratação</div>
+                  <div className="fb" style={{ fontSize: 15, color: T.ink }}>{vaga.regime}</div>
+                </div>
+              )}
               <div>
                 <div style={lbl}>🎁 Benefícios</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
@@ -143,6 +175,28 @@ export default function TrabalhePage() {
                 </div>
               </div>
             </div>
+
+            {/* descrição da vaga (só quando a vaga define) */}
+            {(vaga.faz || vaga.busca) && (
+              <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+                {vaga.faz && (
+                  <div>
+                    <div style={lbl}>🎬 O que você vai fazer</div>
+                    <ul className="fb" style={{ margin: "4px 0 0", paddingLeft: 18, fontSize: 14.5, color: T.ink, lineHeight: 1.65 }}>
+                      {vaga.faz.map((i) => <li key={i}>{i}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {vaga.busca && (
+                  <div>
+                    <div style={lbl}>✨ O que buscamos</div>
+                    <ul className="fb" style={{ margin: "4px 0 0", paddingLeft: 18, fontSize: 14.5, color: T.ink, lineHeight: 1.65 }}>
+                      {vaga.busca.map((i) => <li key={i}>{i}</li>)}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ height: 1, background: T.borderSoft, margin: "26px 0 22px" }} />
 
@@ -199,8 +253,8 @@ export default function TrabalhePage() {
                     </div>
                   </div>
                   <div>
-                    <label style={lbl}>Experiência anterior</label>
-                    <input value={f.experiencia} onChange={(e) => set("experiencia", e.target.value)} placeholder="Ex.: atendimento, caixa, food service… (opcional)" style={inp} />
+                    <label style={lbl}>{vaga.labelExp || "Experiência anterior"}</label>
+                    <input value={f.experiencia} onChange={(e) => set("experiencia", e.target.value)} placeholder={vaga.phExp || "Ex.: atendimento, caixa, food service… (opcional)"} style={inp} />
                   </div>
                   <div>
                     <label style={lbl}>Conte um pouco sobre você</label>
@@ -220,7 +274,7 @@ export default function TrabalhePage() {
           </div>
         </div>
         <p className="fb" style={{ textAlign: "center", fontSize: 10.5, color: T.inkSoft, marginTop: 14, lineHeight: 1.5 }}>
-          Bentô Gelatos · ABB Gelateria Ltda · Vitória–ES — vagas para Jardim Camburi e Praia do Canto.
+          Bentô Gelatos · ABB Gelateria Ltda · Vitória–ES — lojas em Jardim Camburi e Praia do Canto.
         </p>
       </div>
     </div>
