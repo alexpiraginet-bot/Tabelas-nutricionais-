@@ -832,20 +832,29 @@ function FloatingTreats(){
     const root=ref.current;if(!root)return;
     const els=[...root.children];
     let raf=0,alive=true;
+    const paint=(now)=>{
+      const sy=window.scrollY,vh=window.innerHeight;
+      const span=vh+300;
+      els.forEach((el,i)=>{
+        const c=TREAT_CFG[i];
+        let y=(c[2]/100)*vh - sy*c[4];
+        y=((y%span)+span)%span-150;                       // recicla verticalmente
+        const bob=reduced?0:Math.sin(now/1500+i*1.7)*6;   // respiração ociosa
+        const rot=c[5]+sy*0.012*(i%2?1:-1);               // giro preso ao scroll
+        el.style.transform=`translate3d(0,${(y+bob).toFixed(1)}px,0) rotate(${rot.toFixed(1)}deg)`;
+      });
+    };
+    if(reduced){
+      // sem bob não há animação autônoma: atualiza só por evento (Codex #195)
+      const on=()=>{if(!raf)raf=requestAnimationFrame((n)=>{raf=0;paint(n);});};
+      window.addEventListener("scroll",on,{passive:true});
+      window.addEventListener("resize",on);
+      paint(0);
+      return()=>{window.removeEventListener("scroll",on);window.removeEventListener("resize",on);if(raf)cancelAnimationFrame(raf);};
+    }
     const loop=(now)=>{
       if(!alive)return;
-      if(!document.hidden){
-        const sy=window.scrollY,vh=window.innerHeight;
-        const span=vh+300;
-        els.forEach((el,i)=>{
-          const c=TREAT_CFG[i];
-          let y=(c[2]/100)*vh - sy*c[4];
-          y=((y%span)+span)%span-150;                       // recicla verticalmente
-          const bob=reduced?0:Math.sin(now/1500+i*1.7)*6;   // respiração ociosa
-          const rot=c[5]+sy*0.012*(i%2?1:-1);               // giro preso ao scroll
-          el.style.transform=`translate3d(0,${(y+bob).toFixed(1)}px,0) rotate(${rot.toFixed(1)}deg)`;
-        });
-      }
+      if(!document.hidden)paint(now);
       raf=requestAnimationFrame(loop);
     };
     raf=requestAnimationFrame(loop);
