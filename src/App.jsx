@@ -807,6 +807,71 @@ function TabelasIntro({onClose}){
   );
 }
 
+
+/* ========== MINIS FLUTUANTES (casquinhas e picolés da marca) ==========
+   SVGs oficiais vagando em parallax ENTRE o filme de fundo e os cards
+   (z -1, depois do WorldFundo no DOM): cada mini tem velocidade, giro,
+   profundidade (blur) e paleta de sabor próprios; recicla ao sair da
+   tela — a rolagem comanda (sempre ativa); só o balanço ocioso
+   respeita reduced-motion. Camada é decorativa: aria-hidden, sem hit. */
+const TREAT_CFG=[
+  // [tipo, esq%, topo(vh), tam, parallax, rotBase, blur, opacidade, sabor]
+  ["p",  4,  18, 46, .16, -14, 0,   .55, "pistache"],
+  ["g", 86,  34, 54, .24,  10, 0,   .60, "morango"],
+  ["p", 79,  70, 34, .10,  18, 1.2, .45, "baunilha"],
+  ["g",  7,  92, 38, .20,  -8, .8,  .50, "baunilha"],
+  ["p", 89, 118, 48, .14,   6, 0,   .55, "morango"],
+  ["g",  3, 142, 30, .27, -16, 1.4, .40, "pistache"],
+  ["p", 82, 168, 42, .19,  12, .6,  .50, "pistache"],
+  ["g", 10, 190, 50, .12,  -6, 0,   .55, "morango"],
+];
+function FloatingTreats(){
+  const ref=useRef(null);
+  const[reduced]=useState(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}});
+  useEffect(()=>{
+    const root=ref.current;if(!root)return;
+    const els=[...root.children];
+    let raf=0,alive=true;
+    const paint=(now)=>{
+      const sy=window.scrollY,vh=window.innerHeight;
+      const span=vh+300;
+      els.forEach((el,i)=>{
+        const c=TREAT_CFG[i];
+        let y=(c[2]/100)*vh - sy*c[4];
+        y=((y%span)+span)%span-150;                       // recicla verticalmente
+        const bob=reduced?0:Math.sin(now/1500+i*1.7)*6;   // respiração ociosa
+        const rot=c[5]+sy*0.012*(i%2?1:-1);               // giro preso ao scroll
+        el.style.transform=`translate3d(0,${(y+bob).toFixed(1)}px,0) rotate(${rot.toFixed(1)}deg)`;
+      });
+    };
+    if(reduced){
+      // sem bob não há animação autônoma: atualiza só por evento (Codex #195)
+      const on=()=>{if(!raf)raf=requestAnimationFrame((n)=>{raf=0;paint(n);});};
+      window.addEventListener("scroll",on,{passive:true});
+      window.addEventListener("resize",on);
+      paint(0);
+      return()=>{window.removeEventListener("scroll",on);window.removeEventListener("resize",on);if(raf)cancelAnimationFrame(raf);};
+    }
+    const loop=(now)=>{
+      if(!alive)return;
+      if(!document.hidden)paint(now);
+      raf=requestAnimationFrame(loop);
+    };
+    raf=requestAnimationFrame(loop);
+    return()=>{alive=false;cancelAnimationFrame(raf);};
+  },[reduced]);
+  const pal=(nome)=>{const pr=PRODUCTS.find(x=>x.id===nome);return pr?pr.palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"};};
+  return(
+    <div ref={ref} aria-hidden="true" style={{position:"fixed",inset:0,zIndex:-1,pointerEvents:"none",overflow:"hidden"}}>
+      {TREAT_CFG.map((c,i)=>(
+        <div key={i} style={{position:"absolute",top:0,left:c[1]+"%",width:c[3],height:c[3],opacity:c[7],filter:c[6]?`blur(${c[6]}px)`:undefined,willChange:"transform"}}>
+          {c[0]==="p"?<PicoleSVG p={pal(c[8])} size={c[3]} id={"ft"+i}/>:<GelatoSVG p={pal(c[8])} size={c[3]} id={"ft"+i}/>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ========== PUSH DE CAMPANHA — VAGA SOCIAL MEDIA (home, 1x por sessão) ==========
    Arte estática em /banners/push-vaga-social.webp. Tocar na arte leva para a
    página de vagas (?vagas); o ✕ dispensa. Some sozinho depois da sessão.
@@ -1003,6 +1068,7 @@ export default function App(){
       <GStyle/>
       {/* filme 3D do atelier atrás dos cards da home (rolagem = tempo do filme) */}
       {view==="home"&&<WorldFundo/>}
+      {view==="home"&&<FloatingTreats/>}
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
       {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
