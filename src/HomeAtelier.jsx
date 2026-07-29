@@ -56,7 +56,7 @@ const win = (p, a, b) => clamp01((p - a) / (b - a));
    1º frame pronto, Save-Data/2g ou falha de rede = imagem real estática. */
 const frameSrc = (dir, i, mob) => `${dir}${mob ? "-m" : ""}/f${String(i + 1).padStart(3, "0")}.webp`;
 
-function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
+function FrameScrub({ t, style, count, dir, fallbackSrc, alt, frameless }) {
   const [noEase] = useState(() => {
     try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
   });
@@ -152,7 +152,7 @@ function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
 
   if (useFallback) return <img src={fallbackSrc} alt={alt} style={style} />;
   return (
-    <div ref={rootRef} style={{ ...style, position: "relative", overflow: "hidden", background: "#EFE0C8" }} role="img" aria-label={alt}>
+    <div ref={rootRef} style={{ ...style, position: "relative", overflow: "hidden", background: frameless ? "transparent" : "#EFE0C8" }} role="img" aria-label={alt}>
       <img src={frameSrc(dir, 0, mob)} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0, transition: "opacity .3s ease" }} />
     </div>
@@ -193,10 +193,12 @@ export function CardMotion({ children, style }) {
       if (r.bottom < -80 || r.top > vh + 80) return; // fora da tela: nada a fazer
       const pr = clamp01((vh - r.top) / (vh + r.height)); // 0 entra ↓ · .5 centro · 1 sai ↑
       const c = (pr - 0.5) * 2; // -1..1
-      const y = -c * 36;
-      const sc = 1 - Math.min(0.055, Math.abs(c) * 0.055);
-      const op = Math.max(0.35, 1 - Math.max(0, Math.abs(c) - 0.5) * 1.1);
-      el.style.transform = `translateY(${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+      const e2 = Math.sign(c) * Math.pow(Math.abs(c), 1.3); // punch nas bordas
+      const y = -e2 * 120;
+      const rx = -e2 * 9;                                    // báscula 3D
+      const sc = 1 - Math.min(0.12, Math.abs(e2) * 0.12);
+      const op = Math.min(1, Math.max(0.1, 1 - Math.max(0, Math.abs(c) - 0.32) * 1.5));
+      el.style.transform = `perspective(950px) translateY(${y.toFixed(1)}px) rotateX(${rx.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
       el.style.opacity = op.toFixed(2);
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
@@ -253,11 +255,12 @@ export function HeroStage({ intro = true }) {
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {/* objeto-herói: 1 volta completa do Bentôlé ao longo de TODO o palco —
             o scroll comanda o giro (HeroScrub) com inércia */}
-        <FrameScrub t={p} count={96} dir="/atelier/hero" fallbackSrc={heroP.image} alt={heroP.name}
+        <FrameScrub t={p} count={96} dir="/atelier/hero" fallbackSrc={heroP.image} alt={heroP.name} frameless
           style={{
-            width: "min(46vh, 78vw)", aspectRatio: "1", borderRadius: 28,
-            boxShadow: "0 60px 120px -60px rgba(35,38,25,.55)",
-            transform: reduced ? "none" : `rotate(${-4 + rot * 0.012}deg) scale(${1 + win(p, 0, 0.25) * 0.06})`,
+            width: "min(78vh, 100vw)", aspectRatio: "1", maxWidth: 720,
+            WebkitMaskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 58%, transparent 76%)",
+            maskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 58%, transparent 76%)",
+            transform: reduced ? "none" : `scale(${1 + win(p, 0, 0.25) * 0.05})`,
           }} />
         {/* título de abertura (só na versão que abre a página) */}
         {intro && <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "0 20px calc(7dvh + env(safe-area-inset-bottom))", textAlign: "center", opacity: 1 - win(p, 0.1, 0.22), pointerEvents: p > 0.2 ? "none" : "auto" }}>
@@ -323,8 +326,11 @@ export function Anatomia() {
           esquerda, textos à direita — o empilhamento vertical não cabe em
           100svh nem encolhendo (achado Codex no PR #189) */}
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
-        <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo"
-          style={{ width: lowH ? "min(72vh,34vw)" : "min(40vh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)", order: lowH ? 0 : 2, flexShrink: 0 }} />
+        <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo" frameless
+          style={{ width: lowH ? "min(84vh,40vw)" : "min(52vh,88vw)", aspectRatio: "1", maxWidth: 640,
+            WebkitMaskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
+            maskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
+            order: lowH ? 0 : 2, flexShrink: 0 }} />
         <div style={{ display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: lowH ? 10 : 14, minWidth: 0, order: 1, ...(lowH ? { maxWidth: "56vw" } : {}) }}>
           <div style={{ order: 0, display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: 8 }}>
             <Eyebrow>Anatomia do Bentôlé</Eyebrow>
