@@ -48,16 +48,15 @@ const clamp01 = v => Math.min(1, Math.max(0, v));
 // janela [a,b] do progresso global → 0..1 local
 const win = (p, a, b) => clamp01((p - a) / (b - a));
 
-/* ===== HERÓI-SCRUB: sequência de frames comandada pelo scroll =====
-   O giro do Bentôlé (master Sora, 1 volta completa) vira N frames WebP;
-   o scroll define o frame-alvo e um lerp por rAF dá o peso/inércia do
-   objeto (a sensação oryzo de "obedece o dedo"). Disciplina da casa:
-   carrega perto do frame atual primeiro, poster até o 1º frame pronto,
-   Save-Data/2g ou falha de rede = fica na foto real (fallback do <img>). */
-const HERO_FRAMES = 96;
-const heroFrame = (i, mob) => `/atelier/hero${mob ? "-m" : ""}/f${String(i + 1).padStart(3, "0")}.webp`;
+/* ===== FRAME-SCRUB: sequência de frames comandada pelo scroll =====
+   Um filme (master Sora) vira N frames WebP; o scroll define o frame-alvo
+   e um lerp por rAF dá o peso/inércia do objeto (a sensação oryzo de
+   "obedece o dedo"). Reusado pelo herói (giro) e pela Anatomia (camadas).
+   Disciplina da casa: carrega perto do frame atual primeiro, poster até o
+   1º frame pronto, Save-Data/2g ou falha de rede = imagem real estática. */
+const frameSrc = (dir, i, mob) => `${dir}${mob ? "-m" : ""}/f${String(i + 1).padStart(3, "0")}.webp`;
 
-function HeroScrub({ t, style }) {
+function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
   const canvasRef = useRef(null);
   const rootRef = useRef(null);
   const state = useRef({ imgs: [], ok: [], cur: 0, raf: 0, alive: true, visible: true, failed: 0, ready: false, gen: 0, lastDrawn: -1 });
@@ -86,13 +85,16 @@ function HeroScrub({ t, style }) {
     const s = state.current;
     const myGen = ++s.gen; // invalida onload de variante antiga após resize
     s.alive = true; s.imgs = []; s.ok = []; s.failed = 0; s.lastDrawn = -1;
+    s.ready = false; s.cur = 0; s.running = false; // reset completo do reinit (Codex)
     const cv = canvasRef.current;
     const ctx = cv ? cv.getContext("2d") : null;
     if (!ctx) return;
+    cv.style.opacity = "0";
 
-    // pausa o rAF quando o palco sai da tela (seções seguintes da página)
+    // fora da tela o loop é SUSPENSO (não só ocioso); o IO religa ao voltar
+    const start = () => { if (!s.running && s.alive) { s.running = true; s.raf = requestAnimationFrame(tick); } };
     const io = typeof IntersectionObserver !== "undefined"
-      ? new IntersectionObserver(([e]) => { s.visible = e.isIntersecting; }, { threshold: 0 })
+      ? new IntersectionObserver(([e]) => { s.visible = e.isIntersecting; if (e.isIntersecting) start(); }, { threshold: 0 })
       : null;
     if (io && rootRef.current) io.observe(rootRef.current);
 
@@ -104,22 +106,22 @@ function HeroScrub({ t, style }) {
       if (!s.ready) { s.ready = true; cv.style.opacity = "1"; }
     };
     const load = (i) => {
-      if (i < 0 || i >= HERO_FRAMES || s.imgs[i]) return;
+      if (i < 0 || i >= count || s.imgs[i]) return;
       const im = new Image();
       im.decoding = "async";
       im.onload = () => { if (myGen === s.gen) s.ok[i] = true; };
       im.onerror = () => { if (myGen === s.gen) { s.failed++; if (s.failed > 6 && !s.ready) setUseFallback(true); } };
-      im.src = heroFrame(i, mob);
+      im.src = frameSrc(dir, i, mob);
       s.imgs[i] = im;
     };
     // 1ª leva: frame 0 + esqueleto esparso (1 a cada 8) para resposta imediata
     load(0);
-    for (let i = 0; i < HERO_FRAMES; i += 8) load(i);
+    for (let i = 0; i < count; i += 8) load(i);
 
-    const tick = () => {
+    function tick() {
       if (!s.alive) return;
-      if (!s.visible) { s.raf = requestAnimationFrame(tick); return; }
-      const target = clamp01(tRef.current) * (HERO_FRAMES - 1);
+      if (!s.visible) { s.running = false; return; } // suspende; IO religa
+      const target = clamp01(tRef.current) * (count - 1);
       // inércia: persegue o alvo (0.14 ≈ peso físico sem parecer atrasado)
       s.cur += (target - s.cur) * 0.14;
       const i = Math.round(s.cur);
@@ -127,7 +129,7 @@ function HeroScrub({ t, style }) {
       for (let d = 0; d <= 4; d++) { load(i + d); load(i - d); }
       // desenha o carregado mais próximo do frame exato (desempate por distância real)
       let best = -1;
-      for (let d = 0; d < HERO_FRAMES; d++) {
+      for (let d = 0; d < count; d++) {
         const hi = s.ok[i + d] ? i + d : -1, lo = s.ok[i - d] ? i - d : -1;
         if (hi >= 0 && lo >= 0) { best = Math.abs(hi - s.cur) <= Math.abs(lo - s.cur) ? hi : lo; break; }
         if (hi >= 0) { best = hi; break; }
@@ -135,20 +137,20 @@ function HeroScrub({ t, style }) {
       }
       if (best >= 0) draw(s.imgs[best], best);
       s.raf = requestAnimationFrame(tick);
-    };
-    s.raf = requestAnimationFrame(tick);
+    }
+    start();
     return () => {
       s.alive = false;
       cancelAnimationFrame(s.raf);
       if (io) io.disconnect();
       s.imgs.forEach(im => { if (im) { im.onload = null; im.onerror = null; } });
     };
-  }, [useFallback, mob]);
+  }, [useFallback, mob, count, dir]);
 
-  if (useFallback) return <img src={heroP.image} alt={heroP.name} style={style} />;
+  if (useFallback) return <img src={fallbackSrc} alt={alt} style={style} />;
   return (
-    <div ref={rootRef} style={{ ...style, position: "relative", overflow: "hidden", background: "#EFE0C8" }} role="img" aria-label={heroP.name}>
-      <img src={heroFrame(0, mob)} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+    <div ref={rootRef} style={{ ...style, position: "relative", overflow: "hidden", background: "#EFE0C8" }} role="img" aria-label={alt}>
+      <img src={frameSrc(dir, 0, mob)} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0, transition: "opacity .3s ease" }} />
     </div>
   );
@@ -156,6 +158,26 @@ function HeroScrub({ t, style }) {
 
 function Eyebrow({ children }) {
   return <div className="fm" style={{ fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", color: T.accent }}>{children}</div>;
+}
+
+// Entrada suave ao rolar (transform+opacity apenas; nada de opacity-0 preso:
+// sem IO/reduced-motion o conteúdo nasce visível). Delay opcional em ms.
+function Reveal({ children, delay = 0, style }) {
+  const ref = useRef(null);
+  const [on, setOn] = useState(() => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined"; } catch { return true; }
+  });
+  useEffect(() => {
+    if (on) return;
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setOn(true); io.disconnect(); } }, { threshold: 0, rootMargin: "0px 0px -12% 0px" });
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, [on]);
+  return (
+    <div ref={ref} style={{ ...style, opacity: on ? 1 : 0, transform: on ? "none" : "translateY(26px)", transition: `opacity .7s ease ${delay}ms, transform .7s cubic-bezier(.2,.8,.2,1) ${delay}ms` }}>
+      {children}
+    </div>
+  );
 }
 
 /* ===== 1+2. HERO + O OBJETO: palco sticky, número gigantes por scroll ===== */
@@ -197,7 +219,7 @@ function HeroStage() {
       <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {/* objeto-herói: 1 volta completa do Bentôlé ao longo de TODO o palco —
             o scroll comanda o giro (HeroScrub) com inércia */}
-        <HeroScrub t={p}
+        <FrameScrub t={p} count={96} dir="/atelier/hero" fallbackSrc={heroP.image} alt={heroP.name}
           style={{
             width: "min(46vh, 78vw)", aspectRatio: "1", borderRadius: 28,
             boxShadow: "0 60px 120px -60px rgba(35,38,25,.55)",
@@ -205,11 +227,12 @@ function HeroStage() {
           }} />
         {/* título de abertura */}
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "0 20px calc(7dvh + env(safe-area-inset-bottom))", textAlign: "center", opacity: 1 - win(p, 0.1, 0.22), pointerEvents: p > 0.2 ? "none" : "auto" }}>
-          <BentoLogo size={54} />
+          <div className="rise"><BentoLogo size={54} /></div>
           <h1 className="fd" style={{ fontSize: "clamp(38px,8vw,84px)", lineHeight: 0.98, color: T.ink, fontWeight: 400, letterSpacing: "-0.02em", margin: "14px 0 8px" }}>
-            Gelato com<br /><em style={{ color: T.pistacheDark, fontStyle: "italic" }}>propósito</em>
+            <span className="rise" style={{ display: "inline-block", animationDelay: "90ms" }}>Gelato com</span><br />
+            <em className="rise" style={{ display: "inline-block", color: T.pistacheDark, fontStyle: "italic", animationDelay: "220ms" }}>propósito</em>
           </h1>
-          <div className="fm" style={{ fontSize: 10, letterSpacing: "0.26em", textTransform: "uppercase", color: T.inkSoft, marginTop: 10 }}>role para conhecer ↓</div>
+          <div className="rise fm" style={{ fontSize: 10, letterSpacing: "0.26em", textTransform: "uppercase", color: T.inkSoft, marginTop: 10, animationDelay: "380ms" }}>role para conhecer ↓</div>
         </div>
         {/* métricas gigantes (dados reais do data.js) */}
         {metricas.map(m => {
@@ -231,38 +254,75 @@ function HeroStage() {
   );
 }
 
-/* ===== 3. ANATOMIA: as camadas do objeto, ingredientes reais ===== */
+/* ===== 3. ANATOMIA: palco pinado — o filme das camadas se abrindo (scrub)
+   sincronizado com as fichas de cada camada. Ingredientes LITERAIS (data.js);
+   "pistaches inteiros" vem da copy oficial do produto (sub/description);
+   ingredients[0] = base já reformulada em runtime (Base Funcional ZERO). */
+const CAMADAS = [
+  { t: "Cobertura", d: "Cobertura sabor chocolate branco zero lactose, com pistaches inteiros." },
+  { t: "Recheio", d: "Pasta de pistache e pasta sabor leite." },
+  { t: heroP.ingredients[0].name, d: heroP.ingredients[0].note + "." },
+];
+// claim restrito à BASE: o produto completo tem polióis em outros insumos
+// (pasta sabor leite/cobertura) e exibe o AVISO_POLIOL na seção A Prova.
+const CLAIM_BASE = "Todo picolé da linha nasce da mesma base — reformulada sem maltitol e sem sorbitol na composição da própria base.";
+
 function Anatomia() {
-  // Camadas com os NOMES LITERAIS dos ingredientes da receita (data.js).
-  // "pistaches inteiros" vem da copy oficial do produto (sub/description).
-  // ingredients[0] = base já reformulada em runtime (Base Funcional ZERO,
-  // sem maltitol/sorbitol — por isso sem advertência laxativa pela base).
-  const base = heroP.ingredients[0];
-  const camadas = [
-    { t: "Cobertura", d: "Cobertura sabor chocolate branco zero lactose, com pistaches inteiros." },
-    { t: "Recheio", d: "Pasta de pistache e pasta sabor leite." },
-    { t: base.name, d: base.note + "." },
-  ];
+  const trackRef = useRef(null);
+  const p = useSectionProgress(trackRef);
+  const [reduced] = useState(() => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
+  });
+  // telas baixas (landscape de celular): encolhe o filme e omite o claim para
+  // o palco de 100svh não cortar a ficha (achado Codex)
+  const [lowH, setLowH] = useState(() => { try { return window.innerHeight < 580; } catch { return false; } });
+  useEffect(() => {
+    const on = () => setLowH(window.innerHeight < 580);
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  if (reduced) {
+    return (
+      <section style={{ maxWidth: 1040, margin: "0 auto", padding: "14svh 20px 10svh" }}>
+        <Eyebrow>Anatomia do Bentôlé</Eyebrow>
+        <h2 className="fd" style={{ fontSize: "clamp(30px,5.4vw,52px)", color: T.ink, margin: "10px 0 6px", lineHeight: 1.02 }}>Três camadas.<br />Nenhum segredo.</h2>
+        <p className="fb" style={{ fontSize: 15.5, color: T.inkSoft, maxWidth: 560, lineHeight: 1.6 }}>{CLAIM_BASE}</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14, marginTop: 26 }}>
+          {CAMADAS.map((c, i) => (
+            <div key={c.t} style={{ background: "rgba(255,253,247,.8)", border: `1px solid ${T.border}`, borderRadius: 18, padding: "22px 20px" }}>
+              <div className="fm" style={{ fontSize: 10, letterSpacing: "0.24em", color: T.accent }}>{String(i + 1).padStart(2, "0")}</div>
+              <div className="fd" style={{ fontSize: 22, color: T.pistacheDark, margin: "6px 0 6px" }}>{c.t}</div>
+              <div className="fb" style={{ fontSize: 13.5, color: T.inkSoft, lineHeight: 1.55 }}>{c.d}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+  const filmT = win(p, 0.02, 0.8);           // o filme abre ao longo do palco
+  const active = p < 0.34 ? 0 : p < 0.6 ? 1 : 2; // camada em foco
   return (
-    <section style={{ maxWidth: 1040, margin: "0 auto", padding: "14dvh 20px 10dvh" }}>
-      <Eyebrow>Anatomia do Bentôlé</Eyebrow>
-      <h2 className="fd" style={{ fontSize: "clamp(30px,5.4vw,52px)", color: T.ink, margin: "10px 0 6px", lineHeight: 1.02 }}>
-        Três camadas.<br />Nenhum segredo.
-      </h2>
-      {/* claim restrito à BASE: o produto completo tem polióis em outros
-          insumos (pasta sabor leite/cobertura) e exibe o AVISO_POLIOL na
-          ficha da seção A Prova (achado da review Codex no PR #187). */}
-      <p className="fb" style={{ fontSize: 15.5, color: T.inkSoft, maxWidth: 560, lineHeight: 1.6 }}>
-        Todo picolé da linha nasce da mesma base — reformulada sem maltitol e sem sorbitol na composição da própria base.
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14, marginTop: 26 }}>
-        {camadas.map((c, i) => (
-          <div key={c.t} className="hl" style={{ background: "rgba(255,253,247,.8)", border: `1px solid ${T.border}`, borderRadius: 18, padding: "22px 20px" }}>
-            <div className="fm" style={{ fontSize: 10, letterSpacing: "0.24em", color: T.accent }}>{String(i + 1).padStart(2, "0")}</div>
-            <div className="fd" style={{ fontSize: 22, color: T.pistacheDark, margin: "6px 0 6px" }}>{c.t}</div>
-            <div className="fb" style={{ fontSize: 13.5, color: T.inkSoft, lineHeight: 1.55 }}>{c.d}</div>
-          </div>
-        ))}
+    <section ref={trackRef} style={{ position: "relative", height: "300svh" }}>
+      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "calc(14px + env(safe-area-inset-top)) 20px 18px", textAlign: "center" }}>
+        <Eyebrow>Anatomia do Bentôlé</Eyebrow>
+        <h2 className="fd" style={{ fontSize: "clamp(26px,4.8vw,44px)", color: T.ink, margin: 0, lineHeight: 1.02 }}>Três camadas. Nenhum segredo.</h2>
+        <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo"
+          style={{ width: lowH ? "min(34vh,60vw)" : "min(40vh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)" }} />
+        {/* seletor 01·02·03 sincronizado com o scroll */}
+        <div style={{ display: "flex", gap: 8 }}>
+          {CAMADAS.map((c, i) => (
+            <span key={c.t} className="fm" style={{ fontSize: 10, letterSpacing: "0.2em", borderRadius: 999, padding: "7px 14px", transition: "all .3s ease",
+              background: i === active ? T.pistacheDark : "rgba(255,253,247,.7)", color: i === active ? T.surface : T.inkSoft, border: `1px solid ${i === active ? T.pistacheDark : T.border}` }}>
+              {String(i + 1).padStart(2, "0")}
+            </span>
+          ))}
+        </div>
+        {/* ficha da camada ativa (altura reservada para não pular) */}
+        <div key={active} className="fade" style={{ minHeight: 86, maxWidth: 480 }}>
+          <div className="fd" style={{ fontSize: 22, color: T.pistacheDark }}>{CAMADAS[active].t}</div>
+          <div className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.55, marginTop: 4 }}>{CAMADAS[active].d}</div>
+        </div>
+        {!lowH && <p className="fb" style={{ fontSize: 12, color: T.inkSoft, maxWidth: 460, lineHeight: 1.55, margin: 0, opacity: .85 }}>{CLAIM_BASE}</p>}
       </div>
     </section>
   );
@@ -282,9 +342,12 @@ function Prova() {
   const alerg = ALLERGENS[HERO_ID] || [];
   const lupa = lupaFrontal(heroP);
   return (
-    <section style={{ maxWidth: 760, margin: "0 auto", padding: "6dvh 20px 12dvh" }}>
+    <section style={{ maxWidth: 760, margin: "0 auto", padding: "6svh 20px 12svh" }}>
+      <Reveal>
       <div className="gn" style={{ position: "relative", background: T.surface, border: `1px solid ${T.border}`, borderRadius: 22, padding: "30px 26px", boxShadow: "0 30px 70px -46px rgba(35,38,25,.5)" }}>
         <div style={{ position: "absolute", inset: 10, border: `1px solid ${T.accent}44`, borderRadius: 16, pointerEvents: "none" }} />
+        {/* second-read: rail note vertical em mono (referência das normas) */}
+        <div className="fm" aria-hidden="true" style={{ position: "absolute", left: -14, top: 40, writingMode: "vertical-rl", fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: T.inkSoft, opacity: .6 }}>RDC 727/2022 · RDC 429/2020 · IN 75/2020</div>
         <Eyebrow>A prova · porção de {heroP.portionLabel}</Eyebrow>
         <h2 className="fd" style={{ fontSize: "clamp(26px,4.4vw,38px)", color: T.ink, margin: "8px 0 16px" }}>Transparência é o ingrediente principal</h2>
         <table className="fm" style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
@@ -317,6 +380,7 @@ function Prova() {
           <a href="/?tabelas" onClick={() => tk("Atelier · Ver tabelas")} className="fm" style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", background: T.pistacheDark, color: T.surface, borderRadius: 999, padding: "12px 22px", textDecoration: "none" }}>Todas as tabelas →</a>
         </div>
       </div>
+      </Reveal>
     </section>
   );
 }
@@ -335,14 +399,18 @@ const CATALOGO = [
 function Linha() {
   return (
     <section style={{ maxWidth: 760, margin: "0 auto", padding: "4dvh 20px 8dvh" }}>
-      <Eyebrow>O universo Bentô</Eyebrow>
-      <h2 className="fd" style={{ fontSize: "clamp(28px,5vw,46px)", color: T.ink, margin: "10px 0 18px" }}>Escolha por onde continuar</h2>
+      <Reveal>
+        <Eyebrow>O universo Bentô</Eyebrow>
+        <h2 className="fd" style={{ fontSize: "clamp(28px,5vw,46px)", color: T.ink, margin: "10px 0 18px" }}>Escolha por onde continuar</h2>
+      </Reveal>
       {CATALOGO.map((c, i) => (
-        <a key={c.img} href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener"
-          onClick={() => tk("Atelier · Card · " + c.alt.slice(0, 24))} className="hl"
-          style={{ display: "block", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(228,220,201,.8)", background: "rgba(255,253,247,.72)", marginTop: i === 0 ? 0 : 40, boxShadow: "0 14px 34px -26px rgba(35,38,25,.55)" }}>
-          <img src={c.img} alt={c.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", height: "auto", opacity: 0.94 }} />
-        </a>
+        <Reveal key={c.img} style={{ marginTop: i === 0 ? 0 : 40 }}>
+          <a href={c.href} target={c.href.startsWith("http") ? "_blank" : undefined} rel="noopener"
+            onClick={() => tk("Atelier · Card · " + c.alt.slice(0, 24))} className="hl"
+            style={{ display: "block", borderRadius: 18, overflow: "hidden", border: "1px solid rgba(228,220,201,.8)", background: "rgba(255,253,247,.72)", boxShadow: "0 14px 34px -26px rgba(35,38,25,.55)" }}>
+            <img src={c.img} alt={c.alt} loading="lazy" decoding="async" style={{ display: "block", width: "100%", height: "auto", opacity: 0.94 }} />
+          </a>
+        </Reveal>
       ))}
     </section>
   );
@@ -352,8 +420,11 @@ function Linha() {
 function Mundo() {
   return (
     <section style={{ maxWidth: 900, margin: "0 auto", padding: "4dvh 20px 10dvh", textAlign: "center" }}>
-      <Eyebrow>Vitória-ES</Eyebrow>
-      <h2 className="fd" style={{ fontSize: "clamp(28px,5vw,46px)", color: T.ink, margin: "10px 0 18px" }}>Venha nos visitar</h2>
+      <Reveal>
+        <Eyebrow>Vitória-ES</Eyebrow>
+        <h2 className="fd" style={{ fontSize: "clamp(28px,5vw,46px)", color: T.ink, margin: "10px 0 18px" }}>Venha nos visitar</h2>
+      </Reveal>
+      <Reveal delay={120}>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(270px,1fr))", gap: 14, textAlign: "left" }}>
         {LOJAS.map(l => (
           <div key={l.id} style={{ background: "rgba(255,253,247,.8)", border: `1px solid ${T.border}`, borderRadius: 18, padding: "20px 20px 18px" }}>
@@ -366,6 +437,7 @@ function Mundo() {
           </div>
         ))}
       </div>
+      </Reveal>
     </section>
   );
 }
@@ -374,12 +446,14 @@ function Mundo() {
 function Final() {
   return (
     <section style={{ maxWidth: 760, margin: "0 auto", padding: "0 20px 12dvh", textAlign: "center" }}>
+      <Reveal>
       <a href="/seja-bento" onClick={() => tk("Atelier · Seja Bentô")}
         className="hl" style={{ display: "block", borderRadius: 24, padding: "34px 24px", textDecoration: "none", background: "rgba(255,253,247,.8)", border: `1px solid ${T.accent}66`, boxShadow: "0 24px 60px -38px rgba(35,38,25,.5)" }}>
         <Eyebrow>Revenda · Franquia · Parceria</Eyebrow>
         <div className="fd" style={{ fontSize: "clamp(24px,4.6vw,34px)", color: T.ink, margin: "10px 0 8px" }}>Quer crescer com a <em style={{ color: T.pistacheDark, fontStyle: "italic" }}>Bentô</em>?</div>
         <span className="fb" style={{ display: "inline-flex", marginTop: 8, background: T.pistacheDark, color: T.surface, borderRadius: 999, padding: "12px 24px", fontSize: 14, fontWeight: 600 }}>Responder questionário →</span>
       </a>
+      </Reveal>
       <p className="fb" style={{ fontSize: 10.5, color: T.inkSoft, marginTop: 26, lineHeight: 1.6 }}>
         © {new Date().getFullYear()} ABB Gelateria Ltda · Bentô Gelatos — CNPJ 61.590.463/0001-45. <a href="/" style={{ color: T.pistacheDark }}>← Voltar à home atual</a>
       </p>
