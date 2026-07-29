@@ -57,6 +57,9 @@ const win = (p, a, b) => clamp01((p - a) / (b - a));
 const frameSrc = (dir, i, mob) => `${dir}${mob ? "-m" : ""}/f${String(i + 1).padStart(3, "0")}.webp`;
 
 function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
+  const [noEase] = useState(() => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
+  });
   const canvasRef = useRef(null);
   const rootRef = useRef(null);
   const state = useRef({ imgs: [], ok: [], cur: 0, raf: 0, alive: true, visible: true, failed: 0, ready: false, gen: 0, lastDrawn: -1 });
@@ -122,8 +125,8 @@ function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
       if (!s.alive) return;
       if (!s.visible) { s.running = false; return; } // suspende; IO religa
       const target = clamp01(tRef.current) * (count - 1);
-      // inércia: persegue o alvo (0.14 ≈ peso físico sem parecer atrasado)
-      s.cur += (target - s.cur) * 0.14;
+      // inércia: persegue o alvo (0.14 ≈ peso físico); reduced-motion = sem easing
+      s.cur += (target - s.cur) * (noEase ? 1 : 0.14);
       const i = Math.round(s.cur);
       // completa a vizinhança do frame atual (o esqueleto vira giro contínuo)
       for (let d = 0; d <= 4; d++) { load(i + d); load(i - d); }
@@ -145,7 +148,7 @@ function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
       if (io) io.disconnect();
       s.imgs.forEach(im => { if (im) { im.onload = null; im.onerror = null; } });
     };
-  }, [useFallback, mob, count, dir]);
+  }, [useFallback, mob, count, dir, noEase]);
 
   if (useFallback) return <img src={fallbackSrc} alt={alt} style={style} />;
   return (
@@ -156,8 +159,53 @@ function FrameScrub({ t, style, count, dir, fallbackSrc, alt }) {
   );
 }
 
+// alturas dos palcos com fallback: iOS < 15.4 não tem svh (o palco colapsava
+// e "nada acontecia no scroll") — vh primeiro, svh sobrescreve onde existir
+export function AtelierStyle() {
+  return (<style>{`
+.at-track-hero{height:420vh;height:420svh}
+.at-track-anat{height:300vh;height:300svh}
+.at-stage{height:100vh;height:100svh}
+`}</style>);
+}
+
 function Eyebrow({ children }) {
   return <div className="fm" style={{ fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", color: T.accent }}>{children}</div>;
+}
+
+/* Sequência PASSANTE: o card entra subindo/escalando ao surgir por baixo e
+   sai encolhendo/esmaecendo por cima — movimento contínuo preso ao scroll
+   (não one-shot). Escreve direto no DOM (sem setState) — barato para a fila
+   inteira de cards. Reduced-motion: estático. */
+export function CardMotion({ children, style }) {
+  const ref = useRef(null);
+  const [reduced] = useState(() => {
+    try { return window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch { return false; }
+  });
+  useEffect(() => {
+    if (reduced) return;
+    const el = ref.current; if (!el) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (r.bottom < -80 || r.top > vh + 80) return; // fora da tela: nada a fazer
+      const pr = clamp01((vh - r.top) / (vh + r.height)); // 0 entra ↓ · .5 centro · 1 sai ↑
+      const c = (pr - 0.5) * 2; // -1..1
+      const y = -c * 36;
+      const sc = 1 - Math.min(0.055, Math.abs(c) * 0.055);
+      const op = Math.max(0.35, 1 - Math.max(0, Math.abs(c) - 0.5) * 1.1);
+      el.style.transform = `translateY(${y.toFixed(1)}px) scale(${sc.toFixed(3)})`;
+      el.style.opacity = op.toFixed(2);
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    update();
+    return () => { window.removeEventListener("scroll", onScroll); window.removeEventListener("resize", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, [reduced]);
+  return <div ref={ref} style={{ ...style, willChange: "transform,opacity" }}>{children}</div>;
 }
 
 // Entrada suave ao rolar (transform+opacity apenas; nada de opacity-0 preso:
@@ -181,7 +229,7 @@ function Reveal({ children, delay = 0, style }) {
 }
 
 /* ===== 1+2. HERO + O OBJETO: palco sticky, número gigantes por scroll ===== */
-function HeroStage() {
+export function HeroStage({ intro = true }) {
   const trackRef = useRef(null);
   const p = useSectionProgress(trackRef);
   // reduced-motion: sem pin longo nem transformações — versão estática única
@@ -191,20 +239,6 @@ function HeroStage() {
   // proteinClaim → string · sugarClaim → {label, note}: normaliza para texto
   const sc = sugarClaim(heroP);
   const claims = [proteinClaim(heroP), sc && sc.label].filter(Boolean);
-  if (reduced) {
-    return (
-      <section style={{ minHeight: "100svh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px", textAlign: "center", gap: 18 }}>
-        <BentoLogo size={54} />
-        <h1 className="fd" style={{ fontSize: "clamp(38px,8vw,84px)", lineHeight: 0.98, color: T.ink, fontWeight: 400, letterSpacing: "-0.02em", margin: 0 }}>
-          Gelato com <em style={{ color: T.pistacheDark, fontStyle: "italic" }}>propósito</em>
-        </h1>
-        <img src={heroP.image} alt={heroP.name} style={{ width: "min(38vh,74vw)", aspectRatio: "1", objectFit: "cover", borderRadius: 28 }} />
-        <div className="fb" style={{ fontSize: 17, color: T.ink }}>
-          <b style={{ color: T.pistacheDark }}>{br(heroP.nutrition.protein)} g de proteína</b> · {br(heroP.nutrition.kcal)} kcal · 0 açúcar adicionado
-        </div>
-      </section>
-    );
-  }
   // fases: 0-.22 título · .25-.5 proteína · .5-.75 kcal · .75-1 zero açúcar
   const metricas = [
     { v: br(heroP.nutrition.protein) + " g", l: "de proteína por picolé", a: 0.26, b: 0.5 },
@@ -215,25 +249,25 @@ function HeroStage() {
   return (
     // svh (viewport "pequeno", estável): a barra do Safari mobile não muda a
     // altura do trilho/palco durante a rolagem — sem saltos no sticky (Codex).
-    <section ref={trackRef} style={{ position: "relative", height: "420svh" }}>
-      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <section ref={trackRef} className="at-track-hero" style={{ position: "relative" }}>
+      <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {/* objeto-herói: 1 volta completa do Bentôlé ao longo de TODO o palco —
             o scroll comanda o giro (HeroScrub) com inércia */}
         <FrameScrub t={p} count={96} dir="/atelier/hero" fallbackSrc={heroP.image} alt={heroP.name}
           style={{
             width: "min(46vh, 78vw)", aspectRatio: "1", borderRadius: 28,
             boxShadow: "0 60px 120px -60px rgba(35,38,25,.55)",
-            transform: `rotate(${-4 + rot * 0.012}deg) scale(${1 + win(p, 0, 0.25) * 0.06})`,
+            transform: reduced ? "none" : `rotate(${-4 + rot * 0.012}deg) scale(${1 + win(p, 0, 0.25) * 0.06})`,
           }} />
-        {/* título de abertura */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "0 20px calc(7dvh + env(safe-area-inset-bottom))", textAlign: "center", opacity: 1 - win(p, 0.1, 0.22), pointerEvents: p > 0.2 ? "none" : "auto" }}>
-          <div className="rise"><BentoLogo size={54} /></div>
+        {/* título de abertura (só na versão que abre a página) */}
+        {intro && <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "0 20px calc(7dvh + env(safe-area-inset-bottom))", textAlign: "center", opacity: 1 - win(p, 0.1, 0.22), pointerEvents: p > 0.2 ? "none" : "auto" }}>
+          <div className={reduced ? undefined : "rise"}><BentoLogo size={54} /></div>
           <h1 className="fd" style={{ fontSize: "clamp(38px,8vw,84px)", lineHeight: 0.98, color: T.ink, fontWeight: 400, letterSpacing: "-0.02em", margin: "14px 0 8px" }}>
-            <span className="rise" style={{ display: "inline-block", animationDelay: "90ms" }}>Gelato com</span><br />
-            <em className="rise" style={{ display: "inline-block", color: T.pistacheDark, fontStyle: "italic", animationDelay: "220ms" }}>propósito</em>
+            <span className={reduced ? undefined : "rise"} style={{ display: "inline-block", animationDelay: "90ms" }}>Gelato com</span><br />
+            <em className={reduced ? undefined : "rise"} style={{ display: "inline-block", color: T.pistacheDark, fontStyle: "italic", animationDelay: "220ms" }}>propósito</em>
           </h1>
-          <div className="rise fm" style={{ fontSize: 10, letterSpacing: "0.26em", textTransform: "uppercase", color: T.inkSoft, marginTop: 10, animationDelay: "380ms" }}>role para conhecer ↓</div>
-        </div>
+          <div className={(reduced ? "" : "rise ") + "fm"} style={{ fontSize: 10, letterSpacing: "0.26em", textTransform: "uppercase", color: T.inkSoft, marginTop: 10, animationDelay: "380ms" }}>role para conhecer ↓</div>
+        </div>}
         {/* métricas gigantes (dados reais do data.js) */}
         {metricas.map(m => {
           const o = clamp01(win(p, m.a, m.a + 0.07) - win(p, m.b - 0.04, m.b));
@@ -267,7 +301,7 @@ const CAMADAS = [
 // (pasta sabor leite/cobertura) e exibe o AVISO_POLIOL na seção A Prova.
 const CLAIM_BASE = "Todo picolé da linha nasce da mesma base — reformulada sem maltitol e sem sorbitol na composição da própria base.";
 
-function Anatomia() {
+export function Anatomia() {
   const trackRef = useRef(null);
   const p = useSectionProgress(trackRef);
   const [reduced] = useState(() => {
@@ -281,32 +315,14 @@ function Anatomia() {
     window.addEventListener("resize", on);
     return () => window.removeEventListener("resize", on);
   }, []);
-  if (reduced) {
-    return (
-      <section style={{ maxWidth: 1040, margin: "0 auto", padding: "14svh 20px 10svh" }}>
-        <Eyebrow>Anatomia do Bentôlé</Eyebrow>
-        <h2 className="fd" style={{ fontSize: "clamp(30px,5.4vw,52px)", color: T.ink, margin: "10px 0 6px", lineHeight: 1.02 }}>Três camadas.<br />Nenhum segredo.</h2>
-        <p className="fb" style={{ fontSize: 15.5, color: T.inkSoft, maxWidth: 560, lineHeight: 1.6 }}>{CLAIM_BASE}</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14, marginTop: 26 }}>
-          {CAMADAS.map((c, i) => (
-            <div key={c.t} style={{ background: "rgba(255,253,247,.8)", border: `1px solid ${T.border}`, borderRadius: 18, padding: "22px 20px" }}>
-              <div className="fm" style={{ fontSize: 10, letterSpacing: "0.24em", color: T.accent }}>{String(i + 1).padStart(2, "0")}</div>
-              <div className="fd" style={{ fontSize: 22, color: T.pistacheDark, margin: "6px 0 6px" }}>{c.t}</div>
-              <div className="fb" style={{ fontSize: 13.5, color: T.inkSoft, lineHeight: 1.55 }}>{c.d}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
   const filmT = win(p, 0.02, 0.8);           // o filme abre ao longo do palco
   const active = p < 0.34 ? 0 : p < 0.6 ? 1 : 2; // camada em foco
   return (
-    <section ref={trackRef} style={{ position: "relative", height: "300svh" }}>
+    <section ref={trackRef} className="at-track-anat" style={{ position: "relative" }}>
       {/* em viewport BAIXA (landscape de celular) o palco vira LINHA: filme à
           esquerda, textos à direita — o empilhamento vertical não cabe em
           100svh nem encolhendo (achado Codex no PR #189) */}
-      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
+      <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
         <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo"
           style={{ width: lowH ? "min(72svh,34vw)" : "min(40svh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)", order: lowH ? 0 : 2, flexShrink: 0 }} />
         <div style={{ display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: lowH ? 10 : 14, minWidth: 0, order: 1, ...(lowH ? { maxWidth: "56vw" } : {}) }}>
@@ -336,7 +352,7 @@ function Anatomia() {
 }
 
 /* ===== 4. A PROVA: ficha científica (dados literais, estilo paper) ===== */
-function Prova() {
+export function Prova() {
   const n = heroP.nutrition;
   const linhas = [
     ["Valor energético", br(n.kcal) + " kcal"], ["Carboidratos", br(n.carbs) + " g"],
@@ -395,6 +411,7 @@ function Prova() {
 /* ===== 5. A LINHA: os cards oficiais da home (artes reais preservadas) ===== */
 const CATALOGO = [
   { img: "/banners/eventos.webp", href: "/?eventos", alt: "Nos leve para seu evento — estrutura completa e orçamento online na hora" },
+  { img: "/banners/studio.webp", href: "https://totem.bentogelateria.com/meu-studio", alt: "Bentô Meu Studio — crie uma pequena edição personalizada de Bentôlés" },
   { img: "/banners/bytes.webp", href: "/bytes/", alt: "BentôBytes — sabores especiais em edição limitada" },
   { img: "/banners/tabelas.webp", href: "/?tabelas", alt: "Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz" },
   { img: "/banners/cardapio.webp", href: "https://totem.bentogelateria.com/pedir", alt: "Entrega própria e retirada em loja" },
@@ -471,6 +488,7 @@ function Final() {
 export default function HomeAtelier() {
   return (
     <div className="fb" style={{ background: T.bg, color: T.ink, minHeight: "100dvh" }}>
+      <AtelierStyle />
       <HeroStage />
       <Anatomia />
       <Prova />
