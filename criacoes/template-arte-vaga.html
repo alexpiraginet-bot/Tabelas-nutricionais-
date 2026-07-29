@@ -1,0 +1,101 @@
+<style>
+@font-face{font-family:Fraunces;src:url(fraunces-400.woff2)format('woff2');font-weight:400}
+@font-face{font-family:Fraunces;src:url(fraunces-400i.woff2)format('woff2');font-weight:400;font-style:italic}
+@font-face{font-family:Fraunces;src:url(fraunces-600.woff2)format('woff2');font-weight:600}
+@font-face{font-family:'DM Sans';src:url(dmsans-400.woff2)format('woff2');font-weight:400}
+@font-face{font-family:'DM Sans';src:url(dmsans-500.woff2)format('woff2');font-weight:500}
+@font-face{font-family:'DM Sans';src:url(dmsans-600.woff2)format('woff2');font-weight:600}
+@font-face{font-family:JB;src:url(jbmono-500.woff2)format('woff2');font-weight:500}
+:root{--bg:#F6F1E7;--warm:#EFE7D6;--surf:#FFFDF7;--ink:#232619;--soft:#5E6353;--pist:#7C8C66;--pistD:#46583A;--line:#E4DCC9;--gold:#C9A24A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:'DM Sans',sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+.stage{position:relative;overflow:hidden;background:
+  radial-gradient(120% 70% at 78% 8%, #FFFEFA 0%, transparent 55%),
+  radial-gradient(100% 60% at 10% 100%, #E9E2CD 0%, transparent 60%),
+  var(--bg);
+  display:flex;flex-direction:column;justify-content:space-between}
+/* moldura dourada fina — assinatura premium da marca */
+.frame{position:absolute;border:1px solid rgba(201,162,74,.42);border-radius:var(--fr);pointer-events:none}
+/* folha de pistache decorativa */
+.blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.14;background:var(--pist)}
+.top{display:flex;align-items:center;gap:var(--gap)}
+.logo{width:var(--logo);height:var(--logo);object-fit:contain}
+.brand{line-height:1.25}
+.bn{font-family:Fraunces,serif;font-size:var(--bn);color:var(--ink)}
+.bt{font-family:JB,monospace;font-size:var(--bt);letter-spacing:.3em;color:var(--soft);text-transform:uppercase}
+.selo{display:inline-flex;align-items:center;gap:.5em;font-family:JB,monospace;font-size:var(--selo);
+  letter-spacing:.26em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(201,162,74,.55);
+  border-radius:999px;padding:var(--seloP)}
+.dot{width:.62em;height:.62em;border-radius:50%;background:var(--gold);display:inline-block}
+h1{font-family:Fraunces,serif;font-weight:400;font-size:var(--h1);line-height:.96;letter-spacing:-.02em;color:var(--ink)}
+h1 em{font-style:italic;color:var(--pistD)}
+.sub{font-size:var(--sub);line-height:1.5;color:var(--soft);max-width:var(--subW)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--cg)}
+.chip{background:var(--surf);border:1px solid var(--line);border-radius:999px;
+  padding:var(--chipP);font-size:var(--chip);font-weight:500;color:var(--ink);white-space:nowrap}
+.chip b{color:var(--pistD);font-weight:600}
+.cta{display:inline-flex;align-items:center;gap:.55em;background:var(--pistD);color:#fff;
+  border-radius:999px;padding:var(--ctaP);font-size:var(--cta);font-weight:600;letter-spacing:.01em}
+.link{font-family:JB,monospace;font-size:var(--link);letter-spacing:.12em;color:var(--soft);text-transform:lowercase}
+.photo{position:absolute;z-index:0;object-fit:cover;border-radius:var(--phR);box-shadow:0 40px 90px -40px rgba(35,38,25,.55)}
+.rule{height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.top,.mid,.bot{position:relative;z-index:2}
+/* mini-lista do que a pessoa vai fazer */
+.does{display:flex;flex-direction:column;gap:var(--dg);max-width:var(--subW)}
+.doe{display:flex;align-items:center;gap:.6em;font-size:var(--doe);color:var(--ink)}
+.doe i{width:.42em;height:.42em;border-radius:50%;background:var(--pist);flex:0 0 auto}
+
+/* ============ STORY 1080x1920 ============ */
+body.story .stage{width:1080px;height:1920px;padding:150px 96px 130px;
+  --fr:38px;--gap:26px;--logo:96px;--bn:38px;--bt:15px;--selo:22px;--seloP:14px 30px;
+  --h1:118px;--sub:32px;--subW:700px;--cg:14px;--chip:26px;--chipP:16px 28px;
+  --cta:34px;--ctaP:30px 54px;--link:23px;--phR:34px;--dg:16px;--doe:29px}
+body.story .frame{inset:44px}
+body.story .photo{width:400px;height:400px;right:-96px;bottom:150px;transform:rotate(-7deg)}
+body.story .blob{width:520px;height:520px;left:-190px;top:250px}
+
+/* ============ PUSH 1120x1400 (modal do site) ============ */
+body.push .stage{width:1120px;height:1400px;padding:96px 88px 84px;
+  --fr:32px;--gap:20px;--logo:78px;--bn:31px;--bt:12.5px;--selo:18px;--seloP:11px 24px;
+  --h1:100px;--sub:27px;--subW:660px;--cg:12px;--chip:22px;--chipP:14px 24px;
+  --cta:28px;--ctaP:24px 44px;--link:19px;--phR:28px;--dg:13px;--doe:25px}
+body.push .frame{inset:30px}
+body.push .photo{width:330px;height:330px;right:-78px;bottom:120px;transform:rotate(-7deg)}
+body.push .blob{width:430px;height:430px;left:-160px;top:190px}
+</style>
+
+<div class="stage">
+  <div class="frame"></div>
+  <div class="blob"></div>
+  <img class="photo" src="foto.jpg" alt="">
+
+  <div class="top">
+    <img class="logo" src="bento-logo.webp" alt="">
+    <div class="brand">
+      <div class="bn">Bentô</div>
+      <div class="bt">Functional Nutrition</div>
+    </div>
+  </div>
+
+  <div class="mid" style="display:flex;flex-direction:column;gap:var(--gap)">
+    <div><span class="selo"><span class="dot"></span> Vaga aberta</span></div>
+    <h1>Procuramos<br>nosso(a)<br><em>Social Media</em></h1>
+    <div class="sub">Gelato com propósito precisa de quem saiba contar essa história.</div>
+    <div class="does">
+      <div class="doe"><i></i> Gravar e editar Reels e stories nas lojas</div>
+      <div class="doe"><i></i> Cuidar do calendário e do tom da marca</div>
+      <div class="doe"><i></i> Responder a comunidade e ler métricas</div>
+    </div>
+    <div class="chips">
+      <div class="chip"><b>Vitória-ES</b> · híbrido</div>
+      <div class="chip"><b>CLT</b> efetivo</div>
+      <div class="chip">Portfólio <b>&gt;</b> currículo</div>
+    </div>
+  </div>
+
+  <div class="bot" style="display:flex;flex-direction:column;gap:calc(var(--gap) * .8);align-items:flex-start">
+    <div class="rule" style="width:100%"></div>
+    <div class="cta">Candidate-se →</div>
+    <div class="link">bentogelateria.com/?vagas</div>
+  </div>
+</div>
