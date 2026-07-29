@@ -10,9 +10,7 @@ import WorldFundo from "./WorldFundo.jsx";
 // direto no DOM (sem re-render). Reduced-motion: estático.
 function CardMotion({children,style}){
   const ref=useRef(null);
-  const[reduced]=useState(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}});
   useEffect(()=>{
-    if(reduced)return;
     const el=ref.current;if(!el)return;
     let raf=0;
     const update=()=>{
@@ -31,7 +29,7 @@ function CardMotion({children,style}){
     window.addEventListener("resize",on);
     update();
     return()=>{window.removeEventListener("scroll",on);window.removeEventListener("resize",on);if(raf)cancelAnimationFrame(raf);};
-  },[reduced]);
+  },[]);
   return <div ref={ref} style={{...style,willChange:"transform,opacity",transformStyle:"preserve-3d"}}>{children}</div>;
 }
 

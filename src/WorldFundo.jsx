@@ -44,12 +44,13 @@ export default function WorldFundo() {
     let mob = window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches;
     posterEl.src = legPoster(0, mob);
     posterEl.style.objectFit = fitFor(mob);
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     // Em rede lenta ou economia de dados, fica só no poster — nenhum vídeo baixa.
+    // Reduce Motion NÃO desliga o filme: o tempo dele é comandado pela rolagem
+    // (gesto do usuário), como o próprio scroll — não é animação autônoma.
     const conn = navigator.connection || navigator.webkitConnection;
     const et = (conn && conn.effectiveType) || "";
     const slowNet = !!(conn && (conn.saveData || et === "2g" || et === "slow-2g"));
-    if (reduced || slowNet) return; // poster estático já conta a história
+    if (slowNet) return; // poster estático já conta a história
 
     const videos = new Map();
     const blobs = new Map(); // retidos para rolagem reversa sem re-download
