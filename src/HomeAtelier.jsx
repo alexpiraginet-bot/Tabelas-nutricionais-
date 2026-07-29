@@ -327,7 +327,7 @@ export function Anatomia() {
           100svh nem encolhendo (achado Codex no PR #189) */}
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
         <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo" frameless
-          style={{ width: lowH ? "min(84vh,40vw)" : "min(52vh,88vw)", aspectRatio: "1", maxWidth: 640,
+          style={{ width: lowH ? "min(84vh,40vw)" : "min(max(200px, calc(100vh - 380px)), 88vw)", aspectRatio: "1", maxWidth: 640,
             WebkitMaskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
             maskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
             order: lowH ? 0 : 2, flexShrink: 0 }} />
