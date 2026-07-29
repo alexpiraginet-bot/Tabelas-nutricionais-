@@ -741,6 +741,7 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
 
 const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
+const HomeAtelier = lazy(() => import("./HomeAtelier.jsx"));
 
 const TermosPage = lazy(() => import("./TermosPage.jsx"));
 const PortfolioPage = lazy(() => import("./PortfolioPage.jsx"));
@@ -875,6 +876,8 @@ export default function App(){
   const[termos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("termos");}catch{return false;}});
   const[portfolio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("portfolio");}catch{return false;}});
   const[vagas]=useState(()=>{try{return new URLSearchParams(window.location.search).has("vagas");}catch{return false;}});
+  // protótipo da nova home narrativa (estilo oryzo) — só via /?atelier
+  const[atelier]=useState(()=>{try{return new URLSearchParams(window.location.search).has("atelier");}catch{return false;}});
   const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -954,6 +957,7 @@ export default function App(){
   if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);
   if(portfolio) return(<><GStyle/><Suspense fallback={null}><PortfolioPage/></Suspense></>);
   if(vagas) return(<><GStyle/><Suspense fallback={null}><TrabalhePage/></Suspense></>);
+  if(atelier) return(<><GStyle/><Suspense fallback={null}><HomeAtelier/></Suspense></>);
   return(
     <div className="shell fb gn" style={{background:view==="home"?"transparent":T.bg,color:T.ink}}>
       <GStyle/>
