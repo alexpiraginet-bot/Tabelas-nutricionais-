@@ -1,0 +1,51 @@
+<style>
+@font-face{font-family:Fraunces;src:url(fraunces-400.woff2)format('woff2');font-weight:400}
+@font-face{font-family:Fraunces;src:url(fraunces-400i.woff2)format('woff2');font-weight:400;font-style:italic}
+@font-face{font-family:Fraunces;src:url(fraunces-600.woff2)format('woff2');font-weight:600}
+@font-face{font-family:'DM Sans';src:url(dmsans-400.woff2)format('woff2');font-weight:400}
+@font-face{font-family:'DM Sans';src:url(dmsans-500.woff2)format('woff2');font-weight:500}
+@font-face{font-family:'DM Sans';src:url(dmsans-600.woff2)format('woff2');font-weight:600}
+@font-face{font-family:JB;src:url(jbmono-500.woff2)format('woff2');font-weight:500}
+:root{--surf:#FFFDF7;--ink:#232619;--soft:#5E6353;--pistD:#46583A;--line:#E4DCC9;--gold:#C9A24A}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+/* card 1600x686 no padrão dos banners full: foto esquerda 42% + conteúdo direita */
+.card{width:1600px;height:686px;background:var(--surf);display:flex;overflow:hidden;position:relative}
+.ph{flex:0 0 42%;position:relative;overflow:hidden}
+.ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 38%}
+.body{flex:1;padding:52px 150px 46px 62px;display:flex;flex-direction:column;justify-content:center;gap:18px;position:relative}
+.top{display:flex;align-items:center;gap:18px}
+.logo{width:74px;height:74px;object-fit:contain}
+.selo{font-family:JB,monospace;font-size:19px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);
+  border:1.5px solid var(--gold);border-radius:999px;padding:11px 24px;white-space:nowrap}
+h1{font-family:Fraunces,Georgia,serif;font-weight:600;font-size:76px;line-height:1.02;letter-spacing:-.01em;color:var(--pistD)}
+.sub{font-family:Fraunces,Georgia,serif;font-weight:400;font-size:44px;line-height:1.12;color:var(--ink)}
+.sub em{font-style:italic;color:var(--gold)}
+.rule{height:1px;width:420px;background:linear-gradient(90deg,var(--gold),transparent)}
+.txt{font-size:26px;line-height:1.45;color:var(--soft);font-weight:500}
+.cta-row{display:flex;align-items:center;gap:26px;margin-top:4px}
+.cta{font-family:JB,monospace;font-size:21px;letter-spacing:.14em;text-transform:uppercase;color:var(--pistD);
+  border:1.5px solid var(--pistD);border-radius:999px;padding:16px 34px}
+.meta{font-family:JB,monospace;font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.arr{position:absolute;right:56px;top:50%;transform:translateY(-50%);width:88px;height:88px;border-radius:50%;
+  background:var(--pistD);display:flex;align-items:center;justify-content:center}
+.arr svg{width:38px;height:38px}
+</style>
+<div class="card">
+  <div class="ph"><img src="studio-foto.jpg" alt=""></div>
+  <div class="body">
+    <div class="top">
+      <img class="logo" src="bento-logo.webp" alt="">
+      <span class="selo">Pequenas edições personalizadas</span>
+    </div>
+    <h1>Bentô Meu Studio</h1>
+    <div class="sub">Sua edição, <em>feita pela Bentô.</em></div>
+    <div class="rule"></div>
+    <div class="txt">Escolha base, recheio e cobertura.<br>Rótulo comemorativo incluído.</div>
+    <div class="cta-row">
+      <span class="cta">Criar minha edição</span>
+      <span class="meta">10 mini · 8 mega</span>
+    </div>
+    <div class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="#FFFDF7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+  </div>
+</div>
