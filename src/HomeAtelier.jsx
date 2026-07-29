@@ -303,26 +303,33 @@ function Anatomia() {
   const active = p < 0.34 ? 0 : p < 0.6 ? 1 : 2; // camada em foco
   return (
     <section ref={trackRef} style={{ position: "relative", height: "300svh" }}>
-      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "calc(14px + env(safe-area-inset-top)) 20px 18px", textAlign: "center" }}>
-        <Eyebrow>Anatomia do Bentôlé</Eyebrow>
-        <h2 className="fd" style={{ fontSize: "clamp(26px,4.8vw,44px)", color: T.ink, margin: 0, lineHeight: 1.02 }}>Três camadas. Nenhum segredo.</h2>
+      {/* em viewport BAIXA (landscape de celular) o palco vira LINHA: filme à
+          esquerda, textos à direita — o empilhamento vertical não cabe em
+          100svh nem encolhendo (achado Codex no PR #189) */}
+      <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
         <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo"
-          style={{ width: lowH ? "min(34vh,60vw)" : "min(40vh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)" }} />
-        {/* seletor 01·02·03 sincronizado com o scroll */}
-        <div style={{ display: "flex", gap: 8 }}>
-          {CAMADAS.map((c, i) => (
-            <span key={c.t} className="fm" style={{ fontSize: 10, letterSpacing: "0.2em", borderRadius: 999, padding: "7px 14px", transition: "all .3s ease",
-              background: i === active ? T.pistacheDark : "rgba(255,253,247,.7)", color: i === active ? T.surface : T.inkSoft, border: `1px solid ${i === active ? T.pistacheDark : T.border}` }}>
-              {String(i + 1).padStart(2, "0")}
-            </span>
-          ))}
+          style={{ width: lowH ? "min(72svh,34vw)" : "min(40svh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)", order: lowH ? 0 : 2, flexShrink: 0 }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: lowH ? 10 : 14, minWidth: 0, order: 1, ...(lowH ? { maxWidth: "56vw" } : {}) }}>
+          <div style={{ order: 0, display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: 8 }}>
+            <Eyebrow>Anatomia do Bentôlé</Eyebrow>
+            <h2 className="fd" style={{ fontSize: lowH ? "clamp(20px,3.6vh,26px)" : "clamp(26px,4.8vw,44px)", color: T.ink, margin: 0, lineHeight: 1.02 }}>Três camadas. Nenhum segredo.</h2>
+          </div>
+          {/* seletor 01·02·03 sincronizado com o scroll */}
+          <div style={{ display: "flex", gap: 8, order: 1 }}>
+            {CAMADAS.map((c, i) => (
+              <span key={c.t} className="fm" style={{ fontSize: 10, letterSpacing: "0.2em", borderRadius: 999, padding: "7px 14px", transition: "all .3s ease",
+                background: i === active ? T.pistacheDark : "rgba(255,253,247,.7)", color: i === active ? T.surface : T.inkSoft, border: `1px solid ${i === active ? T.pistacheDark : T.border}` }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
+            ))}
+          </div>
+          {/* ficha da camada ativa (altura reservada para não pular) */}
+          <div key={active} className="fade" style={{ minHeight: lowH ? 0 : 86, maxWidth: 480, order: 2 }}>
+            <div className="fd" style={{ fontSize: lowH ? 18 : 22, color: T.pistacheDark }}>{CAMADAS[active].t}</div>
+            <div className="fb" style={{ fontSize: lowH ? 13 : 14, color: T.inkSoft, lineHeight: 1.5, marginTop: 4 }}>{CAMADAS[active].d}</div>
+          </div>
+          {!lowH && <p className="fb" style={{ fontSize: 12, color: T.inkSoft, maxWidth: 460, lineHeight: 1.55, margin: 0, opacity: .85, order: 3 }}>{CLAIM_BASE}</p>}
         </div>
-        {/* ficha da camada ativa (altura reservada para não pular) */}
-        <div key={active} className="fade" style={{ minHeight: 86, maxWidth: 480 }}>
-          <div className="fd" style={{ fontSize: 22, color: T.pistacheDark }}>{CAMADAS[active].t}</div>
-          <div className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.55, marginTop: 4 }}>{CAMADAS[active].d}</div>
-        </div>
-        {!lowH && <p className="fb" style={{ fontSize: 12, color: T.inkSoft, maxWidth: 460, lineHeight: 1.55, margin: 0, opacity: .85 }}>{CLAIM_BASE}</p>}
       </div>
     </section>
   );
