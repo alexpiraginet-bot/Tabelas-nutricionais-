@@ -808,22 +808,23 @@ function TabelasIntro({onClose}){
 }
 
 
-/* ========== MINIS FLUTUANTES (casquinhas e picolés da marca) ==========
-   SVGs oficiais vagando em parallax ENTRE o filme de fundo e os cards
-   (z -1, depois do WorldFundo no DOM): cada mini tem velocidade, giro,
-   profundidade (blur) e paleta de sabor próprios; recicla ao sair da
-   tela — a rolagem comanda (sempre ativa); só o balanço ocioso
-   respeita reduced-motion. Camada é decorativa: aria-hidden, sem hit. */
+/* ========== MINIS FLUTUANTES (casquinhas e picolés gerados por IA) ==========
+   Imagens premium geradas via gpt-image-1 com fundo TRANSPARENTE
+   (public/treats/*.webp, 14-18KB cada), vagando em parallax ENTRE o
+   filme de fundo e os cards (z -1, depois do WorldFundo no DOM): cada
+   mini tem velocidade, giro, profundidade (blur) e opacidade próprios;
+   recicla ao sair da tela — a rolagem comanda (sempre ativa); só o
+   balanço ocioso respeita reduced-motion. aria-hidden, sem hit. */
 const TREAT_CFG=[
-  // [tipo, esq%, topo(vh), tam, parallax, rotBase, blur, opacidade, sabor]
-  ["p",  4,  18, 46, .16, -14, 0,   .55, "pistache"],
-  ["g", 86,  34, 54, .24,  10, 0,   .60, "morango"],
-  ["p", 79,  70, 34, .10,  18, 1.2, .45, "baunilha"],
-  ["g",  7,  92, 38, .20,  -8, .8,  .50, "baunilha"],
-  ["p", 89, 118, 48, .14,   6, 0,   .55, "morango"],
-  ["g",  3, 142, 30, .27, -16, 1.4, .40, "pistache"],
-  ["p", 82, 168, 42, .19,  12, .6,  .50, "pistache"],
-  ["g", 10, 190, 50, .12,  -6, 0,   .55, "morango"],
+  // [asset, esq%, topo(vh), tam, parallax, rotBase, blur, opacidade]
+  ["picole-pistache",    4,  18, 52, .16, -14, 0,   .62],
+  ["casquinha-morango", 86,  34, 60, .24,  10, 0,   .68],
+  ["picole-morango",    79,  70, 40, .10,  18, 1.2, .5 ],
+  ["casquinha-creme",    7,  92, 44, .20,  -8, .8,  .56],
+  ["picole-morango",    89, 118, 54, .14,   6, 0,   .62],
+  ["casquinha-pistache", 3, 142, 36, .27, -16, 1.4, .46],
+  ["picole-pistache",   82, 168, 48, .19,  12, .6,  .56],
+  ["casquinha-pistache",10, 190, 56, .12,  -6, 0,   .62],
 ];
 function FloatingTreats(){
   const ref=useRef(null);
@@ -860,12 +861,11 @@ function FloatingTreats(){
     raf=requestAnimationFrame(loop);
     return()=>{alive=false;cancelAnimationFrame(raf);};
   },[reduced]);
-  const pal=(nome)=>{const pr=PRODUCTS.find(x=>x.id===nome);return pr?pr.palette:{base:"#B8C97A",mid:"#8FA050",deep:"#4A5A22",swirl:"#2E3812",hl:"#DCE8A8"};};
   return(
     <div ref={ref} aria-hidden="true" style={{position:"fixed",inset:0,zIndex:-1,pointerEvents:"none",overflow:"hidden"}}>
       {TREAT_CFG.map((c,i)=>(
-        <div key={i} style={{position:"absolute",top:0,left:c[1]+"%",width:c[3],height:c[3],opacity:c[7],filter:c[6]?`blur(${c[6]}px)`:undefined,willChange:"transform"}}>
-          {c[0]==="p"?<PicoleSVG p={pal(c[8])} size={c[3]} id={"ft"+i}/>:<GelatoSVG p={pal(c[8])} size={c[3]} id={"ft"+i}/>}
+        <div key={i} style={{position:"absolute",top:0,left:c[1]+"%",width:c[3],opacity:c[7],filter:c[6]?`blur(${c[6]}px)`:undefined,willChange:"transform"}}>
+          <img src={`/treats/${c[0]}.webp`} alt="" loading="lazy" decoding="async" style={{display:"block",width:"100%",height:"auto"}}/>
         </div>
       ))}
     </div>
