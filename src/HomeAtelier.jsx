@@ -255,7 +255,7 @@ export function HeroStage({ intro = true }) {
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
         {/* objeto-herói: 1 volta completa do Bentôlé ao longo de TODO o palco —
             o scroll comanda o giro (HeroScrub) com inércia */}
-        <FrameScrub t={p} count={96} dir="/atelier/hero" fallbackSrc={heroP.image} alt={heroP.name} frameless
+        <FrameScrub t={p} count={96} dir="/atelier/hero2" fallbackSrc={heroP.image} alt={heroP.name} frameless
           style={{
             width: "min(78vh, 100vw)", aspectRatio: "1", maxWidth: 720,
             WebkitMaskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 58%, transparent 76%)",
@@ -326,7 +326,7 @@ export function Anatomia() {
           esquerda, textos à direita — o empilhamento vertical não cabe em
           100svh nem encolhendo (achado Codex no PR #189) */}
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
-        <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo" frameless
+        <FrameScrub t={filmT} count={64} dir="/atelier/anatomia2" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo" frameless
           style={{ width: lowH ? "min(84vh,40vw)" : "min(max(200px, calc(100vh - 380px)), 88vw)", aspectRatio: "1", maxWidth: 640,
             WebkitMaskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
             maskImage: "radial-gradient(ellipse 52% 52% at 50% 50%, #000 56%, transparent 76%)",
