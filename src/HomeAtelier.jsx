@@ -7,7 +7,7 @@
 // texto regulatório literal. O herói 3D (turntable) entra como vídeo scrubado
 // quando o asset estiver aprovado; até lá, a foto real segura o palco.
 import { useEffect, useRef, useState } from "react";
-import { PRODUCTS, ALLERGENS, PODE_CONTER, proteinClaim, sugarClaim, lupaFrontal } from "./data.js";
+import { PRODUCTS, ALLERGENS, PODE_CONTER, AVISO_POLIOL, proteinClaim, sugarClaim, lupaFrontal } from "./data.js";
 import { T, LOJAS, BentoLogo, tk, br, orderIngredients } from "./shared.jsx";
 
 const HERO_ID = "bentole-pistache-cb";
@@ -47,6 +47,112 @@ function useSectionProgress(ref) {
 const clamp01 = v => Math.min(1, Math.max(0, v));
 // janela [a,b] do progresso global → 0..1 local
 const win = (p, a, b) => clamp01((p - a) / (b - a));
+
+/* ===== HERÓI-SCRUB: sequência de frames comandada pelo scroll =====
+   O giro do Bentôlé (master Sora, 1 volta completa) vira N frames WebP;
+   o scroll define o frame-alvo e um lerp por rAF dá o peso/inércia do
+   objeto (a sensação oryzo de "obedece o dedo"). Disciplina da casa:
+   carrega perto do frame atual primeiro, poster até o 1º frame pronto,
+   Save-Data/2g ou falha de rede = fica na foto real (fallback do <img>). */
+const HERO_FRAMES = 96;
+const heroFrame = (i, mob) => `/atelier/hero${mob ? "-m" : ""}/f${String(i + 1).padStart(3, "0")}.webp`;
+
+function HeroScrub({ t, style }) {
+  const canvasRef = useRef(null);
+  const rootRef = useRef(null);
+  const state = useRef({ imgs: [], ok: [], cur: 0, raf: 0, alive: true, visible: true, failed: 0, ready: false, gen: 0, lastDrawn: -1 });
+  const [useFallback, setUseFallback] = useState(() => {
+    try {
+      const c = navigator.connection || {};
+      return !!(c.saveData || c.effectiveType === "2g" || c.effectiveType === "slow-2g");
+    } catch { return false; }
+  });
+  // variante desktop/mobile como estado: cruzar o breakpoint reinicia a
+  // sequência na resolução certa (achado Codex — antes ficava fixa)
+  const [mob, setMob] = useState(() => {
+    try { return window.innerWidth < 768; } catch { return false; }
+  });
+  const tRef = useRef(t);
+  tRef.current = t;
+
+  useEffect(() => {
+    const onResize = () => setMob(window.innerWidth < 768);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    if (useFallback) return;
+    const s = state.current;
+    const myGen = ++s.gen; // invalida onload de variante antiga após resize
+    s.alive = true; s.imgs = []; s.ok = []; s.failed = 0; s.lastDrawn = -1;
+    const cv = canvasRef.current;
+    const ctx = cv ? cv.getContext("2d") : null;
+    if (!ctx) return;
+
+    // pausa o rAF quando o palco sai da tela (seções seguintes da página)
+    const io = typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(([e]) => { s.visible = e.isIntersecting; }, { threshold: 0 })
+      : null;
+    if (io && rootRef.current) io.observe(rootRef.current);
+
+    const draw = (img, idx) => {
+      if (!img || !img.naturalWidth || idx === s.lastDrawn) return;
+      if (cv.width !== img.naturalWidth) { cv.width = img.naturalWidth; cv.height = img.naturalHeight; }
+      ctx.drawImage(img, 0, 0);
+      s.lastDrawn = idx;
+      if (!s.ready) { s.ready = true; cv.style.opacity = "1"; }
+    };
+    const load = (i) => {
+      if (i < 0 || i >= HERO_FRAMES || s.imgs[i]) return;
+      const im = new Image();
+      im.decoding = "async";
+      im.onload = () => { if (myGen === s.gen) s.ok[i] = true; };
+      im.onerror = () => { if (myGen === s.gen) { s.failed++; if (s.failed > 6 && !s.ready) setUseFallback(true); } };
+      im.src = heroFrame(i, mob);
+      s.imgs[i] = im;
+    };
+    // 1ª leva: frame 0 + esqueleto esparso (1 a cada 8) para resposta imediata
+    load(0);
+    for (let i = 0; i < HERO_FRAMES; i += 8) load(i);
+
+    const tick = () => {
+      if (!s.alive) return;
+      if (!s.visible) { s.raf = requestAnimationFrame(tick); return; }
+      const target = clamp01(tRef.current) * (HERO_FRAMES - 1);
+      // inércia: persegue o alvo (0.14 ≈ peso físico sem parecer atrasado)
+      s.cur += (target - s.cur) * 0.14;
+      const i = Math.round(s.cur);
+      // completa a vizinhança do frame atual (o esqueleto vira giro contínuo)
+      for (let d = 0; d <= 4; d++) { load(i + d); load(i - d); }
+      // desenha o carregado mais próximo do frame exato (desempate por distância real)
+      let best = -1;
+      for (let d = 0; d < HERO_FRAMES; d++) {
+        const hi = s.ok[i + d] ? i + d : -1, lo = s.ok[i - d] ? i - d : -1;
+        if (hi >= 0 && lo >= 0) { best = Math.abs(hi - s.cur) <= Math.abs(lo - s.cur) ? hi : lo; break; }
+        if (hi >= 0) { best = hi; break; }
+        if (lo >= 0) { best = lo; break; }
+      }
+      if (best >= 0) draw(s.imgs[best], best);
+      s.raf = requestAnimationFrame(tick);
+    };
+    s.raf = requestAnimationFrame(tick);
+    return () => {
+      s.alive = false;
+      cancelAnimationFrame(s.raf);
+      if (io) io.disconnect();
+      s.imgs.forEach(im => { if (im) { im.onload = null; im.onerror = null; } });
+    };
+  }, [useFallback, mob]);
+
+  if (useFallback) return <img src={heroP.image} alt={heroP.name} style={style} />;
+  return (
+    <div ref={rootRef} style={{ ...style, position: "relative", overflow: "hidden", background: "#EFE0C8" }} role="img" aria-label={heroP.name}>
+      <img src={heroFrame(0, mob)} alt="" aria-hidden="true" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0, transition: "opacity .3s ease" }} />
+    </div>
+  );
+}
 
 function Eyebrow({ children }) {
   return <div className="fm" style={{ fontSize: 11, letterSpacing: "0.3em", textTransform: "uppercase", color: T.accent }}>{children}</div>;
@@ -89,13 +195,13 @@ function HeroStage() {
     // altura do trilho/palco durante a rolagem — sem saltos no sticky (Codex).
     <section ref={trackRef} style={{ position: "relative", height: "420svh" }}>
       <div style={{ position: "sticky", top: 0, height: "100svh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {/* objeto-herói: foto real; o turntable scrubado substitui este <img> */}
-        <img src={heroP.image} alt={heroP.name}
+        {/* objeto-herói: 1 volta completa do Bentôlé ao longo de TODO o palco —
+            o scroll comanda o giro (HeroScrub) com inércia */}
+        <HeroScrub t={p}
           style={{
-            width: "min(46vh, 78vw)", aspectRatio: "1", objectFit: "cover", borderRadius: 28,
+            width: "min(46vh, 78vw)", aspectRatio: "1", borderRadius: 28,
             boxShadow: "0 60px 120px -60px rgba(35,38,25,.55)",
-            transform: `rotate(${-6 + rot * 0.04}deg) scale(${1 + win(p, 0, 0.25) * 0.06})`,
-            transition: "transform .1s linear",
+            transform: `rotate(${-4 + rot * 0.012}deg) scale(${1 + win(p, 0, 0.25) * 0.06})`,
           }} />
         {/* título de abertura */}
         <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end", padding: "0 20px calc(7dvh + env(safe-area-inset-bottom))", textAlign: "center", opacity: 1 - win(p, 0.1, 0.22), pointerEvents: p > 0.2 ? "none" : "auto" }}>
@@ -143,8 +249,11 @@ function Anatomia() {
       <h2 className="fd" style={{ fontSize: "clamp(30px,5.4vw,52px)", color: T.ink, margin: "10px 0 6px", lineHeight: 1.02 }}>
         Três camadas.<br />Nenhum segredo.
       </h2>
+      {/* claim restrito à BASE: o produto completo tem polióis em outros
+          insumos (pasta sabor leite/cobertura) e exibe o AVISO_POLIOL na
+          ficha da seção A Prova (achado da review Codex no PR #187). */}
       <p className="fb" style={{ fontSize: 15.5, color: T.inkSoft, maxWidth: 560, lineHeight: 1.6 }}>
-        Todo picolé da linha nasce da mesma base — sem maltitol e sem sorbitol, por isso sem a advertência de efeito laxativo dos polióis.
+        Todo picolé da linha nasce da mesma base — reformulada sem maltitol e sem sorbitol na composição da própria base.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))", gap: 14, marginTop: 26 }}>
         {camadas.map((c, i) => (
@@ -194,6 +303,16 @@ function Prova() {
         </p>
         {alerg.length > 0 && <p className="fb" style={{ fontSize: 12.5, color: T.ink, marginTop: 8 }}><b>ALÉRGICOS: CONTÉM {alerg.join(", ")}.</b></p>}
         <p className="fb" style={{ fontSize: 12.5, color: T.ink, marginTop: 4 }}><b>PODE CONTER {PODE_CONTER.join(", ")}.</b></p>
+        {/* declarações binárias (Lei 10.674) + advertência de polióis (RDC 727/2022,
+            art. 25) — mesmos textos literais da ficha oficial do produto */}
+        <p className="fb" style={{ fontSize: 12.5, color: T.ink, marginTop: 4 }}>
+          <b>{heroP.flags.gluten ? "Contém glúten." : "Não contém glúten."}</b> {heroP.flags.lactose ? <b>Contém lactose.</b> : null}
+        </p>
+        {heroP.hasPolyols && (
+          <p className="fb" style={{ fontSize: 12.5, color: "#6B5010", lineHeight: 1.55, marginTop: 8, paddingTop: 8, borderTop: "1px dashed #D4B840" }}>
+            Contém polióis. <strong>{AVISO_POLIOL}</strong> <span style={{ opacity: .75 }}>(RDC 727/2022, art. 25)</span>
+          </p>
+        )}
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 18 }}>
           <a href="/?tabelas" onClick={() => tk("Atelier · Ver tabelas")} className="fm" style={{ fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", background: T.pistacheDark, color: T.surface, borderRadius: 999, padding: "12px 22px", textDecoration: "none" }}>Todas as tabelas →</a>
         </div>
