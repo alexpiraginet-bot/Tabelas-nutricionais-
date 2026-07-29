@@ -324,7 +324,7 @@ export function Anatomia() {
           100svh nem encolhendo (achado Codex no PR #189) */}
       <div className="at-stage" style={{ position: "sticky", top: 0, overflow: "hidden", display: "flex", flexDirection: lowH ? "row" : "column", alignItems: "center", justifyContent: "center", gap: lowH ? 22 : 14, padding: "calc(10px + env(safe-area-inset-top)) 20px 14px", textAlign: lowH ? "left" : "center" }}>
         <FrameScrub t={filmT} count={64} dir="/atelier/anatomia" fallbackSrc={heroP.image} alt="As camadas do Bentôlé se abrindo"
-          style={{ width: lowH ? "min(72svh,34vw)" : "min(40svh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)", order: lowH ? 0 : 2, flexShrink: 0 }} />
+          style={{ width: lowH ? "min(72vh,34vw)" : "min(40vh,72vw)", aspectRatio: "1", borderRadius: 26, boxShadow: "0 50px 100px -55px rgba(35,38,25,.55)", order: lowH ? 0 : 2, flexShrink: 0 }} />
         <div style={{ display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: lowH ? 10 : 14, minWidth: 0, order: 1, ...(lowH ? { maxWidth: "56vw" } : {}) }}>
           <div style={{ order: 0, display: "flex", flexDirection: "column", alignItems: lowH ? "flex-start" : "center", gap: 8 }}>
             <Eyebrow>Anatomia do Bentôlé</Eyebrow>
