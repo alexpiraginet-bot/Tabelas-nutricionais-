@@ -5,7 +5,35 @@ import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 import { tk, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 import WorldFundo from "./WorldFundo.jsx";
-import HomeAtelierPage, { HeroStage, Anatomia, Prova, CardMotion, AtelierStyle } from "./HomeAtelier.jsx";
+// Movimento cinematográfico de rolagem para os cards REAIS da home:
+// entrada/saída 3D contínua presa ao scroll (nos dois sentidos). Escreve
+// direto no DOM (sem re-render). Reduced-motion: estático.
+function CardMotion({children,style}){
+  const ref=useRef(null);
+  const[reduced]=useState(()=>{try{return window.matchMedia("(prefers-reduced-motion: reduce)").matches;}catch{return false;}});
+  useEffect(()=>{
+    if(reduced)return;
+    const el=ref.current;if(!el)return;
+    let raf=0;
+    const update=()=>{
+      raf=0;
+      const r=el.getBoundingClientRect();
+      const vh=window.innerHeight;
+      if(r.bottom<-140||r.top>vh+140)return;
+      const pr=Math.min(1,Math.max(0,(vh-r.top)/(vh+r.height)));
+      const c=(pr-0.5)*2;
+      const e=Math.sign(c)*Math.pow(Math.abs(c),1.25);
+      el.style.transform=`perspective(1000px) translateY(${(-e*110).toFixed(1)}px) rotateX(${(-e*10).toFixed(2)}deg) scale(${(1-Math.min(.1,Math.abs(e)*.1)).toFixed(3)})`;
+      el.style.opacity=Math.min(1,Math.max(.15,1-Math.max(0,Math.abs(c)-0.38)*1.6)).toFixed(2);
+    };
+    const on=()=>{if(!raf)raf=requestAnimationFrame(update);};
+    window.addEventListener("scroll",on,{passive:true});
+    window.addEventListener("resize",on);
+    update();
+    return()=>{window.removeEventListener("scroll",on);window.removeEventListener("resize",on);if(raf)cancelAnimationFrame(raf);};
+  },[reduced]);
+  return <div ref={ref} style={{...style,willChange:"transform,opacity",transformStyle:"preserve-3d"}}>{children}</div>;
+}
 
 /* ===== Modais e overlays: carregados sob demanda (code-split) ===== */
 const QuizModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.QuizModal })));
@@ -183,8 +211,9 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
   };
 }
 
-/* Home CLÁSSICA (pré-atelier) — preservada em /?classic como fallback. */
-function HomeClassic({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
+/* HOME OFICIAL — o filme do atelier ao fundo + cards de vidro reais, agora
+   com movimento cinematográfico de entrada/saída na rolagem (CardMotion). */
+function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   const ordem=useDestaqueOrdem();
   const BANNERS=bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas});
@@ -226,13 +255,13 @@ function HomeClassic({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,
         <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
             const b=BANNERS[id];if(!b)return null;
-            return <PhotoBanner key={id} full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
-              {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/>;
+            return <CardMotion key={id}><PhotoBanner full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
+              {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/></CardMotion>;
           })}
         </div>
 
-        <VisitSection/>
-        <SejaBentoFinal/>
+        <CardMotion style={{width:"100%"}}><VisitSection/></CardMotion>
+        <CardMotion style={{width:"100%"}}><SejaBentoFinal/></CardMotion>
       </section>
     </div>
   );
@@ -243,72 +272,6 @@ function HomeClassic({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,
    TUDO que a home clássica tinha: CTAs, Clube, quiz salvo, banners na ordem
    do destaque do painel, Venha nos visitar e Seja Bentô. A clássica segue
    em /?classic. */
-function Home(props){
-  const{onTabelas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}=props;
-  const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
-  const ordem=useDestaqueOrdem();
-  const BANNERS=bannersDe(props);
-  // sequência passante: metade dos cards → palco do picolé (Sora) → o resto
-  const meio=Math.ceil(ordem.length/2);
-  const card=(id,i)=>{
-    const b=BANNERS[id];if(!b)return null;
-    return(
-      <CardMotion key={id}>
-        <PhotoBanner full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
-          {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/>
-      </CardMotion>
-    );
-  };
-  return(
-    <div className="fade">
-      <AtelierStyle/>
-      {/* abertura compacta com as ações principais (tudo da home clássica) */}
-      <section style={{maxWidth:760,margin:"0 auto",padding:"34px 20px 6px",display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center"}}>
-        <div className="rise"><BentoLogo size={84}/></div>
-        <h1 className="fd rise" style={{fontSize:"clamp(28px,5.2vw,48px)",lineHeight:1.04,color:T.ink,marginTop:16,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
-          Gelato com <em style={{color:T.pistacheDark,fontStyle:"italic"}}>propósito</em>
-        </h1>
-        <p className="fb rise" style={{maxWidth:400,margin:"10px auto 0",color:T.inkSoft,fontSize:13.5,lineHeight:1.6,animationDelay:"100ms"}}>
-          Sobremesas funcionais com estética premium. Sem adição de açúcares, alto padrão nutricional.
-        </p>
-        <div className="rise" style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center",marginTop:20,animationDelay:"150ms"}}>
-          <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
-          <button onClick={()=>tk("Tabelas & sabores",onTabelas)} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>Tabelas & sabores</button>
-        </div>
-        <button onClick={()=>tk("Clube Bentô · Abrir",onClube)} className="rise hl fb" style={{display:"flex",alignItems:"center",gap:9,marginTop:14,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",fontSize:12.5,fontWeight:600,cursor:"pointer",animationDelay:"180ms"}}>
-          <Sparkles size={14} style={{color:"#C9A24A"}}/>
-          <span>Clube Bentô</span>
-          <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"#C9A24A"}}>{clubeEarned>0?`${clubeEarned}/5 conquistas`:"comece sua missão"}</span>
-          <ChevronRight size={14} style={{color:"#C9A24A"}}/>
-        </button>
-        {quiz&&(
-          <div className="rise" style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",justifyContent:"center",marginTop:14,background:T.surface,border:`1px solid ${T.border}`,borderRadius:999,padding:"7px 9px 7px 16px",animationDelay:"200ms"}}>
-            <span className="fb" style={{fontSize:12.5,color:T.inkSoft}}>Seu sabor ideal: <strong style={{color:T.pistacheDark}}>{quiz.name}</strong></span>
-            <button onClick={()=>tk("Home · Quiz salvo · Ver ficha",()=>onQuizFicha(quiz.id))} className="fm" style={{fontSize:9.5,letterSpacing:"0.1em",textTransform:"uppercase",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:999,padding:"7px 12px",cursor:"pointer"}}>Ver ficha</button>
-            <button onClick={()=>tk("Home · Quiz salvo · Refazer",onQuizRefazer)} className="fm" style={{fontSize:9.5,letterSpacing:"0.1em",textTransform:"uppercase",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:999,padding:"7px 12px",cursor:"pointer"}}>Refazer</button>
-          </div>
-        )}
-      </section>
-      {/* 1ª metade dos cards (ordem do destaque do painel), em sequência passante */}
-      <section style={{maxWidth:760,margin:"0 auto",padding:"0 20px"}}>
-        {ordem.slice(0,meio).map((id,i)=>card(id,i))}
-      </section>
-      {/* o picolé do Sora no MEIO da sequência: rolagem = giro */}
-      <HeroStage intro={false}/>
-      {/* 2ª metade dos cards */}
-      <section style={{maxWidth:760,margin:"0 auto",padding:"14px 20px 0"}}>
-        {ordem.slice(meio).map((id,i)=>card(id,meio+i))}
-      </section>
-      <Anatomia/>
-      <Prova/>
-      <section style={{maxWidth:760,margin:"0 auto",padding:"0 20px 40px",display:"flex",flexDirection:"column",alignItems:"center",textAlign:"center"}}>
-        <CardMotion style={{width:"100%"}}><VisitSection/></CardMotion>
-        <CardMotion style={{width:"100%"}}><SejaBentoFinal/></CardMotion>
-      </section>
-    </div>
-  );
-}
-
 /* ========== CARD FINAL — REVENDA / FRANQUIA (funil /seja-bento) ==========
    Fecha a home com a chamada de conversão para quem quer revender ou abrir
    franquia: leva ao questionário adaptativo em /seja-bento (proposta sob
@@ -957,10 +920,7 @@ export default function App(){
   const[termos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("termos");}catch{return false;}});
   const[portfolio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("portfolio");}catch{return false;}});
   const[vagas]=useState(()=>{try{return new URLSearchParams(window.location.search).has("vagas");}catch{return false;}});
-  // protótipo da nova home narrativa (estilo oryzo) — só via /?atelier
-  const[atelier]=useState(()=>{try{return new URLSearchParams(window.location.search).has("atelier");}catch{return false;}});
-  // home clássica (pré-atelier) preservada como fallback — /?classic
-  const[classic]=useState(()=>{try{return new URLSearchParams(window.location.search).has("classic");}catch{return false;}});
+
   const[view,setView]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return(p.has("tabela")||p.has("tabelas"))?"tabelas":"home";}catch{return "home";}});
   const[category,setCat]=useState(null);
   const[productId,setProd]=useState(null);
@@ -1040,14 +1000,13 @@ export default function App(){
   if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);
   if(portfolio) return(<><GStyle/><Suspense fallback={null}><PortfolioPage/></Suspense></>);
   if(vagas) return(<><GStyle/><Suspense fallback={null}><TrabalhePage/></Suspense></>);
-  if(atelier) return(<><GStyle/><HomeAtelierPage/></>);
   return(
-    <div className="shell fb gn" style={{background:view==="home"&&classic?"transparent":T.bg,color:T.ink}}>
+    <div className="shell fb gn" style={{background:view==="home"?"transparent":T.bg,color:T.ink}}>
       <GStyle/>
-      {/* filme 3D de fundo pertence à home CLÁSSICA; a oficial tem as cenas-atelier */}
-      {view==="home"&&classic&&<WorldFundo/>}
+      {/* filme 3D do atelier atrás dos cards da home (rolagem = tempo do filme) */}
+      {view==="home"&&<WorldFundo/>}
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
-      {view==="home"&&(classic?<HomeClassic onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>:<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
+      {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
