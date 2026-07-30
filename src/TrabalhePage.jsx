@@ -17,8 +17,9 @@ const VAGAS = [
     regime: "CLT · efetivo",
     labelExp: "Portfólio, @ do Instagram ou trabalhos",
     phExp: "Ex.: @seu.perfil, link do drive/behance…",
+    // A URL do PDF NÃO fica no bundle: /api/vaga devolve o link só depois
+    // de registrar a candidatura (gate no servidor). Aqui só a vitrine.
     material: {
-      href: "/vagas-material/proposta-entrada-social-media-b7k2q9.pdf",
       titulo: "Proposta de Entrada — Social Media (PDF)",
       desc: "Salário, benefícios, modelo híbrido e a trilha de evolução até Marketing.",
     },
@@ -89,12 +90,13 @@ export default function TrabalhePage() {
 
   const [f, setF] = useState({ nome: "", phone: "", unidade: "", idade: "", bairro: "", disponibilidade: "", experiencia: "", sobre: "", consent: false });
   const [sent, setSent] = useState(false);
+  const [matHref, setMatHref] = useState(""); // link do material, liberado pelo /api/vaga
   const set = (k, v) => setF((s) => ({ ...s, [k]: v }));
   // ao trocar de vaga, zera a unidade se ela não existir mais nas opções
   // Trocar de vaga volta ao formulário: "sent" é de UMA candidatura, não da
   // página — sem isso, quem se candidatou a uma vaga veria a tela de sucesso
   // (e nenhum formulário) ao escolher a outra.
-  const pickVaga = (i) => { setVi(i); setF((s) => ({ ...s, unidade: "" })); setSent(false); };
+  const pickVaga = (i) => { setVi(i); setF((s) => ({ ...s, unidade: "" })); setSent(false); setMatHref(""); };
   // unidade efetiva: se a vaga só tem uma, assume-a
   const unidadeFinal = f.unidade || (unidadeOpts.length === 1 ? unidadeOpts[0] : "");
   const phoneOk = f.phone.replace(/\D/g, "").length >= 10;
@@ -121,7 +123,12 @@ export default function TrabalhePage() {
     tk("Conversão · Candidatura vaga");
     try {
       fetch("/api/vaga", { method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
-        body: JSON.stringify({ nome: f.nome.trim(), phone: f.phone.trim(), cargo: vaga.cargo, unidade: unidadeFinal, idade: f.idade, bairro: f.bairro.trim(), disponibilidade: f.disponibilidade, experiencia: f.experiencia.trim(), sobre: f.sobre.trim() }) });
+        body: JSON.stringify({ nome: f.nome.trim(), phone: f.phone.trim(), cargo: vaga.cargo, unidade: unidadeFinal, idade: f.idade, bairro: f.bairro.trim(), disponibilidade: f.disponibilidade, experiencia: f.experiencia.trim(), sobre: f.sobre.trim() }) })
+        // O servidor devolve o link do material só quando a candidatura foi
+        // registrada de fato — é o que libera o card de download.
+        .then((r) => (r.status === 200 ? r.json() : null))
+        .then((j) => { if (j && j.material && j.material.href) setMatHref(j.material.href); })
+        .catch(() => {});
     } catch {}
     setSent(true);
   };
@@ -215,15 +222,22 @@ export default function TrabalhePage() {
                 <p className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, maxWidth: 420, margin: "0 auto" }}>
                   Obrigado, {f.nome.trim().split(" ")[0]}! Seu cadastro para <b>{vaga.cargo}</b> chegou pra gente. Se o perfil casar com a vaga, a equipe entra em contato pelo seu WhatsApp. 💛
                 </p>
-                {vaga.material && (
-                  <a href={vaga.material.href} target="_blank" rel="noopener" onClick={() => tk("Vagas · Material liberado · " + vaga.cargo)}
+                {vaga.material && (matHref ? (
+                  <a href={matHref} target="_blank" rel="noopener" onClick={() => tk("Vagas · Material liberado · " + vaga.cargo)}
                     className="fb" style={{ display: "block", marginTop: 18, background: T.ink, border: "1px solid #C9A24A", borderRadius: 16, padding: "16px 18px", textDecoration: "none", textAlign: "left" }}>
                     <span className="fb" style={{ display: "block", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C9A24A", fontWeight: 700 }}>🔓 Liberado para você</span>
                     <span className="fb" style={{ display: "block", fontSize: 15.5, fontWeight: 700, color: T.bg, marginTop: 4 }}>{vaga.material.titulo}</span>
                     <span className="fb" style={{ display: "block", fontSize: 12.5, color: "#CFC9B4", marginTop: 3, lineHeight: 1.45 }}>{vaga.material.desc}</span>
                     <span className="fb" style={{ display: "inline-block", marginTop: 10, background: "#C9A24A", color: T.ink, borderRadius: 999, padding: "9px 18px", fontSize: 13, fontWeight: 700 }}>Baixar agora ↓</span>
                   </a>
-                )}
+                ) : (
+                  // Cadastro ainda confirmando (ou rede falhou): sem link do
+                  // servidor, o material segue disponível pelo WhatsApp abaixo.
+                  <div className="fb" style={{ marginTop: 18, background: "#F8F3E6", border: `1px solid ${T.accent}66`, borderRadius: 16, padding: "14px 16px", textAlign: "left" }}>
+                    <span className="fb" style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: T.ink }}>📄 {vaga.material.titulo}</span>
+                    <span className="fb" style={{ display: "block", fontSize: 12.5, color: T.inkSoft, marginTop: 3, lineHeight: 1.45 }}>Confirmando seu cadastro para liberar o download… Se não aparecer em instantes, chame no WhatsApp abaixo que enviamos o PDF na hora.</span>
+                  </div>
+                ))}
                 <button onClick={falarWhats} className="fb" style={{ marginTop: 14, background: "#1FA855", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
                 <div style={{ marginTop: 14 }}><a href="/" className="fb" style={{ fontSize: 13, color: T.pistacheDark, textDecoration: "underline" }}>Voltar ao site</a></div>
               </div>
