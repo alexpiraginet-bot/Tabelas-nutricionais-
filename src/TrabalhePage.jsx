@@ -17,6 +17,11 @@ const VAGAS = [
     regime: "CLT · efetivo",
     labelExp: "Portfólio, @ do Instagram ou trabalhos",
     phExp: "Ex.: @seu.perfil, link do drive/behance…",
+    material: {
+      href: "/vagas-material/proposta-entrada-social-media-b7k2q9.pdf",
+      titulo: "Proposta de Entrada — Social Media (PDF)",
+      desc: "Salário, benefícios, modelo híbrido e a trilha de evolução até Marketing.",
+    },
     dias: ["Segunda a sexta", "(com gravações pontuais em fins de semana e eventos)"],
     faz: [
       "Gravar e editar Reels, stories e fotos nas lojas",
@@ -210,7 +215,16 @@ export default function TrabalhePage() {
                 <p className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.5, maxWidth: 420, margin: "0 auto" }}>
                   Obrigado, {f.nome.trim().split(" ")[0]}! Seu cadastro para <b>{vaga.cargo}</b> chegou pra gente. Se o perfil casar com a vaga, a equipe entra em contato pelo seu WhatsApp. 💛
                 </p>
-                <button onClick={falarWhats} className="fb" style={{ marginTop: 18, background: "#1FA855", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
+                {vaga.material && (
+                  <a href={vaga.material.href} target="_blank" rel="noopener" onClick={() => tk("Vagas · Material liberado · " + vaga.cargo)}
+                    className="fb" style={{ display: "block", marginTop: 18, background: T.ink, border: "1px solid #C9A24A", borderRadius: 16, padding: "16px 18px", textDecoration: "none", textAlign: "left" }}>
+                    <span className="fb" style={{ display: "block", fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", color: "#C9A24A", fontWeight: 700 }}>🔓 Liberado para você</span>
+                    <span className="fb" style={{ display: "block", fontSize: 15.5, fontWeight: 700, color: T.bg, marginTop: 4 }}>{vaga.material.titulo}</span>
+                    <span className="fb" style={{ display: "block", fontSize: 12.5, color: "#CFC9B4", marginTop: 3, lineHeight: 1.45 }}>{vaga.material.desc}</span>
+                    <span className="fb" style={{ display: "inline-block", marginTop: 10, background: "#C9A24A", color: T.ink, borderRadius: 999, padding: "9px 18px", fontSize: 13, fontWeight: 700 }}>Baixar agora ↓</span>
+                  </a>
+                )}
+                <button onClick={falarWhats} className="fb" style={{ marginTop: 14, background: "#1FA855", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
                 <div style={{ marginTop: 14 }}><a href="/" className="fb" style={{ fontSize: 13, color: T.pistacheDark, textDecoration: "underline" }}>Voltar ao site</a></div>
               </div>
             ) : (
@@ -267,6 +281,12 @@ export default function TrabalhePage() {
                     <input type="checkbox" checked={f.consent} onChange={(e) => set("consent", e.target.checked)} style={{ marginTop: 3, width: 18, height: 18, accentColor: T.pistacheDark, flexShrink: 0 }} />
                     <span className="fb" style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.45 }}>Autorizo a Bentô a guardar e usar meus dados para contato sobre processos seletivos, conforme a <a href="/?privacidade=1" style={{ color: T.pistacheDark }}>Política de Privacidade</a>.</span>
                   </label>
+                  {vaga.material && (
+                    <div className="fb" style={{ display: "flex", alignItems: "center", gap: 10, background: "#F8F3E6", border: `1px solid ${T.accent}66`, borderRadius: 14, padding: "12px 14px", fontSize: 13, color: T.ink, lineHeight: 1.45 }}>
+                      <span style={{ fontSize: 20 }}>📄</span>
+                      <span>Ao enviar sua candidatura, você libera na hora a <b>{vaga.material.titulo.replace(" (PDF)", "")}</b> — proposta completa da vaga.</span>
+                    </div>
+                  )}
                   <button onClick={enviar} disabled={!ok} className="fb" style={{ marginTop: 4, width: "100%", padding: "16px", borderRadius: 999, border: "none", background: ok ? T.pistacheDark : T.border, color: ok ? "#fff" : T.inkSoft, fontSize: 16, fontWeight: 700, cursor: ok ? "pointer" : "not-allowed", letterSpacing: "0.02em" }}>
                     Clique e cadastre-se →
                   </button>
