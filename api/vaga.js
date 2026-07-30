@@ -18,6 +18,15 @@ function findKV() {
 const { url: KV_URL, token: KV_TOKEN } = findKV();
 const PANEL_KEY = process.env.PANEL_KEY;
 
+// Material liberado por cargo APÓS a candidatura ser registrada. A URL vive
+// só aqui (não vai no bundle do site): o front recebe o link na resposta do
+// POST — quem não se candidata não tem como descobrir o caminho pelo código.
+const MATERIAIS = {
+  "social media": {
+    href: "/vagas-material/proposta-entrada-social-media-b7k2q9.pdf",
+  },
+};
+
 function getKey(req) {
   const h = req.headers.authorization || "";
   if (h.startsWith("Bearer ")) return h.slice(7);
@@ -140,6 +149,8 @@ export default async function handler(req, res) {
       ].filter(Boolean).join("\n");
       await sendTelegram(msg);
     } catch {}
+    const mat = MATERIAIS[cand.cargo.trim().toLowerCase()];
+    if (mat) { res.status(200).json({ ok: true, material: mat }); return; }
     res.status(204).end();
   } catch {
     res.status(204).end();
