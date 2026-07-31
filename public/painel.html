@@ -950,7 +950,7 @@ function renderVagas(d){
 }
 
 // ---- ⭐ Destaque da home: escolhe qual banner abre o site (KV via /api/destaque) ----
-var DST_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Cardápio"],["delivery","📍 Delivery"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
+var DST_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Entrega própria"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
 var _dstAtual = null;
 function drawDestaque(){
   var el = $("#dstChips"); if(!el) return;
@@ -1060,7 +1060,7 @@ var LINKS = [
     ["🏠","Página inicial", SITE+"/"],
     ["✨","Bentô Meu Studio", TOTEM+"/meu-studio"],
     ["📊","Tabelas nutricionais", SITE+"/?tabela"],
-    ["🛵","Delivery / Nos encontre", SITE+"/?delivery"],
+    ["🛵","Entrega própria — escolher loja", SITE+"/pedir"],
     ["🎉","Eventos (orçamento na hora)", SITE+"/?eventos"],
     ["💼","Trabalhe conosco (vagas)", SITE+"/?vagas"],
   ]],
@@ -1079,11 +1079,7 @@ var LINKS = [
     ["🍫","BentôBytes — contagem + pré-venda", EVENTOS],
     ["🎟️","Pré-venda (link de teste hoje)", EVENTOS+"/?preview"],
   ]],
-  ["iFood (direto)", [
-    ["🛵","iFood · Praia do Canto", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"],
-    ["🛵","iFood · Jardim Camburi", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"],
-  ]],
-  ["Outros", [
+    ["Outros", [
     ["🎮","Stranger Gelatos (jogo + desconto)", "https://stranger-gelatos.vercel.app/index.html"],
     ["🏪","Retirada na loja (atendentes)", SITE+"/retirada.html"],
     ["🔒","Política de Privacidade", SITE+"/?privacidade=1"],

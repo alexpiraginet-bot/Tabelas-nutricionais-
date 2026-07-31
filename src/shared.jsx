@@ -16,6 +16,32 @@ export const tk = (name, fn) => {
 export const award = (id) => { try { window.dispatchEvent(new CustomEvent("bento:achieve", { detail: id })); } catch { /* */ } };
 
 
+// Pedido próprio: entrega da nossa equipe OU retirada em loja, pagamento no
+// Pix. É o único canal de pedido do site — o iFood saiu.
+// bentogelateria.com/pedir redireciona para cá (redirect no vercel.json), e é
+// esse o link curto para bio, stories e QR.
+export const PEDIR_URL = "https://totem.bentogelateria.com/pedir";
+
+// Área de entrega própria: círculo medido pelo dono em volta da loja da Praia
+// do Canto. O centro NÃO é a coordenada do cadastro da loja — é o ponto que
+// ele mediu, então fica aqui explícito para ninguém "corrigir" por engano.
+export const ENTREGA = {
+  centro: { lat: -20.29927, lng: -40.29515 },
+  raioM: 3008,                 // 3,01 km
+  origem: "praia-do-canto",
+};
+// Distância em metros entre dois pontos (Haversine, raio médio da Terra).
+export function distanciaM(aLat, aLng, bLat, bLng) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (bLat - aLat) * r, dLng = (bLng - aLng) * r;
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+// Está dentro da área de entrega?
+export const dentroDaArea = (lat, lng) =>
+  distanciaM(ENTREGA.centro.lat, ENTREGA.centro.lng, lat, lng) <= ENTREGA.raioM;
+
 export const T = {
   bg:"#F6F1E7",bgWarm:"#EFE7D6",surface:"#FFFDF7",
   ink:"#232619",inkSoft:"#5E6353",
@@ -28,18 +54,16 @@ export const T = {
 // de SEO local no index.html (manter os dois em sincronia ao mudar).
 // dias: 0=Dom … 6=Sáb · [abre, fecha] em horas (24h) · null = fechado.
 export const LOJAS=[
-  {id:"praia-do-canto",nome:"Praia do Canto",bairro:"Praia do Canto · Vitória-ES",
+  {id:"praia-do-canto",pedidoOnline:true,nome:"Praia do Canto",bairro:"Praia do Canto · Vitória-ES",
    endereco:"R. Joaquim Lírio, 455, Quiosque 02 — Praia do Canto, Vitória – ES, 29055-460",
    lat:-20.2947,lng:-40.2925,zap:"5527999159995",zapLabel:"(27) 99915-9995",
    dias:{0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[10,20]},
-   resumo:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]],
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"},
+   resumo:[["Seg","10h–19h"],["Ter a Sex","08h–20h"],["Sáb","10h–20h"],["Dom","12h–17h"]]},
   {id:"jardim-camburi",nome:"Jardim Camburi",bairro:"Jardim Camburi · Vitória-ES",
    endereco:"Rua Silvino Grecco, 800, Loja 17 — Jardim Camburi, Vitória – ES",
    lat:-20.2547,lng:-40.2670,zap:"5527999159995",zapLabel:"(27) 99915-9995",
    dias:{0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]},
-   resumo:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]],
-   ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"},
+   resumo:[["Seg","fechado"],["Ter a Sex","11h–19h"],["Sáb","12h–20h"],["Dom","12h–17h"]]},
 ];
 // Link "Ver no Google Maps": busca por nome + endereço completo — determinística
 // (o endereço identifica o ponto) e abre a FICHA da loja (fotos, avaliações,

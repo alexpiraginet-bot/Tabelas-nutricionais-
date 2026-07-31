@@ -1,6 +1,7 @@
-// Destaque da home — qual banner abre o site (1º card). Controlado pelo painel
-// admin (Visão geral → ⭐ Destaque da home) e lido pela SPA em cada visita.
-// GET: público, com cache curto de borda. POST: PANEL_KEY, {destaque:"<id>"}.
+// Entrega grátis — liga/desliga o selo de frete grátis do site. Controlado pelo
+// painel admin (Visão geral → 🛵 Entrega grátis) e lido pela SPA a cada visita.
+// Vale para qualquer dia: é a equipe que liga e desliga, sem regra de calendário.
+// GET: público, com cache curto de borda. POST: PANEL_KEY, {ativo, texto?}.
 import crypto from "node:crypto";
 
 function findKV() {
@@ -16,10 +17,9 @@ function findKV() {
 }
 const { url: KV_URL, token: KV_TOKEN } = findKV();
 const PANEL_KEY = process.env.PANEL_KEY;
-const KEY = "home:destaque";
-// mesma lista de ORDEM_PADRAO em src/App.jsx — manter em sincronia ao criar banner novo
-export const BANNERS_VALIDOS = ["eventos", "studio", "bytes", "tabelas", "cardapio", "parceiro", "conheca", "carreira"];
-const PADRAO = "eventos";
+const KEY = "home:entrega-gratis";
+export const TEXTO_PADRAO = "Entrega grátis";
+const TEXTO_MAX = 60;
 
 async function kv(args) {
   const r = await fetch(KV_URL, {
@@ -36,17 +36,23 @@ function authed(req) {
   const a = Buffer.from(String(k)), b = Buffer.from(String(PANEL_KEY));
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
+// Sanitiza o texto que vai aparecer no site: sem controle, sem tag, curto.
+const limpo = (s) => {
+  let o = "";
+  for (const ch of String(s || "")) if (ch.codePointAt(0) >= 32) o += ch;
+  return o.replace(/[<>]/g, "").trim().slice(0, TEXTO_MAX);
+};
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    // cache de borda curto: o site inteiro lê daqui a cada visita
     res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
-    let destaque = PADRAO;
+    let estado = { ativo: false, texto: TEXTO_PADRAO };
     try {
       const v = KV_URL && KV_TOKEN ? await kv(["GET", KEY]) : null;
-      if (v && BANNERS_VALIDOS.includes(v)) destaque = v;
-    } catch { /* padrão */ }
-    res.status(200).json({ destaque });
+      const j = v ? JSON.parse(v) : null;
+      if (j && j.ativo) estado = { ativo: true, texto: limpo(j.texto) || TEXTO_PADRAO };
+    } catch { /* qualquer falha: não anuncia frete grátis */ }
+    res.status(200).json(estado);
     return;
   }
   if (req.method !== "POST") { res.status(405).end(); return; }
@@ -55,10 +61,10 @@ export default async function handler(req, res) {
   if (!KV_URL || !KV_TOKEN) { res.status(503).json({ ok: false, error: "Banco (Redis/KV) não configurado." }); return; }
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
-  const d = body && body.destaque;
-  if (!BANNERS_VALIDOS.includes(d)) { res.status(400).json({ ok: false, error: "Banner inválido." }); return; }
-  // Upstash responde result:"OK" no SET — qualquer outra coisa é falha real
-  const r = await kv(["SET", KEY, d]).catch(() => null);
+  if (!body || typeof body !== "object") body = {};
+
+  const estado = { ativo: body.ativo === true || body.ativo === "true", texto: limpo(body.texto) || TEXTO_PADRAO };
+  const r = await kv(["SET", KEY, JSON.stringify(estado)]).catch(() => null);
   if (r !== "OK") { res.status(502).json({ ok: false, error: "Falha ao gravar no banco — tente novamente." }); return; }
-  res.status(200).json({ ok: true, destaque: d });
+  res.status(200).json({ ok: true, ...estado });
 }

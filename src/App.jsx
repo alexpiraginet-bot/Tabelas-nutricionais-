@@ -3,7 +3,7 @@ import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X,
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim, sugarClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
-import { tk, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, T, LOJAS, PEDIR_URL, ENTREGA, distanciaM, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 import WorldFundo from "./WorldFundo.jsx";
 // Movimento cinematográfico de rolagem para os cards REAIS da home:
 // entrada/saída 3D contínua presa ao scroll (nos dois sentidos). Escreve
@@ -42,7 +42,6 @@ const CardapioDigital = lazy(() => import("./modals.jsx").then(m => ({ default: 
 const SejaParceiro = lazy(() => import("./modals.jsx").then(m => ({ default: m.SejaParceiro })));
 const EventosModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.EventosModal })));
 const FaqModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.FaqModal })));
-const DeliveryModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.DeliveryModal })));
 const SejaBento = lazy(() => import("./modals.jsx").then(m => ({ default: m.SejaBento })));
 const PoteBuilder = lazy(() => import("./modals.jsx").then(m => ({ default: m.PoteBuilder })));
 const PitchDeck = lazy(() => import("./modals.jsx").then(m => ({ default: m.PitchDeck })));
@@ -129,7 +128,7 @@ function Header({onHome,compareCount,onOpenCompare,onQuiz,favorites,onOpenFavs})
 /* Dimensões reais das artes (px) — reservam o espaço do banner e zeram o CLS
    sem cortar a imagem (a proporção é a da própria arte). */
 const BANNER_DIMS={
-  "/banners/studio.webp":[1600,686],"/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,533],"/banners/delivery.webp":[1600,686],
+  "/banners/studio.webp":[1600,686],"/banners/bytes.webp":[1600,686],"/banners/tabelas.webp":[1600,533],
   "/banners/cardapio.webp":[1600,686],"/banners/eventos.webp":[1600,686],
   "/banners/parceiro.webp":[1600,533],"/banners/conheca.webp":[1600,533],"/banners/carreira.webp":[1600,533],
   "/banners/tab-gelatos.webp":[1600,533],"/banners/tab-bentole.webp":[1600,533],"/banners/tab-shakes.webp":[1600,533],
@@ -172,7 +171,7 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 // Sem escolha salva, EVENTOS abre a home. O valor fica em localStorage para
 // visitas seguintes renderizarem já na ordem certa (sem salto de layout).
 const DESTAQUE_PADRAO="eventos";
-const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","delivery","parceiro","conheca","carreira"];
+const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira"];
 // ordem dos banners com o destaque do painel (compartilhado pelas duas homes)
 function useDestaqueOrdem(){
   const[destaque,setDestaque]=useState(()=>{try{const v=localStorage.getItem("bento:destaque");return ORDEM_PADRAO.includes(v)?v:DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
@@ -186,6 +185,74 @@ function useDestaqueOrdem(){
   },[]); // roda 1× por visita; "destaque" inicial vem do localStorage de propósito
   return [destaque,...ORDEM_PADRAO.filter(id=>id!==destaque)];
 }
+/* Área de entrega própria: 3,01 km em volta da loja da Praia do Canto.
+   Além de informar, deixa o cliente conferir na hora pela localização do
+   aparelho — evita o pedido que só é recusado lá na frente. Nada é enviado
+   para servidor nenhum: a conta acontece no próprio navegador. */
+function AreaEntrega(){
+  const[res,setRes]=useState(null);      // {dentro, km}
+  const[msg,setMsg]=useState("");
+  const km=(ENTREGA.raioM/1000).toFixed(1).replace(".",",");
+  const conferir=()=>{
+    if(!navigator.geolocation){setMsg("Seu navegador não permite localização — chame no WhatsApp que a gente confere.");return;}
+    setMsg("Localizando…");setRes(null);
+    navigator.geolocation.getCurrentPosition(pos=>{
+      const{latitude:la,longitude:lo}=pos.coords;
+      const d=distanciaM(ENTREGA.centro.lat,ENTREGA.centro.lng,la,lo);
+      setRes({dentro:d<=ENTREGA.raioM,km:(d/1000).toFixed(1).replace(".",",")});
+      setMsg("");
+      tk("Entrega · Conferiu área · "+(d<=ENTREGA.raioM?"dentro":"fora"));
+    },()=>setMsg("Não consegui pegar sua localização — chame no WhatsApp que a gente confere."),{timeout:8000});
+  };
+  return(
+    <div style={{marginTop:12,padding:"12px 14px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:12}}>
+      <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.5}}>
+        🛵 <b>Entregamos num raio de {km} km</b> a partir desta loja.
+      </div>
+      <button onClick={conferir} className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"8px 14px",cursor:"pointer"}}>
+        Entrega no meu endereço?
+      </button>
+      {msg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8}}>{msg}</div>}
+      {res&&(
+        <div className="fb" role="status" style={{fontSize:12.5,marginTop:8,lineHeight:1.5,color:res.dentro?T.pistacheDark:T.inkSoft,fontWeight:res.dentro?700:500}}>
+          {res.dentro
+            ? `Sim! Você está a ${res.km} km da loja — dentro da nossa área.`
+            : `Você está a ${res.km} km da loja, fora da área de entrega. Dá para retirar na loja ou chamar no WhatsApp.`}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* Entrega grátis — selo ligado/desligado pelo painel (api/entrega-gratis).
+   Serve para ação pontual ("frete grátis neste fim de semana"): a equipe liga,
+   o site anuncia; a API já devolve desligado sozinha quando a data de término
+   passa, então promoção esquecida não vira frete grátis permanente. */
+function useEntregaGratis(){
+  const[eg,setEg]=useState(null);
+  useEffect(()=>{
+    let vivo=true;
+    fetch("/api/entrega-gratis",{cache:"no-store"})
+      .then(r=>r.ok?r.json():null)
+      .then(j=>{ if(vivo&&j&&j.ativo) setEg({texto:j.texto||"Entrega grátis"}); })
+      .catch(()=>{}); // falhou? simplesmente não anuncia
+    return()=>{vivo=false;};
+  },[]);
+  return eg;
+}
+
+function FaixaEntregaGratis({eg}){
+  if(!eg) return null;
+  return(
+    <div className="rise fb" role="status" style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:9,
+      background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"11px 18px",marginTop:14,
+      fontSize:13,fontWeight:600,letterSpacing:"0.01em",textAlign:"center",animationDelay:"210ms"}}>
+      <Sparkles size={15} aria-hidden="true" style={{color:"#C9A24A",flexShrink:0}}/>
+      <span>{eg.texto}</span>
+    </div>
+  );
+}
+
 function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
   return{
     studio:{img:"/banners/studio.webp",as:"a",href:"https://totem.bentogelateria.com/meu-studio",tkName:"Bentô Meu Studio · Abrir",
@@ -194,10 +261,12 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
       alt:"BentôBytes — sabores especiais em edição limitada: Pistache Perfeito, Chocolate Dubai e Opereta"},
     tabelas:{img:"/banners/tabelas.webp",action:onTabelas,tkName:"Tabelas Nutricionais",
       alt:"Tabelas nutricionais — gelatos, picolés, monte seu pote e quiz de sabores"},
-    cardapio:{img:"/banners/cardapio.webp",as:"a",href:"https://totem.bentogelateria.com/pedir",target:"_blank",tkName:"Cardápio",
+    // Canal de pedido da casa: abre a escolha de loja e de lá segue para o
+    // nosso /pedir (entrega pela nossa equipe ou retirada, pagamento no Pix).
+    // O antigo banner "Delivery / Nos encontre" saiu junto com o iFood — os
+    // endereços seguem na seção "Venha nos visitar", no fim da home.
+    cardapio:{img:"/banners/cardapio.webp",action:onDelivery,tkName:"Entrega própria e retirada",
       alt:"Entrega própria e retirada em loja — peça no site e escolha como receber"},
-    delivery:{img:"/banners/delivery.webp",action:onDelivery,tkName:"Delivery / Nos encontre",
-      alt:"Delivery / Nos encontre — peça no iFood ou veja onde estamos: Praia do Canto e Jardim Camburi"},
     eventos:{img:"/banners/eventos.webp",action:onEventos,tkName:"Nos leve para seu evento",
       alt:"Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"},
     parceiro:{img:"/banners/parceiro.webp",action:onParceria,tkName:"Seja um parceiro",
@@ -214,6 +283,7 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
 function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   const ordem=useDestaqueOrdem();
+  const entregaGratis=useEntregaGratis();
   const BANNERS=bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas});
   return(
     <div className="fade">
@@ -249,6 +319,8 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
           </div>
         )}
         </div>
+
+        <FaixaEntregaGratis eg={entregaGratis}/>
 
         <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
@@ -348,8 +420,9 @@ function VisitSection(){
           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:"auto"}}>
             <a href={l.maps} target="_blank" rel="noopener" onClick={()=>tk("Visite · Google Maps")} className="fm" style={btn(true)}>Ver no Google Maps</a>
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`} target="_blank" rel="noopener" onClick={()=>tk("Visite · Rota")} className="fm" style={btn(false)}>Como chegar</a>
-            <a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood")} className="fm" style={btn(false)}>Pedir no iFood</a>
+            {l.pedidoOnline&&<a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Visite · Pedido próprio · "+l.nome)} className="fm" style={btn(false)}>Pedir online</a>}
           </div>
+          {l.pedidoOnline&&<AreaEntrega/>}
         </div>
       </div>
     </div>
@@ -465,7 +538,7 @@ function ShakesPage({onBack,onDelivery}){
         </div>
         {onDelivery&&(
           <div style={{marginTop:22,display:"flex",justifyContent:"center"}}>
-            <button onClick={()=>tk("Conversão · iFood · Shakes",onDelivery)} className="fb" style={{background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Pedir um shake no iFood</button>
+            <button onClick={()=>tk("Conversão · Pedido próprio · Shakes",onDelivery)} className="fb" style={{background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,padding:"14px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Pedir um shake</button>
           </div>
         )}
         <p className="fb" style={{fontSize:11,color:T.inkSoft,marginTop:22,lineHeight:1.5,maxWidth:820}}>Valores <strong>calculados</strong> a partir dos rótulos oficiais do whey utilizado (por 30 g) somados aos valores da tabela <strong>TACO</strong> (UNICAMP) e <strong>USDA</strong> dos demais ingredientes. São estimativas de cálculo por porção e podem variar conforme o lote, o ponto da fruta, a marca do líquido e o tipo de whey escolhido. O leite de amêndoas usado é o sem açúcar. Não substituem a análise laboratorial do produto final.</p>
@@ -994,7 +1067,10 @@ export default function App(){
   const[showCardapio,setShowCardapio]=useState(()=>{try{return new URLSearchParams(window.location.search).has("cardapio");}catch{return false;}});
   const[showRevenda,setShowRevenda]=useState(false);
   const[showParceria,setShowParceria]=useState(()=>{try{const p=new URLSearchParams(window.location.search);return p.has("parceria")||p.has("franquia");}catch{return false;}});
-  const[showDelivery,setShowDelivery]=useState(()=>{try{return new URLSearchParams(window.location.search).has("delivery");}catch{return false;}});
+  // Pedido próprio: só a loja Praia do Canto atende online hoje, então não há
+  // escolha de loja — o botão leva direto para a tela de pedido.
+  // bentogelateria.com/pedir é o link curto (redirect no vercel.json).
+  const abrirPedido=()=>{ try{window.open(PEDIR_URL,"_blank","noopener");}catch{/* */} };
   const[showFaq,setShowFaq]=useState(false);
   const[showCulpa,setShowCulpa]=useState(false);
   const[showGLP1,setShowGLP1]=useState(false);
@@ -1051,7 +1127,7 @@ export default function App(){
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   // Algum overlay aberto? (inclui os que abrem por querystring: ?cardapio,
   // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
-  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showDelivery||showFaq||showCulpa||showGLP1||showEventos;
+  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
   const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
@@ -1070,16 +1146,16 @@ export default function App(){
       {view==="home"&&<WorldFundo/>}
       {view==="home"&&<FloatingTreats/>}
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
-      {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={()=>setShowDelivery(true)} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
+      {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={abrirPedido} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
-      {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={()=>{setShowDelivery(true);}}/>}
+      {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={abrirPedido}/>}
       {view==="list"&&<ProductList category={category} onBack={()=>setView("tabelas")} onSelectProduct={openProd} compareIds={compareIds} onToggleCompare={toggleCmp} onOpenCompare={()=>setShowCmp(true)}/>}
       {view==="detail"&&<ProductDetail productId={productId} onBack={backList} onSelectProduct={openProd} favorites={favorites} onToggleFav={()=>toggleFav(productId)} compareIds={compareIds} onToggleCompare={()=>toggleCmp(productId)} onCulpa={()=>{setCulpaProdId(productId);setShowCulpa(true);}}/>}
       <Suspense fallback={null}>
-      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);setShowDelivery(true);}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");registrarIndicacao();}}/>}
+      {showQuiz&&<QuizModal onClose={()=>setShowQuiz(false)} onResult={(id)=>{tk("Conversão · Quiz concluído");setShowQuiz(false);openProd(id);}} onDelivery={()=>{setShowQuiz(false);abrirPedido();}} onSaved={(r)=>{setQuizResult(r);awardBadge("sommelier");registrarIndicacao();}}/>}
       {showCmp&&<CompareModal ids={compareIds} onClose={()=>setShowCmp(false)} onViewProduct={openProd}/>}
-      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);setShowDelivery(true);}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({id:b.id,icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
+      {showFavs&&<FavoritesModal ids={favorites} onClose={()=>setShowFavs(false)} onViewProduct={(id)=>{setShowFavs(false);openProd(id);}} onCompare={(ids)=>{setCmpIds(ids);setShowFavs(false);setShowCmp(true);}} onDelivery={()=>{setShowFavs(false);abrirPedido();}} onToggleFav={toggleFav} badgeList={BADGES.map(b=>({id:b.id,icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>}
       {showClube&&(()=>{
         const albumCount=(()=>{try{return JSON.parse(localStorage.getItem("bento:album")||"[]").length;}catch{return 0;}})();
         const fichasN=(()=>{try{return Number(localStorage.getItem("bento:fichas"))||0;}catch{return 0;}})();
@@ -1101,21 +1177,20 @@ export default function App(){
         };
         return <ClubeBento onClose={()=>setShowClube(false)} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} albumCount={albumCount} missions={missions} onMerged={onMerged} badgeList={BADGES.map(b=>({id:b.id,icon:b.icon,title:b.title,desc:b.desc,earned:badges.includes(b.id)}))}/>;
       })()}
-      {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);setShowDelivery(true);}}/>}
+      {showPote&&<PoteBuilder onClose={()=>setShowPote(false)} onDelivery={()=>{setShowPote(false);abrirPedido();}}/>}
       {showPitch&&<PitchDeck onClose={()=>setShowPitch(false)} onCatalog={()=>{setShowPitch(false);openCat("gelato");}} onFaq={()=>{setShowPitch(false);setShowFaq(true);}}/>}
       {showCardapio&&<CardapioDigital onClose={()=>setShowCardapio(false)}/>}
       {showParceria&&<SejaParceiro onClose={()=>setShowParceria(false)} onForm={()=>setShowRevenda(true)}/>}
       {showRevenda&&<SejaBento onClose={()=>setShowRevenda(false)}/>}
-      {showDelivery&&<DeliveryModal onClose={()=>setShowDelivery(false)}/>}
-      {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
-      {showCulpa&&<CulpaModal productId={culpaProdId} onClose={()=>{setShowCulpa(false);setCulpaProdId(null);}} onDelivery={()=>{setShowCulpa(false);setShowDelivery(true);}}/>}
-      {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);setShowDelivery(true);}}/>}
+            {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
+      {showCulpa&&<CulpaModal productId={culpaProdId} onClose={()=>{setShowCulpa(false);setCulpaProdId(null);}} onDelivery={()=>{setShowCulpa(false);abrirPedido();}}/>}
+      {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);abrirPedido();}}/>}
       {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
       </Suspense>
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`,background:view==="home"?"rgba(246,241,231,.7)":"transparent",backdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined,WebkitBackdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap",justifyContent:"center"}}>
-          <button onClick={()=>tk("Rodapé · Delivery",()=>setShowDelivery(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",cursor:"pointer",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Delivery</button>
+          <button onClick={()=>tk("Rodapé · Pedido próprio",abrirPedido)} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",cursor:"pointer",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Pedir</button>
           <button onClick={()=>tk("Rodapé · Cardápio",()=>setShowCardapio(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",cursor:"pointer",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Cardápio</button>
           <button onClick={()=>tk("Rodapé · Seja Bentô",()=>setShowParceria(true))} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",cursor:"pointer",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Seja Bentô</button>
           <a href="/?vagas" onClick={()=>tk("Rodapé · Vagas")} className="fm" style={{fontSize:9,letterSpacing:"0.2em",color:T.pistacheDark,textTransform:"uppercase",textDecoration:"none",background:T.surface,border:`1px solid ${T.border}`,borderRadius:9,padding:"7px 12px"}}>Trabalhe conosco</a>
