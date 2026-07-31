@@ -203,16 +203,30 @@ function useEntregaEstado(){
   },[]);
   return cfg;
 }
-// Aceita mapa por id ou lista com id — o formato exato é da outra ponta, e não
-// vale derrubar a home por causa dele.
+// Aceita mapa por id ou lista com id. O totem usa underscore nas chaves
+// (praia_do_canto) e o site usa hífen no id da loja (praia-do-canto) — por isso
+// a comparação normaliza os dois lados antes de casar.
+const chaveLoja=(x)=>String(x||"").toLowerCase().replace(/[-_\s]+/g,"-");
 function estadoDaLoja(cfg,id){
   if(!cfg) return null;
   const fonte=cfg.lojas||cfg.stores||cfg;
-  const e=Array.isArray(fonte)?fonte.find(x=>x&&(x.id===id||x.loja===id)):fonte[id];
+  const alvo=chaveLoja(id);
+  if(Array.isArray(fonte)){
+    const e=fonte.find(x=>x&&(chaveLoja(x.id)===alvo||chaveLoja(x.loja)===alvo));
+    return e&&typeof e==="object"?e:null;
+  }
+  const k=Object.keys(fonte).find(k=>chaveLoja(k)===alvo);
+  const e=k?fonte[k]:null;
   return e&&typeof e==="object"?e:null;
 }
 const temEntrega=(e)=>!!(e&&(e.entregaPropria??e.entrega??e.ativo));
-const raioDe=(e)=>Number(e&&(e.raioM??e.raio_m??e.raioMetros))||0;
+// O totem manda o raio em QUILÔMETROS (raioKm); aceito metros também.
+const raioDe=(e)=>{
+  if(!e) return 0;
+  const km=Number(e.raioKm??e.raio_km);
+  if(Number.isFinite(km)&&km>0) return Math.round(km*1000);
+  return Number(e.raioM??e.raio_m??e.raioMetros)||0;
+};
 const centroDe=(e)=>{
   const c=e&&(e.centro||e.center);
   return c&&Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lng))?{lat:Number(c.lat),lng:Number(c.lng)}:null;
