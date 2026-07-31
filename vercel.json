@@ -60,6 +60,14 @@
       "destination": "/proto.html"
     },
     {
+      "source": "/ui",
+      "destination": "/ui.html"
+    },
+    {
+      "source": "/ui/",
+      "destination": "/ui.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -140,7 +148,7 @@
       ]
     },
     {
-      "source": "/proto(.*)",
+      "source": "/(proto|ui)(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
