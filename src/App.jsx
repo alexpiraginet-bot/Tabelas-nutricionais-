@@ -470,10 +470,13 @@ function VisitSection(){
           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:"auto"}}>
             <a href={l.maps} target="_blank" rel="noopener" onClick={()=>tk("Visite · Google Maps")} className="fm" style={btn(true)}>Ver no Google Maps</a>
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`} target="_blank" rel="noopener" onClick={()=>tk("Visite · Rota")} className="fm" style={btn(false)}>Como chegar</a>
-            {/* Pedir online vale sempre: quem responde o que está disponível é
-                o próprio totem. O iFood fica ao lado, como saída de fora de área. */}
+            {/* Pedir online vale sempre: quem responde o que está disponível é o
+                próprio totem. O iFood só aparece aqui na loja que NÃO tem entrega
+                nossa — para quem tem, ele surge apenas no resultado "fora da área"
+                do verificador, que é o papel combinado para o marketplace. */}
             <a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Visite · Pedido próprio · "+l.nome)} className="fm" style={btn(false)}>Pedir online</a>
-            {l.ifood&&<a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood · "+l.nome)} className="fm" style={btn(false)}>iFood</a>}
+            {!temEntrega(estadoDaLoja(entregaEstado,l.id))&&l.ifood&&
+              <a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood · "+l.nome)} className="fm" style={btn(false)}>iFood</a>}
           </div>
           <AreaEntrega loja={l} estado={estadoDaLoja(entregaEstado,l.id)}/>
         </div>
@@ -998,35 +1001,60 @@ function FloatingTreats(){
   );
 }
 
-/* ========== PUSH DE CAMPANHA — VAGA SOCIAL MEDIA (home, 1x por sessão) ==========
-   Arte estática em /banners/push-vaga-social.webp. Tocar na arte leva para a
-   página de vagas (?vagas); o ✕ dispensa. Some sozinho depois da sessão.
-   Ao encerrar a vaga, basta remover <VagaPush/> da home. */
-function VagaPush(){
+/* ========== PUSH DE CAMPANHA — ENTREGA GRÁTIS (home, 1x por sessão) ==========
+   Substitui o push da vaga de Social Media, encerrado.
+   Só aparece quando o TOTEM diz que há entrega grátis ativa — o site não
+   anuncia promoção por conta própria. Desligou lá, some daqui (até 15s, que é
+   o cache do endpoint). O texto é DOM sobre a arte, não está queimado na
+   imagem: muda sem depender de gerar arte nova.
+   Tocar leva ao pedido; o ✕ dispensa e não volta na mesma sessão. */
+function EntregaPush(){
+  const cfg=useEntregaEstado();
   const[open,setOpen]=useState(false);
+  const gratis=(()=>{
+    if(!cfg) return null;
+    const fonte=cfg.lojas||cfg.stores||cfg;
+    const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
+    return lista.find(e=>temEntrega(e)&&(e.gratis??e.entregaGratis??e.free))||null;
+  })();
   useEffect(()=>{
-    try{ if(sessionStorage.getItem("bento:push:vaga")) return; }catch{/* */}
+    if(!gratis) return;
+    try{ if(sessionStorage.getItem("bento:push:entrega")) return; }catch{/* */}
     const t=setTimeout(()=>{
-      try{ sessionStorage.setItem("bento:push:vaga","1"); }catch{/* */}
+      try{ sessionStorage.setItem("bento:push:entrega","1"); }catch{/* */}
       setOpen(true);
     },2600);
     return()=>clearTimeout(t);
-  },[]);
+  },[gratis]);
   const fechar=useCallback(()=>setOpen(false),[]);
-  // useModal trava o scroll do fundo já na montagem: só pode ser chamado com o
-  // push realmente aberto — daí o componente interno.
-  return open?<VagaPushModal onClose={fechar}/>:null;
+  return open?<EntregaPushModal onClose={fechar}/>:null;
 }
-function VagaPushModal({onClose:fechar}){
+function EntregaPushModal({onClose:fechar}){
   useModal(fechar);
+  const ir=()=>{ tk("Push · Entrega grátis"); try{window.open(PEDIR_URL,"_blank","noopener");}catch{/* */} fechar(); };
   return(
-    <div className="fade no-print" role="dialog" aria-modal="true" aria-label="Vaga aberta: Social Media" onClick={fechar}
+    <div className="fade no-print" role="dialog" aria-modal="true" aria-label="Entrega grátis em Vitória" onClick={fechar}
       style={{position:"fixed",inset:0,zIndex:420,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
-      <div className="rise" style={{position:"relative",maxWidth:470,width:"100%"}} onClick={(e)=>e.stopPropagation()}>
-        <a href="/?vagas" onClick={()=>tk("Push · Vaga Social Media")} style={{display:"block",borderRadius:20,overflow:"hidden"}}>
-          <img src="/banners/push-vaga-social.webp" width={1120} height={1400} alt="Vaga aberta: Social Media na Bentô — Vitória-ES, híbrido, CLT. Toque para se candidatar."
-            style={{display:"block",width:"100%",height:"auto",maxHeight:"88dvh",objectFit:"contain",borderRadius:20,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}/>
-        </a>
+      <div className="rise" style={{position:"relative",maxWidth:430,width:"100%"}} onClick={(e)=>e.stopPropagation()}>
+        <button onClick={ir} className="fb" style={{display:"block",width:"100%",padding:0,border:"none",cursor:"pointer",textAlign:"left",
+          borderRadius:22,overflow:"hidden",background:T.surface,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}>
+          <span style={{display:"block",position:"relative"}}>
+            <img src="/banners/cardapio.webp" width={1600} height={686} alt=""
+              style={{display:"block",width:"100%",height:"auto",objectFit:"cover"}}/>
+          </span>
+          <span style={{display:"block",padding:"18px 20px 20px",background:T.ink,color:T.bg}}>
+            <span className="fm" style={{display:"block",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#C9A24A"}}>Por tempo limitado</span>
+            <span className="fd" style={{display:"block",fontFamily:"'Fraunces',Georgia,serif",fontSize:26,lineHeight:1.15,fontWeight:600,marginTop:8}}>
+              Entrega grátis em Vitória
+            </span>
+            <span className="fb" style={{display:"block",fontSize:13.5,color:"#CFC9B4",marginTop:7,lineHeight:1.5}}>
+              Praia do Canto e região. Peça pelo site e a entrega é por nossa conta.
+            </span>
+            <span className="fb" style={{display:"inline-block",marginTop:14,background:"#C9A24A",color:T.ink,borderRadius:999,padding:"11px 20px",fontSize:14,fontWeight:700}}>
+              Pedir agora →
+            </span>
+          </span>
+        </button>
         <button onClick={fechar} aria-label="Fechar"
           style={{position:"absolute",top:10,right:10,width:38,height:38,borderRadius:"50%",border:"none",cursor:"pointer",
             background:"rgba(31,35,23,.55)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(6px)"}}>
@@ -1270,7 +1298,7 @@ export default function App(){
       {/* o push nunca monta sobre outro overlay: dois useModal disputariam o Esc
           (fechando o modal de baixo junto) e a arte cobriria o conteúdo aberto.
           Com todos fechados, o timer recomeça e o push aparece normalmente. */}
-      {view==="home"&&!overlayAberto&&<VagaPush/>}
+      {view==="home"&&!overlayAberto&&<EntregaPush/>}
       <StoreHours/>
       <Analytics/>
     </div>
