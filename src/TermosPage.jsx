@@ -21,7 +21,7 @@ export default function TermosPage(){
         <p style={p}>É expressamente proibido, sem autorização prévia e por escrito da titular: copiar, reproduzir, clonar, espelhar, distribuir, modificar ou criar obras derivadas do site, total ou parcialmente; extrair seu código, design ou conteúdo por meios manuais ou automatizados (scraping); e usar a marca, o nome ou a identidade visual de forma que cause confusão com a Bentô Gelatos.</p>
 
         <h2 style={h2}>4. Uso permitido</h2>
-        <p style={p}>Você pode acessar e navegar livremente pelo site para fins pessoais e informativos, compartilhar os links das nossas páginas e utilizar os canais de contato e pedido (nossa plataforma de pedidos, WhatsApp) para os fins a que se destinam.</p>
+        <p style={p}>Você pode acessar e navegar livremente pelo site para fins pessoais e informativos, compartilhar os links das nossas páginas e utilizar os canais de contato e pedido (nossa plataforma de pedidos, iFood, WhatsApp) para os fins a que se destinam.</p>
 
         <h2 style={h2}>5. Violações e providências</h2>
         <p style={p}>Identificada cópia ou uso indevido, a titular poderá adotar as medidas cabíveis, incluindo notificação extrajudicial, pedidos de remoção (DMCA/notice-and-takedown) junto a provedores e plataformas, e as ações cíveis e criminais previstas em lei. Denúncias e solicitações: <strong>bentogelateria@gmail.com</strong>.</p>

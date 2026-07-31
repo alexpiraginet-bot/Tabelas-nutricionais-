@@ -3,7 +3,7 @@ import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X,
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim, sugarClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
-import { tk, T, LOJAS, PEDIR_URL, ENTREGA, distanciaM, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, T, LOJAS, PEDIR_URL, ENTREGA_ESTADO_URL, distanciaM, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 import WorldFundo from "./WorldFundo.jsx";
 // Movimento cinematográfico de rolagem para os cards REAIS da home:
 // entrada/saída 3D contínua presa ao scroll (nos dois sentidos). Escreve
@@ -185,70 +185,103 @@ function useDestaqueOrdem(){
   },[]); // roda 1× por visita; "destaque" inicial vem do localStorage de propósito
   return [destaque,...ORDEM_PADRAO.filter(id=>id!==destaque)];
 }
-/* Área de entrega própria: 3,01 km em volta da loja da Praia do Canto.
-   Além de informar, deixa o cliente conferir na hora pela localização do
-   aparelho — evita o pedido que só é recusado lá na frente. Nada é enviado
-   para servidor nenhum: a conta acontece no próprio navegador. */
-function AreaEntrega(){
-  const[res,setRes]=useState(null);      // {dentro, km}
+/* ===== ESTADO DA ENTREGA — lido do totem, nunca decidido aqui =====
+   O totem é a fonte única (raio, centro, entrega grátis, quais lojas entregam).
+   O site só lê. Regra de ouro: sem resposta do endpoint, o site NÃO afirma nada
+   sobre entrega — não anuncia grátis, não promete raio. O link de pedir continua
+   valendo, porque quem responde o que está disponível é o próprio totem. Assim é
+   impossível o site dizer "grátis" enquanto o pedido cobra. */
+function useEntregaEstado(){
+  const[cfg,setCfg]=useState(null);
+  useEffect(()=>{
+    let vivo=true;
+    fetch(ENTREGA_ESTADO_URL,{cache:"no-store",mode:"cors"})
+      .then(r=>r.ok?r.json():null)
+      .then(j=>{ if(vivo&&j&&typeof j==="object") setCfg(j); })
+      .catch(()=>{}); // totem fora do ar ou endpoint ainda não publicado: segue calado
+    return()=>{vivo=false;};
+  },[]);
+  return cfg;
+}
+// Aceita mapa por id ou lista com id — o formato exato é da outra ponta, e não
+// vale derrubar a home por causa dele.
+function estadoDaLoja(cfg,id){
+  if(!cfg) return null;
+  const fonte=cfg.lojas||cfg.stores||cfg;
+  const e=Array.isArray(fonte)?fonte.find(x=>x&&(x.id===id||x.loja===id)):fonte[id];
+  return e&&typeof e==="object"?e:null;
+}
+const temEntrega=(e)=>!!(e&&(e.entregaPropria??e.entrega??e.ativo));
+const raioDe=(e)=>Number(e&&(e.raioM??e.raio_m??e.raioMetros))||0;
+const centroDe=(e)=>{
+  const c=e&&(e.centro||e.center);
+  return c&&Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lng))?{lat:Number(c.lat),lng:Number(c.lng)}:null;
+};
+
+/* Confere se o endereço do cliente cai dentro da área da loja. A conta roda no
+   próprio navegador — nenhuma localização sai do aparelho. Quem fica fora não
+   perde a saída: recebe o iFood ali mesmo, papel que o marketplace passou a ter.
+   Só aparece quando o totem informou raio e centro. */
+function AreaEntrega({loja,estado}){
+  const[res,setRes]=useState(null);
   const[msg,setMsg]=useState("");
-  const km=(ENTREGA.raioM/1000).toFixed(1).replace(".",",");
+  const raio=raioDe(estado), centro=centroDe(estado);
   const conferir=()=>{
     if(!navigator.geolocation){setMsg("Seu navegador não permite localização — chame no WhatsApp que a gente confere.");return;}
     setMsg("Localizando…");setRes(null);
     navigator.geolocation.getCurrentPosition(pos=>{
       const{latitude:la,longitude:lo}=pos.coords;
-      const d=distanciaM(ENTREGA.centro.lat,ENTREGA.centro.lng,la,lo);
-      setRes({dentro:d<=ENTREGA.raioM,km:(d/1000).toFixed(1).replace(".",",")});
+      const d=distanciaM(centro.lat,centro.lng,la,lo);
+      const dentro=d<=raio;
+      setRes({dentro,km:(d/1000).toFixed(1).replace(".",",")});
       setMsg("");
-      tk("Entrega · Conferiu área · "+(d<=ENTREGA.raioM?"dentro":"fora"));
+      tk("Entrega · Conferiu área · "+(dentro?"dentro":"fora"));
     },()=>setMsg("Não consegui pegar sua localização — chame no WhatsApp que a gente confere."),{timeout:8000});
   };
+  if(!temEntrega(estado)||!raio||!centro) return null;
+  const km=(raio/1000).toFixed(1).replace(".",",");
   return(
     <div style={{marginTop:12,padding:"12px 14px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:12}}>
       <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.5}}>
-        🛵 <b>Entregamos num raio de {km} km</b> a partir desta loja.
+        🛵 <b>Nossa entrega chega a {km} km</b> a partir desta loja.
       </div>
       <button onClick={conferir} className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"8px 14px",cursor:"pointer"}}>
         Entrega no meu endereço?
       </button>
       {msg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8}}>{msg}</div>}
-      {res&&(
-        <div className="fb" role="status" style={{fontSize:12.5,marginTop:8,lineHeight:1.5,color:res.dentro?T.pistacheDark:T.inkSoft,fontWeight:res.dentro?700:500}}>
-          {res.dentro
-            ? `Sim! Você está a ${res.km} km da loja — dentro da nossa área.`
-            : `Você está a ${res.km} km da loja, fora da área de entrega. Dá para retirar na loja ou chamar no WhatsApp.`}
+      {res&&(res.dentro?(
+        <div className="fb" role="status" style={{fontSize:12.5,marginTop:8,lineHeight:1.5,color:T.pistacheDark,fontWeight:700}}>
+          Sim! Você está a {res.km} km da loja — dentro da nossa área de entrega.
         </div>
-      )}
+      ):(
+        <div role="status" style={{marginTop:8}}>
+          <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.5}}>
+            Você está a {res.km} km, fora da nossa entrega própria. Dá para retirar na loja — ou receber pelo iFood:
+          </div>
+          {loja.ifood&&<a href={loja.ifood} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Fora de área · iFood · "+loja.nome)}
+            className="fm" style={{display:"inline-block",marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:999,padding:"9px 15px",textDecoration:"none"}}>
+            Pedir pelo iFood
+          </a>}
+        </div>
+      ))}
     </div>
   );
 }
 
-/* Entrega grátis — selo ligado/desligado pelo painel (api/entrega-gratis).
-   Serve para ação pontual ("frete grátis neste fim de semana"): a equipe liga,
-   o site anuncia; a API já devolve desligado sozinha quando a data de término
-   passa, então promoção esquecida não vira frete grátis permanente. */
-function useEntregaGratis(){
-  const[eg,setEg]=useState(null);
-  useEffect(()=>{
-    let vivo=true;
-    fetch("/api/entrega-gratis",{cache:"no-store"})
-      .then(r=>r.ok?r.json():null)
-      .then(j=>{ if(vivo&&j&&j.ativo) setEg({texto:j.texto||"Entrega grátis"}); })
-      .catch(()=>{}); // falhou? simplesmente não anuncia
-    return()=>{vivo=false;};
-  },[]);
-  return eg;
-}
-
-function FaixaEntregaGratis({eg}){
-  if(!eg) return null;
+/* Selo de entrega grátis — aceso pelo admin do TOTEM, jamais por aqui. */
+function FaixaEntregaGratis({cfg}){
+  if(!cfg) return null;
+  const fonte=cfg.lojas||cfg.stores||cfg;
+  const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
+  const gratis=lista.find(e=>temEntrega(e)&&(e.gratis??e.entregaGratis??e.free));
+  if(!gratis) return null;
+  const texto=String(gratis.texto||gratis.selo||"Entrega grátis").slice(0,60);
   return(
     <div className="rise fb" role="status" style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:9,
       background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"11px 18px",marginTop:14,
       fontSize:13,fontWeight:600,letterSpacing:"0.01em",textAlign:"center",animationDelay:"210ms"}}>
       <Sparkles size={15} aria-hidden="true" style={{color:"#C9A24A",flexShrink:0}}/>
-      <span>{eg.texto}</span>
+      <span>{texto}</span>
     </div>
   );
 }
@@ -283,7 +316,7 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
 function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   const ordem=useDestaqueOrdem();
-  const entregaGratis=useEntregaGratis();
+  const entregaEstado=useEntregaEstado();
   const BANNERS=bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas});
   return(
     <div className="fade">
@@ -320,7 +353,7 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
         )}
         </div>
 
-        <FaixaEntregaGratis eg={entregaGratis}/>
+        <FaixaEntregaGratis cfg={entregaEstado}/>
 
         <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
@@ -372,6 +405,9 @@ function SejaBentoFinal(){
 // Fonte única: LOJAS (src/shared.jsx) — mesma usada pelo Delivery e pelo
 // banner de horários. Endereços = os do JSON-LD de SEO do index.html.
 function VisitSection(){
+  // Lê o estado da entrega direto do totem: a seção é usada fora da Home,
+  // então não dá para depender de prop vinda de cima.
+  const entregaEstado=useEntregaEstado();
   const[cur,setCur]=useState(LOJAS[0].id);
   const l=LOJAS.find(x=>x.id===cur)||LOJAS[0];
   const btn=(primary)=>({display:"inline-flex",alignItems:"center",gap:6,fontSize:11,letterSpacing:"0.14em",textTransform:"uppercase",textDecoration:"none",cursor:"pointer",borderRadius:10,padding:"10px 16px",fontWeight:600,
@@ -420,9 +456,12 @@ function VisitSection(){
           <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:"auto"}}>
             <a href={l.maps} target="_blank" rel="noopener" onClick={()=>tk("Visite · Google Maps")} className="fm" style={btn(true)}>Ver no Google Maps</a>
             <a href={`https://www.google.com/maps/dir/?api=1&destination=${l.lat},${l.lng}`} target="_blank" rel="noopener" onClick={()=>tk("Visite · Rota")} className="fm" style={btn(false)}>Como chegar</a>
-            {l.pedidoOnline&&<a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Visite · Pedido próprio · "+l.nome)} className="fm" style={btn(false)}>Pedir online</a>}
+            {/* Pedir online vale sempre: quem responde o que está disponível é
+                o próprio totem. O iFood fica ao lado, como saída de fora de área. */}
+            <a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Visite · Pedido próprio · "+l.nome)} className="fm" style={btn(false)}>Pedir online</a>
+            {l.ifood&&<a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood · "+l.nome)} className="fm" style={btn(false)}>iFood</a>}
           </div>
-          {l.pedidoOnline&&<AreaEntrega/>}
+          <AreaEntrega loja={l} estado={estadoDaLoja(entregaEstado,l.id)}/>
         </div>
       </div>
     </div>

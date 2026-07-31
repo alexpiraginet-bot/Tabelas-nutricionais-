@@ -22,7 +22,7 @@ export default function PrivacidadePage(){
         <p style={p}>Para responder ao seu contato, elaborar orçamentos e contratos, viabilizar entregas e avaliar parcerias/revenda/franquia. Não usamos seus dados para finalidades incompatíveis com essas.</p>
 
         <h2 style={h2}>4. Com quem compartilhamos</h2>
-        <p style={p}>Para prestar esses serviços, podemos utilizar: <strong>WhatsApp (Meta)</strong> para comunicação; <strong>OpenStreetMap/Nominatim</strong> para converter o endereço do evento em coordenadas e calcular a distância; e nossa <strong>plataforma de pedidos</strong> (totem.bentogelateria.com) quando você pede entrega ou retirada. <strong>Não vendemos</strong> seus dados pessoais a terceiros.</p>
+        <p style={p}>Para prestar esses serviços, podemos utilizar: <strong>WhatsApp (Meta)</strong> para comunicação; <strong>OpenStreetMap/Nominatim</strong> para converter o endereço do evento em coordenadas e calcular a distância; nossa <strong>plataforma de pedidos</strong> (totem.bentogelateria.com) quando você pede entrega própria ou retirada; e o <strong>iFood</strong> quando seu endereço fica fora da nossa área de entrega. <strong>Não vendemos</strong> seus dados pessoais a terceiros.</p>
 
         <h2 style={h2}>5. Como armazenamos</h2>
         <p style={p}>Este site é estático e não mantém banco de dados próprio: as informações dos formulários são transmitidas à nossa equipe pelo WhatsApp. Preferências como "favoritos" ficam apenas no seu navegador (armazenamento local), não em nossos servidores.</p>

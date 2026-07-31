@@ -1052,7 +1052,7 @@ const FAQ=[
   {q:"Tem glúten?",a:"A maioria dos sabores não contém glúten. As exceções são os sabores com kadaif ou pasta de pistache (ex.: Chocolate Dubai, Pistache, Pistache & Choco Branco), sempre indicadas na ficha do sabor. Todos os produtos trazem a declaração de alérgenos conforme a RDC 26/2015."},
   {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey hidrolisado (proteína de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
   {q:"Como conservar em casa?",a:"Mantenha sempre no freezer. Para a textura perfeita de gelato, tire alguns minutos antes de consumir e evite descongelar e recongelar — isso preserva a cremosidade e a qualidade do produto."},
-  {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa: a entrega é feita pela nossa própria equipe. É só tocar em Entrega própria e retirada na tela inicial, escolher a loja e pedir. 🛵"},
+  {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa. Perto da Praia do Canto a entrega é nossa mesmo, feita pela nossa equipe — é só tocar em Entrega própria e retirada na tela inicial. Fora dessa área, dá para retirar na loja ou pedir pelo iFood. 🛵"},
 ];
 
 export function FaqModal({onClose}){
