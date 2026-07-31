@@ -227,6 +227,32 @@ const raioDe=(e)=>{
   if(Number.isFinite(km)&&km>0) return Math.round(km*1000);
   return Number(e.raioM??e.raio_m??e.raioMetros)||0;
 };
+/* Janela de entrega. A casa não entrega antes das 11h nem depois das 20h, então
+   fora disso o site não oferece entrega — só retirada e iFood.
+   O horário é regra de negócio e, como o resto, deveria vir do totem: se o
+   endpoint mandar horario:{abre,fecha}, é ele que vale. O padrão abaixo existe
+   só enquanto o campo não for exposto lá — quando for, some daqui. */
+const JANELA_PADRAO={abre:11,fecha:20};
+const janelaDe=(e)=>{
+  const h=e&&(e.horario||e.janela);
+  const abre=Number(h&&(h.abre??h.inicio??h.open));
+  const fecha=Number(h&&(h.fecha??h.fim??h.close));
+  return Number.isFinite(abre)&&Number.isFinite(fecha)&&fecha>abre?{abre,fecha}:JANELA_PADRAO;
+};
+// Hora de Vitória (America/Sao_Paulo) — não a do aparelho do cliente, que pode
+// estar em qualquer fuso.
+function horaVitoria(){
+  try{
+    const f=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"numeric",minute:"numeric",hour12:false});
+    const p=Object.fromEntries(f.formatToParts(new Date()).map(x=>[x.type,x.value]));
+    return Number(p.hour)+Number(p.minute)/60;
+  }catch{ const d=new Date(); return d.getHours()+d.getMinutes()/60; }
+}
+const noHorario=(e)=>{ const j=janelaDe(e), h=horaVitoria(); return h>=j.abre&&h<j.fecha; };
+// Entrega disponível AGORA = a loja entrega E estamos dentro da janela.
+const entregaAgora=(e)=>temEntrega(e)&&noHorario(e);
+const faixaHorario=(e)=>{ const j=janelaDe(e); return `${String(j.abre).padStart(2,"0")}h às ${String(j.fecha).padStart(2,"0")}h`; };
+
 const centroDe=(e)=>{
   const c=e&&(e.centro||e.center);
   return c&&Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lng))?{lat:Number(c.lat),lng:Number(c.lng)}:null;
@@ -254,10 +280,23 @@ function AreaEntrega({loja,estado}){
   };
   if(!temEntrega(estado)||!raio||!centro) return null;
   const km=(raio/1000).toFixed(1).replace(".",",");
+  // Fora da janela a casa não entrega: não adianta conferir endereço, então o
+  // bloco vira aviso de horário + as saídas que existem agora.
+  if(!noHorario(estado)) return(
+    <div style={{marginTop:12,padding:"12px 14px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:12}}>
+      <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.5}}>
+        🛵 <b>Entregamos das {faixaHorario(estado)}.</b> Agora está fora do horário — dá para retirar na loja{loja.ifood?" ou pedir pelo iFood":""}.
+      </div>
+      {loja.ifood&&<a href={loja.ifood} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Fora do horário · iFood · "+loja.nome)}
+        className="fm" style={{display:"inline-block",marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:999,padding:"9px 15px",textDecoration:"none"}}>
+        Pedir pelo iFood
+      </a>}
+    </div>
+  );
   return(
     <div style={{marginTop:12,padding:"12px 14px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:12}}>
       <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.5}}>
-        🛵 <b>Nossa entrega chega a {km} km</b> a partir desta loja.
+        🛵 <b>Nossa entrega chega a {km} km</b> a partir desta loja, das {faixaHorario(estado)}.
       </div>
       <button onClick={conferir} className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"8px 14px",cursor:"pointer"}}>
         Entrega no meu endereço?
@@ -287,7 +326,7 @@ function FaixaEntregaGratis({cfg}){
   if(!cfg) return null;
   const fonte=cfg.lojas||cfg.stores||cfg;
   const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
-  const gratis=lista.find(e=>temEntrega(e)&&(e.gratis??e.entregaGratis??e.free));
+  const gratis=lista.find(e=>entregaAgora(e)&&(e.gratis??e.entregaGratis??e.free));
   if(!gratis) return null;
   const texto=String(gratis.texto||gratis.selo||"Entrega grátis").slice(0,60);
   return(
@@ -475,7 +514,7 @@ function VisitSection(){
                 nossa — para quem tem, ele surge apenas no resultado "fora da área"
                 do verificador, que é o papel combinado para o marketplace. */}
             <a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Visite · Pedido próprio · "+l.nome)} className="fm" style={btn(false)}>Pedir online</a>
-            {!temEntrega(estadoDaLoja(entregaEstado,l.id))&&l.ifood&&
+            {!entregaAgora(estadoDaLoja(entregaEstado,l.id))&&l.ifood&&
               <a href={l.ifood} target="_blank" rel="noopener" onClick={()=>tk("Visite · iFood · "+l.nome)} className="fm" style={btn(false)}>iFood</a>}
           </div>
           <AreaEntrega loja={l} estado={estadoDaLoja(entregaEstado,l.id)}/>
@@ -1015,7 +1054,7 @@ function EntregaPush(){
     if(!cfg) return null;
     const fonte=cfg.lojas||cfg.stores||cfg;
     const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
-    return lista.find(e=>temEntrega(e)&&(e.gratis??e.entregaGratis??e.free))||null;
+    return lista.find(e=>entregaAgora(e)&&(e.gratis??e.entregaGratis??e.free))||null;
   })();
   useEffect(()=>{
     if(!gratis) return;
