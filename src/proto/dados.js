@@ -27,21 +27,21 @@ export const CENAS = [
     etiqueta: "O que muda",
     titulo: "Sem adição de açúcares",
     texto: "O doce vem da própria receita. Nada de açúcar jogado por cima para disfarçar.",
-    img: "/cardapio/pic-mega.jpg",
+    img: "/atelie/cena-1-sem-acucar.webp",
   },
   {
     id: "cena-2",
     etiqueta: "O que entra",
     titulo: "Rico em proteína",
     texto: "Sobremesa que trabalha a favor do seu dia — não contra ele.",
-    img: "/cardapio/gelato-p.jpg",
+    img: "/atelie/cena-2-proteina.webp",
   },
   {
     id: "cena-3",
     etiqueta: "O que você lê",
     titulo: "Rótulo limpo",
     texto: "Cada ficha nutricional está publicada no site. Você confere antes de provar.",
-    img: "/cardapio/pic-kit6.jpg",
+    img: "/atelie/cena-3-rotulo-limpo.webp",
   },
 ];
 

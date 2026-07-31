@@ -38,6 +38,10 @@ import { VITRINE, TRILHO, CENAS, LOJAS_RESUMO } from "./dados.js";
 const GRAO =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.34'/%3E%3C/svg%3E\")";
 
+/* Poster de 32 px do hero embutido no bundle: pinta a cor certa no primeiro
+   frame, antes de qualquer byte de imagem chegar (sem clarão branco). */
+const HERO_POSTER = "data:image/webp;base64,UklGRtIAAABXRUJQVlA4IMYAAABwBQCdASogABUAPwFusFErJiSisBgIAWAgCWMAtOsuWqj8aBU2/bJc2Jn1N71qV/CtfuWgAP7hP6MQfAqzzPL4ikRHJJnzv3Hj8gvGrDedtDAl/2aXrcJT6g7jj5G/fjtpGqQ/kRE8jBBqM11LVsoym2X+IapYJWDTqP2Z5BOO7zxI7HvI1/P6PbVZd+zUZpmewaKNnwtuaeHI5OuSPVfUwbziJNZHmF6ofPzA4zubDc9zLFdHbLPdGdyDFSAO1m5KHvt1AAA=";
+
 /* ---------- etiqueta de seção: ajuda o dono a avaliar cada demo ---------- */
 function Etiqueta({ n, titulo, observar }) {
   return (
@@ -79,7 +83,59 @@ function Botao({ children, primario = true, onClick, ...rest }) {
   );
 }
 
-/* =========================== 01 · ABERTURA =========================== */
+/* =========================== 01 · ABERTURA ===========================
+   Fotografia full-bleed que DISSOLVE no creme da página. A queixa antiga
+   ("fundo quadrado, não parece que faz parte do ambiente") morre aqui: não
+   existe borda: a imagem vira gradiente e o texto nasce dentro do creme
+   sólido — contraste garantido, sem véu chapado por cima da foto. */
+function HeroFoto() {
+  const { scrollY } = useScroll();
+  // A foto sobe MENOS que a página e recua de escala: profundidade real.
+  // Presa à rolagem, então continua viva com Reduzir Movimento.
+  const y = useTransform(scrollY, [0, 700], [0, 130]);
+  const escala = useTransform(scrollY, [0, 700], [1.06, 1]);
+  const [carregou, setCarregou] = useState(false);
+
+  return (
+    <div aria-hidden="true" style={{ position: "absolute", inset: 0, overflow: "hidden", background: T.bgWarm }}>
+      {/* Poster de 32 px embutido: cor certa no primeiro frame, sem clarão */}
+      <div style={{
+        position: "absolute", inset: "-4%", backgroundImage: `url(${HERO_POSTER})`,
+        backgroundSize: "cover", backgroundPosition: "center", filter: "blur(24px)",
+        opacity: carregou ? 0 : 1, transition: "opacity .5s ease",
+      }} />
+      {/* Enquadramento por dispositivo. O celular recebe uma foto COMPOSTA em
+          retrato (assunto no terço de cima, pedra limpa embaixo, onde o título
+          mora) — não uma paisagem cortada. Foi a lição do próprio dono sobre
+          renderizar para vertical. */}
+      <picture>
+        <source media="(max-width: 767px)" srcSet="/atelie/hero-vertical.webp" />
+        <m.img
+          src="/atelie/hero.webp" alt="" decoding="async" fetchpriority="high"
+          onLoad={() => setCarregou(true)}
+          style={{
+            y, scale: escala, willChange: "transform",
+            position: "absolute", inset: "-6% 0 0", width: "100%", height: "112%",
+            objectFit: "cover", objectPosition: "center 38%",
+            opacity: carregou ? 1 : 0, transition: "opacity .6s ease",
+          }}
+        />
+      </picture>
+      {/* A foto vira página: creme sólido embaixo, onde o texto vive */}
+      {/* O creme fecha bem antes do texto começar: o título nunca disputa
+          legibilidade com a foto (§1 color-contrast 4,5:1 garantido). */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: `linear-gradient(180deg,rgba(246,241,231,.20) 0%,rgba(246,241,231,.04) 30%,rgba(246,241,231,.55) 54%,rgba(246,241,231,.93) 70%,${T.bg} 78%)`,
+      }} />
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(120% 80% at 50% 30%, transparent 45%, rgba(24,26,17,.20))",
+      }} />
+    </div>
+  );
+}
+
 function Abertura({ reduce }) {
   // Entrada em cascata: cada elemento sobe e revela em sequência de 40 ms.
   // Com Reduzir Movimento, tudo já nasce no lugar (sem "aparecer do nada").
@@ -92,35 +148,41 @@ function Abertura({ reduce }) {
     : { oculto: { opacity: 0, y: 22 }, visivel: { opacity: 1, y: 0, transition: M.enter } };
 
   return (
-    <m.header
-      variants={pai} initial="oculto" animate="visivel"
-      style={{ padding: "clamp(64px,14vh,120px) 22px 54px", maxWidth: 720, margin: "0 auto" }}
-    >
-      <m.div variants={filho} className="fm" style={{ ...TYPE.label, color: T.pistacheDark }}>
-        Protótipo · não publicado
-      </m.div>
-
-      <m.h1
-        variants={filho} className="fd"
-        style={{ fontFamily: "'Fraunces',Georgia,serif", fontSize: "clamp(40px,11vw,64px)", lineHeight: 1.02, fontWeight: 600, letterSpacing: "-0.025em", margin: "20px 0 0" }}
+    // Envelope de largura total (a foto sangra até as bordas da tela) com o
+    // texto num container de leitura por dentro. `position:relative` +
+    // zIndex 1 no conteúdo garantem que ele pinte ACIMA da foto absoluta.
+    <header style={{ position: "relative", overflow: "hidden" }}>
+      <HeroFoto />
+      <m.div
+        variants={pai} initial="oculto" animate="visivel"
+        style={{ position: "relative", zIndex: 1, padding: "clamp(280px,50vh,440px) 22px 54px", maxWidth: 720, margin: "0 auto" }}
       >
-        Gelato com<br />
-        <span style={{ fontStyle: "italic", color: T.pistacheDark }}>propósito</span>
-      </m.h1>
+        <m.div variants={filho} className="fm" style={{ ...TYPE.label, color: T.pistacheDark }}>
+          Protótipo · não publicado
+        </m.div>
 
-      <m.p variants={filho} className="fb" style={{ ...TYPE.body, color: T.inkSoft, margin: "20px 0 0", maxWidth: "34ch" }}>
-        Sem adição de açúcares, rico em proteína, rótulo limpo — em Vitória-ES.
-      </m.p>
+        <m.h1
+          variants={filho} className="fd"
+          style={{ fontFamily: "'Fraunces',Georgia,serif", fontSize: "clamp(40px,11vw,64px)", lineHeight: 1.02, fontWeight: 600, letterSpacing: "-0.025em", margin: "20px 0 0" }}
+        >
+          Gelato com<br />
+          <span style={{ fontStyle: "italic", color: T.pistacheDark }}>propósito</span>
+        </m.h1>
 
-      <m.div variants={filho} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 30 }}>
-        <Botao>Ver cardápio <ChevronRight size={18} strokeWidth={2.25} aria-hidden="true" /></Botao>
-        <Botao primario={false}>Nossas lojas</Botao>
+        <m.p variants={filho} className="fb" style={{ ...TYPE.body, color: T.inkSoft, margin: "20px 0 0", maxWidth: "34ch" }}>
+          Sem adição de açúcares, rico em proteína, rótulo limpo — em Vitória-ES.
+        </m.p>
+
+        <m.div variants={filho} style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 30 }}>
+          <Botao>Ver cardápio <ChevronRight size={18} strokeWidth={2.25} aria-hidden="true" /></Botao>
+          <Botao primario={false}>Nossas lojas</Botao>
+        </m.div>
+
+        <m.p variants={filho} className="fm" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: T.inkSoft, marginTop: 34, lineHeight: 1.6 }}>
+          ↳ role a página devagar — e depois role de volta para cima
+        </m.p>
       </m.div>
-
-      <m.p variants={filho} className="fm" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: T.inkSoft, marginTop: 34, lineHeight: 1.6 }}>
-        ↳ role a página devagar — e depois role de volta para cima
-      </m.p>
-    </m.header>
+    </header>
   );
 }
 
@@ -191,7 +253,7 @@ function Cena({ cena, indice }) {
           boxShadow: "0 40px 80px -50px rgba(35,38,25,.7)",
         }}
       >
-        <div style={{ position: "relative", aspectRatio: "16 / 11", overflow: "hidden", background: T.bgWarm }}>
+        <div style={{ position: "relative", aspectRatio: "3 / 2", overflow: "hidden", background: T.bgWarm }}>
           {/* A foto anda mais devagar que o card: profundidade de verdade. */}
           <m.img
             src={cena.img} alt="" aria-hidden="true" loading="lazy" decoding="async"
