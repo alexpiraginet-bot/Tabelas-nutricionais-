@@ -113,7 +113,7 @@ export function QuizModal({onClose,onResult,onDelivery,onSaved}){
               </div>
               <button onClick={()=>{onClose();onResult(result.id);}} style={{width:"100%",padding:"13px 0",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:10,fontSize:14,fontFamily:"'DM Sans',sans-serif",fontWeight:500}}>Ver ficha completa →</button>
               <button onClick={compartilharQuiz} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Compartilhar meu sabor</button>
-              {onDelivery&&<button onClick={()=>tk("Conversão · iFood · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",opacity:.94}}>Pedir agora no iFood</button>}
+              {onDelivery&&<button onClick={()=>tk("Conversão · Pedido próprio · Quiz",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:14,fontWeight:600,cursor:"pointer",opacity:.94}}>Pedir agora</button>}
               <button onClick={()=>{setStep(0);setAns([]);setDone(false);setResult(null);}} style={{width:"100%",marginTop:8,padding:"10px 0",background:"transparent",color:T.inkSoft,border:`1px solid ${T.border}`,borderRadius:10,fontSize:13,fontFamily:"'DM Sans',sans-serif"}}>Refazer quiz</button>
             </div>
           )}
@@ -377,7 +377,7 @@ export function FavoritesModal({ids,onClose,onViewProduct,onCompare,onDelivery,o
               ))}
               <div className="fb" style={{fontSize:11.5,color:T.inkSoft,margin:"12px 0 14px",textAlign:"center"}}>Sua coleção soma <strong style={{color:T.pistacheDark}}>{totProt}g de proteína</strong>.</div>
               {favs.length>=2&&<button onClick={()=>{tk("Favoritos · Comparar",()=>onCompare(favs.slice(0,3).map(p=>p.id)));}} className="fb" style={{width:"100%",padding:"12px 0",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Comparar meus favoritos{favs.length>3?" (3 primeiros)":""}</button>}
-              <button onClick={()=>tk("Conversão · iFood · Favoritos",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Pedir no iFood</button>
+              <button onClick={()=>tk("Conversão · Pedido próprio · Favoritos",onDelivery)} className="fb" style={{width:"100%",marginTop:8,padding:"12px 0",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:10,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Pedir agora</button>
               {galeria}
             </>
           )}
@@ -1052,7 +1052,7 @@ const FAQ=[
   {q:"Tem glúten?",a:"A maioria dos sabores não contém glúten. As exceções são os sabores com kadaif ou pasta de pistache (ex.: Chocolate Dubai, Pistache, Pistache & Choco Branco), sempre indicadas na ficha do sabor. Todos os produtos trazem a declaração de alérgenos conforme a RDC 26/2015."},
   {q:"Qual é o sabor mais proteico?",a:"Nossos gelatos levam whey hidrolisado (proteína de alta absorção). O ranking 'mais ricos em proteína' fica na área de Tabelas Nutricionais — em geral, os sabores cremosos com whey passam de 9 g de proteína por porção."},
   {q:"Como conservar em casa?",a:"Mantenha sempre no freezer. Para a textura perfeita de gelato, tire alguns minutos antes de consumir e evite descongelar e recongelar — isso preserva a cremosidade e a qualidade do produto."},
-  {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa, pelo iFood — é só tocar no botão Delivery na tela inicial. 🛵"},
+  {q:"Onde compro?",a:"Em nossas duas lojas em Vitória-ES (Praia do Canto e Jardim Camburi) ou em casa. Toque em Entrega própria e retirada na tela inicial: lá você confere se o seu endereço está na área da nossa entrega, e se não estiver dá para retirar na loja ou pedir pelo iFood. 🛵"},
 ];
 
 export function FaqModal({onClose}){
@@ -1085,51 +1085,9 @@ export function FaqModal({onClose}){
   );
 }
 
-/* ========== DELIVERY (IFOOD) ========== */
-// LOJAS vem da fonte única em src/shared.jsx (compartilhada com a Home e o
-// banner de horários) — importada no topo deste arquivo.
-
-export function DeliveryModal({onClose}){
-  useModal(onClose);
-  const[near,setNear]=useState(null); // id da loja mais próxima
-  const[geoMsg,setGeoMsg]=useState("");
-  const locate=()=>{
-    if(!navigator.geolocation){setGeoMsg("Seu navegador não permite localização — escolha pela lista.");return;}
-    setGeoMsg("Localizando…");
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const{latitude:la,longitude:lo}=pos.coords;
-      const d=s=>Math.hypot(s.lat-la,(s.lng-lo)*Math.cos(la*Math.PI/180));
-      const best=[...LOJAS].sort((a,b)=>d(a)-d(b))[0];
-      setNear(best.id);setGeoMsg("");
-    },()=>setGeoMsg("Não foi possível obter sua localização — escolha pela lista."),{timeout:8000});
-  };
-  return(
-    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Delivery Bentô" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:480,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
-        <ModalArtHeader img="/banners/delivery.webp" alt="Delivery / Nos encontre — peça no iFood ou veja onde estamos" onClose={onClose}/>
-        <div style={{padding:22}}>
-          <div className="fb" style={{fontSize:13,color:T.inkSoft,marginBottom:14}}>Temos duas lojas em Vitória. Escolha a mais perto de você — ou deixe a gente descobrir:</div>
-          <button onClick={locate} className="fb" style={{width:"100%",padding:"12px",borderRadius:10,border:`1px solid ${T.pistacheDark}`,background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer",marginBottom:6}}>Qual loja está mais perto de mim?</button>
-          {geoMsg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,textAlign:"center",marginBottom:6}}>{geoMsg}</div>}
-          <div style={{display:"flex",flexDirection:"column",gap:12,marginTop:10}}>
-            {LOJAS.map(l=>(
-              <div key={l.id} style={{border:`1.5px solid ${near===l.id?T.pistacheDark:T.border}`,background:near===l.id?"#EFF5E5":T.bg,borderRadius:12,padding:"16px 16px 14px",position:"relative"}}>
-                {near===l.id&&<span className="fm" style={{position:"absolute",top:-9,left:14,fontSize:9,letterSpacing:"0.14em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"3px 10px"}}>Mais próxima de você</span>}
-                <div className="fd" style={{fontSize:20,color:T.ink}}>Bentô {l.nome}</div>
-                <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:2}}>{l.bairro}</div>
-                <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
-                  <a href={l.ifood} onClick={()=>tk("Conversão · iFood · "+l.nome)} target="_blank" rel="noreferrer" className="fb" style={{flex:1,minWidth:140,textAlign:"center",background:T.pistacheDark,color:"#fff",borderRadius:10,padding:"12px 14px",fontSize:13.5,fontWeight:600,textDecoration:"none"}}>Pedir agora no iFood</a>
-                  <a href={l.maps} target="_blank" rel="noreferrer" className="fb" style={{textAlign:"center",border:`1px solid ${T.border}`,color:T.ink,borderRadius:10,padding:"12px 14px",fontSize:13,textDecoration:"none"}}>Ver no mapa</a>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Área e taxa de entrega são calculadas pelo iFood conforme seu endereço.</div>
-        </div>
-      </div>
-    </div>
-  );
-}
+/* O modal de escolha de loja foi removido: só a Praia do Canto atende pedido
+   online hoje, então o botão vai direto para a tela de pedido (PEDIR_URL).
+   Se uma segunda loja voltar a atender, o seletor volta aqui. */
 
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
 
@@ -1337,7 +1295,7 @@ export function PoteBuilder({onClose,onDelivery}){
           </div>
           <p className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:12,lineHeight:1.5,textAlign:"center"}}>Referência padrão: 100 g · valores calculados proporcionalmente para o pote de {g} g.</p>
           <button onClick={compartilharPote} className="fb" style={{width:"100%",marginTop:14,padding:"12px 14px",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:12,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Compartilhar meu pote</button>
-          {onDelivery&&<button onClick={()=>{try{navigator.clipboard&&navigator.clipboard.writeText(comboTxt).catch(()=>{});}catch{/* */}tk("Conversão · iFood · Monte seu pote",onDelivery);}} className="fb" style={{width:"100%",marginTop:8,padding:"13px 14px",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer"}}>Montar de verdade — pedir no iFood</button>}
+          {onDelivery&&<button onClick={()=>{try{navigator.clipboard&&navigator.clipboard.writeText(comboTxt).catch(()=>{});}catch{/* */}tk("Conversão · Pedido próprio · Monte seu pote",onDelivery);}} className="fb" style={{width:"100%",marginTop:8,padding:"13px 14px",background:T.pistacheDark,color:"#fff",border:"none",borderRadius:12,fontSize:14,fontWeight:600,cursor:"pointer"}}>Montar de verdade — pedir agora</button>}
           {onDelivery&&<div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:6}}>Sua combinação é copiada — é só colar na observação do pedido.</div>}
         </div>
       </div>
@@ -1634,7 +1592,7 @@ export function CulpaModal({onClose,onDelivery,productId}){
             <button onClick={compartilhar} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>Compartilhar no story</button>
             <button onClick={baixar} className="fb" style={{background:"transparent",color:T.pistacheDark,border:`1px solid ${T.border}`,borderRadius:14,padding:"13px 14px",fontSize:13,cursor:"pointer"}}>Baixar imagem</button>
           </div>
-          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:600,cursor:"pointer",opacity:.94}}>Provar sem culpa — pedir no iFood</button>
+          <button onClick={onDelivery} className="fb" style={{width:"100%",marginTop:10,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:600,cursor:"pointer",opacity:.94}}>Provar sem culpa — pedir agora</button>
 
           <div className="fb" style={{fontSize:10.5,color:T.inkSoft,textAlign:"center",marginTop:14,lineHeight:1.5}}>Comparativo ilustrativo. Bentô {pis.name} (porção de {pis.portionLabel}, da nossa ficha). “Comum” = sorvete de massa tradicional (média de mercado, ~21 g de açúcar/100 g), na mesma porção.</div>
         </div>
@@ -1697,7 +1655,7 @@ export function GLP1Modal({onClose,onSelectProduct,onTabelas,onDelivery}){
 
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             <button onClick={onTabelas} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>📋 Ver todas as tabelas</button>
-            <button onClick={onDelivery} className="fb" style={{flex:1,minWidth:150,background:"#EA1D2C",color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>🗺️ Pedir no iFood</button>
+            <button onClick={onDelivery} className="fb" style={{flex:1,minWidth:150,background:T.pistacheDark,color:"#fff",border:"none",borderRadius:14,padding:"13px 14px",fontSize:13.5,fontWeight:700,cursor:"pointer"}}>Pedir agora</button>
           </div>
 
           <div style={{background:"#FBF4E6",border:"1px solid #E8D9B5",borderRadius:14,padding:"12px 14px",marginTop:14}}>

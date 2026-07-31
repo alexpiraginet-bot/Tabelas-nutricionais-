@@ -24,10 +24,18 @@ const VIEWS = {
     desc: "Gelatos e picolés proteicos sem adição de açúcares. Peça no site com entrega própria ou retire na loja.",
     image: "/og-share/cardapio.jpg",
   },
+  pedir: {
+    title: "Peça na Bentô — entrega própria e retirada",
+    desc: "Peça no site e receba em casa pela nossa própria entrega, ou retire na loja da Praia do Canto. Pagamento no Pix.",
+    image: "/og-share/cardapio.jpg",
+    url: "/pedir",
+  },
+  // slug antigo mantido: links de "delivery" já compartilhados continuam válidos
   delivery: {
-    title: "Delivery — Bentô Gelatos",
-    desc: "Peça no site e receba em casa: entrega própria em Vitória-ES ou retirada em loja, do jeito que preferir.",
-    image: "/og-share/delivery.jpg",
+    title: "Peça na Bentô — entrega própria e retirada",
+    desc: "Peça no site e receba em casa pela nossa própria entrega, ou retire na loja da Praia do Canto. Pagamento no Pix.",
+    image: "/og-share/cardapio.jpg",
+    url: "/pedir",
   },
   eventos: {
     title: "Eventos — Bentô Gelatos",
@@ -70,12 +78,13 @@ for (const [view, v] of Object.entries(VIEWS)) {
   html = setMeta(html, "name", "description", v.desc);
   html = setMeta(html, "property", "og:title", v.title);
   html = setMeta(html, "property", "og:description", v.desc);
-  html = setMeta(html, "property", "og:url", `${SITE}/?${view}`);
+  const alvo = v.url ? `${SITE}${v.url}` : `${SITE}/?${view}`;
+  html = setMeta(html, "property", "og:url", alvo);
   html = setMeta(html, "property", "og:image", SITE + v.image);
   html = setMeta(html, "name", "twitter:title", v.title);
   html = setMeta(html, "name", "twitter:description", v.desc);
   html = setMeta(html, "name", "twitter:image", SITE + v.image);
-  html = mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${SITE}/?${view}$2`, "link canonical");
+  html = mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${alvo}$2`, "link canonical");
   writeFileSync(join(ROOT, "dist", "share", `${view}.html`), html);
 }
 console.log(`OK  ${Object.keys(VIEWS).length} páginas de compartilhamento → dist/share/`);

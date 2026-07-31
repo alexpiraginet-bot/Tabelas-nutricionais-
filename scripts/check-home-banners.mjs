@@ -10,7 +10,6 @@ const expected = [
   "bytes",
   "tabelas",
   "cardapio",
-  "delivery",
   "parceiro",
   "conheca",
   "carreira",
@@ -44,4 +43,4 @@ assert.equal(metadata.format, "webp", "banner Meu Studio deve ser WebP");
 assert.equal(metadata.width, 1600, "banner Meu Studio deve ter 1600 px de largura");
 assert.equal(metadata.height, 686, "banner Meu Studio deve ter 686 px de altura");
 
-console.log("Home banners sincronizados: 9/9; Meu Studio 1600×686 WebP.");
+console.log(`Home banners sincronizados: ${order.length}/${expected.length}; Meu Studio 1600×686 WebP.`);
