@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#F6F1E7" />
+    <title>Bentô — Protótipo de movimento</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+    <style>
+      *,*::before,*::after{box-sizing:border-box}
+      html{-webkit-text-size-adjust:100%}
+      body{margin:0;background:#F6F1E7;color:#232619;font-family:'DM Sans',system-ui,sans-serif;
+           -webkit-font-smoothing:antialiased;overflow-x:hidden}
+      /* Rolagem própria do protótipo: nada de scroll horizontal na página */
+      img{max-width:100%;display:block}
+      button{font:inherit;color:inherit}
+      .fd{font-family:'Fraunces',Georgia,serif}
+      .fb{font-family:'DM Sans',system-ui,sans-serif}
+      .fm{font-family:'JetBrains Mono',ui-monospace,monospace}
+      /* Foco visível em tudo que é operável (regra §1 focus-states) */
+      :where(a,button,[tabindex]):focus-visible{outline:2px solid #46583A;outline-offset:3px;border-radius:8px}
+    </style>
+  </head>
+  <body>
+    <div id="proto"></div>
+    <script type="module" src="/src/proto/main.jsx"></script>
+  </body>
+</html>
