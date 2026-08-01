@@ -598,7 +598,7 @@ export function SejaParceiro({onClose,onForm}){
             <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:24}}>
               <button onClick={onForm} className="fb" style={{background:gold,color:ink,border:"none",borderRadius:12,padding:"15px 26px",fontSize:15,fontWeight:600,cursor:"pointer"}}>Quero ser parceiro →</button>
               <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>WhatsApp direto</a>
-              <a href="/franquiados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Topo")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Quero uma franquia</a>
+              <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Topo")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Quero uma franquia</a>
               <a href="/?portfolio=1" target="_blank" rel="noreferrer" onClick={()=>tk("Parceria · Portfólio")} className="fb" style={{background:"transparent",color:cream,border:`1px solid ${gold}`,borderRadius:12,padding:"15px 22px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Ver portfólio</a>
             </div>
           </div>
@@ -710,7 +710,7 @@ export function SejaParceiro({onClose,onForm}){
               ))}
             </div>
             <div className="fb" style={{fontSize:12.5,color:soft,marginTop:18,lineHeight:1.5}}>A <strong style={{color:cream}}>franquia tem site próprio</strong>, com o modelo completo, os números e o processo de seleção.</div>
-            <a href="/franquiados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias")} className="fb" style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:18,background:gold,color:ink,border:"none",borderRadius:12,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>Conhecer a franquia →</a>
+            <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias")} className="fb" style={{display:"inline-flex",alignItems:"center",gap:8,marginTop:18,background:gold,color:ink,border:"none",borderRadius:12,padding:"14px 24px",fontSize:14.5,fontWeight:600,cursor:"pointer",textDecoration:"none"}}>Conhecer a franquia →</a>
           </div>
           <div style={{borderRadius:18,overflow:"hidden",border:"1px solid rgba(201,168,106,0.25)",boxShadow:"0 30px 80px -36px rgba(31,35,23,0.35)"}}>
             <img src="/parceria/estande.jpg" alt="Quiosque Bentô Gelatos em shopping — modelo de negócio para franquia" style={{width:"100%",display:"block"}} onError={onImgErr} />
@@ -728,7 +728,7 @@ export function SejaParceiro({onClose,onForm}){
             <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:pist,color:"#fff",borderRadius:12,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Chamar no WhatsApp</a>
           </div>
           <div className="fm" style={{fontSize:12,color:soft,marginTop:22,letterSpacing:"0.06em"}}>WhatsApp (27) 99915-9995 · Instagram @bentogelateria · Vitória-ES</div>
-          <div className="fb" style={{fontSize:12,color:soft,marginTop:18,maxWidth:540,marginLeft:"auto",marginRight:"auto",lineHeight:1.6}}>Quer <strong style={{color:cream}}>revender</strong> a Bentô no seu ponto? É o formulário acima. Quer <strong style={{color:cream}}>abrir uma franquia</strong>? O caminho é outro: <a href="/franquiados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Rodapé")} style={{color:gold,fontWeight:700}}>bentogelateria.com/franquiados</a>.</div>
+          <div className="fb" style={{fontSize:12,color:soft,marginTop:18,maxWidth:540,marginLeft:"auto",marginRight:"auto",lineHeight:1.6}}>Quer <strong style={{color:cream}}>revender</strong> a Bentô no seu ponto? É o formulário acima. Quer <strong style={{color:cream}}>abrir uma franquia</strong>? O caminho é outro: <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Rodapé")} style={{color:gold,fontWeight:700}}>bentogelateria.com/franqueados</a>.</div>
         </div>
       </section>
     </div>
@@ -1147,7 +1147,7 @@ export function SejaBento({onClose}){
               <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
-          {form.interesse==="Franquia"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>Pode enviar por aqui que retornamos — e o modelo completo, com números e processo de seleção, está em <a href="/franquiados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Formulário")} style={{color:T.pistacheDark,fontWeight:700}}>bentogelateria.com/franquiados</a>. Ao enviar, você recebe a apresentação do Programa de Franquias em PDF.</div>}
+          {form.interesse==="Franquia"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>Pode enviar por aqui que retornamos — e o modelo completo, com números e processo de seleção, está em <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Formulário")} style={{color:T.pistacheDark,fontWeight:700}}>bentogelateria.com/franqueados</a>. Ao enviar, você recebe a apresentação do Programa de Franquias em PDF.</div>}
           <span className="fm" style={lab}>Nome completo *</span>
           <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
           <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
