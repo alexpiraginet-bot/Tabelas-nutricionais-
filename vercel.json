@@ -11,6 +11,16 @@
   ],
   "redirects": [
     {
+      "source": "/franquiados",
+      "destination": "/franqueados",
+      "permanent": true
+    },
+    {
+      "source": "/franquiados/",
+      "destination": "/franqueados",
+      "permanent": true
+    },
+    {
       "source": "/pedir",
       "destination": "https://totem.bentogelateria.com/pedir",
       "permanent": false
@@ -53,6 +63,14 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/franqueados",
+      "destination": "https://bento-franquiados.vercel.app"
+    },
+    {
+      "source": "/franqueados/",
+      "destination": "https://bento-franquiados.vercel.app"
+    },
     {
       "source": "/seja-bento",
       "destination": "/seja-bento.html"
