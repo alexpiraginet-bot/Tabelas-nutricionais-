@@ -1143,11 +1143,11 @@ export function SejaBento({onClose}){
           <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quer levar a Bentô para a sua cidade? Preencha abaixo — a mensagem chega direto no nosso WhatsApp e respondemos rapidinho.</div>
           <span className="fm" style={lab}>Tenho interesse em</span>
           <div style={{display:"flex",gap:8}}>
-            {["Revenda","Franquia (futuro)"].map(o=>(
+            {["Revenda","Franquia"].map(o=>(
               <button key={o} onClick={()=>set("interesse",o)} className="fb" style={{flex:1,padding:"11px",borderRadius:10,border:`1px solid ${form.interesse===o?T.pistacheDark:T.border}`,background:form.interesse===o?T.pistacheDark:"transparent",color:form.interesse===o?T.surface:T.ink,fontSize:13,fontWeight:500}}>{o}</button>
             ))}
           </div>
-          {form.interesse==="Franquia (futuro)"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>A franquia é um projeto futuro — registramos seu interesse e avisamos você primeiro. Ao enviar, você recebe a apresentação completa do Programa de Franquias em PDF.</div>}
+          {form.interesse==="Franquia"&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8,lineHeight:1.45}}>Pode enviar por aqui que retornamos — e o modelo completo, com números e processo de seleção, está em <a href="/franquiados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Formulário")} style={{color:T.pistacheDark,fontWeight:700}}>bentogelateria.com/franquiados</a>. Ao enviar, você recebe a apresentação do Programa de Franquias em PDF.</div>}
           <span className="fm" style={lab}>Nome completo *</span>
           <input className="fb" style={inp} value={form.nome} onChange={e=>set("nome",e.target.value)} placeholder="Seu nome"/>
           <span className="fm" style={lab}>Seu WhatsApp (com DDD) *</span>
