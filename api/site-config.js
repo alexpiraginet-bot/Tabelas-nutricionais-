@@ -55,10 +55,14 @@ const texto = (s, max) => {
   for (const ch of String(s ?? "")) if (ch.codePointAt(0) >= 32) o += ch;
   return o.replace(/[<>]/g, "").trim().slice(0, max);
 };
-// Só aceita URL http(s) — bloqueia javascript:, data: e afins vindos do painel.
+// Aceita http(s) absoluto (Supabase Storage) ou caminho do próprio site
+// ("/banners/x.webp"). Bloqueia javascript:, data:, vbscript: e afins vindos
+// do painel — o valor vai parar num href/src, então esquema errado seria XSS.
+// "//host" é recusado de propósito: parece caminho mas é URL externa.
 const url = (u) => {
   const s = texto(u, 400);
   if (!s) return "";
+  if (s.startsWith("/") && !s.startsWith("//")) return s;
   try { const x = new URL(s); return (x.protocol === "https:" || x.protocol === "http:") ? s : ""; }
   catch { return ""; }
 };
