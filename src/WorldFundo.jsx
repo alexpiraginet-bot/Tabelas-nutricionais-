@@ -22,12 +22,14 @@ const legPoster = (i, mob) => `/world/leg-${i + 1}${mob ? "-mobile" : ""}-poster
 
 // Véu creme por cima do filme: garante contraste do texto/cards em qualquer
 // frame (mais denso no topo do hero e no rodapé, mais aberto no meio).
+// As paradas usam var(--veu) quando o painel define uma opacidade; sem config,
+// caem exatamente nos valores originais.
 const VEIL =
-  "linear-gradient(180deg,rgba(246,241,231,.72),rgba(246,241,231,.38) 26%,rgba(246,241,231,.38) 72%,rgba(246,241,231,.66))";
+  "linear-gradient(180deg,rgba(246,241,231,calc(var(--veu,.38) * 1.9)),rgba(246,241,231,var(--veu,.38)) 26%,rgba(246,241,231,var(--veu,.38)) 72%,rgba(246,241,231,calc(var(--veu,.38) * 1.74)))";
 // Vinheta escura emoldurando as bordas — dá profundidade e, no mobile (filme
 // em faixa "contain"), fecha as sobras creme como uma tarja de cinema.
 const VIGNETTE =
-  "radial-gradient(125% 90% at 50% 44%, transparent 50%, rgba(24,26,17,.16) 78%, rgba(20,22,15,.34))";
+  "radial-gradient(125% 90% at 50% 44%, transparent 50%, rgba(24,26,17,var(--vinheta,.16)) 78%, rgba(20,22,15,calc(var(--vinheta,.16) * 2.1)))";
 // Os legs são landscape (1920×1080). No desktop cobrimos a tela (cover); no
 // mobile, cobrir cortaria demais os lados — então mostramos o frame inteiro
 // (contain), sem corte horizontal, com o creme+vinheta ao redor.

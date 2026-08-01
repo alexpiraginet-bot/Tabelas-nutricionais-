@@ -68,7 +68,7 @@ button{cursor:pointer}
 :focus-visible{outline:2px solid ${T.pistacheDark};outline-offset:2px}
 .hdr{position:sticky;top:0;z-index:40;backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
 /* vidro fosco estilo iOS — usado nos painéis que flutuam sobre o filme da home */
-.glass{background:rgba(255,253,247,.62);backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.55)}
+.glass{background:rgba(255,253,247,var(--vidro,.62));backdrop-filter:blur(22px) saturate(170%);-webkit-backdrop-filter:blur(22px) saturate(170%);border:1px solid rgba(255,255,255,.55)}
 .shell{min-height:100dvh}
 .detail-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:16px;align-items:start}
 @media(max-width:760px){.detail-grid{grid-template-columns:1fr}}
@@ -171,6 +171,67 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
 // Sem escolha salva, EVENTOS abre a home. O valor fica em localStorage para
 // visitas seguintes renderizarem já na ordem certa (sem salto de layout).
 const DESTAQUE_PADRAO="eventos";
+/* ===== CONFIG EDITÁVEL DO SITE (painel → /api/site-config) =====
+   Horários das lojas, banners, push e opacidades. O CÓDIGO é o padrão e a
+   config só sobrescreve: campo ausente ou API fora do ar = site igual ao que
+   está aqui. Impossível apagar a home editando errado.
+   Não confundir com /api/delivery/estado: aquilo é regra de entrega e mora no
+   totem; isto é conteúdo e aparência do site. */
+// Opacidades do painel viram variáveis CSS no <html>: o véu do filme e a
+// vinheta são lidos pelo WorldFundo, o vidro pela classe .glass.
+function useVisual(cfg){
+  useEffect(()=>{
+    const v=(cfg&&cfg.visual)||null; if(!v) return;
+    const r=document.documentElement.style;
+    if(typeof v.vidro==="number")   r.setProperty("--vidro",String(v.vidro));
+    if(typeof v.veu==="number")     r.setProperty("--veu",String(v.veu));
+    if(typeof v.vinheta==="number") r.setProperty("--vinheta",String(v.vinheta));
+  },[cfg]);
+}
+
+function useSiteConfig(){
+  const[cfg,setCfg]=useState(null);
+  useEffect(()=>{
+    let vivo=true;
+    fetch("/api/site-config",{cache:"no-store"})
+      .then(r=>r.ok?r.json():null)
+      .then(j=>{ if(vivo&&j&&typeof j==="object") setCfg(j); })
+      .catch(()=>{});
+    return()=>{vivo=false;};
+  },[]);
+  return cfg;
+}
+// O card da loja mostra "resumo" (texto agrupado), mas o painel edita "dias"
+// (usado no aberta/fechada). Sem derivar um do outro, mudar o horário no painel
+// não mudaria o texto na tela. Então: se veio "dias" do painel, o resumo é
+// recalculado a partir dele, agrupando dias seguidos de mesmo horário.
+const DIA_ROT=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+const hhmm=(h)=>{const i=Math.floor(h),m=Math.round((h-i)*60);return String(i).padStart(2,"0")+(m?("h"+String(m).padStart(2,"0")):"h");};
+function resumoDeDias(dias){
+  const ordem=[1,2,3,4,5,6,0];                     // segunda → domingo
+  const txt=(d)=>{const r=dias[d];return r?`${hhmm(r[0])}–${hhmm(r[1])}`:"fechado";};
+  const out=[]; let i=0;
+  while(i<ordem.length){
+    let j=i; while(j+1<ordem.length&&txt(ordem[j+1])===txt(ordem[i])) j++;
+    const rot=i===j?DIA_ROT[ordem[i]]:`${DIA_ROT[ordem[i]]} a ${DIA_ROT[ordem[j]]}`;
+    out.push([rot,txt(ordem[i])]); i=j+1;
+  }
+  return out;
+}
+
+// Lojas com o horário do painel por cima do que está em shared.jsx
+function lojasComConfig(cfg){
+  const over=cfg&&cfg.lojas;
+  if(!over) return LOJAS;
+  return LOJAS.map(l=>{
+    const o=over[l.id];
+    if(!o) return l;
+    const dias=o.dias?{...l.dias,...o.dias}:l.dias;
+    const resumo=o.resumo||(o.dias?resumoDeDias(dias):l.resumo);
+    return {...l,dias,resumo};
+  });
+}
+
 const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira"];
 // ordem dos banners com o destaque do painel (compartilhado pelas duas homes)
 function useDestaqueOrdem(){
@@ -185,6 +246,14 @@ function useDestaqueOrdem(){
   },[]); // roda 1× por visita; "destaque" inicial vem do localStorage de propósito
   return [destaque,...ORDEM_PADRAO.filter(id=>id!==destaque)];
 }
+// Aplica o que o painel definiu: ordem própria, cards ocultos e troca de arte.
+function ordemComConfig(ordem,cfg){
+  const b=(cfg&&cfg.banners)||{};
+  let fila=Array.isArray(b.ordem)&&b.ordem.length?b.ordem.filter(id=>ordem.includes(id)):ordem;
+  if(Array.isArray(b.ocultos)&&b.ocultos.length) fila=fila.filter(id=>!b.ocultos.includes(id));
+  return fila.length?fila:ordem;   // nunca devolve home sem card nenhum
+}
+const arteDoBanner=(cfg,id,padrao)=>((cfg&&cfg.banners&&cfg.banners.imagens&&cfg.banners.imagens[id])||padrao);
 /* ===== ESTADO DA ENTREGA — lido do totem, nunca decidido aqui =====
    O totem é a fonte única (raio, centro, entrega grátis, quais lojas entregam).
    O site só lê. Regra de ouro: sem resposta do endpoint, o site NÃO afirma nada
@@ -373,7 +442,8 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
    com movimento cinematográfico de entrada/saída na rolagem (CardMotion). */
 function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
-  const ordem=useDestaqueOrdem();
+  const site=useSiteConfig();
+  const ordem=ordemComConfig(useDestaqueOrdem(),site);
   const entregaEstado=useEntregaEstado();
   const BANNERS=bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas});
   return(
@@ -416,7 +486,7 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
         <div style={{width:"100%",marginTop:26}}>
           {ordem.map((id,i)=>{
             const b=BANNERS[id];if(!b)return null;
-            return <CardMotion key={id}><PhotoBanner full img={b.img} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
+            return <CardMotion key={id}><PhotoBanner full img={arteDoBanner(site,id,b.img)} alt={b.alt} delay={(60+i*45)+"ms"} priority={i===0} gap={i===0?0:52}
               {...(b.as==="a"?{as:"a",href:b.href,target:b.target,onClick:()=>tk(b.tkName)}:{onClick:()=>tk(b.tkName,b.action)})}/></CardMotion>;
           })}
         </div>
@@ -463,11 +533,13 @@ function SejaBentoFinal(){
 // Fonte única: LOJAS (src/shared.jsx) — mesma usada pelo Delivery e pelo
 // banner de horários. Endereços = os do JSON-LD de SEO do index.html.
 function VisitSection(){
+  const site=useSiteConfig();
   // Lê o estado da entrega direto do totem: a seção é usada fora da Home,
   // então não dá para depender de prop vinda de cima.
   const entregaEstado=useEntregaEstado();
-  const[cur,setCur]=useState(LOJAS[0].id);
-  const l=LOJAS.find(x=>x.id===cur)||LOJAS[0];
+  const lojas=lojasComConfig(site);
+  const[cur,setCur]=useState(lojas[0].id);
+  const l=lojas.find(x=>x.id===cur)||lojas[0];
   const btn=(primary)=>({display:"inline-flex",alignItems:"center",gap:6,fontSize:11,letterSpacing:"0.14em",textTransform:"uppercase",textDecoration:"none",cursor:"pointer",borderRadius:10,padding:"10px 16px",fontWeight:600,
     background:primary?T.pistacheDark:T.surface,color:primary?T.surface:T.pistacheDark,border:`1px solid ${primary?T.pistacheDark:T.border}`});
   return(
@@ -476,7 +548,7 @@ function VisitSection(){
       <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,textAlign:"center",margin:"6px 0 14px"}}>Venha nos visitar</h2>
       {/* seletor de loja */}
       <div style={{display:"flex",gap:8,justifyContent:"center",flexWrap:"wrap",marginBottom:14}}>
-        {LOJAS.map(v=>(
+        {lojas.map(v=>(
           <button key={v.id} onClick={()=>{setCur(v.id);tk("Visite · "+v.nome);}}
             className="fm" aria-pressed={v.id===cur}
             style={{fontSize:10,letterSpacing:"0.2em",textTransform:"uppercase",cursor:"pointer",borderRadius:999,padding:"9px 18px",
@@ -1052,9 +1124,10 @@ function FloatingTreats(){
    o cache do endpoint). O texto é DOM sobre a arte, não está queimado na
    imagem: muda sem depender de gerar arte nova.
    Tocar leva ao pedido; o ✕ dispensa e não volta na mesma sessão. */
-function EntregaPush(){
+function EntregaPush({site}){
   useMinuto();
   const cfg=useEntregaEstado();
+  const pc=(site&&site.push)||null;
   const[open,setOpen]=useState(false);
   const gratis=(()=>{
     if(!cfg) return null;
@@ -1062,43 +1135,54 @@ function EntregaPush(){
     const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
     return lista.find(e=>entregaAgora(e)&&(e.gratis??e.entregaGratis??e.free))||null;
   })();
+  // O painel decide QUAL push aparece. "entrega" continua amarrado ao totem:
+  // só abre se houver entrega grátis de verdade. "lancamento" é texto livre da
+  // equipe e não depende de estado nenhum. "nenhum" desliga.
+  const tipo=pc?pc.tipo:"entrega";
+  const mostra=tipo==="lancamento"?true:(tipo==="entrega"?!!gratis:false);
   useEffect(()=>{
-    if(!gratis) return;
-    try{ if(sessionStorage.getItem("bento:push:entrega")) return; }catch{/* */}
+    if(!mostra) return;
+    try{ if(sessionStorage.getItem("bento:push:"+tipo)) return; }catch{/* */}
     const t=setTimeout(()=>{
-      try{ sessionStorage.setItem("bento:push:entrega","1"); }catch{/* */}
+      try{ sessionStorage.setItem("bento:push:"+tipo,"1"); }catch{/* */}
       setOpen(true);
     },2600);
     return()=>clearTimeout(t);
-  },[gratis]);
+  },[mostra,tipo]);
   const fechar=useCallback(()=>setOpen(false),[]);
   // cruzou as 20h (ou desligaram o grátis) com o push aberto: ele se recolhe
-  useEffect(()=>{ if(!gratis) setOpen(false); },[gratis]);
-  return open?<EntregaPushModal onClose={fechar}/>:null;
+  useEffect(()=>{ if(!mostra) setOpen(false); },[mostra]);
+  return open?<EntregaPushModal onClose={fechar} pc={pc}/>:null;
 }
-function EntregaPushModal({onClose:fechar}){
+function EntregaPushModal({onClose:fechar,pc}){
   useModal(fechar);
-  const ir=()=>{ tk("Push · Entrega grátis"); try{window.open(PEDIR_URL,"_blank","noopener");}catch{/* */} fechar(); };
+  const t={etiqueta:(pc&&pc.etiqueta)||"Por tempo limitado",
+           titulo:(pc&&pc.titulo)||"Entrega grátis em Vitória",
+           linha:(pc&&pc.linha)||"Praia do Canto e região. Peça pelo site e a entrega é por nossa conta.",
+           botao:(pc&&pc.botao)||"Pedir agora →",
+           href:(pc&&pc.href)||PEDIR_URL,
+           imagem:(pc&&pc.imagem)||"/banners/cardapio.webp"};
+  const ir=()=>{ tk("Push · "+t.titulo); try{window.open(t.href,"_blank","noopener");}catch{/* */} fechar(); };
   return(
-    <div className="fade no-print" role="dialog" aria-modal="true" aria-label="Entrega grátis em Vitória" onClick={fechar}
+    <div className="fade no-print" role="dialog" aria-modal="true" aria-label={t.titulo} onClick={fechar}
       style={{position:"fixed",inset:0,zIndex:420,background:"rgba(31,35,23,0.55)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:18}}>
       <div className="rise" style={{position:"relative",maxWidth:430,width:"100%"}} onClick={(e)=>e.stopPropagation()}>
         <button onClick={ir} className="fb" style={{display:"block",width:"100%",padding:0,border:"none",cursor:"pointer",textAlign:"left",
           borderRadius:22,overflow:"hidden",background:T.surface,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}>
           <span style={{display:"block",position:"relative"}}>
-            <img src="/banners/cardapio.webp" width={1600} height={686} alt=""
+            <img src={t.imagem} width={1600} height={686} alt=""
               style={{display:"block",width:"100%",height:"auto",objectFit:"cover"}}/>
           </span>
           <span style={{display:"block",padding:"18px 20px 20px",background:T.ink,color:T.bg}}>
-            <span className="fm" style={{display:"block",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#C9A24A"}}>Por tempo limitado</span>
+            <span className="fm" style={{display:"block",fontSize:10,letterSpacing:"0.22em",textTransform:"uppercase",color:"#C9A24A"}}>{t.etiqueta}</span>
             <span className="fd" style={{display:"block",fontFamily:"'Fraunces',Georgia,serif",fontSize:26,lineHeight:1.15,fontWeight:600,marginTop:8}}>
-              Entrega grátis em Vitória
+              {t.titulo}
             </span>
             <span className="fb" style={{display:"block",fontSize:13.5,color:"#CFC9B4",marginTop:7,lineHeight:1.5}}>
-              Praia do Canto e região. Peça pelo site e a entrega é por nossa conta.
+              {t.linha}
             </span>
             <span className="fb" style={{display:"inline-block",marginTop:14,background:"#C9A24A",color:T.ink,borderRadius:999,padding:"11px 20px",fontSize:14,fontWeight:700}}>
-              Pedir agora →
+              {t.botao}
             </span>
           </span>
         </button>
@@ -1114,7 +1198,8 @@ function EntregaPushModal({onClose:fechar}){
 
 /* ========== HORÁRIOS DAS LOJAS (banner flutuante) ========== */
 // derivado da fonte única LOJAS (src/shared.jsx) — dias/resumo vivem lá
-const HORARIOS=LOJAS.map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
+// derivado da fonte única LOJAS, com o horário do painel por cima quando houver
+const horariosDe=(cfg)=>lojasComConfig(cfg).map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
 function nowSP(){
   try{
     const p=new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
@@ -1125,8 +1210,10 @@ function nowSP(){
 }
 const abertaAgora=(dias,wd,cur)=>{ const r=dias[wd]; return !!(r&&cur>=r[0]&&cur<r[1]); };
 function StoreHours(){
+  const site=useSiteConfig();
   const[open,setOpen]=useState(false);
   const{wd,cur}=useMemo(()=>nowSP(),[]);
+  const HORARIOS=useMemo(()=>horariosDe(site),[site]);
   const anyOpen=HORARIOS.some(s=>abertaAgora(s.dias,wd,cur));
   return(
     <div className="no-print" style={{position:"fixed",right:16,bottom:16,zIndex:130,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,maxWidth:"calc(100vw - 32px)"}}>
@@ -1255,6 +1342,8 @@ export default function App(){
   useEffect(()=>{window.scrollTo(0,0);},[view,productId]);
   // Algum overlay aberto? (inclui os que abrem por querystring: ?cardapio,
   // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
+  const siteCfg=useSiteConfig();
+  useVisual(siteCfg);
   const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
@@ -1345,7 +1434,7 @@ export default function App(){
       {/* o push nunca monta sobre outro overlay: dois useModal disputariam o Esc
           (fechando o modal de baixo junto) e a arte cobriria o conteúdo aberto.
           Com todos fechados, o timer recomeça e o push aparece normalmente. */}
-      {view==="home"&&!overlayAberto&&<EntregaPush/>}
+      {view==="home"&&!overlayAberto&&<EntregaPush site={siteCfg}/>}
       <StoreHours/>
       <Analytics/>
     </div>
