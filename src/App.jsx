@@ -227,6 +227,39 @@ const raioDe=(e)=>{
   if(Number.isFinite(km)&&km>0) return Math.round(km*1000);
   return Number(e.raioM??e.raio_m??e.raioMetros)||0;
 };
+/* Janela de entrega. A casa não entrega antes das 11h nem depois das 20h, então
+   fora disso o site não oferece entrega — só retirada e iFood.
+   O horário é regra de negócio e, como o resto, deveria vir do totem: se o
+   endpoint mandar horario:{abre,fecha}, é ele que vale. O padrão abaixo existe
+   só enquanto o campo não for exposto lá — quando for, some daqui. */
+const JANELA_PADRAO={abre:11,fecha:20};
+const janelaDe=(e)=>{
+  const h=e&&(e.horario||e.janela);
+  const abre=Number(h&&(h.abre??h.inicio??h.open));
+  const fecha=Number(h&&(h.fecha??h.fim??h.close));
+  return Number.isFinite(abre)&&Number.isFinite(fecha)&&fecha>abre?{abre,fecha}:JANELA_PADRAO;
+};
+// Hora de Vitória (America/Sao_Paulo) — não a do aparelho do cliente, que pode
+// estar em qualquer fuso.
+function horaVitoria(){
+  try{
+    const f=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",hour:"numeric",minute:"numeric",hour12:false});
+    const p=Object.fromEntries(f.formatToParts(new Date()).map(x=>[x.type,x.value]));
+    return Number(p.hour)+Number(p.minute)/60;
+  }catch{ const d=new Date(); return d.getHours()+d.getMinutes()/60; }
+}
+/* Reavalia a janela com o tempo: sem isto, quem abriu a página às 19h58
+   continuaria vendo entrega disponível às 20h01. 30s é folgado para um limite
+   que muda de hora em hora e não pesa nada. */
+function useMinuto(){
+  const[,tique]=useState(0);
+  useEffect(()=>{ const t=setInterval(()=>tique(n=>n+1),30000); return()=>clearInterval(t); },[]);
+}
+const noHorario=(e)=>{ const j=janelaDe(e), h=horaVitoria(); return h>=j.abre&&h<j.fecha; };
+// Entrega disponível AGORA = a loja entrega E estamos dentro da janela.
+const entregaAgora=(e)=>temEntrega(e)&&noHorario(e);
+const faixaHorario=(e)=>{ const j=janelaDe(e); return `${String(j.abre).padStart(2,"0")}h às ${String(j.fecha).padStart(2,"0")}h`; };
+
 const centroDe=(e)=>{
   const c=e&&(e.centro||e.center);
   return c&&Number.isFinite(Number(c.lat))&&Number.isFinite(Number(c.lng))?{lat:Number(c.lat),lng:Number(c.lng)}:null;
@@ -237,6 +270,7 @@ const centroDe=(e)=>{
    perde a saída: recebe o iFood ali mesmo, papel que o marketplace passou a ter.
    Só aparece quando o totem informou raio e centro. */
 function AreaEntrega({loja,estado}){
+  useMinuto();
   const[res,setRes]=useState(null);
   const[msg,setMsg]=useState("");
   const raio=raioDe(estado), centro=centroDe(estado);
@@ -252,13 +286,22 @@ function AreaEntrega({loja,estado}){
       tk("Entrega · Conferiu área · "+(dentro?"dentro":"fora"));
     },()=>setMsg("Não consegui pegar sua localização — chame no WhatsApp que a gente confere."),{timeout:8000});
   };
-  if(!temEntrega(estado)||!raio||!centro) return null;
+  if(!temEntrega(estado)) return null;
+  if(!raio||!centro) return null;   // dentro do horário, mas sem área definida
   const km=(raio/1000).toFixed(1).replace(".",",");
   return(
     <div style={{marginTop:12,padding:"12px 14px",background:T.bg,border:`1px solid ${T.border}`,borderRadius:12}}>
       <div className="fb" style={{fontSize:12.5,color:T.ink,lineHeight:1.5}}>
-        🛵 <b>Nossa entrega chega a {km} km</b> a partir desta loja.
+        🛵 <b>Nossa entrega chega a {km} km</b> a partir desta loja, das {faixaHorario(estado)}.
       </div>
+      {/* Fora do horário a informação CONTINUA na tela — quem chega de
+          madrugada precisa saber que existe entrega e qual é a área. Só ganha
+          o aviso de que agora não é hora; o bloqueio do pedido é do totem. */}
+      {!noHorario(estado)&&(
+        <div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:6,lineHeight:1.45}}>
+          Agora estamos fora do horário de entrega — dá para retirar na loja{loja.ifood?" ou pedir pelo iFood":""}.
+        </div>
+      )}
       <button onClick={conferir} className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"8px 14px",cursor:"pointer"}}>
         Entrega no meu endereço?
       </button>
@@ -284,6 +327,7 @@ function AreaEntrega({loja,estado}){
 
 /* Selo de entrega grátis — aceso pelo admin do TOTEM, jamais por aqui. */
 function FaixaEntregaGratis({cfg}){
+  useMinuto();
   if(!cfg) return null;
   const fonte=cfg.lojas||cfg.stores||cfg;
   const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
@@ -1009,13 +1053,14 @@ function FloatingTreats(){
    imagem: muda sem depender de gerar arte nova.
    Tocar leva ao pedido; o ✕ dispensa e não volta na mesma sessão. */
 function EntregaPush(){
+  useMinuto();
   const cfg=useEntregaEstado();
   const[open,setOpen]=useState(false);
   const gratis=(()=>{
     if(!cfg) return null;
     const fonte=cfg.lojas||cfg.stores||cfg;
     const lista=Array.isArray(fonte)?fonte:Object.values(fonte).filter(v=>v&&typeof v==="object");
-    return lista.find(e=>temEntrega(e)&&(e.gratis??e.entregaGratis??e.free))||null;
+    return lista.find(e=>entregaAgora(e)&&(e.gratis??e.entregaGratis??e.free))||null;
   })();
   useEffect(()=>{
     if(!gratis) return;
@@ -1027,6 +1072,8 @@ function EntregaPush(){
     return()=>clearTimeout(t);
   },[gratis]);
   const fechar=useCallback(()=>setOpen(false),[]);
+  // cruzou as 20h (ou desligaram o grátis) com o push aberto: ele se recolhe
+  useEffect(()=>{ if(!gratis) setOpen(false); },[gratis]);
   return open?<EntregaPushModal onClose={fechar}/>:null;
 }
 function EntregaPushModal({onClose:fechar}){
