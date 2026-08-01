@@ -10,6 +10,7 @@
     "lint": "eslint src/",
     "test:home-banners": "node scripts/check-home-banners.mjs",
     "test:brand-claims": "node scripts/check-brand-claims.mjs",
+    "test:franchise-routes": "node scripts/check-franchise-routes.mjs",
     "video": "remotion render src/video/index.ts BentoStory out/bento-story.mp4",
     "video:franquias": "remotion render src/video/index.ts FranquiasStory out/bento-franquias.mp4",
     "video:studio": "remotion studio src/video/index.ts",
