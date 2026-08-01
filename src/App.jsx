@@ -254,6 +254,19 @@ function ordemComConfig(ordem,cfg){
   return fila.length?fila:ordem;   // nunca devolve home sem card nenhum
 }
 const arteDoBanner=(cfg,id,padrao)=>((cfg&&cfg.banners&&cfg.banners.imagens&&cfg.banners.imagens[id])||padrao);
+/* Hora de Vitória e loja aberta agora — usados pela entrega e pelo balão de
+   horários; ficam aqui em cima porque a área de entrega precisa deles. */
+function nowSP(){
+  try{
+    const p=new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
+    const wd={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[p.find(x=>x.type==="weekday").value];
+    const h=+p.find(x=>x.type==="hour").value, m=+p.find(x=>x.type==="minute").value;
+    return {wd, cur:h+m/60};
+  }catch{ const d=new Date(); return {wd:d.getDay(), cur:d.getHours()+d.getMinutes()/60}; }
+}
+
+const abertaAgora=(dias,wd,cur)=>{ const r=dias[wd]; return !!(r&&cur>=r[0]&&cur<r[1]); };
+
 /* ===== ESTADO DA ENTREGA — lido do totem, nunca decidido aqui =====
    O totem é a fonte única (raio, centro, entrega grátis, quais lojas entregam).
    O site só lê. Regra de ouro: sem resposta do endpoint, o site NÃO afirma nada
@@ -340,6 +353,10 @@ const centroDe=(e)=>{
    Só aparece quando o totem informou raio e centro. */
 function AreaEntrega({loja,estado}){
   useMinuto();
+  // O iFood NÃO funciona quando a loja está fechada — então fora do horário de
+  // funcionamento nem ele é oferecido como saída.
+  const{wd,cur}=nowSP();
+  const lojaAberta=abertaAgora(loja.dias,wd,cur);
   const[res,setRes]=useState(null);
   const[msg,setMsg]=useState("");
   const raio=raioDe(estado), centro=centroDe(estado);
@@ -366,9 +383,14 @@ function AreaEntrega({loja,estado}){
       {/* Fora do horário a informação CONTINUA na tela — quem chega de
           madrugada precisa saber que existe entrega e qual é a área. Só ganha
           o aviso de que agora não é hora; o bloqueio do pedido é do totem. */}
-      {!noHorario(estado)&&(
+      {/* Loja fechada manda em tudo: sem porta aberta não há entrega, retirada
+          nem iFood — mesmo que a janela de entrega já tenha começado (domingo
+          abre ao meio-dia e a janela abre às 11h). */}
+      {(!lojaAberta||!noHorario(estado))&&(
         <div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:6,lineHeight:1.45}}>
-          Agora estamos fora do horário de entrega — dá para retirar na loja{loja.ifood?" ou pedir pelo iFood":""}.
+          {lojaAberta
+            ? <>Agora estamos fora do horário de entrega — dá para retirar na loja{loja.ifood?" ou pedir pelo iFood":""}.</>
+            : <>Agora estamos fora do horário — a loja está fechada e a entrega, o iFood e a retirada voltam no próximo horário de funcionamento.</>}
         </div>
       )}
       <button onClick={conferir} className="fm" style={{marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:"transparent",color:T.pistacheDark,border:`1px solid ${T.pistacheDark}`,borderRadius:999,padding:"8px 14px",cursor:"pointer"}}>
@@ -382,9 +404,9 @@ function AreaEntrega({loja,estado}){
       ):(
         <div role="status" style={{marginTop:8}}>
           <div className="fb" style={{fontSize:12.5,color:T.inkSoft,lineHeight:1.5}}>
-            Você está a {res.km} km, fora da nossa entrega própria. Dá para retirar na loja — ou receber pelo iFood:
+            Você está a {res.km} km, fora da nossa entrega própria.{lojaAberta?" Dá para retirar na loja — ou receber pelo iFood:":" A loja está fechada agora; volte no horário de funcionamento para retirar ou pedir pelo iFood."}
           </div>
-          {loja.ifood&&<a href={loja.ifood} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Fora de área · iFood · "+loja.nome)}
+          {lojaAberta&&loja.ifood&&<a href={loja.ifood} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Fora de área · iFood · "+loja.nome)}
             className="fm" style={{display:"inline-block",marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.ink,color:T.bg,border:"none",borderRadius:999,padding:"9px 15px",textDecoration:"none"}}>
             Pedir pelo iFood
           </a>}
@@ -1200,15 +1222,6 @@ function EntregaPushModal({onClose:fechar,pc}){
 // derivado da fonte única LOJAS (src/shared.jsx) — dias/resumo vivem lá
 // derivado da fonte única LOJAS, com o horário do painel por cima quando houver
 const horariosDe=(cfg)=>lojasComConfig(cfg).map(l=>({loja:l.nome,dias:l.dias,resumo:l.resumo}));
-function nowSP(){
-  try{
-    const p=new Intl.DateTimeFormat("en-GB",{timeZone:"America/Sao_Paulo",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
-    const wd={Sun:0,Mon:1,Tue:2,Wed:3,Thu:4,Fri:5,Sat:6}[p.find(x=>x.type==="weekday").value];
-    const h=+p.find(x=>x.type==="hour").value, m=+p.find(x=>x.type==="minute").value;
-    return {wd, cur:h+m/60};
-  }catch{ const d=new Date(); return {wd:d.getDay(), cur:d.getHours()+d.getMinutes()/60}; }
-}
-const abertaAgora=(dias,wd,cur)=>{ const r=dias[wd]; return !!(r&&cur>=r[0]&&cur<r[1]); };
 function StoreHours(){
   const site=useSiteConfig();
   const[open,setOpen]=useState(false);
