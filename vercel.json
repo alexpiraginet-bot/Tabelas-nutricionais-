@@ -72,6 +72,10 @@
       "destination": "https://bento-franquiados.vercel.app"
     },
     {
+      "source": "/arquitetura/:path*",
+      "destination": "https://bento-franquiados.vercel.app/architecture/:path*"
+    },
+    {
       "source": "/seja-bento",
       "destination": "/seja-bento.html"
     },
