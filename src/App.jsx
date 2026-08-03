@@ -1183,7 +1183,7 @@ function EntregaPushModal({onClose:fechar,pc}){
            linha:(pc&&pc.linha)||"Praia do Canto e região. Peça pelo site e a entrega é por nossa conta.",
            botao:(pc&&pc.botao)||"Pedir agora →",
            href:(pc&&pc.href)||PEDIR_URL,
-           imagem:(pc&&pc.imagem)||"/banners/cardapio.webp"};
+           imagem:(pc&&pc.imagem)||"/banners/push-entrega.webp"};
   const ir=()=>{ tk("Push · "+t.titulo); try{window.open(t.href,"_blank","noopener");}catch{/* */} fechar(); };
   return(
     <div className="fade no-print" role="dialog" aria-modal="true" aria-label={t.titulo} onClick={fechar}
@@ -1192,7 +1192,7 @@ function EntregaPushModal({onClose:fechar,pc}){
         <button onClick={ir} className="fb" style={{display:"block",width:"100%",padding:0,border:"none",cursor:"pointer",textAlign:"left",
           borderRadius:22,overflow:"hidden",background:T.surface,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}>
           <span style={{display:"block",position:"relative"}}>
-            <img src={t.imagem} width={1600} height={686} alt=""
+            <img src={t.imagem} width={1400} height={842} alt=""
               style={{display:"block",width:"100%",height:"auto",objectFit:"cover"}}/>
           </span>
           <span style={{display:"block",padding:"18px 20px 20px",background:T.ink,color:T.bg}}>
