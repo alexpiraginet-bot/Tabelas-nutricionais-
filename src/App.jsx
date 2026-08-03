@@ -1176,14 +1176,19 @@ function EntregaPush({site}){
   useEffect(()=>{ if(!mostra) setOpen(false); },[mostra]);
   return open?<EntregaPushModal onClose={fechar} pc={pc}/>:null;
 }
+// Arte padrão por tipo de push: a cena de entrega só serve ao push de entrega.
+// Num "lancamento" sem imagem escolhida no painel, a sacola seria fora de assunto.
+const ARTE_PUSH={entrega:{src:"/banners/push-entrega.webp",w:1400,h:842},
+                 lancamento:{src:"/banners/cardapio.webp",w:1600,h:686}};
 function EntregaPushModal({onClose:fechar,pc}){
   useModal(fechar);
+  const arte=ARTE_PUSH[(pc&&pc.tipo)]||ARTE_PUSH.entrega;
   const t={etiqueta:(pc&&pc.etiqueta)||"Por tempo limitado",
            titulo:(pc&&pc.titulo)||"Entrega grátis em Vitória",
            linha:(pc&&pc.linha)||"Praia do Canto e região. Peça pelo site e a entrega é por nossa conta.",
            botao:(pc&&pc.botao)||"Pedir agora →",
            href:(pc&&pc.href)||PEDIR_URL,
-           imagem:(pc&&pc.imagem)||"/banners/push-entrega.webp"};
+           imagem:(pc&&pc.imagem)||arte.src};
   const ir=()=>{ tk("Push · "+t.titulo); try{window.open(t.href,"_blank","noopener");}catch{/* */} fechar(); };
   return(
     <div className="fade no-print" role="dialog" aria-modal="true" aria-label={t.titulo} onClick={fechar}
@@ -1192,7 +1197,7 @@ function EntregaPushModal({onClose:fechar,pc}){
         <button onClick={ir} className="fb" style={{display:"block",width:"100%",padding:0,border:"none",cursor:"pointer",textAlign:"left",
           borderRadius:22,overflow:"hidden",background:T.surface,boxShadow:"0 24px 60px rgba(31,35,23,.35)"}}>
           <span style={{display:"block",position:"relative"}}>
-            <img src={t.imagem} width={1400} height={842} alt=""
+            <img src={t.imagem} width={arte.w} height={arte.h} alt=""
               style={{display:"block",width:"100%",height:"auto",objectFit:"cover"}}/>
           </span>
           <span style={{display:"block",padding:"18px 20px 20px",background:T.ink,color:T.bg}}>
