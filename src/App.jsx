@@ -144,11 +144,20 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   // Translucidez iOS sutil: o card deixa o filme de fundo "respirar" pelas
   // bordas e pela arte (92%) sem lavar as artes oficiais dos banners.
   // "gap" maior na home abre o vão entre cards para o filme 3D aparecer na rolagem.
-  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:"1px solid rgba(228,220,201,.78)",borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:gap||14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
+  // A borda do card era creme (rgba(228,220,201,.78)) e cada arte ainda trazia a
+  // sua própria moldura creme por dentro — davam duas molduras claras em volta da
+  // foto. No card de arte cheia, a borda passa a ser o mesmo filete dourado das
+  // artes: uma linha só, contínua, com a imagem chegando até ela.
+  const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:`1px solid ${full?"rgba(201,162,74,.5)":"rgba(228,220,201,.78)"}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:gap||14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
   const d=BANNER_DIMS[img];
   // Modo "full": a própria arte já traz selo, título, subtítulo e seta — imagem cobre o card todo.
+  // O scale(1.06) come a moldura creme que cada arte traz desenhada (entre 13 e
+  // 89 px, medidos arte a arte) e o `overflow:hidden` do card apara o excesso.
+  // 6% ≈ 48 px de cada lado em 1600 px: tira a moldura sem encostar no conteúdo
+  // do painel — a seta mais à direita ainda tem ~82 px de folga. E opacidade
+  // cheia, para o creme do card não lavar a foto por baixo.
   const inner=full?(
-    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",opacity:.92}}/>
+    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",transform:"scale(1.06)"}}/>
   ):(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
@@ -233,7 +242,7 @@ function lojasComConfig(cfg){
   });
 }
 
-const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira"];
+const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira","creators"];
 // ordem dos banners com o destaque do painel (compartilhado pelas duas homes)
 function useDestaqueOrdem(){
   const[destaque,setDestaque]=useState(()=>{try{const v=localStorage.getItem("bento:destaque");return ORDEM_PADRAO.includes(v)?v:DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
@@ -506,6 +515,11 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
       alt:"Conheça a Bentô e FAQ — nossa proposta, sabores, diferenciais e perguntas frequentes"},
     carreira:{img:"/banners/carreira.webp",action:onVagas,tkName:"Vagas · Estamos contratando",
       alt:"Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"},
+    // Comunidade Creator: a candidatura, a análise e o extrato moram no totem —
+    // aqui é só a porta de entrada, como o Meu Studio.
+    creators:{img:"/banners/creators.webp",as:"a",href:"https://totem.bentogelateria.com/creators/cadastro",target:"_blank",
+      tkName:"Creators · Cadastro",
+      alt:"Seja creator Bentô — candidate-se à comunidade de creators: crédito na loja, campanhas e extrato transparente"},
   };
 }
 

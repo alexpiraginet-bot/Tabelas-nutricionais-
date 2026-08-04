@@ -13,6 +13,7 @@ const expected = [
   "parceiro",
   "conheca",
   "carreira",
+  "creators",
 ];
 
 const [app, index, panel] = await Promise.all([

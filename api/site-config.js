@@ -30,7 +30,7 @@ const KEY = "site:config";
 
 // Mesma lista de ORDEM_PADRAO em src/App.jsx e de BANNERS_VALIDOS em
 // api/destaque.js — manter em sincronia ao criar banner novo.
-const BANNERS = ["eventos", "studio", "bytes", "tabelas", "cardapio", "parceiro", "conheca", "carreira"];
+const BANNERS = ["eventos", "studio", "bytes", "tabelas", "cardapio", "parceiro", "conheca", "carreira", "creators"];
 const PUSH_TIPOS = ["nenhum", "entrega", "lancamento"];
 
 async function kv(args) {
