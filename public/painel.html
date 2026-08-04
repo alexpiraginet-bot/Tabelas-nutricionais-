@@ -1228,6 +1228,15 @@ function renderClube(d){
 // ================= ABA SITE: config editável (/api/site-config) =================
 // Espelha o que o site sabe fazer. Campo em branco = volta ao padrão do código.
 var SC_LOJAS = [["praia-do-canto","Praia do Canto"],["jardim-camburi","Jardim Camburi"]];
+// Horário que está NO CÓDIGO (src/shared.jsx → LOJAS.dias). Serve para o formulário
+// abrir PREENCHIDO com o horário que vale hoje, em vez de em branco.
+// Sem isto, abrir a aba e salvar — mesmo só para mexer num banner — gravava a
+// semana inteira vazia, e vazio é "fechado": foi assim que as duas lojas
+// apareceram fechadas no site. Manter em sincronia com LOJAS ao mudar horário.
+var SC_LOJAS_PADRAO = {
+  "praia-do-canto": {0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[10,20]},
+  "jardim-camburi": {0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]}
+};
 var SC_DIAS  = [["0","Dom"],["1","Seg"],["2","Ter"],["3","Qua"],["4","Qui"],["5","Sex"],["6","Sáb"]];
 var SC_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],
                   ["cardapio","🛵 Entrega própria"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"],["creators","📣 Creators"]];
@@ -1243,7 +1252,11 @@ function scDrawLojas(){
   var el = $("#scLojas"); if(!el) return;
   el.innerHTML = SC_LOJAS.map(function(L){
     var cfg = (_sc.lojas && _sc.lojas[L[0]]) || {};
-    var dias = cfg.dias || {};
+    // config manda; sem config, mostra o horário do código (não em branco)
+    var padrao = SC_LOJAS_PADRAO[L[0]] || {};
+    var salvo = cfg.dias || {};
+    var dias = {};
+    SC_DIAS.forEach(function(D){ dias[D[0]] = (D[0] in salvo) ? salvo[D[0]] : padrao[D[0]]; });
     return '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">'+L[1]+'</div>'+
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px">'+
       SC_DIAS.map(function(D){
@@ -1354,6 +1367,13 @@ function scLerLojas(){
     if(!txt){ lojas[id].dias[d] = null; return; }
     var m = txt.split("-").map(function(x){ return Number(x.trim()); });
     if(m.length === 2 && isFinite(m[0]) && isFinite(m[1]) && m[1] > m[0]) lojas[id].dias[d] = m;
+  });
+  // Última trava antes de sair daqui: loja sem NENHUM dia aberto não é horário,
+  // é formulário em branco. Não manda — deixa o site no padrão do código.
+  Object.keys(lojas).forEach(function(id){
+    var dias = lojas[id].dias;
+    var aberto = Object.keys(dias).some(function(d){ return Array.isArray(dias[d]); });
+    if(!aberto) delete lojas[id];
   });
   return lojas;
 }
