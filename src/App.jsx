@@ -233,7 +233,7 @@ function lojasComConfig(cfg){
   });
 }
 
-const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira"];
+const ORDEM_PADRAO=["eventos","studio","bytes","tabelas","cardapio","parceiro","conheca","carreira","creators"];
 // ordem dos banners com o destaque do painel (compartilhado pelas duas homes)
 function useDestaqueOrdem(){
   const[destaque,setDestaque]=useState(()=>{try{const v=localStorage.getItem("bento:destaque");return ORDEM_PADRAO.includes(v)?v:DESTAQUE_PADRAO}catch{return DESTAQUE_PADRAO}});
@@ -506,6 +506,11 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
       alt:"Conheça a Bentô e FAQ — nossa proposta, sabores, diferenciais e perguntas frequentes"},
     carreira:{img:"/banners/carreira.webp",action:onVagas,tkName:"Vagas · Estamos contratando",
       alt:"Trabalhe conosco — faça parte do time Bentô, veja vagas e cadastre-se"},
+    // Comunidade Creator: a candidatura, a análise e o extrato moram no totem —
+    // aqui é só a porta de entrada, como o Meu Studio.
+    creators:{img:"/banners/creators.webp",as:"a",href:"https://totem.bentogelateria.com/creators/cadastro",target:"_blank",
+      tkName:"Creators · Cadastro",
+      alt:"Seja creator Bentô — candidate-se à comunidade de creators: crédito na loja, campanhas e extrato transparente"},
   };
 }
 
