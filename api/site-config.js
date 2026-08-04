@@ -84,7 +84,13 @@ function limpaLoja(v) {
         if (a === null || f === null || f <= a) continue;
         dias[d] = [a, f];
       }
-      if (Object.keys(dias).length) out.dias = dias;
+      // Semana INTEIRA fechada nunca é configuração de verdade — é o formulário
+      // do painel salvo em branco (vazio = fechado). Já derrubou as duas lojas
+      // do site por um dia. Descartar aqui faz o site voltar ao horário do
+      // código, e como a leitura também passa por limpaConfig, uma config já
+      // gravada assim se cura sozinha na primeira resposta do GET.
+      const algumDiaAberto = Object.values(dias).some((p) => Array.isArray(p));
+      if (Object.keys(dias).length && algumDiaAberto) out.dias = dias;
     }
     if (Array.isArray(v.resumo)) {
       const r = v.resumo
