@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    // TS 7 removeu "baseUrl": os caminhos abaixo já são relativos a este
+    // arquivo, e espelham o alias "@" do vite.config.js.
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  // Escopo deliberado: só as partes TypeScript do projeto. O site e o
+  // protótipo continuam em .jsx e não passam pelo type-check — evita um mar
+  // de erros em código que já está em produção e funcionando.
+  "include": ["src/components", "src/lib", "src/ui"]
+}

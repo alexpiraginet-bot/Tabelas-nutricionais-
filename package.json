@@ -19,16 +19,22 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
+    "@phosphor-icons/react": "^2.1.10",
     "@vercel/analytics": "^2.0.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
     "jsqr": "^1.4.0",
     "lucide-react": "^0.383.0",
+    "motion": "^12.43.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@remotion/cli": "^4.0.478",
     "@remotion/google-fonts": "^4.0.478",
     "@remotion/transitions": "^4.0.478",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^18.3.1",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.1",
@@ -36,6 +42,8 @@
     "globals": "^17.6.0",
     "remotion": "^4.0.478",
     "sharp": "^0.33.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
     "vite": "^5.4.1"
   }
 }

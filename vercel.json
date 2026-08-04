@@ -84,6 +84,22 @@
       "destination": "/seja-bento.html"
     },
     {
+      "source": "/proto",
+      "destination": "/proto.html"
+    },
+    {
+      "source": "/proto/",
+      "destination": "/proto.html"
+    },
+    {
+      "source": "/ui",
+      "destination": "/ui.html"
+    },
+    {
+      "source": "/ui/",
+      "destination": "/ui.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
@@ -156,6 +172,15 @@
     },
     {
       "source": "/vagas-material/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/(proto|ui)(.*)",
       "headers": [
         {
           "key": "X-Robots-Tag",
