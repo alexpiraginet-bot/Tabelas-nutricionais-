@@ -47,6 +47,7 @@ const PoteBuilder = lazy(() => import("./modals.jsx").then(m => ({ default: m.Po
 const PitchDeck = lazy(() => import("./modals.jsx").then(m => ({ default: m.PitchDeck })));
 const CulpaModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.CulpaModal })));
 const GLP1Modal = lazy(() => import("./modals.jsx").then(m => ({ default: m.GLP1Modal })));
+const PedidoModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.PedidoModal })));
 
 function GStyle(){return(<style>{`
 .fd{font-family:'Fraunces',Georgia,serif}
@@ -398,8 +399,18 @@ function AreaEntrega({loja,estado}){
       </button>
       {msg&&<div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:8}}>{msg}</div>}
       {res&&(res.dentro?(
-        <div className="fb" role="status" style={{fontSize:12.5,marginTop:8,lineHeight:1.5,color:T.pistacheDark,fontWeight:700}}>
-          Sim! Você está a {res.km} km da loja — dentro da nossa área de entrega.
+        <div role="status" style={{marginTop:8}}>
+          <div className="fb" style={{fontSize:12.5,lineHeight:1.5,color:T.pistacheDark,fontWeight:700}}>
+            Sim! Você está a {res.km} km da loja — dentro da nossa área de entrega.
+          </div>
+          {/* Confirmar a área e não ter para onde ir era um beco sem saída: quem
+              descobre que é atendido precisa do caminho do pedido ali mesmo. Só
+              aparece dentro da janela — fora dela a entrega não sai. */}
+          {noHorario(estado)&&
+            <a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Dentro da área · Pedir · "+loja.nome)}
+              className="fm" style={{display:"inline-block",marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"9px 15px",textDecoration:"none"}}>
+              Pedir com entrega
+            </a>}
         </div>
       ):(
         <div role="status" style={{marginTop:8}}>
@@ -414,6 +425,40 @@ function AreaEntrega({loja,estado}){
       ))}
     </div>
   );
+}
+
+/* Escolha de loja antes do pedido. Este host é o único que sabe do totem: lê o
+   estado, cruza com o horário da loja e entrega ao modal uma lista PRONTA de
+   fatos. O modal não decide nada — assim a regra de entrega continua vivendo de
+   um lado só. Monta apenas quando o cliente pede, então a leitura do totem só
+   acontece na hora do pedido.
+
+   Sobre os links: o totem aceita `?loja=` e abre JÁ em RETIRADA naquela loja
+   (é o link do QR da mesa — ele dispara SET_FULFILLMENT "pickup"). Para ENTREGA
+   ele ainda não tem link direto por loja, então esse botão vai para o /pedir
+   limpo e a escolha acontece lá. Mandar `?loja=` no botão de entrega faria o
+   site prometer entrega e o pedido abrir em retirada — exatamente a colisão que
+   não pode existir. Quando o totem aceitar entrega por link, é só trocar aqui. */
+function PedidoModalHost({site,onClose}){
+  useMinuto();
+  const estado=useEntregaEstado();
+  const{wd,cur}=nowSP();
+  const lojas=lojasComConfig(site).map(l=>{
+    const e=estadoDaLoja(estado,l.id);
+    const aberta=abertaAgora(l.dias,wd,cur);
+    const raio=raioDe(e), entrega=temEntrega(e)&&raio>0;
+    return{
+      id:l.id,nome:l.nome,bairro:l.bairro,aberta,entrega,
+      raioKm:entrega?(raio/1000).toFixed(1).replace(".",","):null,
+      faixa:faixaHorario(e),naJanela:noHorario(e),
+      // iFood só onde NÃO há entrega nossa e a loja está aberta — mesma regra do
+      // card da loja. Loja fechada não tem iFood: o marketplace também para.
+      ifood:(!entrega&&aberta&&l.ifood)?l.ifood:null,
+      urlRetirada:PEDIR_URL+"?loja="+l.id.replace(/-/g,"_"),
+      urlEntrega:PEDIR_URL,
+    };
+  });
+  return <PedidoModal lojas={lojas} onClose={onClose}/>;
 }
 
 /* Selo de entrega grátis — aceso pelo admin do TOTEM, jamais por aqui. */
@@ -1303,7 +1348,11 @@ export default function App(){
   // Pedido próprio: só a loja Praia do Canto atende online hoje, então não há
   // escolha de loja — o botão leva direto para a tela de pedido.
   // bentogelateria.com/pedir é o link curto (redirect no vercel.json).
-  const abrirPedido=()=>{ try{window.open(PEDIR_URL,"_blank","noopener");}catch{/* */} };
+  // Todo caminho de pedido do site passa por aqui: agora abre o seletor de loja
+  // em vez de saltar direto para o totem. Quem escolhe loja e entrega ou
+  // retirada é o cliente, com o estado real de cada loja na frente.
+  const[showPedido,setShowPedido]=useState(false);
+  const abrirPedido=useCallback(()=>{ tk("Pedido · Abriu seletor de loja"); setShowPedido(true); },[]);
   const[showFaq,setShowFaq]=useState(false);
   const[showCulpa,setShowCulpa]=useState(false);
   const[showGLP1,setShowGLP1]=useState(false);
@@ -1362,7 +1411,7 @@ export default function App(){
   // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
   const siteCfg=useSiteConfig();
   useVisual(siteCfg);
-  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos;
+  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos||showPedido;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
   const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
@@ -1421,6 +1470,7 @@ export default function App(){
       {showCulpa&&<CulpaModal productId={culpaProdId} onClose={()=>{setShowCulpa(false);setCulpaProdId(null);}} onDelivery={()=>{setShowCulpa(false);abrirPedido();}}/>}
       {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);abrirPedido();}}/>}
       {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
+      {showPedido&&<PedidoModalHost site={siteCfg} onClose={()=>setShowPedido(false)}/>}
       </Suspense>
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`,background:view==="home"?"rgba(246,241,231,.7)":"transparent",backdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined,WebkitBackdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>

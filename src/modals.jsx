@@ -1086,9 +1086,83 @@ export function FaqModal({onClose}){
   );
 }
 
-/* O modal de escolha de loja foi removido: só a Praia do Canto atende pedido
-   online hoje, então o botão vai direto para a tela de pedido (PEDIR_URL).
-   Se uma segunda loja voltar a atender, o seletor volta aqui. */
+/* ========== ESCOLHA DE LOJA ANTES DO PEDIDO ==========
+   O seletor voltou: as duas lojas atendem pedido online de novo. Ele saiu
+   quando só a Praia do Canto atendia — escolher entre uma opção só é atrito.
+
+   Este componente NÃO decide nada sobre entrega. Ele recebe a lista pronta de
+   `PedidoModalHost` (App.jsx), que é quem lê o estado do totem. Se um campo não
+   veio, ele simplesmente não é afirmado aqui: sem `entrega`, nenhuma linha de
+   raio ou horário aparece. */
+export function PedidoModal({lojas,onClose}){
+  useModal(onClose);
+  const ir=(url,rotulo)=>{ tk("Pedido · "+rotulo); try{window.open(url,"_blank","noopener");}catch{/* */} onClose(); };
+  const btn=(primary)=>({display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:10.5,letterSpacing:"0.14em",
+    textTransform:"uppercase",fontWeight:600,cursor:"pointer",borderRadius:10,padding:"11px 16px",border:`1px solid ${primary?T.pistacheDark:T.border}`,
+    background:primary?T.pistacheDark:T.surface,color:primary?T.surface:T.pistacheDark});
+  return(
+    <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Escolha a loja para o pedido"
+      style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
+      <div className="rise gn" onClick={e=>e.stopPropagation()}
+        style={{background:T.surface,borderRadius:12,maxWidth:520,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+        <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
+          <div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Entrega própria · Retirada</div>
+            <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>De qual loja?</div>
+          </div>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+        </div>
+        <div style={{padding:"14px 18px 20px",display:"flex",flexDirection:"column",gap:12}}>
+          {lojas.map(l=>(
+            <div key={l.id} style={{border:`1px solid ${T.border}`,borderRadius:14,padding:"15px 16px",background:l.aberta?T.surface:T.bg}}>
+              <div style={{display:"flex",alignItems:"center",gap:9,flexWrap:"wrap"}}>
+                <h3 className="fd" style={{fontSize:18,color:T.pistacheDark,margin:0}}>{l.nome}</h3>
+                <span className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",borderRadius:999,padding:"4px 10px",
+                  background:l.aberta?T.pistacheDark:T.borderSoft,color:l.aberta?T.surface:T.inkSoft}}>
+                  {l.aberta?"Aberta agora":"Fechada agora"}
+                </span>
+              </div>
+              <div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginTop:4}}>{l.bairro}</div>
+
+              {/* Linha de entrega: só existe quando o totem informou raio para
+                  esta loja. Endpoint calado = nada dito sobre entrega. */}
+              {l.entrega&&(
+                <div className="fb" style={{fontSize:12.5,color:T.ink,marginTop:9,lineHeight:1.5}}>
+                  Entrega nossa até <b>{l.raioKm} km</b> daqui, das {l.faixa}.
+                </div>
+              )}
+
+              {!l.aberta?(
+                <div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:9,lineHeight:1.45}}>
+                  Loja fechada — entrega, retirada e iFood voltam no próximo horário de funcionamento.
+                </div>
+              ):(
+                <>
+                  {l.entrega&&!l.naJanela&&(
+                    <div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:7,lineHeight:1.45}}>
+                      Agora é fora do horário de entrega — dá para retirar na loja.
+                    </div>
+                  )}
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:11}}>
+                    {l.entrega&&l.naJanela&&
+                      <button onClick={()=>ir(l.urlEntrega,"Entrega · "+l.nome)} className="fm" style={btn(true)}>Pedir com entrega</button>}
+                    <button onClick={()=>ir(l.urlRetirada,"Retirada · "+l.nome)} className="fm" style={btn(false)}>Retirar nesta loja</button>
+                    {l.ifood&&
+                      <button onClick={()=>ir(l.ifood,"iFood · "+l.nome)} className="fm" style={btn(false)}>iFood</button>}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+          <p className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",margin:"2px 0 0",lineHeight:1.5}}>
+            O pedido, o pagamento e a confirmação do endereço acontecem na nossa tela de pedido.<br/>
+            Dúvida? Chame no WhatsApp (27) 99915-9995.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ========== SEJA BENTÔ (REVENDA / FRANQUIA) ========== */
 
