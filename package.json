@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run fichas && vite build && node scripts/generate-share-pages.mjs",
+    "build": "npm run fichas && node scripts/generate-painel-padroes.mjs && vite build && node scripts/generate-share-pages.mjs",
     "preview": "vite preview",
     "lint": "eslint src/",
     "test:home-banners": "node scripts/check-home-banners.mjs",
@@ -15,7 +15,8 @@
     "video:franquias": "remotion render src/video/index.ts FranquiasStory out/bento-franquias.mp4",
     "video:studio": "remotion studio src/video/index.ts",
     "fichas": "node scripts/generate-fichas.mjs",
-    "menu": "node scripts/menu-poster.mjs"
+    "menu": "node scripts/menu-poster.mjs",
+    "test:painel-horarios": "node scripts/check-painel-horarios.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",

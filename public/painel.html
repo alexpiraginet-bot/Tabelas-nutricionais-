@@ -402,6 +402,9 @@
   </div>
 </div>
 
+<!-- Horário padrão das lojas, gerado de src/lojas.js no build. Precisa vir ANTES
+     do script do painel, que lê window.SC_LOJAS_PADRAO. -->
+<script src="/painel-padroes.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 const $ = (s) => document.querySelector(s);
@@ -1228,15 +1231,14 @@ function renderClube(d){
 // ================= ABA SITE: config editável (/api/site-config) =================
 // Espelha o que o site sabe fazer. Campo em branco = volta ao padrão do código.
 var SC_LOJAS = [["praia-do-canto","Praia do Canto"],["jardim-camburi","Jardim Camburi"]];
-// Horário que está NO CÓDIGO (src/shared.jsx → LOJAS.dias). Serve para o formulário
-// abrir PREENCHIDO com o horário que vale hoje, em vez de em branco.
-// Sem isto, abrir a aba e salvar — mesmo só para mexer num banner — gravava a
-// semana inteira vazia, e vazio é "fechado": foi assim que as duas lojas
-// apareceram fechadas no site. Manter em sincronia com LOJAS ao mudar horário.
-var SC_LOJAS_PADRAO = {
-  "praia-do-canto": {0:[12,17],1:[10,19],2:[8,20],3:[8,20],4:[8,20],5:[8,20],6:[10,20]},
-  "jardim-camburi": {0:[12,17],1:null,2:[11,19],3:[11,19],4:[11,19],5:[11,19],6:[12,20]}
-};
+// Horário que está NO CÓDIGO, para o formulário abrir PREENCHIDO em vez de em
+// branco — vazio aqui significa "fechado", e foi assim que as duas lojas
+// apareceram fechadas no site.
+// NÃO escreva horário aqui: quem preenche é /painel-padroes.js, gerado no build
+// a partir de src/lojas.js (scripts/generate-painel-padroes.mjs). Uma fonte só.
+// Se o arquivo faltar, fica {} e o formulário volta a abrir vazio — por isso a
+// aba avisa em vez de fingir que está tudo certo.
+var SC_LOJAS_PADRAO = window.SC_LOJAS_PADRAO || {};
 var SC_DIAS  = [["0","Dom"],["1","Seg"],["2","Ter"],["3","Qua"],["4","Qui"],["5","Sex"],["6","Sáb"]];
 var SC_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],
                   ["cardapio","🛵 Entrega própria"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"],["creators","📣 Creators"]];
@@ -1250,6 +1252,15 @@ function scInput(v, ph, w){
 }
 function scDrawLojas(){
   var el = $("#scLojas"); if(!el) return;
+  // Sem o gerado, o formulário abriria vazio — e vazio grava "fechado". Avisa em
+  // vez de deixar o operador salvar achando que está tudo certo.
+  if(!Object.keys(SC_LOJAS_PADRAO).length){
+    el.innerHTML = '<div style="padding:12px 14px;border-radius:10px;border:1px solid #7a3b3b;background:#2a1414;'+
+      'color:#f0c9c9;font-size:12.5px;line-height:1.5">Não consegui carregar o horário padrão das lojas '+
+      '(<code>/painel-padroes.js</code>). <b>Não salve esta aba agora</b> — salvar com os campos vazios fecha as lojas no site. '+
+      'Recarregue a página; se continuar, avise que o build não gerou o arquivo.</div>';
+    return;
+  }
   el.innerHTML = SC_LOJAS.map(function(L){
     var cfg = (_sc.lojas && _sc.lojas[L[0]]) || {};
     // config manda; sem config, mostra o horário do código (não em branco)

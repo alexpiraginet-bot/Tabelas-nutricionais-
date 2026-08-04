@@ -13,3 +13,6 @@ out/
 
 # JSON do painel de fichas (regenerado no build)
 public/fichas-data.json
+
+# gerado por scripts/generate-painel-padroes.mjs (fonte: src/lojas.js)
+public/painel-padroes.js
