@@ -171,6 +171,7 @@
     <button data-t="sejabento">🤝 Seja Bentô <span class="tbg" id="bgSejaBento"></span></button>
     <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
     <button data-t="clube">👑 Clube <span class="tbg" id="bgClube"></span></button>
+    <button data-t="site">🎛️ Site</button>
     <button data-t="links">🔗 Links</button>
     <a class="tabbtn" href="/fichas.html">🧪 Fichas Técnicas ↗</a>
   </nav>
@@ -188,6 +189,63 @@
       <span class="mono" id="dstMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
     </h3>
     <div class="chips" id="dstChips" style="display:flex"></div>
+  </div>
+
+  <!-- ================= ABA SITE: conteúdo editável sem código ================= -->
+  <div class="pane" data-pane="site" hidden>
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span>🎛️ Site — conteúdo editável</span>
+        <span class="mono" id="scMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
+      </h3>
+      <p class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;margin:0 0 4px;line-height:1.6">
+        O código continua sendo o padrão: o que você deixar em branco aqui volta ao valor original do site.
+        Regras de ENTREGA (raio, grátis, horário de entrega) não ficam aqui — são da plataforma de pedido.
+        O site aplica em até 1 minuto.
+      </p>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3>🕐 Horário das lojas</h3>
+      <p class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;margin:0 0 10px">
+        Formato por dia: <b>abre-fecha</b> em horas (ex.: 8-20). Deixe <b>vazio</b> para fechado.
+      </p>
+      <div id="scLojas"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3>🖼️ Banners da home</h3>
+      <p class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;margin:0 0 10px">
+        Arraste pela ordem com ▲▼, desmarque para ocultar e cole a URL de uma arte nova
+        (envie o arquivo em <a href="/upload.html" target="_blank" style="color:var(--pist)">/upload.html</a> e copie o link).
+      </p>
+      <div id="scBanners"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3>📣 Push da home</h3>
+      <div class="chips" id="scPushTipo" style="display:flex;margin-bottom:10px"></div>
+      <div id="scPushCampos" style="display:grid;gap:8px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3>🎚️ Opacidades da home</h3>
+      <p class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;margin:0 0 10px">
+        Véu = quanto o creme cobre o filme de fundo. Vidro = translucidez dos cards. Vinheta = escurecimento das bordas.
+      </p>
+      <div id="scVisual" style="display:grid;gap:12px"></div>
+    </div>
+
+    <div class="card">
+      <button type="button" id="scSalvar"
+        style="background:var(--pist);border:none;border-radius:999px;color:#0c0f0a;font-size:14px;font-weight:800;padding:13px 26px;cursor:pointer">
+        Salvar tudo
+      </button>
+      <button type="button" id="scReset"
+        style="margin-left:8px;background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--soft);font-size:13px;padding:13px 20px;cursor:pointer">
+        Voltar ao padrão do código
+      </button>
+    </div>
   </div>
 
   <div class="card pane" data-pane="links" style="margin-bottom:14px">
@@ -950,7 +1008,7 @@ function renderVagas(d){
 }
 
 // ---- ⭐ Destaque da home: escolhe qual banner abre o site (KV via /api/destaque) ----
-var DST_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Cardápio"],["delivery","📍 Delivery"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
+var DST_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],["cardapio","🛵 Entrega própria"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
 var _dstAtual = null;
 function drawDestaque(){
   var el = $("#dstChips"); if(!el) return;
@@ -1060,7 +1118,7 @@ var LINKS = [
     ["🏠","Página inicial", SITE+"/"],
     ["✨","Bentô Meu Studio", TOTEM+"/meu-studio"],
     ["📊","Tabelas nutricionais", SITE+"/?tabela"],
-    ["🛵","Delivery / Nos encontre", SITE+"/?delivery"],
+    ["🛵","Entrega própria — escolher loja", SITE+"/pedir"],
     ["🎉","Eventos (orçamento na hora)", SITE+"/?eventos"],
     ["💼","Trabalhe conosco (vagas)", SITE+"/?vagas"],
   ]],
@@ -1080,8 +1138,8 @@ var LINKS = [
     ["🎟️","Pré-venda (link de teste hoje)", EVENTOS+"/?preview"],
   ]],
   ["iFood (direto)", [
-    ["🛵","iFood · Praia do Canto", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"],
-    ["🛵","iFood · Jardim Camburi", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"],
+    ["🛵","iFood · Praia do Canto (fora de área)", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-saudaveis-praia-do-canto/fcfff152-838e-4743-88f3-0e18eff6b867?utm_medium=share"],
+    ["🛵","iFood · Jardim Camburi (fora de área)", "https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"],
   ]],
   ["Outros", [
     ["🎮","Stranger Gelatos (jogo + desconto)", "https://stranger-gelatos.vercel.app/index.html"],
@@ -1166,6 +1224,168 @@ function renderClube(d){
   });
   if(!shown && ms.length) stackNone(box, "Nenhum membro nesta categoria.");
 }
+
+// ================= ABA SITE: config editável (/api/site-config) =================
+// Espelha o que o site sabe fazer. Campo em branco = volta ao padrão do código.
+var SC_LOJAS = [["praia-do-canto","Praia do Canto"],["jardim-camburi","Jardim Camburi"]];
+var SC_DIAS  = [["0","Dom"],["1","Seg"],["2","Ter"],["3","Qua"],["4","Qui"],["5","Sex"],["6","Sáb"]];
+var SC_BANNERS = [["eventos","🎉 Eventos"],["studio","✨ Meu Studio"],["bytes","🍨 BentôBytes"],["tabelas","🔬 Tabelas"],
+                  ["cardapio","🛵 Entrega própria"],["parceiro","🤝 Parceiro"],["conheca","💚 Conheça"],["carreira","💼 Carreira"]];
+var SC_PUSH = [["entrega","🛵 Entrega grátis"],["lancamento","✨ Lançamento"],["nenhum","⛔ Nenhum"]];
+var SC_VISUAL = [["veu","Véu sobre o filme",0,1,0.38],["vidro","Vidro dos cards",0,1,0.62],["vinheta","Vinheta das bordas",0,1,0.16]];
+var _sc = {};      // config atual em edição
+
+function scInput(v, ph, w){
+  return '<input value="'+(v||"").replace(/"/g,"&quot;")+'" placeholder="'+ph+'" style="width:'+(w||"100%")+
+    ';padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:13px">';
+}
+function scDrawLojas(){
+  var el = $("#scLojas"); if(!el) return;
+  el.innerHTML = SC_LOJAS.map(function(L){
+    var cfg = (_sc.lojas && _sc.lojas[L[0]]) || {};
+    var dias = cfg.dias || {};
+    return '<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">'+L[1]+'</div>'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:6px">'+
+      SC_DIAS.map(function(D){
+        var par = dias[D[0]];
+        var val = (par && par.length===2) ? (par[0]+"-"+par[1]) : "";
+        return '<label style="display:block"><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">'+D[1]+'</span>'+
+          '<input data-loja="'+L[0]+'" data-dia="'+D[0]+'" value="'+val+'" placeholder="fechado" '+
+          'style="width:100%;padding:7px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:12px"></label>';
+      }).join("")+'</div></div>';
+  }).join("");
+}
+function scDrawBanners(){
+  var el = $("#scBanners"); if(!el) return;
+  var ordem = (_sc.banners && _sc.banners.ordem) || SC_BANNERS.map(function(b){return b[0];});
+  var ocultos = (_sc.banners && _sc.banners.ocultos) || [];
+  var imagens = (_sc.banners && _sc.banners.imagens) || {};
+  var rotulo = {}; SC_BANNERS.forEach(function(b){ rotulo[b[0]] = b[1]; });
+  el.innerHTML = ordem.map(function(id, i){
+    return '<div data-bid="'+id+'" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line)">'+
+      '<button type="button" data-mv="up" '+(i===0?"disabled":"")+' style="background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--ink);width:30px;height:30px;cursor:pointer">▲</button>'+
+      '<button type="button" data-mv="dn" '+(i===ordem.length-1?"disabled":"")+' style="background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--ink);width:30px;height:30px;cursor:pointer">▼</button>'+
+      '<label style="display:flex;align-items:center;gap:6px;font-size:13px;min-width:150px;cursor:pointer">'+
+        '<input type="checkbox" data-vis '+(ocultos.indexOf(id)<0?"checked":"")+'> '+(rotulo[id]||id)+'</label>'+
+      '<input data-img value="'+((imagens[id]||"").replace(/"/g,"&quot;"))+'" placeholder="URL de arte própria (opcional)" '+
+        'style="flex:1;min-width:200px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:12px">'+
+    '</div>';
+  }).join("");
+  el.querySelectorAll("[data-mv]").forEach(function(b){
+    b.onclick = function(){
+      var linha = b.closest("[data-bid]"), id = linha.dataset.bid;
+      var atual = scLerBanners().ordem, i = atual.indexOf(id), j = b.dataset.mv==="up" ? i-1 : i+1;
+      if(j<0 || j>=atual.length) return;
+      var t = atual[i]; atual[i] = atual[j]; atual[j] = t;
+      _sc.banners = Object.assign({}, scLerBanners(), { ordem: atual });
+      scDrawBanners();
+    };
+  });
+}
+function scLerBanners(){
+  var el = $("#scBanners"); if(!el) return { ordem: SC_BANNERS.map(function(b){return b[0];}), ocultos: [], imagens: {} };
+  var ordem = [], ocultos = [], imagens = {};
+  el.querySelectorAll("[data-bid]").forEach(function(l){
+    var id = l.dataset.bid; ordem.push(id);
+    if(!l.querySelector("[data-vis]").checked) ocultos.push(id);
+    var u = (l.querySelector("[data-img]").value || "").trim();
+    if(u) imagens[id] = u;
+  });
+  return { ordem: ordem, ocultos: ocultos, imagens: imagens };
+}
+function scDrawPush(){
+  var tipo = (_sc.push && _sc.push.tipo) || "entrega";
+  var el = $("#scPushTipo");
+  if(el){
+    el.innerHTML = "";
+    SC_PUSH.forEach(function(t){
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = t[1]; b.className = t[0]===tipo ? "on" : "";
+      b.onclick = function(){ _sc.push = Object.assign({}, scLerPush(), { tipo: t[0] }); scDrawPush(); };
+      el.appendChild(b);
+    });
+  }
+  var c = $("#scPushCampos"); if(!c) return;
+  if(tipo === "nenhum"){ c.innerHTML = '<div class="mono" style="color:var(--soft);font-size:11px">Nenhum push aparece na home.</div>'; return; }
+  var p = _sc.push || {};
+  var dica = tipo === "entrega"
+    ? "O push de entrega grátis só aparece quando a plataforma de pedido informa que ela está ativa. Os textos abaixo são opcionais."
+    : "Lançamento aparece sempre, com os textos abaixo.";
+  c.innerHTML = '<div class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;line-height:1.5">'+dica+'</div>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Etiqueta</span>'+scInput(p.etiqueta,"Por tempo limitado")+'</label>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Título</span>'+scInput(p.titulo,"Entrega grátis em Vitória")+'</label>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Linha de apoio</span>'+scInput(p.linha,"Praia do Canto e região…")+'</label>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Botão</span>'+scInput(p.botao,"Pedir agora →")+'</label>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Link do botão</span>'+scInput(p.href,"https://…")+'</label>'+
+    '<label><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">Imagem</span>'+scInput(p.imagem,"URL da arte (opcional)")+'</label>';
+}
+function scLerPush(){
+  var tipo = (_sc.push && _sc.push.tipo) || "entrega";
+  var c = $("#scPushCampos");
+  var v = c ? Array.prototype.map.call(c.querySelectorAll("input"), function(i){ return i.value.trim(); }) : [];
+  if(tipo === "nenhum" || v.length < 6) return { tipo: tipo };
+  return { tipo: tipo, etiqueta: v[0], titulo: v[1], linha: v[2], botao: v[3], href: v[4], imagem: v[5] };
+}
+function scDrawVisual(){
+  var el = $("#scVisual"); if(!el) return;
+  var v = _sc.visual || {};
+  el.innerHTML = SC_VISUAL.map(function(S){
+    var val = (typeof v[S[0]] === "number") ? v[S[0]] : S[4];
+    return '<label style="display:block"><span style="font-size:12px">'+S[1]+' — <b data-out="'+S[0]+'">'+val.toFixed(2)+'</b></span>'+
+      '<input type="range" data-vis="'+S[0]+'" min="'+S[2]+'" max="'+S[3]+'" step="0.02" value="'+val+'" style="width:100%">'+
+      '<span class="mono" style="font-size:9px;color:var(--soft)">padrão do código: '+S[4]+'</span></label>';
+  }).join("");
+  el.querySelectorAll("[data-vis]").forEach(function(r){
+    r.oninput = function(){ var o = el.querySelector('[data-out="'+r.dataset.vis+'"]'); if(o) o.textContent = Number(r.value).toFixed(2); };
+  });
+}
+function scLerVisual(){
+  var el = $("#scVisual"); if(!el) return {};
+  var v = {};
+  el.querySelectorAll("[data-vis]").forEach(function(r){ v[r.dataset.vis] = Number(r.value); });
+  return v;
+}
+function scLerLojas(){
+  var el = $("#scLojas"); if(!el) return {};
+  var lojas = {};
+  el.querySelectorAll("input[data-loja]").forEach(function(i){
+    var id = i.dataset.loja, d = i.dataset.dia, txt = (i.value || "").trim();
+    lojas[id] = lojas[id] || { dias: {} };
+    if(!txt){ lojas[id].dias[d] = null; return; }
+    var m = txt.split("-").map(function(x){ return Number(x.trim()); });
+    if(m.length === 2 && isFinite(m[0]) && isFinite(m[1]) && m[1] > m[0]) lojas[id].dias[d] = m;
+  });
+  return lojas;
+}
+function scDrawTudo(){ scDrawLojas(); scDrawBanners(); scDrawPush(); scDrawVisual(); }
+async function loadSiteConfig(){
+  try{
+    var r = await fetch("/api/site-config", { cache:"no-store" });
+    if(!r.ok) return;
+    _sc = (await r.json()) || {};
+    scDrawTudo();
+  }catch(e){ scDrawTudo(); }
+}
+async function salvarSiteConfig(cfg){
+  var key = localStorage.getItem(KEYSTORE) || "";
+  $("#scMsg").textContent = "salvando…";
+  try{
+    var r = await fetch("/api/site-config", { method:"POST", headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key }, body: JSON.stringify(cfg) });
+    var j = await r.json().catch(function(){ return {}; });
+    if(!j.ok) throw new Error(j.error || r.status);
+    _sc = j.config || {}; scDrawTudo();
+    $("#scMsg").textContent = "salvo ✔ (site aplica em ~1 min)";
+  }catch(e){ $("#scMsg").textContent = "erro: "+e.message; }
+}
+document.addEventListener("click", function(e){
+  if(!e.target) return;
+  if(e.target.id === "scSalvar"){
+    salvarSiteConfig({ lojas: scLerLojas(), banners: scLerBanners(), push: scLerPush(), visual: scLerVisual() });
+  }
+  if(e.target.id === "scReset"){
+    if(confirm("Apagar toda a personalização e voltar ao padrão do código?")) salvarSiteConfig({});
+  }
+});
 
 // ---- Abas superiores ----
 function setBadge(id,n){ var e=$("#"+id); if(e) e.textContent = n>0 ? String(n) : ""; }
@@ -1294,7 +1514,7 @@ function bindSorteio(){
 bindSorteio();
 
 async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadDestaque().catch(()=>{}); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
+  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadDestaque().catch(()=>{}); loadSiteConfig().catch(()=>{}); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 

@@ -16,6 +16,28 @@ export const tk = (name, fn) => {
 export const award = (id) => { try { window.dispatchEvent(new CustomEvent("bento:achieve", { detail: id })); } catch { /* */ } };
 
 
+// Pedido próprio: entrega da nossa equipe OU retirada em loja, pagamento no
+// Pix. É o único canal de pedido do site — o iFood saiu.
+// bentogelateria.com/pedir redireciona para cá (redirect no vercel.json), e é
+// esse o link curto para bio, stories e QR.
+export const PEDIR_URL = "https://totem.bentogelateria.com/pedir";
+
+// FONTE ÚNICA das regras de entrega (raio, centro, grátis, quais lojas
+// entregam) é o TOTEM — o site LÊ daqui e nunca escreve. Ligar/desligar é só
+// no admin do totem. Enquanto este endpoint não responder, o site não afirma
+// nada sobre entrega: melhor calar do que anunciar regra que pode ter mudado.
+export const ENTREGA_ESTADO_URL = "https://totem.bentogelateria.com/api/delivery/estado";
+
+// Distância em metros entre dois pontos (Haversine). Matemática pura — não é
+// regra de negócio, então pode viver no site.
+export function distanciaM(aLat, aLng, bLat, bLng) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (bLat - aLat) * r, dLng = (bLng - aLng) * r;
+  const h = Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
 export const T = {
   bg:"#F6F1E7",bgWarm:"#EFE7D6",surface:"#FFFDF7",
   ink:"#232619",inkSoft:"#5E6353",

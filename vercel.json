@@ -11,6 +11,26 @@
   ],
   "redirects": [
     {
+      "source": "/franquiados",
+      "destination": "/franqueados",
+      "permanent": true
+    },
+    {
+      "source": "/franquiados/",
+      "destination": "/franqueados",
+      "permanent": true
+    },
+    {
+      "source": "/pedir",
+      "destination": "https://totem.bentogelateria.com/pedir",
+      "permanent": false
+    },
+    {
+      "source": "/pedir/",
+      "destination": "https://totem.bentogelateria.com/pedir",
+      "permanent": false
+    },
+    {
       "source": "/financeiro/consultora",
       "destination": "https://bento-visao-sebrae.alexpteixe.chatgpt.site",
       "permanent": false
@@ -43,6 +63,18 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/franqueados",
+      "destination": "https://bento-franquiados.vercel.app"
+    },
+    {
+      "source": "/franqueados/",
+      "destination": "https://bento-franquiados.vercel.app"
+    },
+    {
+      "source": "/arquitetura/:path*",
+      "destination": "https://bento-franquiados.vercel.app/architecture/:path*"
+    },
     {
       "source": "/seja-bento",
       "destination": "/seja-bento.html"
