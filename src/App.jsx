@@ -405,8 +405,9 @@ function AreaEntrega({loja,estado}){
           </div>
           {/* Confirmar a área e não ter para onde ir era um beco sem saída: quem
               descobre que é atendido precisa do caminho do pedido ali mesmo. Só
-              aparece dentro da janela — fora dela a entrega não sai. */}
-          {noHorario(estado)&&
+              aparece com a loja ABERTA e dentro da janela — porta fechada não
+              entrega, mesmo que a janela de entrega já tenha começado. */}
+          {lojaAberta&&noHorario(estado)&&
             <a href={PEDIR_URL} target="_blank" rel="noopener" onClick={()=>tk("Entrega · Dentro da área · Pedir · "+loja.nome)}
               className="fm" style={{display:"inline-block",marginTop:9,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"9px 15px",textDecoration:"none"}}>
               Pedir com entrega
@@ -458,7 +459,10 @@ function PedidoModalHost({site,onClose}){
       urlEntrega:PEDIR_URL,
     };
   });
-  return <PedidoModal lojas={lojas} onClose={onClose}/>;
+  // Enquanto o totem não respondeu, NENHUMA loja tem entrega conhecida — e o
+  // modal não pode nem anunciar "entrega própria" no cabeçalho. Quem decide isso
+  // é este flag, não o modal: continua sendo o site lendo, não afirmando.
+  return <PedidoModal lojas={lojas} temEntrega={lojas.some(l=>l.entrega)} onClose={onClose}/>;
 }
 
 /* Selo de entrega grátis — aceso pelo admin do TOTEM, jamais por aqui. */

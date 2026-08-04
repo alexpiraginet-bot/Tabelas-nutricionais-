@@ -1094,7 +1094,7 @@ export function FaqModal({onClose}){
    `PedidoModalHost` (App.jsx), que é quem lê o estado do totem. Se um campo não
    veio, ele simplesmente não é afirmado aqui: sem `entrega`, nenhuma linha de
    raio ou horário aparece. */
-export function PedidoModal({lojas,onClose}){
+export function PedidoModal({lojas,temEntrega,onClose}){
   useModal(onClose);
   const ir=(url,rotulo)=>{ tk("Pedido · "+rotulo); try{window.open(url,"_blank","noopener");}catch{/* */} onClose(); };
   const btn=(primary)=>({display:"inline-flex",alignItems:"center",justifyContent:"center",gap:6,fontSize:10.5,letterSpacing:"0.14em",
@@ -1107,7 +1107,9 @@ export function PedidoModal({lojas,onClose}){
         style={{background:T.surface,borderRadius:12,maxWidth:520,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
-            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Entrega própria · Retirada</div>
+            {/* Sem entrega conhecida (totem calado ou nenhuma loja entregando),
+                o cabeçalho não pode anunciar entrega própria. */}
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>{temEntrega?"Entrega própria · Retirada":"Retirada em loja"}</div>
             <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>De qual loja?</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
@@ -1133,8 +1135,10 @@ export function PedidoModal({lojas,onClose}){
               )}
 
               {!l.aberta?(
+                /* Só cita entrega se ESTA loja tem entrega conhecida. Com o totem
+                   calado, prometer que "a entrega volta" seria afirmar sem base. */
                 <div className="fb" style={{fontSize:11.5,color:T.inkSoft,marginTop:9,lineHeight:1.45}}>
-                  Loja fechada — entrega, retirada e iFood voltam no próximo horário de funcionamento.
+                  Loja fechada — {l.entrega?"entrega e retirada voltam":"o pedido volta"} no próximo horário de funcionamento.
                 </div>
               ):(
                 <>
