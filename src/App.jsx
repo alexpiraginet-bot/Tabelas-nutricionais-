@@ -151,13 +151,18 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   const common={width:"100%",display:"flex",alignItems:"stretch",textAlign:"left",background:"rgba(255,253,247,.72)",border:`1px solid ${full?"rgba(201,162,74,.5)":"rgba(228,220,201,.78)"}`,borderRadius:18,overflow:"hidden",cursor:"pointer",marginTop:gap||14,boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",padding:0,minHeight:full?0:112,textDecoration:"none"};
   const d=BANNER_DIMS[img];
   // Modo "full": a própria arte já traz selo, título, subtítulo e seta — imagem cobre o card todo.
-  // O scale(1.06) come a moldura creme que cada arte traz desenhada (entre 13 e
-  // 89 px, medidos arte a arte) e o `overflow:hidden` do card apara o excesso.
-  // 6% ≈ 48 px de cada lado em 1600 px: tira a moldura sem encostar no conteúdo
-  // do painel — a seta mais à direita ainda tem ~82 px de folga. E opacidade
-  // cheia, para o creme do card não lavar a foto por baixo.
+  // O scale come a moldura creme que cada arte traz desenhada e o
+  // `overflow:hidden` do card apara o excesso.
+  //
+  // Por que 9% e não 6%: o corte é proporcional a CADA eixo. Com 6%, uma arte de
+  // 1600×533 perdia 48 px na horizontal mas só 16 px na vertical — justo onde o
+  // filete dourado está desenhado. Resultado: sobravam riscos dourados em cima e
+  // embaixo enquanto os cantos e as laterais eram cortados, e a curva não
+  // fechava. Com 9% são 72 px na horizontal e 24 px na vertical: o filete
+  // desenhado some de vez, e quem faz a moldura é a borda do card — que curva
+  // certo nos quatro cantos, porque é uma borda de CSS de verdade.
   const inner=full?(
-    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",transform:"scale(1.06)"}}/>
+    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",transform:"scale(1.09)"}}/>
   ):(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
