@@ -25,7 +25,7 @@ export default function PrivacidadePage(){
         <p style={p}>Para prestar esses serviços, podemos utilizar: <strong>WhatsApp (Meta)</strong> para comunicação; <strong>OpenStreetMap/Nominatim</strong> para converter o endereço do evento em coordenadas e calcular a distância; nossa <strong>plataforma de pedidos</strong> (totem.bentogelateria.com) quando você pede entrega própria ou retirada; e o <strong>iFood</strong> quando seu endereço fica fora da nossa área de entrega. <strong>Não vendemos</strong> seus dados pessoais a terceiros.</p>
 
         <h2 style={h2}>5. Como armazenamos</h2>
-        <p style={p}>Este site é estático e não mantém banco de dados próprio: as informações dos formulários são transmitidas à nossa equipe pelo WhatsApp. Preferências como "favoritos" ficam apenas no seu navegador (armazenamento local), não em nossos servidores.</p>
+        <p style={p}>Guardamos em nossos servidores os dados que você mesmo envia pelos formulários do site — nome, telefone, e-mail e, quando você pede orçamento de evento, CPF ou CNPJ e o endereço do evento. Usamos esses dados para responder ao seu pedido e executar o serviço contratado. Os formulários também chegam à nossa equipe por WhatsApp e por mensagem interna. Preferências como "favoritos" ficam apenas no seu navegador (armazenamento local), não em nossos servidores.</p>
 
         <h2 style={h2}>6. Seus direitos (LGPD)</h2>
         <p style={p}>Você pode solicitar, a qualquer momento, acesso, correção, exclusão ou portabilidade dos seus dados, bem como revogar consentimentos — basta escrever para <strong>bentogelateria@gmail.com</strong>. Atendemos conforme a Lei nº 13.709/2018 (LGPD).</p>
