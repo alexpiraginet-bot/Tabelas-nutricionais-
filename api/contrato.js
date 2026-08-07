@@ -89,6 +89,9 @@ function canonico(v) {
   return "{" + Object.keys(v).sort().map((k) => JSON.stringify(k) + ":" + canonico(v[k])).join(",") + "}";
 }
 const sha256 = (s) => crypto.createHash("sha256").update(s, "utf8").digest("hex");
+// Compara nomes sem se perder em acento, caixa ou espaço duplo.
+const normaliza = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase().replace(/\s+/g, " ").trim();
 
 // O snapshot é TUDO que o contrato afirma. Depois de gravado, não muda mais:
 // o valor não é recalculado na hora de exibir, é lido daqui.
@@ -226,6 +229,10 @@ export default async function handler(req, res) {
     await kvPipe([
       ["SET", "contrato:" + id, JSON.stringify(doc)],
       ["SET", "contrato:tok:" + doc.tokenHash, id],
+      // TTL no índice: vencido o prazo, o token deixa de LER o snapshot também.
+      // Sem isto, `expiraEm` só barrava a assinatura e os dados do cliente
+      // continuavam acessíveis por quem tivesse o link antigo.
+      ["EXPIRE", "contrato:tok:" + doc.tokenHash, VALIDADE_DIAS * 86400],
       ["LPUSH", "contratos", id],
       ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
       ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({
@@ -288,6 +295,7 @@ export default async function handler(req, res) {
         expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,   // o prazo reconta
       })],
       ["SET", "contrato:tok:" + sha256(token), id],
+      ["EXPIRE", "contrato:tok:" + sha256(token), VALIDADE_DIAS * 86400],
       ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({
         tipo: "novo-link", em: agora.toISOString(), ip: ip(req),
         nota: "link reemitido; o anterior deixou de valer",
@@ -393,6 +401,10 @@ export default async function handler(req, res) {
     if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
     const antigo = JSON.parse(doc);
     if (antigo.status === "assinado") { res.status(409).json({ ok: false, error: "Contrato assinado não pode ser alterado." }); return; }
+    // Partir de versão morta ressuscitaria texto antigo ou criaria dois ramos
+    // assináveis do mesmo contrato.
+    if (antigo.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão já foi substituída. Ajuste a versão atual." }); return; }
+    if (antigo.status === "importado") { res.status(409).json({ ok: false, error: "Contrato de histórico não é ajustável. Gere um novo pelo orçamento." }); return; }
 
     // Dinheiro e partes vêm SEMPRE do contrato anterior, nunca do que chegou no
     // corpo. Só pagamento e cláusulas podem mudar.
@@ -416,6 +428,7 @@ export default async function handler(req, res) {
     const cmds = [
       ["SET", "contrato:" + novoId, JSON.stringify(novo)],
       ["SET", "contrato:tok:" + novo.tokenHash, novoId],
+      ["EXPIRE", "contrato:tok:" + novo.tokenHash, VALIDADE_DIAS * 86400],
       ["LPUSH", "contratos", novoId],
       ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
       ["RPUSH", "contrato:" + novoId + ":eventos", JSON.stringify({
@@ -503,6 +516,14 @@ export default async function handler(req, res) {
 
     // Assinado é assinado: não se assina de novo, não se sobrescreve.
     if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Este contrato já foi assinado." }); return; }
+    // A tela diz ao cliente que o link "fica parado" enquanto o ajuste é
+    // analisado. Se a API deixasse assinar assim mesmo, seria promessa quebrada —
+    // e ele assinaria justamente o texto que contestou.
+    if (c.status === "ajuste-pedido") { res.status(409).json({ ok: false, error: "Você pediu um ajuste neste contrato. Nossa equipe está analisando e envia a versão nova." }); return; }
+    if (c.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão foi substituída. Peça o link atualizado à equipe." }); return; }
+    // O token que resolveu tem de ser o token ATUAL. Sem esta comparação, uma
+    // reemissão concorrente poderia deixar um link revogado ainda assinando.
+    if (sha256(token) !== c.tokenHash) { res.status(409).json({ ok: false, error: "Este link foi substituído. Peça o link atual à equipe." }); return; }
     if (Date.now() > c.expiraEm) { res.status(410).json({ ok: false, error: "Este link expirou. Peça um novo à equipe." }); return; }
 
     // Aceites separados: o do conteúdo e o da cláusula de cancelamento. Um "li e
@@ -536,12 +557,22 @@ export default async function handler(req, res) {
         origem: "informado pelo navegador",
       },
       hashAssinado: c.hash,
+      // Guardamos o nome ESPERADO junto do digitado. Exigir igualdade seria
+      // hostil (abreviação, nome de casada), mas a divergência precisa ser
+      // visível: é ela que levanta a pergunta certa numa disputa.
+      nomeEsperado: c.snapshot.nome || "",
+      nomeConfere: normaliza(nomeDigitado) === normaliza(c.snapshot.nome || ""),
     };
+    // Portão ATÔMICO contra assinatura simultânea: DEL devolve 1 só para quem
+    // chegou primeiro. Checar o status e depois gravar seria uma janela em que
+    // duas requisições passariam pelas duas leituras antes de qualquer escrita.
+    const portao = await kv(["DEL", "contrato:tok:" + c.tokenHash]);
+    if (Number(portao) !== 1) { res.status(409).json({ ok: false, error: "Este contrato acabou de ser assinado ou o link foi substituído." }); return; }
+
     const atualizado = { ...c, status: "assinado", assinadoEm: em, assinatura };
     await kvPipe([
       ["SET", "contrato:" + id, JSON.stringify(atualizado)],
       ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "assinatura", ...assinatura })],
-      ["DEL", "contrato:tok:" + c.tokenHash],   // link de uso único: assinou, queima
     ]);
     res.status(200).json({ ok: true, assinadoEm: em, hash: c.hash });
     return;

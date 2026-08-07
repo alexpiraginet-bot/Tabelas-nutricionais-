@@ -1672,7 +1672,9 @@ async function ctDossie(id){
     alvo.innerHTML = '<div style="margin-top:9px;border-top:1px solid var(--line);padding-top:9px" class="mono" style="font-size:10.5px">'+
       '<div style="font-size:10.5px;color:var(--soft);line-height:1.8">'+
       'hash completo: <span style="color:var(--ink);word-break:break-all">'+ctEsc(j.contrato.hash)+'</span><br>'+
-      (a ? ('assinou como: <span style="color:var(--ink)">'+ctEsc(a.nomeDigitado)+'</span><br>'+
+      (a ? ('assinou como: <span style="color:var(--ink)">'+ctEsc(a.nomeDigitado)+'</span>'
+            + (a.nomeConfere===false ? ' <span style="color:#e8c877">— DIFERENTE do contratante do contrato ('+ctEsc(a.nomeEsperado||'—')+')</span>' : '')
+            + '<br>'+
             'em: '+ctData(a.em)+' (hora do servidor)<br>'+
             'IP: '+ctEsc(a.ip||"—")+'<br>'+
             'navegador: '+ctEsc(String(a.ua||"").slice(0,90))+'<br>'+
