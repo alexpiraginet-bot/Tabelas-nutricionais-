@@ -13,6 +13,50 @@ export default function ContratoPage({data:d,somenteLeitura}){
   const[desc,setDesc]=useState(Math.max(0,Number(d.desconto)||0));
   const[motivo,setMotivo]=useState(d.descMotivo||"Desconto comercial");
   const descV=Math.min(subtotal,Math.max(0,Number(desc)||0));
+  // ---- Transformar em contrato assinável, sem sair desta tela ----
+  // A equipe já está com o documento na frente; mandá-la ao painel para redigitar
+  // seria o mesmo erro do formulário manual. O que vai para o registro é o que
+  // está NA TELA: o desconto editado aqui e o texto de pagamento, se foi mexido.
+  const[reg,setReg]=useState(null);      // {link,hash} depois de registrar
+  const[regErro,setRegErro]=useState("");
+  const[regBusy,setRegBusy]=useState(false);
+  const registrar=async()=>{
+    setRegErro("");
+    // Um contrato sem qualificação do contratante não identifica quem assina —
+    // e o link do orçamento é montado ANTES de o cliente informar nome e CPF.
+    // Recusar aqui é o que impede o contrato de nascer sem parte.
+    const falta=[];
+    if(!String(d.nome||"").trim()) falta.push("nome do contratante");
+    if(!String(d.doc||"").trim()) falta.push("CPF ou CNPJ");
+    if(falta.length){
+      setRegErro("Falta "+falta.join(" e ")+". Este link veio da etapa de orçamento, antes de o cliente se identificar — peça os dados e gere o contrato pelo painel, na aba Contratos.");
+      return;
+    }
+    let chave="";
+    try{ chave=localStorage.getItem("bento:panelkey")||""; }catch{/* */}
+    if(!chave){ chave=window.prompt("Senha do painel para registrar o contrato:")||""; if(!chave) return;
+      try{ localStorage.setItem("bento:panelkey",chave); }catch{/* */} }
+    setRegBusy(true);
+    try{
+      // pagamento: só vai se a equipe REALMENTE mexeu no texto padrão
+      let pagamento="";
+      try{
+        const el=document.querySelector('[data-campo="pagamento"]');
+        const t=el?el.textContent.trim():"";
+        if(t&&!t.startsWith("50% (cinquenta por cento)")) pagamento=t;
+      }catch{/* */}
+      const r=await fetch("/api/contrato",{method:"POST",
+        headers:{"Content-Type":"application/json",Authorization:"Bearer "+chave},
+        body:JSON.stringify({acao:"criar",
+          nome:d.nome,doc:d.doc,email:d.email,zap:d.zap,empresa:d.empresa,
+          data:d.data,horario:d.hora,local:d.local,convidados:d.convidados,
+          subtotal, desconto:descV, descMotivo:motivo, observacoes:d.obs, pagamento})});
+      const j=await r.json();
+      setRegBusy(false);
+      if(!j.ok){ setRegErro(j.error||"Não consegui registrar."); return; }
+      setReg({link:location.origin+"/?assinar="+encodeURIComponent(j.token),hash:j.hash});
+    }catch(e){ setRegBusy(false); setRegErro("Falha: "+(e&&e.message?e.message:"rede")); }
+  };
   const total=Math.max(0,subtotal-descV);
   const entrada=Math.round(total/2), saldo=total-entrada;   // sinal 50% + saldo 50%
   // Pix (filial) — chave = CNPJ. Gera um "Pix Copia e Cola" (BR Code EMV) estático, sem valor.
@@ -40,10 +84,10 @@ export default function ContratoPage({data:d,somenteLeitura}){
     catch{ const t=document.createElement("textarea");t.value=txt;t.style.position="fixed";t.style.opacity="0";document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch{}document.body.removeChild(t); }
     alert(label+" copiado! ✅");
   };
-  const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
+  const Ed=({children,block,campo})=>( // campo editável pela equipe antes de imprimir
     somenteLeitura
       ? <span style={{display:block?"block":"inline"}}>{children}</span>
-      : <span contentEditable suppressContentEditableWarning spellCheck={false}
+      : <span contentEditable suppressContentEditableWarning spellCheck={false} data-campo={campo}
       style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
       className="ed">{children}</span>
   );
@@ -115,6 +159,34 @@ export default function ContratoPage({data:d,somenteLeitura}){
         <button onClick={enviarControle} style={{background:"#3A4528",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#F1ECDD",cursor:"pointer"}}>🏭 Enviar p/ Controle Indústria</button>
         <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
         <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · campos amarelos editáveis. <strong>Fluxo de assinatura:</strong> a Bentô assina primeiro (conferência) e, em seguida, o cliente. Modelo automático — recomendamos validação jurídica.</span>
+        {/* Registrar daqui mesmo: a equipe já está com o documento na frente, e
+            mandá-la ao painel para redigitar seria o erro que já cometemos uma vez.
+            O que sobe é o que está na tela — desconto e pagamento inclusive. */}
+        {!somenteLeitura&&!reg&&(
+          <div style={{flexBasis:"100%",marginTop:4}}>
+            <button onClick={registrar} disabled={regBusy}
+              style={{background:"#3A4528",color:"#F1ECDD",border:"1px solid #6E7F53",borderRadius:6,padding:"12px 20px",fontSize:14,fontWeight:700,cursor:regBusy?"wait":"pointer"}}>
+              {regBusy?"Registrando…":"✍️ Transformar em contrato para assinar"}
+            </button>
+            <div style={{color:"#D9D2BD",fontSize:11,marginTop:6,lineHeight:1.6,maxWidth:620}}>
+              Grava o contrato com o texto congelado e devolve o link de assinatura do cliente.
+              Vai o que está nesta tela, incluindo o desconto e a cláusula de pagamento se você editou.
+              Os demais campos amarelos servem só para a versão impressa.
+            </div>
+            {regErro&&<div role="alert" style={{color:"#F0C9C9",fontSize:12.5,marginTop:8,lineHeight:1.55,maxWidth:620}}>{regErro}</div>}
+          </div>
+        )}
+        {reg&&(
+          <div style={{flexBasis:"100%",marginTop:6,border:"1px solid #6E7F53",borderRadius:8,padding:"12px 14px",background:"#2A331E"}}>
+            <div style={{color:"#F1ECDD",fontSize:13,fontWeight:700,marginBottom:6}}>Contrato registrado — envie este link ao cliente</div>
+            <div style={{color:"#C7D6A8",fontSize:12,wordBreak:"break-all",lineHeight:1.6,fontFamily:"'JetBrains Mono',ui-monospace,monospace"}}>{reg.link}</div>
+            <button onClick={()=>copyTxt(reg.link,"Link de assinatura")}
+              style={{marginTop:9,background:"#C9A86A",border:"none",borderRadius:6,padding:"9px 15px",fontSize:12.5,fontWeight:700,cursor:"pointer"}}>Copiar link</button>
+            <div style={{color:"#9FB07E",fontSize:10.5,marginTop:7,lineHeight:1.6}}>
+              Aparece uma única vez. hash {String(reg.hash).slice(0,24)}…
+            </div>
+          </div>
+        )}
       </div>
       <div className="ct-wrap"><div className="ct-sheet">
         <div style={{textAlign:"center",borderBottom:"2px solid #1a1a1a",paddingBottom:14}}>
@@ -166,7 +238,7 @@ export default function ContratoPage({data:d,somenteLeitura}){
               ele manda, e a tabela de sinal/saldo some junto. */}
           {d.pagamento
             ? <div style={{whiteSpace:"pre-wrap"}}>{d.pagamento}</div>
-            : <Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante (os 50% remanescentes) até 7 (sete) dias antes da data do evento. Pagamentos via Pix ou transferência bancária, conforme os dados abaixo.</Ed>}
+            : <Ed block campo="pagamento">50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante (os 50% remanescentes) até 7 (sete) dias antes da data do evento. Pagamentos via Pix ou transferência bancária, conforme os dados abaixo.</Ed>}
           {!d.pagamento&&<table style={{width:"100%",borderCollapse:"collapse",marginTop:8,fontSize:11}}>
             <tbody>
               <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Entrada (sinal · 50%) — na assinatura</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(entrada)}</td></tr>

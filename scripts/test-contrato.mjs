@@ -148,4 +148,33 @@ ok(r2.status===401, 'ia-propor sem senha -> 401');
 r2 = await chamar({method:'POST', body:{acao:'aplicar-ajuste', id:id3, pagamento:'x'}});
 ok(r2.status===401, 'aplicar-ajuste sem senha -> 401');
 
+
+// ---------- reemitir o link ----------
+console.log('\n--- reemitir link de assinatura ---');
+let r3 = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'V.M. Comercio', doc:'11.222.333/0001-44', subtotal:2000, data:'20/08/2026'}});
+const idR = r3.body.id, tokR = r3.body.token, hashR = r3.body.hash;
+
+r3 = await chamar({method:'POST', body:{acao:'novo-link', id:idR}});
+ok(r3.status===401, 'reemitir sem senha -> 401');
+
+r3 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:idR}});
+ok(r3.status===200 && r3.body.token && r3.body.token!==tokR, 'reemite um token NOVO');
+ok(r3.body.hash===hashR, 'hash continua o MESMO (documento não mudou)');
+const tokNovo = r3.body.token;
+
+r3 = await chamar({query:{t:tokR}});
+ok(r3.status===404, 'link antigo morreu na hora');
+r3 = await chamar({query:{t:tokNovo}});
+ok(r3.status===200 && r3.body.hash===hashR, 'link novo abre o mesmo contrato');
+
+r3 = await chamar({query:{id:idR}, auth:'senha-de-teste'});
+ok(r3.body.eventos.some(e=>e.tipo==='novo-link'), 'reemissão fica registrada na cadeia');
+
+// assinado nao reemite
+await chamar({method:'POST', body:{acao:'assinar', token:tokNovo, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Fulano Teste', hashVisto:hashR}});
+r3 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:idR}});
+ok(r3.status===409, 'contrato assinado não reemite link');
+
 srvKV.close();
