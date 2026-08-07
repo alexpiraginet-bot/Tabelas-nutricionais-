@@ -174,17 +174,13 @@ async function derivar(antigo, docAntigoRaw, ajustes, req) {
   // UMA versão assinável por vez, também no histórico. Sem isto, dois cliques em
   // "gerar versão assinável" — ou um link seguido de um ajuste — deixavam dois
   // textos diferentes válidos ao mesmo tempo, cada um com o seu link, e nada
-  // dizendo qual valia. Antes de criar a próxima, a anterior é encerrada.
+  // dizendo qual valia. A versão vigente é lida aqui e encerrada DENTRO da mesma
+  // transição: encerrar por fora abria a janela em que ela era assinada no meio.
   let vigente = null, vigenteRaw = null;
   if (historico && antigo.derivadoVigente) {
     vigenteRaw = await kv(["GET", "contrato:" + antigo.derivadoVigente]);
     vigente = leJson(vigenteRaw);
-    const assinadaKV = await kv(["GET", chaveAssinatura(antigo.derivadoVigente)]);
-    if (vigente && (vigente.status === "assinado" || assinadaKV)) {
-      // Encerrar uma versão JÁ ASSINADA para pôr outra no lugar seria apagar o
-      // contrato válido. Quem decide o que fazer com isso é gente.
-      return { conflito: "A versão gerada antes a partir deste histórico já foi assinada pelo cliente — é ela que vale. Para mudar algo, trate a partir dela." };
-    }
+    if (!vigente) vigenteRaw = null;
   }
 
   const token = crypto.randomBytes(32).toString("base64url");
@@ -201,12 +197,30 @@ async function derivar(antigo, docAntigoRaw, ajustes, req) {
   if (historico) novo.derivadoDe = antigo.id;
   else novo.substitui = antigo.id;
 
-  // PASSO 1 — o documento novo nasce SEM índice de token: existe, mas ninguém
-  // consegue abrir. Se o passo 2 falhar, sobra um contrato inerte, e não um
-  // contrato assinável solto que ninguém sabe que existe.
-  await kvPipe([
-    ["SET", "contrato:" + novo.id, JSON.stringify(novo)],
-    ["LPUSH", "contratos", novo.id],
+  const origemAtualizada = historico
+    ? { ...antigo, derivadoVigente: novo.id, derivados: [...(antigo.derivados || []), novo.id] }
+    : { ...antigo, status: "substituido", substituidoPor: novo.id };
+
+  const r = Number(await kv(["EVAL", LUA_DERIVA, 9,
+    "contrato:" + antigo.id, chaveAssinatura(antigo.id), chaveTok(antigo.tokenHash),
+    "contrato:" + novo.id, chaveTok(novo.tokenHash),
+    vigente ? "contrato:" + vigente.id : SEM_CHAVE,
+    vigente ? chaveAssinatura(vigente.id) : SEM_CHAVE,
+    vigente ? chaveTok(vigente.tokenHash) : SEM_CHAVE,
+    "contratos",
+    docAntigoRaw, JSON.stringify(origemAtualizada), JSON.stringify(novo), novo.id,
+    vigenteRaw || "",
+    vigente ? JSON.stringify({ ...vigente, status: "substituido", substituidoPor: novo.id }) : "",
+    String(VALIDADE_DIAS * 86400),
+  ]));
+  if (r === -2) return { conflito: "Este contrato já foi assinado — não dá para gerar outra versão a partir dele." };
+  if (r === -1) return { conflito: "A versão gerada antes a partir deste histórico já foi assinada pelo cliente — é ela que vale. Para mudar algo, trate a partir dela." };
+  if (r !== 1) return { conflito: CONFLITO.error };
+
+  // Fora da transição, e pode ser: isto é TRILHA, não estado. O corte da lista e
+  // a cadeia de eventos falhando não desfazem nem contradizem nada do que acima
+  // já ficou consistente.
+  const trilha = [
     ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
     ["RPUSH", "contrato:" + novo.id + ":eventos", JSON.stringify({
       tipo: "criacao", em, ip: ip(req), hash: novo.hash,
@@ -214,54 +228,14 @@ async function derivar(antigo, docAntigoRaw, ajustes, req) {
         ? "versão assinável gerada a partir do contrato de histórico " + antigo.id
         : "versão " + novo.versao + ", substitui " + antigo.id,
     })],
-  ]);
-
-  const desfazPasso1 = () => kvPipe([
-    ["DEL", "contrato:" + novo.id],
-    ["LREM", "contratos", 0, novo.id],
-    ["DEL", "contrato:" + novo.id + ":eventos"],
-  ]).catch(() => {});
-
-  // PASSO 2 — encerra a versão vigente do histórico, atomicamente. A checagem lá
-  // em cima é só para dar erro cedo e com o motivo certo; a garantia é esta: o
-  // script só encerra se a versão continuar como foi lida E ninguém a tiver
-  // assinado. Sem isso, uma assinatura que chegasse entre a checagem e a
-  // gravação seria marcada como "substituída" e teria o link queimado.
-  if (vigente && vigenteRaw) {
-    const r = await encerraSe(vigente, vigenteRaw, { ...vigente, status: "substituido", substituidoPor: novo.id });
-    if (r !== 1) {
-      await desfazPasso1();
-      return { conflito: r === -1
-        ? "A versão gerada antes a partir deste histórico acabou de ser assinada pelo cliente — é ela que vale."
-        : CONFLITO.error };
-    }
-    await kv(["RPUSH", "contrato:" + vigente.id + ":eventos", JSON.stringify({ tipo: "substituicao", em, porContrato: novo.id })]).catch(() => {});
-  }
-
-  // PASSO 3 — CAS no contrato de origem. Se ele mudou entre a leitura e agora,
-  // esta ação perde a corrida e nada do que ela faria vale.
-  const origemAtualizada = historico
-    ? { ...antigo, derivadoVigente: novo.id, derivados: [...(antigo.derivados || []), novo.id] }
-    : { ...antigo, status: "substituido", substituidoPor: novo.id };
-  if (!await trocaSe(antigo.id, docAntigoRaw, origemAtualizada)) {
-    // desfaz o passo 1 — o token nunca chegou a existir, então nada era alcançável.
-    // Se o passo 2 tinha encerrado a vigente, reabre: ela era a versão boa.
-    await desfazPasso1();
-    if (vigente && vigenteRaw) await kv(["SET", "contrato:" + vigente.id, vigenteRaw]).catch(() => {});
-    return { conflito: CONFLITO.error };
-  }
-
-  // PASSO 4 — só agora o link passa a existir, e o anterior morre.
-  const cmds = [
-    ["SET", "contrato:tok:" + novo.tokenHash, novo.id],
-    ["EXPIRE", "contrato:tok:" + novo.tokenHash, VALIDADE_DIAS * 86400],
     ["RPUSH", "contrato:" + antigo.id + ":eventos", JSON.stringify(historico
       ? { tipo: "derivacao", em, paraContrato: novo.id,
           nota: "gerada versão assinável; este registro de histórico permanece inalterado" }
       : { tipo: "substituicao", em, porContrato: novo.id })],
   ];
-  if (antigo.tokenHash) cmds.push(["DEL", "contrato:tok:" + antigo.tokenHash]);
-  await kvPipe(cmds);
+  if (vigente) trilha.push(["RPUSH", "contrato:" + vigente.id + ":eventos",
+    JSON.stringify({ tipo: "substituicao", em, porContrato: novo.id })]);
+  await kvPipe(trilha).catch(() => {});
   return { novo, token, historico };
 }
 
@@ -287,42 +261,72 @@ function hidrata(c, assinaturaKV, contratadaKV) {
   return c;
 }
 
-// Compare-and-set: grava só se o documento continuar EXATAMENTE como foi lido.
-// Toda ação do painel é ler-alterar-gravar, e entre a leitura e a gravação cabe
-// a assinatura do cliente. Sem esta trava, reemitir um link no instante errado
-// gravava a cópia velha por cima e o contrato "desassinava". Agora a ação do
-// painel é que perde a corrida, com erro na cara de quem clicou.
-const LUA_CAS = "if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('SET', KEYS[1], ARGV[2]) return 1 else return 0 end";
-async function trocaSe(id, anterior, novo) {
-  const r = await kv(["EVAL", LUA_CAS, 1, "contrato:" + id, anterior, JSON.stringify(novo)]);
-  return Number(r) === 1;
-}
-
-// ASSINAR é uma operação só, e tem de ser. Enquanto a assinatura gravava numa
-// chave e o documento noutra, as duas gravações eram atômicas separadamente e
-// se cruzavam mesmo assim: o painel trocava o documento no meio, e a assinatura
-// gravava a cópia velha por cima logo depois — devolvendo o token antigo ou
-// deixando a origem assinada e uma versão nova publicada ao mesmo tempo.
+// TRANSIÇÕES ATÔMICAS
 //
-// Aqui vai tudo junto, sob a mesma trava do Redis: confere que o documento não
-// mudou, confere que ninguém assinou antes, grava a assinatura, grava o
-// documento e queima o link. Assim assinatura e ações do painel disputam O
-// MESMO estado — quem chega depois perde, e perde sabendo.
-//   1 = assinou · 0 = o documento mudou no caminho · -1 = já estava assinado
-const LUA_ASSINA = "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end "
-  + "if redis.call('EXISTS',KEYS[2])==1 then return -1 end "
-  + "redis.call('SET',KEYS[2],ARGV[3]) redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3]) return 1";
-// Mesma ideia para ENCERRAR uma versão: só encerra se ela continuar como foi
-// lida e se ninguém a tiver assinado. É o que impede marcar como "substituída"
-// uma versão que o cliente acabou de assinar.
-const LUA_ENCERRA = "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end "
-  + "if redis.call('EXISTS',KEYS[2])==1 then return -1 end "
-  + "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3]) return 1";
+// Toda ação aqui é ler-alterar-gravar, e entre a leitura e a gravação cabe a
+// assinatura do cliente. Enquanto cada gravação era atômica SOZINHA, elas se
+// cruzavam mesmo assim: o painel trocava o documento, a assinatura gravava a
+// cópia velha por cima logo depois, e o resultado era um contrato assinado
+// apontando para um link morto — ou uma versão encerrada que alguém já tinha
+// assinado. Duas operações atômicas separadas não fazem uma transição atômica.
+//
+// Por isso cada mudança de estado vai num script só, sob a mesma trava do Redis.
+// Todos seguem a mesma forma: primeiro "alguém já assinou?" (a resposta mais
+// importante e a que rende a mensagem certa), depois "o documento continua como
+// eu li?", e só então grava tudo o que a transição implica.
+//   1 = feito · 0 = mudou no caminho · -1 = já assinado · -2 = a origem já assinada
+const SEM_CHAVE = "contrato:-nenhuma-";
 const chaveTok = (h) => "contrato:tok:" + (h || "-sem-token-");
-async function encerraSe(c, bruto, novoDoc) {
-  const r = await kv(["EVAL", LUA_ENCERRA, 3,
-    "contrato:" + c.id, chaveAssinatura(c.id), chaveTok(c.tokenHash),
-    bruto, JSON.stringify(novoDoc)]);
+
+// pedir-ajuste: só mexe em status e no pedido registrado.
+const LUA_CAS = [
+  "-- cas",
+  "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
+  "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
+  "redis.call('SET',KEYS[1],ARGV[2]) return 1",
+].join(" ");
+
+// assinar: assinatura, documento e queima do link, indivisíveis.
+const LUA_ASSINA = [
+  "-- assina",
+  "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
+  "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
+  "redis.call('SET',KEYS[2],ARGV[3]) redis.call('SET',KEYS[1],ARGV[2])",
+  "redis.call('DEL',KEYS[3]) return 1",
+].join(" ");
+
+// novo-link: o link novo nasce e o anterior morre no mesmo instante. Separado,
+// uma falha no meio deixava o contrato com um tokenHash sem índice — sem link.
+const LUA_RELINK = [
+  "-- relink",
+  "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
+  "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
+  "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3])",
+  "redis.call('SET',KEYS[4],ARGV[3]) redis.call('EXPIRE',KEYS[4],tonumber(ARGV[4])) return 1",
+].join(" ");
+
+// derivar: a transição inteira — encerra a versão vigente, atualiza a origem,
+// cria o contrato novo e publica o link dele. Em passos separados isto precisava
+// de rollback, e rollback por SET incondicional atropela quem chegou no meio:
+// reabrir uma versão encerrada podia deixar dois textos assináveis vivos.
+const LUA_DERIVA = [
+  "-- deriva",
+  "if redis.call('EXISTS',KEYS[2])==1 then return -2 end",
+  "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
+  "if ARGV[5]~='' then",
+  "  if redis.call('EXISTS',KEYS[7])==1 then return -1 end",
+  "  if redis.call('GET',KEYS[6])~=ARGV[5] then return 0 end",
+  "  redis.call('SET',KEYS[6],ARGV[6]) redis.call('DEL',KEYS[8])",
+  "end",
+  "redis.call('SET',KEYS[4],ARGV[3])",
+  "redis.call('SET',KEYS[5],ARGV[4]) redis.call('EXPIRE',KEYS[5],tonumber(ARGV[7]))",
+  "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3])",
+  "redis.call('LPUSH',KEYS[9],ARGV[4]) return 1",
+].join(" ");
+
+async function trocaSe(id, anterior, novo) {
+  const r = await kv(["EVAL", LUA_CAS, 2, "contrato:" + id, chaveAssinatura(id),
+                      anterior, JSON.stringify(novo)]);
   return Number(r);
 }
 const CONFLITO = { ok: false, error: "Este contrato mudou enquanto você trabalhava nele — o cliente pode ter assinado ou pedido ajuste. Recarregue a lista e confira antes de repetir." };
@@ -462,10 +466,9 @@ export default async function handler(req, res) {
     if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Este contrato já foi assinado." }); return; }
     const em = new Date().toISOString();
     // CAS: se o contrato mudou entre a leitura e aqui, não grava por cima.
-    if (!await trocaSe(id, doc, { ...c, status: "ajuste-pedido", ajustePedido: { em, pedido } })) {
-      res.status(409).json({ ok: false, error: "Este contrato acabou de mudar. Recarregue a página." });
-      return;
-    }
+    const t = await trocaSe(id, doc, { ...c, status: "ajuste-pedido", ajustePedido: { em, pedido } });
+    if (t === -1) { res.status(409).json({ ok: false, error: "Este contrato já foi assinado." }); return; }
+    if (t !== 1) { res.status(409).json({ ok: false, error: "Este contrato acabou de mudar. Recarregue a página." }); return; }
     await kv(["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "pedido-ajuste", em, pedido, ip: ip(req), ua: ua(req) })]).catch(() => {});
     res.status(200).json({ ok: true, em });
     return;
@@ -501,22 +504,22 @@ export default async function handler(req, res) {
 
     const token = crypto.randomBytes(32).toString("base64url");
     const agora = new Date();
-    // O documento vai primeiro e por CAS: se o cliente assinou entre a leitura e
-    // agora, a reemissão perde a corrida — e não apaga a assinatura dele.
-    if (!await trocaSe(id, doc, {
-      ...c, tokenHash: sha256(token),
-      expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,   // o prazo reconta
-    })) { res.status(409).json(CONFLITO); return; }
-    const cmds = [
-      ["SET", "contrato:tok:" + sha256(token), id],
-      ["EXPIRE", "contrato:tok:" + sha256(token), VALIDADE_DIAS * 86400],
-      ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({
-        tipo: "novo-link", em: agora.toISOString(), ip: ip(req),
-        nota: "link reemitido; o anterior deixou de valer",
-      })],
-    ];
-    if (c.tokenHash) cmds.push(["DEL", "contrato:tok:" + c.tokenHash]);
-    await kvPipe(cmds);
+    // Documento, morte do link antigo e nascimento do novo, tudo junto: se o
+    // cliente assinou entre a leitura e agora, a reemissão perde a corrida e não
+    // encosta na assinatura dele. E não sobra o meio-termo em que o contrato
+    // ficava com um tokenHash sem índice — ou seja, sem link nenhum.
+    const rl = Number(await kv(["EVAL", LUA_RELINK, 4,
+      "contrato:" + id, chaveAssinatura(id), chaveTok(c.tokenHash), chaveTok(sha256(token)),
+      doc,
+      JSON.stringify({ ...c, tokenHash: sha256(token),
+                       expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000 }),   // o prazo reconta
+      id, String(VALIDADE_DIAS * 86400)]));
+    if (rl === -1) { res.status(409).json({ ok: false, error: "Este contrato já foi assinado — não precisa de link." }); return; }
+    if (rl !== 1) { res.status(409).json(CONFLITO); return; }
+    await kv(["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({
+      tipo: "novo-link", em: agora.toISOString(), ip: ip(req),
+      nota: "link reemitido; o anterior deixou de valer",
+    })]).catch(() => {});
     res.status(200).json({ ok: true, token, hash: c.hash });
     return;
   }

@@ -17,22 +17,43 @@ const srvKV = http.createServer((req,res)=>{
         case 'LREM': { const l=lists.get(a[0])||[]; const n=l.length; lists.set(a[0], l.filter(x=>x!==a[2])); return n-(lists.get(a[0]).length); }
         // EVAL: o único script usado é o compare-and-set. Emular a semântica dele
         // basta; interpretar Lua aqui seria trocar um teste por outro programa.
-        // EVAL: emula a semântica dos três scripts usados. Interpretar Lua aqui
-        // seria trocar um teste por outro programa.
+        // EVAL: emula a semântica dos quatro scripts. Interpretar Lua aqui seria
+        // trocar um teste por outro programa; cada script se identifica pelo
+        // comentário inicial (o Redis ignora, e aqui serve de rótulo).
         case 'EVAL': {
           const script = cmd[1], nk = Number(cmd[2]);
-          const keys = cmd.slice(3, 3 + nk), argv = cmd.slice(3 + nk);
-          if (nk === 1) {                                   // LUA_CAS
-            if (db.get(keys[0]) !== argv[0]) return 0;
-            db.set(keys[0], argv[1]); return 1;
+          const K = cmd.slice(3, 3 + nk), A = cmd.slice(3 + nk);
+          const qual = (script.match(/^-- (\w+)/) || [])[1];
+          if (qual === 'cas') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[0], A[1]); return 1;
           }
-          // LUA_ASSINA e LUA_ENCERRA: [doc, assinatura, token]
-          if (db.get(keys[0]) !== argv[0]) return 0;
-          if (db.has(keys[1])) return -1;
-          if (/ARGV\[3\]/.test(script)) db.set(keys[1], argv[2]);   // só o LUA_ASSINA grava
-          db.set(keys[0], argv[1]);
-          db.delete(keys[2]);
-          return 1;
+          if (qual === 'assina') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[1], A[2]); db.set(K[0], A[1]); db.delete(K[2]); return 1;
+          }
+          if (qual === 'relink') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[0], A[1]); db.delete(K[2]); db.set(K[3], A[2]); return 1;
+          }
+          if (qual === 'deriva') {
+            if (db.has(K[1])) return -2;
+            if (db.get(K[0]) !== A[0]) return 0;
+            if (A[4] !== '') {
+              if (db.has(K[6])) return -1;
+              if (db.get(K[5]) !== A[4]) return 0;
+              db.set(K[5], A[5]); db.delete(K[7]);
+            }
+            db.set(K[3], A[2]);
+            db.set(K[4], A[3]);
+            db.set(K[0], A[1]); db.delete(K[2]);
+            const l = lists.get(K[8]) || []; l.unshift(A[3]); lists.set(K[8], l);
+            return 1;
+          }
+          return null;
         }
         default: return null;
       }
@@ -516,5 +537,27 @@ ok(vi.body.snapshot.total===5000 && vi.body.snapshot.nome==='Cliente Certo'
    'valor, nome, documento e data do corpo continuam sendo IGNORADOS');
 ok(/R\$ 1,00/.test(vi.body.snapshot.clausulas[0].texto),
    'texto de cláusula é livre (por isso o painel avisa quando menciona valor)');
+
+// A classificação dos códigos precisa CHEGAR ao operador. Com o documento
+// desatualizado (gravação parcial), a checagem de status não vê a assinatura —
+// quem vê é o script, e ele tem de dizer "já foi assinado", não "mudou".
+console.log('\n--- o script é a última palavra, não o status lido ---');
+let cd = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Sofia Braga', doc:'529.982.247-25', subtotal:1500}});
+const cdId = cd.body.id, cdAntes = db.get('contrato:'+cdId);
+await chamar({method:'POST', body:{acao:'assinar', token:cd.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Sofia Braga', hashVisto:cd.body.hash}});
+db.set('contrato:'+cdId, cdAntes);                       // documento ficou para trás
+cd = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:cdId}});
+ok(cd.status===409 && /já foi assinado/.test(cd.body.error||''),
+   'reemitir link: o script vê a assinatura e diz o motivo certo');
+db.set('contrato:'+cdId, cdAntes);
+cd = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:cdId,
+  pagamento:'Tentativa de mexer em contrato assinado.'}});
+ok(cd.status===409 && /já foi assinado/.test(cd.body.error||''),
+   'derivar: contrato assinado não vira versão nova, mesmo com o documento velho');
+cd = await chamar({query:{id:cdId}, auth:'senha-de-teste'});
+ok(cd.body.contrato.status==='assinado' && cd.body.contrato.assinatura.nomeDigitado==='Sofia Braga',
+   'e a assinatura seguiu intacta o tempo todo');
 
 srvKV.close();
