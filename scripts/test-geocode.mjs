@@ -8,19 +8,30 @@ const EV_ROTA = 1.3;
 globalThis.sessionStorage = { _d:{}, getItem(k){return this._d[k]||null;}, setItem(k,v){this._d[k]=v;} };
 
 let ultimaURL = '';
+let URLS = [];
 let RESPOSTA = [];
-globalThis.fetch = async (u) => { ultimaURL = u; return { ok:true, json: async()=>RESPOSTA }; };
+globalThis.fetch = async (u) => { ultimaURL = u; URLS.push(u); return { ok:true, json: async()=>RESPOSTA }; };
 
 const mod = new Function('LOJAS','EV_ROTA', haver + bloco + '\nreturn { evGeocode };')(LOJAS, EV_ROTA);
 const ok=(c,m)=>console.log((c?'PASS':'FALHA')+' · '+m);
 
 // 1. a URL agora restringe ao ES
+// Confere a PRIMEIRA busca, não a última: sem resultado no ES, o código faz uma
+// segunda busca ampla no Brasil só para descobrir em que estado o endereço fica.
+// Olhando `ultimaURL`, o teste inspecionava justamente a busca que NÃO é
+// limitada — e acusava falha num comportamento correto.
 RESPOSTA = [];
+URLS = [];
 await mod.evGeocode('Rua qualquer');
-ok(/bounded=1/.test(ultimaURL), 'busca é limitada (bounded=1)');
-ok(/viewbox=-41\.95/.test(ultimaURL), 'caixa do Espírito Santo aplicada');
-ok(/limit=5/.test(ultimaURL), 'pede 5 candidatos, não 1');
-ok(/addressdetails=1/.test(ultimaURL), 'pede detalhes do endereço para conferir o estado');
+const primeira = URLS[0] || '';
+ok(/bounded=1/.test(primeira), 'busca é limitada (bounded=1)');
+ok(/viewbox=-41\.95/.test(primeira), 'caixa do Espírito Santo aplicada');
+ok(/limit=5/.test(primeira), 'pede 5 candidatos, não 1');
+ok(/addressdetails=1/.test(primeira), 'pede detalhes do endereço para conferir o estado');
+ok(URLS.length===3 && URLS.slice(0,2).every(u=>/bounded=1/.test(u)) && !/bounded=1/.test(URLS[2]),
+   'duas tentativas presas ao ES e, só então, UMA busca ampla para descobrir o estado');
+ok(/Esp/.test(decodeURIComponent(URLS[1])),
+   'a segunda tentativa acrescenta "Espírito Santo" ao endereço');
 
 // 2. resultado FORA do ES é descartado
 RESPOSTA = [{lat:"-3.10",lon:"-60.02",display_name:"Rua das Flores, Manaus - AM",address:{state:"Amazonas","ISO3166-2-lvl4":"BR-AM"}}];

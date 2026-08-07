@@ -7,12 +7,54 @@ const srvKV = http.createServer((req,res)=>{
       const [op,...a]=cmd;
       switch(String(op).toUpperCase()){
         case 'SET': db.set(a[0],a[1]); return 'OK';
+        case 'SETNX': if(db.has(a[0])) return 0; db.set(a[0],a[1]); return 1;
         case 'GET': return db.has(a[0])?db.get(a[0]):null;
         case 'DEL': db.delete(a[0]); return 1;
         case 'LPUSH': { const l=lists.get(a[0])||[]; l.unshift(a[1]); lists.set(a[0],l); return l.length; }
         case 'RPUSH': { const l=lists.get(a[0])||[]; l.push(a[1]); lists.set(a[0],l); return l.length; }
         case 'LTRIM': { const l=lists.get(a[0])||[]; lists.set(a[0],l.slice(a[1],a[2]+1)); return 'OK'; }
         case 'LRANGE': { const l=lists.get(a[0])||[]; return l.slice(a[1], a[2]===-1?undefined:a[2]+1); }
+        case 'LREM': { const l=lists.get(a[0])||[]; const n=l.length; lists.set(a[0], l.filter(x=>x!==a[2])); return n-(lists.get(a[0]).length); }
+        // EVAL: o único script usado é o compare-and-set. Emular a semântica dele
+        // basta; interpretar Lua aqui seria trocar um teste por outro programa.
+        // EVAL: emula a semântica dos quatro scripts. Interpretar Lua aqui seria
+        // trocar um teste por outro programa; cada script se identifica pelo
+        // comentário inicial (o Redis ignora, e aqui serve de rótulo).
+        case 'EVAL': {
+          const script = cmd[1], nk = Number(cmd[2]);
+          const K = cmd.slice(3, 3 + nk), A = cmd.slice(3 + nk);
+          const qual = (script.match(/^-- (\w+)/) || [])[1];
+          if (qual === 'cas') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[0], A[1]); return 1;
+          }
+          if (qual === 'assina') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[1], A[2]); db.set(K[0], A[1]); db.delete(K[2]); return 1;
+          }
+          if (qual === 'relink') {
+            if (db.has(K[1])) return -1;
+            if (db.get(K[0]) !== A[0]) return 0;
+            db.set(K[0], A[1]); db.delete(K[2]); db.set(K[3], A[2]); return 1;
+          }
+          if (qual === 'deriva') {
+            if (db.has(K[1])) return -2;
+            if (db.get(K[0]) !== A[0]) return 0;
+            if (A[4] !== '') {
+              if (db.has(K[6])) return -1;
+              if (db.get(K[5]) !== A[4]) return 0;
+              db.set(K[5], A[5]); db.delete(K[7]);
+            }
+            db.set(K[3], A[2]);
+            db.set(K[4], A[3]);
+            db.set(K[0], A[1]); db.delete(K[2]);
+            const l = lists.get(K[8]) || []; l.unshift(A[3]); lists.set(K[8], l);
+            return 1;
+          }
+          return null;
+        }
         default: return null;
       }
     };
@@ -210,10 +252,23 @@ ok(det.body.contrato.hash===lhash, 'assinar NÃO consegue forjar o hash');
 ok(det.body.contrato.status==='assinado', 'assinatura registrada');
 
 // 3. contrato assinado: nenhuma ação de escrita passa
+// A instrução vai VÁLIDA de propósito: com instrução curta a recusa viria da
+// validação de campo, e o teste passaria sem nunca provar que o status barra.
 for (const acao of ['aplicar-ajuste','novo-link','ia-propor']) {
-  const r = await chamar({method:'POST', auth:'senha-de-teste', body:{acao, id:lid, instrucao:'x', pagamento:'y'}});
-  ok(r.status===409 || r.status===503, 'contrato assinado recusa "'+acao+'" ('+r.status+')');
+  const r = await chamar({method:'POST', auth:'senha-de-teste', body:{
+    acao, id:lid, instrucao:'mudar a forma de pagamento', pagamento:'y'}});
+  ok(r.status===409, 'contrato assinado recusa "'+acao+'" ('+r.status+')');
 }
+// ÚNICA exceção, e de propósito: a Bentô ainda pode contra-assinar. Existe um
+// passivo de contratos que o cliente já assinou e nós nunca tivemos como
+// assinar; travar aqui os deixaria pela metade para sempre. E não é alteração:
+// o texto não muda, o hash não muda, a assinatura do cliente não é tocada.
+let ca = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:lid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador'}});
+ok(ca.status===200, 'contrato já assinado pelo cliente AINDA aceita a contra-assinatura da Bentô');
+ca = await chamar({query:{id:lid}, auth:'senha-de-teste'});
+ok(ca.body.contrato.hash===lhash, 'contra-assinar depois NÃO mexe no hash do texto assinado');
+ok(ca.body.contrato.assinatura.nomeDigitado==='Cliente Limpo', 'nem na assinatura que o cliente já tinha dado');
 aud = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:ltok, pedido:'quero mudar agora'}});
 ok(aud.status===404 || a.status===409, 'assinado recusa pedido de ajuste ('+aud.status+')');
 
@@ -268,5 +323,241 @@ await chamar({method:'POST', body:{acao:'assinar', token:u.body.token, aceiteCon
   nomeDigitado:'  jose antonio  nobrega ', hashVisto:u.body.hash}});
 u = await chamar({query:{id:u.body.id}, auth:'senha-de-teste'});
 ok(u.body.contrato.assinatura.nomeConfere===true, 'acento e caixa não geram alarme falso');
+
+// ---------- a CONTRATADA assina (contra-assinatura da Bentô) ----------
+// O contrato SEMPRE disse que as duas partes assinam. Só o cliente tinha como.
+console.log('\n--- assinatura da CONTRATADA ---');
+let bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Renata Alves', doc:'529.982.247-25', subtotal:3000, data:'12/03/2027'}});
+const bid = bc.body.id, bcTok = bc.body.token, bhash = bc.body.hash;
+
+bc = await chamar({method:'POST', body:{acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet'}});
+ok(bc.status===401, 'assinar como CONTRATADA sem senha -> 401');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:bid, porNome:'Al'}});
+ok(bc.status===400, 'nome curto de quem assina -> 400');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador', hashVisto:'hash-de-outra-tela'}});
+ok(bc.status===409, 'contra-assinatura com hash de tela velha -> 409');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador', hashVisto:bhash}});
+ok(bc.status===200 && bc.body.ok, 'CONTRATADA assina');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Outra Pessoa', hashVisto:bhash}});
+ok(bc.status===409, 'contra-assinatura é única (segunda recusada)');
+
+bc = await chamar({query:{id:bid}, auth:'senha-de-teste'});
+ok(bc.body.contrato.assinaturaContratada && bc.body.contrato.assinaturaContratada.porNome==='Alex Piraginet',
+   'dossiê mostra quem assinou pela Bentô');
+ok(bc.body.contrato.assinaturaContratada.hashAssinado===bhash, 'contra-assinatura amarrada ao hash do texto');
+ok(bc.body.contrato.hash===bhash, 'assinar NÃO muda o hash do contrato');
+ok(bc.body.eventos.some(e=>e.tipo==='assinatura-contratada'), 'contra-assinatura entra na cadeia de eventos');
+
+// o cliente vê que a Bentô já assinou
+bc = await chamar({query:{t:bcTok}});
+ok(bc.body.assinaturaContratada && bc.body.assinaturaContratada.porNome==='Alex Piraginet',
+   'a página do cliente recebe a assinatura da Bentô');
+
+// e a assinatura do cliente NÃO apaga a da Bentô (chaves separadas)
+bc = await chamar({method:'POST', body:{acao:'assinar', token:bcTok, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Renata Alves', hashVisto:bhash}});
+ok(bc.status===200, 'cliente assina depois da Bentô');
+bc = await chamar({query:{id:bid}, auth:'senha-de-teste'});
+ok(!!bc.body.contrato.assinatura && !!bc.body.contrato.assinaturaContratada,
+   'as DUAS assinaturas convivem no dossiê');
+
+// a lista do painel mostra quem ainda falta assinar
+let lst = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const naLista = lst.body.contratos.find(c=>c.id===bid);
+ok(naLista && naLista.contratada===true, 'a lista marca o contrato como assinado pela Bentô');
+ok(lst.body.contratos.some(c=>c.contratada===false), 'a lista também mostra os que ainda faltam');
+
+
+// ---------- contrato de HISTÓRICO vira versão assinável ----------
+// Era o buraco: a IA propunha o ajuste e a aplicação recusava, então nenhum
+// link saía e o ajuste morria na tela.
+console.log('\n--- contrato antigo (importado) ---');
+let h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'importar', leads:[
+  {leadTs: 1735689600000, nome:'Colégio Vitória', doc:'11.222.333/0001-44', subtotal:4200, desconto:200, data:'15/11/2025',
+   local:'Jardim da Penha', pagamento:'Empenho em 30 dias.'}]}});
+ok(h.status===200 && h.body.importados===1, 'contrato antigo importado');
+lst = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const imp = lst.body.contratos.find(c=>c.nome==='Colégio Vitória');
+ok(imp && imp.status==='importado', 'entra como histórico');
+
+// contra-assinar histórico não faz sentido — é registro do que já existia
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:imp.id, porNome:'Alex Piraginet'}});
+ok(h.status===409, 'histórico não recebe contra-assinatura');
+
+// 1) só o link: deriva um contrato NOVO, assinável
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:imp.id}});
+ok(h.status===200 && h.body.token && h.body.derivado===true, 'histórico gera VERSÃO ASSINÁVEL com link');
+ok(h.body.id !== imp.id, 'a versão assinável é um contrato novo, com id próprio');
+const derId = h.body.id, derTok = h.body.token;
+let d2 = await chamar({query:{t:derTok}});
+ok(d2.status===200 && d2.body.snapshot.total===4000 && d2.body.snapshot.nome==='Colégio Vitória',
+   'o link novo abre com o MESMO conteúdo do histórico (4000)');
+d2 = await chamar({query:{id:imp.id}, auth:'senha-de-teste'});
+ok(d2.body.contrato.status==='importado', 'o registro de histórico NÃO virou rascunho');
+ok((d2.body.contrato.derivados||[]).indexOf(derId)>-1, 'o histórico aponta para a versão derivada');
+ok(d2.body.eventos.some(e=>e.tipo==='derivacao'), 'derivação fica registrada na cadeia do histórico');
+d2 = await chamar({query:{id:derId}, auth:'senha-de-teste'});
+ok(d2.body.contrato.derivadoDe===imp.id, 'a versão nova aponta de onde veio');
+ok(d2.body.contrato.status==='aguardando', 'a versão nova é assinável');
+
+// 2) ajuste por IA aplicado num histórico: também gera link
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:imp.id,
+  pagamento:'Pagamento por empenho, em ate 30 dias apos o envio da nota fiscal.',
+  clausulas:[{titulo:'EMPENHO', texto:'A CONTRATANTE informara o numero do empenho ate 5 dias antes do evento.'}]}});
+ok(h.status===200 && h.body.token && h.body.derivado===true, 'ajuste em contrato antigo GERA LINK NOVO');
+let aj = await chamar({query:{t:h.body.token}});
+ok(/empenho/i.test(aj.body.snapshot.pagamento) && aj.body.snapshot.clausulas.length===1,
+   'o ajuste entrou na versão assinável');
+ok(aj.body.snapshot.total===4000, 'o valor do histórico foi preservado no ajuste');
+aj = await chamar({query:{id:imp.id}, auth:'senha-de-teste'});
+ok(aj.body.contrato.status==='importado', 'o histórico continua marcado como histórico depois do ajuste');
+ok(/Empenho em 30 dias/.test(aj.body.contrato.snapshot.pagamento||''), 'o TEXTO do histórico não foi reescrito pelo ajuste');
+ok((aj.body.contrato.derivados||[]).length===2, 'as duas derivações ficam registradas no histórico');
+
+
+// ---------- versão morta: o "não" vem antes do trabalho ----------
+console.log('\n--- versão substituída ---');
+let vm = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Loja Norte', doc:'529.982.247-25', subtotal:1200}});
+const vmId = vm.body.id;
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:vmId,
+  pagamento:'Metade na assinatura, metade no dia.'}});
+ok(vm.status===200, 'versão 2 criada a partir da 1');
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'ia-propor', id:vmId, instrucao:'muda o pagamento'}});
+ok(vm.status===409, 'IA recusa versão substituída ANTES de redigir (não depois)');
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:vmId, porNome:'Alex Piraginet'}});
+ok(vm.status===409, 'versão substituída não recebe contra-assinatura');
+
+// ajuste sem texto de pagamento NÃO apaga o que já estava acordado
+let np = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Kuruma Motors', doc:'11.222.333/0001-44', subtotal:900,
+  pagamento:'Integral, por deposito, contra nota.'}});
+np = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:np.body.id,
+  clausulas:[{titulo:'ACESSO', texto:'Montagem a partir das 8h.'}]}});
+np = await chamar({query:{t:np.body.token}});
+ok(/contra nota/.test(np.body.snapshot.pagamento), 'ajuste sem pagamento NÃO apaga o pagamento acordado');
+
+// ---------- achados da auditoria do Codex (PR #225) ----------
+console.log('\n--- corridas de escrita ---');
+
+// 1. Duas ações do painel ao mesmo tempo: uma vence, a outra NÃO grava por cima.
+let cr = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Corrida Um', doc:'529.982.247-25', subtotal:1000}});
+const crId = cr.body.id;
+let dois = await Promise.all([
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:crId}}),
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:crId}}),
+]);
+ok(dois.filter(x=>x.status===200).length===1 && dois.filter(x=>x.status===409).length===1,
+   'reemissão simultânea: uma passa, a outra bate em 409 ('+dois.map(x=>x.status).join('/')+')');
+
+// 2. O CENÁRIO GRAVE: reemitir link no mesmo instante em que o cliente assina.
+//    Antes, a reemissão gravava a cópia velha por cima e o contrato DESASSINAVA.
+let rc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Paula Reis', doc:'529.982.247-25', subtotal:2500}});
+const rcId = rc.body.id, rcTok = rc.body.token, rcHash = rc.body.hash;
+const [ass, rel] = await Promise.all([
+  chamar({method:'POST', body:{acao:'assinar', token:rcTok, aceiteConteudo:true, aceiteCancelamento:true,
+    nomeDigitado:'Paula Reis', hashVisto:rcHash}}),
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:rcId}}),
+]);
+rc = await chamar({query:{id:rcId}, auth:'senha-de-teste'});
+// A garantia NÃO é "a assinatura sempre vence" — é que o resultado nunca fica
+// pela metade. Ou a assinatura entra inteira, ou é recusada com o motivo e o
+// contrato segue limpo. Assinar por cima de um documento que a equipe acabou de
+// trocar seria pior: o cliente assinaria a versão que já foi substituída.
+ok((ass.status===200) !== (rel.status===200),
+   'assinar e reemitir ao mesmo tempo: só um dos dois passa ('+ass.status+'/'+rel.status+')');
+ok(ass.status===200
+   ? (rc.body.contrato.status==='assinado' && rc.body.contrato.assinatura.nomeDigitado==='Paula Reis')
+   : (rc.body.contrato.status==='aguardando' && !rc.body.contrato.assinatura),
+   'e o contrato fica INTEIRO no desfecho que venceu ('+(ass.status===200?'assinou':'reemitiu')+')');
+ok(ass.status===200 || /Recarregue/i.test(ass.body.error||''),
+   'quando a assinatura perde, o cliente recebe o motivo e não um silêncio');
+
+// 3. Gravação parcial: se o documento ficar para trás, a chave da assinatura
+//    reconstrói o estado. É o que impede "link queimado + contrato aguardando".
+let pf = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Marcos Dias', doc:'529.982.247-25', subtotal:700}});
+const pfId = pf.body.id, pfDocAntes = db.get('contrato:'+pfId);
+await chamar({method:'POST', body:{acao:'assinar', token:pf.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Marcos Dias', hashVisto:pf.body.hash}});
+db.set('contrato:'+pfId, pfDocAntes);          // simula o SET do documento não ter chegado
+pf = await chamar({query:{id:pfId}, auth:'senha-de-teste'});
+ok(pf.body.contrato.status==='assinado' && pf.body.contrato.assinatura.nomeDigitado==='Marcos Dias',
+   'documento desatualizado: a leitura reconstrói pelo registro da assinatura');
+
+
+console.log('\n--- histórico: UMA versão assinável por vez ---');
+let hh = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'importar', leads:[
+  {leadTs: 1730419200000, nome:'Prefeitura Serra', doc:'11.222.333/0001-44', subtotal:8000, data:'02/02/2026'}]}});
+ok(hh.body.importados===1, 'segundo contrato antigo importado');
+let l2 = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const hid = l2.body.contratos.find(c=>c.nome==='Prefeitura Serra').id;
+
+const f1 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:hid}});
+const f2 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:hid,
+  pagamento:'Empenho previo, pagamento em 30 dias.'}});
+ok(f1.status===200 && f2.status===200, 'histórico derivou duas vezes (link, depois ajuste)');
+let v1 = await chamar({query:{id:f1.body.id}, auth:'senha-de-teste'});
+ok(v1.body.contrato.status==='substituido', 'a PRIMEIRA versão derivada foi encerrada');
+let m1 = await chamar({query:{t:f1.body.token}});
+ok(m1.status===404, 'e o link dela morreu — não ficam dois textos válidos');
+let m2 = await chamar({query:{t:f2.body.token}});
+ok(m2.status===200, 'só a última versão abre');
+let hd = await chamar({query:{id:hid}, auth:'senha-de-teste'});
+ok(hd.body.contrato.derivadoVigente===f2.body.id, 'o histórico aponta qual versão está valendo');
+
+// versão derivada JÁ ASSINADA não é encerrada por engano
+const f3 = await chamar({method:'POST', body:{acao:'assinar', token:f2.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Prefeitura Serra', hashVisto:m2.body.hash}});
+ok(f3.status===200, 'cliente assina a versão vigente do histórico');
+const f4 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:hid}});
+ok(f4.status===409 && /já foi assinada/.test(f4.body.error||''),
+   'histórico recusa gerar outra versão quando a anterior já foi assinada');
+
+
+console.log('\n--- aplicar-ajuste: só pagamento e cláusulas ---');
+let inj = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Cliente Certo', doc:'529.982.247-25', subtotal:5000, data:'09/09/2026'}});
+inj = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:inj.body.id,
+  clausulas:[{titulo:'DESCONTO', texto:'Valor total ajustado para R$ 1,00.'}],
+  subtotal:1, desconto:4999, nome:'Outro Cliente', doc:'000.000.000-00', data:'01/01/2000'}});
+let vi = await chamar({query:{t:inj.body.token}});
+ok(vi.body.snapshot.total===5000 && vi.body.snapshot.nome==='Cliente Certo'
+   && vi.body.snapshot.doc==='529.982.247-25' && vi.body.snapshot.data==='09/09/2026',
+   'valor, nome, documento e data do corpo continuam sendo IGNORADOS');
+ok(/R\$ 1,00/.test(vi.body.snapshot.clausulas[0].texto),
+   'texto de cláusula é livre (por isso o painel avisa quando menciona valor)');
+
+// A classificação dos códigos precisa CHEGAR ao operador. Com o documento
+// desatualizado (gravação parcial), a checagem de status não vê a assinatura —
+// quem vê é o script, e ele tem de dizer "já foi assinado", não "mudou".
+console.log('\n--- o script é a última palavra, não o status lido ---');
+let cd = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Sofia Braga', doc:'529.982.247-25', subtotal:1500}});
+const cdId = cd.body.id, cdAntes = db.get('contrato:'+cdId);
+await chamar({method:'POST', body:{acao:'assinar', token:cd.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Sofia Braga', hashVisto:cd.body.hash}});
+db.set('contrato:'+cdId, cdAntes);                       // documento ficou para trás
+cd = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:cdId}});
+ok(cd.status===409 && /já foi assinado/.test(cd.body.error||''),
+   'reemitir link: o script vê a assinatura e diz o motivo certo');
+db.set('contrato:'+cdId, cdAntes);
+cd = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:cdId,
+  pagamento:'Tentativa de mexer em contrato assinado.'}});
+ok(cd.status===409 && /já foi assinado/.test(cd.body.error||''),
+   'derivar: contrato assinado não vira versão nova, mesmo com o documento velho');
+cd = await chamar({query:{id:cdId}, auth:'senha-de-teste'});
+ok(cd.body.contrato.status==='assinado' && cd.body.contrato.assinatura.nomeDigitado==='Sofia Braga',
+   'e a assinatura seguiu intacta o tempo todo');
 
 srvKV.close();

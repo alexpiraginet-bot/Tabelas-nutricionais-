@@ -19,7 +19,8 @@
     "test:painel-horarios": "node scripts/check-painel-horarios.mjs",
     "test:contrato": "node scripts/test-contrato.mjs",
     "test:geocode": "node scripts/test-geocode.mjs",
-    "test:docvalida": "node scripts/test-docvalida.mjs"
+    "test:docvalida": "node scripts/test-docvalida.mjs",
+    "test:lua": "node scripts/test-lua-contrato.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
