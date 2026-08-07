@@ -14,6 +14,14 @@ const srvKV = http.createServer((req,res)=>{
         case 'RPUSH': { const l=lists.get(a[0])||[]; l.push(a[1]); lists.set(a[0],l); return l.length; }
         case 'LTRIM': { const l=lists.get(a[0])||[]; lists.set(a[0],l.slice(a[1],a[2]+1)); return 'OK'; }
         case 'LRANGE': { const l=lists.get(a[0])||[]; return l.slice(a[1], a[2]===-1?undefined:a[2]+1); }
+        case 'LREM': { const l=lists.get(a[0])||[]; const n=l.length; lists.set(a[0], l.filter(x=>x!==a[2])); return n-(lists.get(a[0]).length); }
+        // EVAL: o único script usado é o compare-and-set. Emular a semântica dele
+        // basta; interpretar Lua aqui seria trocar um teste por outro programa.
+        case 'EVAL': {
+          const [, , , chave, esperado, novo] = cmd;   // EVAL script numkeys key arg1 arg2
+          if (db.get(chave) !== esperado) return 0;
+          db.set(chave, novo); return 1;
+        }
         default: return null;
       }
     };
@@ -403,5 +411,89 @@ np = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-aju
   clausulas:[{titulo:'ACESSO', texto:'Montagem a partir das 8h.'}]}});
 np = await chamar({query:{t:np.body.token}});
 ok(/contra nota/.test(np.body.snapshot.pagamento), 'ajuste sem pagamento NÃO apaga o pagamento acordado');
+
+// ---------- achados da auditoria do Codex (PR #225) ----------
+console.log('\n--- corridas de escrita ---');
+
+// 1. Duas ações do painel ao mesmo tempo: uma vence, a outra NÃO grava por cima.
+let cr = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Corrida Um', doc:'529.982.247-25', subtotal:1000}});
+const crId = cr.body.id;
+let dois = await Promise.all([
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:crId}}),
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:crId}}),
+]);
+ok(dois.filter(x=>x.status===200).length===1 && dois.filter(x=>x.status===409).length===1,
+   'reemissão simultânea: uma passa, a outra bate em 409 ('+dois.map(x=>x.status).join('/')+')');
+
+// 2. O CENÁRIO GRAVE: reemitir link no mesmo instante em que o cliente assina.
+//    Antes, a reemissão gravava a cópia velha por cima e o contrato DESASSINAVA.
+let rc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Paula Reis', doc:'529.982.247-25', subtotal:2500}});
+const rcId = rc.body.id, rcTok = rc.body.token, rcHash = rc.body.hash;
+await Promise.all([
+  chamar({method:'POST', body:{acao:'assinar', token:rcTok, aceiteConteudo:true, aceiteCancelamento:true,
+    nomeDigitado:'Paula Reis', hashVisto:rcHash}}),
+  chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:rcId}}),
+]);
+rc = await chamar({query:{id:rcId}, auth:'senha-de-teste'});
+ok(rc.body.contrato.status==='assinado', 'assinatura SOBREVIVE à reemissão simultânea (status)');
+ok(rc.body.contrato.assinatura && rc.body.contrato.assinatura.nomeDigitado==='Paula Reis',
+   'a assinatura em si continua no dossiê');
+
+// 3. Gravação parcial: se o documento ficar para trás, a chave da assinatura
+//    reconstrói o estado. É o que impede "link queimado + contrato aguardando".
+let pf = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Marcos Dias', doc:'529.982.247-25', subtotal:700}});
+const pfId = pf.body.id, pfDocAntes = db.get('contrato:'+pfId);
+await chamar({method:'POST', body:{acao:'assinar', token:pf.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Marcos Dias', hashVisto:pf.body.hash}});
+db.set('contrato:'+pfId, pfDocAntes);          // simula o SET do documento não ter chegado
+pf = await chamar({query:{id:pfId}, auth:'senha-de-teste'});
+ok(pf.body.contrato.status==='assinado' && pf.body.contrato.assinatura.nomeDigitado==='Marcos Dias',
+   'documento desatualizado: a leitura reconstrói pelo registro da assinatura');
+
+
+console.log('\n--- histórico: UMA versão assinável por vez ---');
+let hh = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'importar', leads:[
+  {leadTs: 1730419200000, nome:'Prefeitura Serra', doc:'11.222.333/0001-44', subtotal:8000, data:'02/02/2026'}]}});
+ok(hh.body.importados===1, 'segundo contrato antigo importado');
+let l2 = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const hid = l2.body.contratos.find(c=>c.nome==='Prefeitura Serra').id;
+
+const f1 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:hid}});
+const f2 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:hid,
+  pagamento:'Empenho previo, pagamento em 30 dias.'}});
+ok(f1.status===200 && f2.status===200, 'histórico derivou duas vezes (link, depois ajuste)');
+let v1 = await chamar({query:{id:f1.body.id}, auth:'senha-de-teste'});
+ok(v1.body.contrato.status==='substituido', 'a PRIMEIRA versão derivada foi encerrada');
+let m1 = await chamar({query:{t:f1.body.token}});
+ok(m1.status===404, 'e o link dela morreu — não ficam dois textos válidos');
+let m2 = await chamar({query:{t:f2.body.token}});
+ok(m2.status===200, 'só a última versão abre');
+let hd = await chamar({query:{id:hid}, auth:'senha-de-teste'});
+ok(hd.body.contrato.derivadoVigente===f2.body.id, 'o histórico aponta qual versão está valendo');
+
+// versão derivada JÁ ASSINADA não é encerrada por engano
+const f3 = await chamar({method:'POST', body:{acao:'assinar', token:f2.body.token, aceiteConteudo:true,
+  aceiteCancelamento:true, nomeDigitado:'Prefeitura Serra', hashVisto:m2.body.hash}});
+ok(f3.status===200, 'cliente assina a versão vigente do histórico');
+const f4 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:hid}});
+ok(f4.status===409 && /já foi assinada/.test(f4.body.error||''),
+   'histórico recusa gerar outra versão quando a anterior já foi assinada');
+
+
+console.log('\n--- aplicar-ajuste: só pagamento e cláusulas ---');
+let inj = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Cliente Certo', doc:'529.982.247-25', subtotal:5000, data:'09/09/2026'}});
+inj = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:inj.body.id,
+  clausulas:[{titulo:'DESCONTO', texto:'Valor total ajustado para R$ 1,00.'}],
+  subtotal:1, desconto:4999, nome:'Outro Cliente', doc:'000.000.000-00', data:'01/01/2000'}});
+let vi = await chamar({query:{t:inj.body.token}});
+ok(vi.body.snapshot.total===5000 && vi.body.snapshot.nome==='Cliente Certo'
+   && vi.body.snapshot.doc==='529.982.247-25' && vi.body.snapshot.data==='09/09/2026',
+   'valor, nome, documento e data do corpo continuam sendo IGNORADOS');
+ok(/R\$ 1,00/.test(vi.body.snapshot.clausulas[0].texto),
+   'texto de cláusula é livre (por isso o painel avisa quando menciona valor)');
 
 srvKV.close();
