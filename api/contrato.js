@@ -261,6 +261,44 @@ export default async function handler(req, res) {
     return;
   }
 
+  // ---------- painel: reemite o link de assinatura ----------
+  // O token só existe hasheado, de propósito — ninguém recupera o link antigo,
+  // nem quem tem acesso ao banco. O efeito colateral é que, perdido o link, o
+  // contrato ficava preso: registrado, aguardando, e sem meio de ser enviado.
+  //
+  // Reemitir gera um token NOVO para o MESMO contrato. O documento não muda e o
+  // hash continua o mesmo — é a prova de que o texto é o mesmo. O link anterior
+  // morre na hora, então um link vazado ou mandado para a pessoa errada se
+  // resolve por aqui.
+  if (body.acao === "novo-link") {
+    if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+    const id = texto(body.id, 40);
+    const doc = await kv(["GET", "contrato:" + id]);
+    if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
+    const c = JSON.parse(doc);
+    if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Este contrato já foi assinado — não precisa de link." }); return; }
+    if (c.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão foi substituída. Use a versão nova." }); return; }
+    if (c.status === "importado") { res.status(409).json({ ok: false, error: "Contrato de histórico não tem link. Gere um novo pelo orçamento." }); return; }
+
+    const token = crypto.randomBytes(32).toString("base64url");
+    const agora = new Date();
+    const cmds = [
+      ["SET", "contrato:" + id, JSON.stringify({
+        ...c, tokenHash: sha256(token),
+        expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,   // o prazo reconta
+      })],
+      ["SET", "contrato:tok:" + sha256(token), id],
+      ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({
+        tipo: "novo-link", em: agora.toISOString(), ip: ip(req),
+        nota: "link reemitido; o anterior deixou de valer",
+      })],
+    ];
+    if (c.tokenHash) cmds.push(["DEL", "contrato:tok:" + c.tokenHash]);
+    await kvPipe(cmds);
+    res.status(200).json({ ok: true, token, hash: c.hash });
+    return;
+  }
+
   // ---------- painel: motor de IA propõe o ajuste (NÃO aplica) ----------
   // Regra que não se negocia: a IA só redige TEXTO de pagamento e de cláusulas.
   // Ela nunca encosta em valor, data, nome ou CPF — esses vêm do orçamento. E a

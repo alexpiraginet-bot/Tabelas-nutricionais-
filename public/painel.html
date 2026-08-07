@@ -1544,6 +1544,61 @@ async function ctLoad(){
 // contrato não é lugar de "aplicar direto".
 var _ctProposta = {};
 
+// Reemite o link de assinatura. O token só existe hasheado, então o link antigo
+// é irrecuperável por desenho — reemitir é a única saída, e de quebra serve
+// quando o link foi parar na pessoa errada.
+async function ctNovoLink(id, out, btn){
+  var antes = btn.textContent; btn.textContent = "gerando…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ acao:"novo-link", id: id }) });
+    var j = await r.json();
+    btn.textContent = antes;
+    if(!j.ok){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9;margin-top:7px">'+ctEsc(j.error||"falhou")+'</div>'; return; }
+    var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
+    out.innerHTML = '<div style="margin-top:8px;border:1px solid var(--pist);border-radius:9px;padding:10px 11px;background:#111608">'
+      + '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+ctEsc(url)+'</div>'
+      + '<button style="margin-top:8px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button></div>';
+    out.querySelector("button").onclick = function(){
+      var b = out.querySelector("button");
+      navigator.clipboard.writeText(url).then(function(){ b.textContent = "Copiado ✓"; }, function(){ prompt("Copie:", url); });
+    };
+  }catch(e){ btn.textContent = antes; out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">Falha: '+ctEsc(e.message)+'</div>'; }
+}
+
+// Foto como CONTEXTO do ajuste: print da conversa em que o cliente pediu a
+// mudança, e-mail com a condição de pagamento, cartão CNPJ. A imagem é lida pelo
+// mesmo endpoint de OCR (que não guarda nada) e o texto lido entra na instrução —
+// a IA continua sem poder tocar em valor, data, nome ou CPF.
+async function ctIAFoto(id, files){
+  var cx = $("#ctia_"+id); if(!cx || !files || !files.length) return;
+  var msg = cx.querySelector(".ctiaFotoMsg");
+  msg.textContent = "preparando imagem…";
+  try{
+    var b64 = await ctDocReduz(files[0]);
+    msg.textContent = "lendo…";
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/doc-ocr", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ imagens:[{ b64: b64 }] }) });
+    var j = await r.json();
+    if(!j.ok){ msg.innerHTML = '<span style="color:#f0c9c9">'+ctEsc(j.error||"não consegui ler")+'</span>'; return; }
+    // O que foi lido vira CONTEXTO no campo de instrução, para a equipe revisar
+    // antes de mandar. Nada é aplicado direto.
+    var linhas = [];
+    Object.keys(j.campos||{}).forEach(function(k){ if(j.campos[k]) linhas.push(k+": "+j.campos[k]); });
+    var ta = cx.querySelector("textarea");
+    var ctx = "[lido da imagem anexada — " + (j.tipoDocumento||"documento") + "]\n" + (linhas.join("\n") || "(sem campos estruturados)");
+    ta.value = (ta.value.trim() ? ta.value.trim() + "\n\n" : "") + ctx + "\n\nCom base nisso, ajuste: ";
+    ta.focus();
+    var av = (j.avisos && j.avisos.length) ? ' ' + j.avisos.join(' ') : '';
+    msg.innerHTML = 'Imagem lida — o conteúdo entrou no campo acima. <b>Complete a instrução e revise antes de propor.</b>'
+      + (av ? '<br><span style="color:#e8c877">'+ctEsc(av)+'</span>' : '');
+  }catch(e){ msg.innerHTML = '<span style="color:#f0c9c9">Falha: '+ctEsc(e.message)+'</span>'; }
+}
+
 async function ctIA(id){
   var cx = $("#ctia_"+id); if(!cx) return;
   var inst = cx.querySelector("textarea").value.trim();
@@ -1635,18 +1690,31 @@ async function ctDossie(id){
           + '<div class="mono" style="font-size:11px;color:#e8c877;line-height:1.65">'+ctEsc(j.contrato.ajustePedido.pedido)+'</div></div>'
         : '')+
       // Comando de IA — só faz sentido em contrato que ainda não foi assinado.
+      // Sem isto o contrato ficava preso: registrado, aguardando, e sem meio de
+      // ser enviado — porque o link só aparecia uma vez, na criação.
+      (['aguardando','ajuste-pedido'].indexOf(j.contrato.status) > -1
+        ? '<div style="margin-top:10px"><button class="ctLink" style="padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">🔗 Gerar link de assinatura</button>'
+          + '<div class="ctLinkOut"></div>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">O link some depois de exibido — ele não fica guardado. Gerar de novo cria outro e <b>derruba o anterior</b>, o que também serve se o link foi para a pessoa errada.</div></div>'
+        : '')+
       (j.contrato.status === 'assinado'
         ? '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:9px">Contrato assinado: não pode ser alterado.</div>'
         : '<div id="ctia_'+ctEsc(id)+'" style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px">'
           + '<div class="mono" style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)">Ajustar com IA</div>'
           + '<textarea rows="3" placeholder="Ex.: pagamento integral por depósito bancário em até 15 dias após o envio da NF, sem sinal. Manter o resto." '
           + 'style="width:100%;margin-top:6px;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:12.5px;line-height:1.5;resize:vertical"></textarea>'
+          + '<input type="file" class="ctiaFoto" accept="image/jpeg,image/png,image/webp" style="margin-top:7px;display:block;font-size:11.5px;color:var(--soft)">'
+          + '<div class="ctiaFotoMsg mono" style="font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.6"></div>'
           + '<button class="ctiaGerar" style="margin-top:7px;padding:9px 14px;border-radius:8px;border:1px solid var(--pist);background:transparent;color:var(--pist);font-weight:700;font-size:12px;cursor:pointer">Propor ajuste</button>'
-          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">A IA só redige pagamento e cláusulas. Valor, data, nome e CPF vêm do orçamento e ela não encosta neles.</div>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">A IA só redige pagamento e cláusulas. Valor, data, nome e CPF vêm do orçamento e ela não encosta neles.<br>Pode anexar uma foto (print da conversa, e-mail, cartão CNPJ) — ela lê e usa como contexto do ajuste.</div>'
           + '<div class="ctiaOut"></div></div>')+
       '</div>';
     var g = alvo.querySelector(".ctiaGerar");
     if(g) g.onclick = function(){ ctIA(id); };
+    var lk = alvo.querySelector(".ctLink");
+    if(lk) lk.onclick = function(){ ctNovoLink(id, alvo.querySelector(".ctLinkOut"), lk); };
+    var ft = alvo.querySelector(".ctiaFoto");
+    if(ft) ft.onchange = function(e){ ctIAFoto(id, e.target.files); };
   }catch(e){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }
 }
 
