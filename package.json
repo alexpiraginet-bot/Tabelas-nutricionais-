@@ -17,7 +17,8 @@
     "fichas": "node scripts/generate-fichas.mjs",
     "menu": "node scripts/menu-poster.mjs",
     "test:painel-horarios": "node scripts/check-painel-horarios.mjs",
-    "test:contrato": "node scripts/test-contrato.mjs"
+    "test:contrato": "node scripts/test-contrato.mjs",
+    "test:geocode": "node scripts/test-geocode.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",

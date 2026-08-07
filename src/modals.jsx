@@ -750,29 +750,70 @@ const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
 const EV_CARRINHO=200;    // R$ personalização do carrinho
 
 function evHaversine(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
+// Geocodificação do local do evento — alimenta o km da logística, que entra no
+// PREÇO. Endereço errado aqui vira orçamento errado, então tudo abaixo é sobre
+// preferir "a confirmar" a um número inventado.
+//
+// Cinco furos que existiam e foram fechados:
+//  1. a busca era só `countrycodes=br`: "Rua das Flores" casava em qualquer
+//     canto do país. Agora é limitada à caixa do Espírito Santo (bounded=1);
+//  2. havia um palpite com o PRIMEIRO pedaço do texto isolado — nome de salão
+//     sozinho ("Espaço Vitória") casa com qualquer coisa. Saiu;
+//  3. `limit=1` pegava o primeiro resultado às cegas. Agora pede 5, exige que o
+//     estado seja o Espírito Santo e escolhe o mais perto de uma loja nossa;
+//  4. não havia teto de distância: um casamento a 1.800 km passava como válido.
+//     Agora, acima de EV_MAX_KM, o resultado é descartado;
+//  5. o endereço encontrado nunca aparecia na tela — casamento errado era
+//     invisível. Agora volta em `endereco` e o orçamento mostra o que casou.
+const EV_MAX_KM = 320;                       // ES inteiro cabe nisto a partir de Vitória
+const EV_CAIXA_ES = "-41.95,-17.85,-39.65,-21.35";  // lon1,lat1,lon2,lat2 (ES continental)
+const evNoES = (a) => {
+  const uf = String((a && (a.state_code || a["ISO3166-2-lvl4"])) || "").toUpperCase();
+  const nome = String((a && a.state) || "").toLowerCase();
+  return uf.endsWith("-ES") || nome.includes("esp") && nome.includes("santo");
+};
+
 async function evGeocode(text){
   const base=(text||"").trim();
   if(!base) return{ok:false};
   try{const c=sessionStorage.getItem("bento:geo:"+base.toLowerCase());if(c)return JSON.parse(c);}catch{}
-  const parts=base.split(/[-–—,\/·]/).map(t=>t.trim()).filter(Boolean);
-  const tries=[...new Set([base, parts.at(-1)?parts.at(-1)+" ES":"", parts[0]||""].filter(Boolean))].slice(0,3);
+
+  // Variações seguras: o texto como veio, e o texto ancorado no estado. Nada de
+  // pedaço solto — pedaço solto foi o que produzia casamento em outro estado.
+  const tries=[...new Set([base, base+", Espírito Santo"])];
   let res={ok:false};
   for(const t of tries){
     try{
-      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(t)}`,
-        {headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
+      const url="https://nominatim.openstreetmap.org/search"
+        +"?format=json&addressdetails=1&limit=5&countrycodes=br"
+        +"&viewbox="+EV_CAIXA_ES+"&bounded=1"
+        +"&q="+encodeURIComponent(t);
+      const r=await fetch(url,{headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
       if(!r.ok) continue;            // 429/403 etc. → tenta a próxima variação
       const j=await r.json();
-      if(j&&j[0]){
-        const la=+j[0].lat,lo=+j[0].lon;
-        let best=null;
-        for(const s of LOJAS){const km=evHaversine(la,lo,s.lat,s.lng);if(!best||km<best.km)best={km,loja:s.nome};}
-        res={ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja};
+      if(!Array.isArray(j)||!j.length) continue;
+      // só candidatos no ES; entre eles, o mais perto de uma loja nossa
+      let best=null;
+      for(const c of j){
+        if(!evNoES(c.address)) continue;
+        const la=+c.lat, lo=+c.lon;
+        if(!Number.isFinite(la)||!Number.isFinite(lo)) continue;
+        for(const st of LOJAS){
+          const km=evHaversine(la,lo,st.lat,st.lng);
+          if(!best||km<best.km) best={km,loja:st.nome,endereco:String(c.display_name||"").slice(0,140)};
+        }
+      }
+      // Teto de distância: acima disso é quase certo que casou no lugar errado,
+      // e um número errado no orçamento é pior que nenhum número.
+      if(best&&best.km<=EV_MAX_KM){
+        res={ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja,endereco:best.endereco};
         break;
       }
     }catch(e){ /* timeout/rede: tenta próxima; se todas falharem, retorna ok:false */ }
   }
-  try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{}
+  // Só guarda acerto: errar e guardar o erro faria o mesmo endereço falhar de novo
+  // mesmo depois de a pessoa corrigir a digitação.
+  if(res.ok){ try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{} }
   return res;
 }
 
@@ -973,8 +1014,23 @@ export function EventosModal({onClose}){
               <Row l="Equipe" v={`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`}/>
               <Row l={`Serviço (R$ 27 × ${ev.convidados})`} v={fmtBRL(q.base)}/>
               {geo&&geo.ok
-                ? <Row l={`Logística · ~${geo.km} km da Bentô ${geo.loja} (ida e volta)`} v={fmtBRL(q.logistica)}/>
-                : <Row l="Logística (deslocamento)" v="a confirmar"/>}
+                ? <>
+                    <Row l={`Logística · ~${geo.km} km da Bentô ${geo.loja} (ida e volta)`} v={fmtBRL(q.logistica)}/>
+                    {/* Mostra o endereço que a busca CASOU. Sem isto, um
+                        casamento errado passa despercebido e vira preço errado —
+                        que é justamente o risco de geocodificar texto livre. */}
+                    {geo.endereco&&<div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,padding:"0 0 8px",marginTop:-4}}>
+                      Localizamos em <strong>{geo.endereco}</strong>. Se não for aí, corrija o local acima —
+                      o valor da logística muda junto.
+                    </div>}
+                  </>
+                : <>
+                    <Row l="Logística (deslocamento)" v="a confirmar"/>
+                    <div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,padding:"0 0 8px",marginTop:-4}}>
+                      Não localizamos esse endereço no Espírito Santo. A equipe confirma o deslocamento com você —
+                      o restante do orçamento já vale.
+                    </div>
+                  </>}
               {q.potinhos>0&&<Row l={`Potinhos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
               {q.carrinho>0&&<Row l="Personalização do carrinho" v={fmtBRL(q.carrinho)}/>}
               {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
