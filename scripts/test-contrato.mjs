@@ -7,6 +7,7 @@ const srvKV = http.createServer((req,res)=>{
       const [op,...a]=cmd;
       switch(String(op).toUpperCase()){
         case 'SET': db.set(a[0],a[1]); return 'OK';
+        case 'SETNX': if(db.has(a[0])) return 0; db.set(a[0],a[1]); return 1;
         case 'GET': return db.has(a[0])?db.get(a[0]):null;
         case 'DEL': db.delete(a[0]); return 1;
         case 'LPUSH': { const l=lists.get(a[0])||[]; l.unshift(a[1]); lists.set(a[0],l); return l.length; }
@@ -210,10 +211,23 @@ ok(det.body.contrato.hash===lhash, 'assinar NÃO consegue forjar o hash');
 ok(det.body.contrato.status==='assinado', 'assinatura registrada');
 
 // 3. contrato assinado: nenhuma ação de escrita passa
+// A instrução vai VÁLIDA de propósito: com instrução curta a recusa viria da
+// validação de campo, e o teste passaria sem nunca provar que o status barra.
 for (const acao of ['aplicar-ajuste','novo-link','ia-propor']) {
-  const r = await chamar({method:'POST', auth:'senha-de-teste', body:{acao, id:lid, instrucao:'x', pagamento:'y'}});
-  ok(r.status===409 || r.status===503, 'contrato assinado recusa "'+acao+'" ('+r.status+')');
+  const r = await chamar({method:'POST', auth:'senha-de-teste', body:{
+    acao, id:lid, instrucao:'mudar a forma de pagamento', pagamento:'y'}});
+  ok(r.status===409, 'contrato assinado recusa "'+acao+'" ('+r.status+')');
 }
+// ÚNICA exceção, e de propósito: a Bentô ainda pode contra-assinar. Existe um
+// passivo de contratos que o cliente já assinou e nós nunca tivemos como
+// assinar; travar aqui os deixaria pela metade para sempre. E não é alteração:
+// o texto não muda, o hash não muda, a assinatura do cliente não é tocada.
+let ca = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:lid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador'}});
+ok(ca.status===200, 'contrato já assinado pelo cliente AINDA aceita a contra-assinatura da Bentô');
+ca = await chamar({query:{id:lid}, auth:'senha-de-teste'});
+ok(ca.body.contrato.hash===lhash, 'contra-assinar depois NÃO mexe no hash do texto assinado');
+ok(ca.body.contrato.assinatura.nomeDigitado==='Cliente Limpo', 'nem na assinatura que o cliente já tinha dado');
 aud = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:ltok, pedido:'quero mudar agora'}});
 ok(aud.status===404 || a.status===409, 'assinado recusa pedido de ajuste ('+aud.status+')');
 
@@ -268,5 +282,126 @@ await chamar({method:'POST', body:{acao:'assinar', token:u.body.token, aceiteCon
   nomeDigitado:'  jose antonio  nobrega ', hashVisto:u.body.hash}});
 u = await chamar({query:{id:u.body.id}, auth:'senha-de-teste'});
 ok(u.body.contrato.assinatura.nomeConfere===true, 'acento e caixa não geram alarme falso');
+
+// ---------- a CONTRATADA assina (contra-assinatura da Bentô) ----------
+// O contrato SEMPRE disse que as duas partes assinam. Só o cliente tinha como.
+console.log('\n--- assinatura da CONTRATADA ---');
+let bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Renata Alves', doc:'529.982.247-25', subtotal:3000, data:'12/03/2027'}});
+const bid = bc.body.id, bcTok = bc.body.token, bhash = bc.body.hash;
+
+bc = await chamar({method:'POST', body:{acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet'}});
+ok(bc.status===401, 'assinar como CONTRATADA sem senha -> 401');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:bid, porNome:'Al'}});
+ok(bc.status===400, 'nome curto de quem assina -> 400');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador', hashVisto:'hash-de-outra-tela'}});
+ok(bc.status===409, 'contra-assinatura com hash de tela velha -> 409');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Alex Piraginet', porCargo:'Sócio-administrador', hashVisto:bhash}});
+ok(bc.status===200 && bc.body.ok, 'CONTRATADA assina');
+
+bc = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'assinar-contratada', id:bid, porNome:'Outra Pessoa', hashVisto:bhash}});
+ok(bc.status===409, 'contra-assinatura é única (segunda recusada)');
+
+bc = await chamar({query:{id:bid}, auth:'senha-de-teste'});
+ok(bc.body.contrato.assinaturaContratada && bc.body.contrato.assinaturaContratada.porNome==='Alex Piraginet',
+   'dossiê mostra quem assinou pela Bentô');
+ok(bc.body.contrato.assinaturaContratada.hashAssinado===bhash, 'contra-assinatura amarrada ao hash do texto');
+ok(bc.body.contrato.hash===bhash, 'assinar NÃO muda o hash do contrato');
+ok(bc.body.eventos.some(e=>e.tipo==='assinatura-contratada'), 'contra-assinatura entra na cadeia de eventos');
+
+// o cliente vê que a Bentô já assinou
+bc = await chamar({query:{t:bcTok}});
+ok(bc.body.assinaturaContratada && bc.body.assinaturaContratada.porNome==='Alex Piraginet',
+   'a página do cliente recebe a assinatura da Bentô');
+
+// e a assinatura do cliente NÃO apaga a da Bentô (chaves separadas)
+bc = await chamar({method:'POST', body:{acao:'assinar', token:bcTok, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Renata Alves', hashVisto:bhash}});
+ok(bc.status===200, 'cliente assina depois da Bentô');
+bc = await chamar({query:{id:bid}, auth:'senha-de-teste'});
+ok(!!bc.body.contrato.assinatura && !!bc.body.contrato.assinaturaContratada,
+   'as DUAS assinaturas convivem no dossiê');
+
+// a lista do painel mostra quem ainda falta assinar
+let lst = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const naLista = lst.body.contratos.find(c=>c.id===bid);
+ok(naLista && naLista.contratada===true, 'a lista marca o contrato como assinado pela Bentô');
+ok(lst.body.contratos.some(c=>c.contratada===false), 'a lista também mostra os que ainda faltam');
+
+
+// ---------- contrato de HISTÓRICO vira versão assinável ----------
+// Era o buraco: a IA propunha o ajuste e a aplicação recusava, então nenhum
+// link saía e o ajuste morria na tela.
+console.log('\n--- contrato antigo (importado) ---');
+let h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'importar', leads:[
+  {leadTs: 1735689600000, nome:'Colégio Vitória', doc:'11.222.333/0001-44', subtotal:4200, desconto:200, data:'15/11/2025',
+   local:'Jardim da Penha', pagamento:'Empenho em 30 dias.'}]}});
+ok(h.status===200 && h.body.importados===1, 'contrato antigo importado');
+lst = await chamar({query:{listar:1}, auth:'senha-de-teste'});
+const imp = lst.body.contratos.find(c=>c.nome==='Colégio Vitória');
+ok(imp && imp.status==='importado', 'entra como histórico');
+
+// contra-assinar histórico não faz sentido — é registro do que já existia
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:imp.id, porNome:'Alex Piraginet'}});
+ok(h.status===409, 'histórico não recebe contra-assinatura');
+
+// 1) só o link: deriva um contrato NOVO, assinável
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:imp.id}});
+ok(h.status===200 && h.body.token && h.body.derivado===true, 'histórico gera VERSÃO ASSINÁVEL com link');
+ok(h.body.id !== imp.id, 'a versão assinável é um contrato novo, com id próprio');
+const derId = h.body.id, derTok = h.body.token;
+let d2 = await chamar({query:{t:derTok}});
+ok(d2.status===200 && d2.body.snapshot.total===4000 && d2.body.snapshot.nome==='Colégio Vitória',
+   'o link novo abre com o MESMO conteúdo do histórico (4000)');
+d2 = await chamar({query:{id:imp.id}, auth:'senha-de-teste'});
+ok(d2.body.contrato.status==='importado', 'o registro de histórico NÃO virou rascunho');
+ok((d2.body.contrato.derivados||[]).indexOf(derId)>-1, 'o histórico aponta para a versão derivada');
+ok(d2.body.eventos.some(e=>e.tipo==='derivacao'), 'derivação fica registrada na cadeia do histórico');
+d2 = await chamar({query:{id:derId}, auth:'senha-de-teste'});
+ok(d2.body.contrato.derivadoDe===imp.id, 'a versão nova aponta de onde veio');
+ok(d2.body.contrato.status==='aguardando', 'a versão nova é assinável');
+
+// 2) ajuste por IA aplicado num histórico: também gera link
+h = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:imp.id,
+  pagamento:'Pagamento por empenho, em ate 30 dias apos o envio da nota fiscal.',
+  clausulas:[{titulo:'EMPENHO', texto:'A CONTRATANTE informara o numero do empenho ate 5 dias antes do evento.'}]}});
+ok(h.status===200 && h.body.token && h.body.derivado===true, 'ajuste em contrato antigo GERA LINK NOVO');
+let aj = await chamar({query:{t:h.body.token}});
+ok(/empenho/i.test(aj.body.snapshot.pagamento) && aj.body.snapshot.clausulas.length===1,
+   'o ajuste entrou na versão assinável');
+ok(aj.body.snapshot.total===4000, 'o valor do histórico foi preservado no ajuste');
+aj = await chamar({query:{id:imp.id}, auth:'senha-de-teste'});
+ok(aj.body.contrato.status==='importado', 'o histórico continua marcado como histórico depois do ajuste');
+ok(/Empenho em 30 dias/.test(aj.body.contrato.snapshot.pagamento||''), 'o TEXTO do histórico não foi reescrito pelo ajuste');
+ok((aj.body.contrato.derivados||[]).length===2, 'as duas derivações ficam registradas no histórico');
+
+
+// ---------- versão morta: o "não" vem antes do trabalho ----------
+console.log('\n--- versão substituída ---');
+let vm = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Loja Norte', doc:'529.982.247-25', subtotal:1200}});
+const vmId = vm.body.id;
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:vmId,
+  pagamento:'Metade na assinatura, metade no dia.'}});
+ok(vm.status===200, 'versão 2 criada a partir da 1');
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'ia-propor', id:vmId, instrucao:'muda o pagamento'}});
+ok(vm.status===409, 'IA recusa versão substituída ANTES de redigir (não depois)');
+vm = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'assinar-contratada', id:vmId, porNome:'Alex Piraginet'}});
+ok(vm.status===409, 'versão substituída não recebe contra-assinatura');
+
+// ajuste sem texto de pagamento NÃO apaga o que já estava acordado
+let np = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Kuruma Motors', doc:'11.222.333/0001-44', subtotal:900,
+  pagamento:'Integral, por deposito, contra nota.'}});
+np = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:np.body.id,
+  clausulas:[{titulo:'ACESSO', texto:'Montagem a partir das 8h.'}]}});
+np = await chamar({query:{t:np.body.token}});
+ok(/contra nota/.test(np.body.snapshot.pagamento), 'ajuste sem pagamento NÃO apaga o pagamento acordado');
 
 srvKV.close();

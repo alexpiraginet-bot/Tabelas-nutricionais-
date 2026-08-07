@@ -129,7 +129,8 @@ export default function AssinaturaPage({ token }) {
               mesmo — é o formato dele desde sempre. Traduzir aqui, num lugar só,
               evita que o documento exibido mostre um valor e o snapshot afirme
               outro. O teste e2e trava exatamente isso. */}
-          <ContratoPage somenteLeitura data={{ ...dados.snapshot, total: dados.snapshot.subtotal }} />
+          <ContratoPage somenteLeitura data={{ ...dados.snapshot, total: dados.snapshot.subtotal }}
+            assinaturas={{ contratada: dados.assinaturaContratada, contratante: dados.assinatura }} />
         </Suspense>
       )}
 
@@ -152,6 +153,17 @@ export default function AssinaturaPage({ token }) {
         ) : (
           <div style={caixa(T.border)}>
             <div className="fd" style={{ fontSize: 19, color: T.ink }}>Assinar</div>
+
+            {/* A cláusula 9ª diz que a Bentô confere e assina antes de enviar.
+                Mostrar quem assinou e quando é o que transforma a frase do
+                contrato em algo que o cliente consegue verificar na tela. */}
+            {dados && dados.assinaturaContratada && (
+              <div className="fb" style={{ fontSize: 12.5, color: T.pistacheDark, lineHeight: 1.55, marginTop: 9,
+                                           borderLeft: `2px solid ${T.pistacheDark}`, paddingLeft: 10 }}>
+                A Bentô Gelateria já conferiu e assinou este contrato em{" "}
+                <strong>{fmtData(dados.assinaturaContratada.em)}</strong>, por {dados.assinaturaContratada.porNome}.
+              </div>
+            )}
 
             <label style={linha}>
               <input type="checkbox" checked={aceiteConteudo} onChange={(e) => setAceiteConteudo(e.target.checked)} style={chk} />

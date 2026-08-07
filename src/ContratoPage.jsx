@@ -6,8 +6,13 @@ const CONTROLE_URL="https://bento-os-seven.vercel.app/"; // Bentô OS · Control
 // EXATAMENTE o texto que está congelado no servidor — nenhum campo editável,
 // nenhum valor recalculado na tela. É o mesmo componente de propósito: dois
 // componentes diferentes divergiriam, e aí ninguém saberia o que foi assinado.
-export default function ContratoPage({data:d,somenteLeitura}){
+// assinaturas: {contratada, contratante} vindas do REGISTRO, não do snapshot —
+// assinar não pode mudar o texto assinado (mudaria o hash). Quando existem, o
+// rodapé mostra a assinatura de verdade no lugar da linha em branco.
+export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
   const hoje=new Date().toLocaleDateString("pt-BR");
+  const asC=assinaturas&&assinaturas.contratada, asT=assinaturas&&assinaturas.contratante;
+  const fmtQuando=(iso)=>{ try{ return new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}); }catch(e){ return iso||""; } };
   const subtotal=Number(d.total)||0;
   // Desconto negociado (editável pela equipe ao emitir o contrato) — recalcula o total na hora.
   const[desc,setDesc]=useState(Math.max(0,Number(d.desconto)||0));
@@ -54,8 +59,38 @@ export default function ContratoPage({data:d,somenteLeitura}){
       const j=await r.json();
       setRegBusy(false);
       if(!j.ok){ setRegErro(j.error||"Não consegui registrar."); return; }
-      setReg({link:location.origin+"/?assinar="+encodeURIComponent(j.token),hash:j.hash});
+      setReg({link:location.origin+"/?assinar="+encodeURIComponent(j.token),hash:j.hash,id:j.id});
     }catch(e){ setRegBusy(false); setRegErro("Falha: "+(e&&e.message?e.message:"rede")); }
+  };
+  // A Bentô assina aqui, no instante em que o contrato nasce — é o que a
+  // cláusula 9ª descreve. Deixar para depois, no painel, é deixar para nunca: o
+  // link já saiu e o cliente assina um documento que a outra parte não assinou.
+  const[assC,setAssC]=useState(null);      // {porNome,porCargo,em} depois de assinar
+  const[assErro,setAssErro]=useState("");
+  const[assBusy,setAssBusy]=useState(false);
+  const assinarComoBento=async()=>{
+    setAssErro("");
+    let quem="";
+    try{ quem=localStorage.getItem("bento:assinante")||""; }catch(e){/* */}
+    quem=window.prompt("Quem está assinando pela Bentô? (nome completo)",quem)||"";
+    if(quem.trim().length<3) return;
+    try{ localStorage.setItem("bento:assinante",quem.trim()); }catch(e){/* */}
+    let cargo="";
+    try{ cargo=localStorage.getItem("bento:assinantecargo")||"Representante legal"; }catch(e){ cargo="Representante legal"; }
+    cargo=window.prompt("Cargo de quem assina:",cargo)||"";
+    if(cargo.trim()){ try{ localStorage.setItem("bento:assinantecargo",cargo.trim()); }catch(e){/* */} }
+    let chave="";
+    try{ chave=localStorage.getItem("bento:panelkey")||""; }catch(e){/* */}
+    setAssBusy(true);
+    try{
+      const r=await fetch("/api/contrato",{method:"POST",
+        headers:{"Content-Type":"application/json",Authorization:"Bearer "+chave},
+        body:JSON.stringify({acao:"assinar-contratada",id:reg.id,porNome:quem.trim(),porCargo:cargo.trim(),hashVisto:reg.hash})});
+      const j=await r.json();
+      setAssBusy(false);
+      if(!j.ok){ setAssErro(j.error||"Não consegui registrar a assinatura."); return; }
+      setAssC({porNome:j.porNome,porCargo:j.porCargo,em:j.em});
+    }catch(e){ setAssBusy(false); setAssErro("Falha: "+(e&&e.message?e.message:"rede")); }
   };
   const total=Math.max(0,subtotal-descV);
   const entrada=Math.round(total/2), saldo=total-entrada;   // sinal 50% + saldo 50%
@@ -185,6 +220,25 @@ export default function ContratoPage({data:d,somenteLeitura}){
             <div style={{color:"#9FB07E",fontSize:10.5,marginTop:7,lineHeight:1.6}}>
               Aparece uma única vez. hash {String(reg.hash).slice(0,24)}…
             </div>
+            <div style={{marginTop:11,paddingTop:10,borderTop:"1px solid #4C5B36"}}>
+              {assC?(
+                <div style={{color:"#C7D6A8",fontSize:12,lineHeight:1.6}}>
+                  ✓ Assinado pela Bentô — <strong>{assC.porNome}</strong> ({assC.porCargo}), {new Date(assC.em).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"})}.
+                </div>
+              ):(
+                <>
+                  <button onClick={assinarComoBento} disabled={assBusy}
+                    style={{background:"transparent",color:"#C7D6A8",border:"1px solid #6E7F53",borderRadius:6,padding:"9px 15px",fontSize:12.5,fontWeight:700,cursor:assBusy?"wait":"pointer"}}>
+                    {assBusy?"Registrando…":"✍️ Assinar como Bentô (conferi os termos)"}
+                  </button>
+                  <div style={{color:"#9FB07E",fontSize:10.5,marginTop:6,lineHeight:1.6,maxWidth:560}}>
+                    Assine antes de mandar o link: o contrato diz que a CONTRATADA confere e assina primeiro.
+                    Dá para fazer depois na aba Contratos do painel, mas aí o cliente já recebeu.
+                  </div>
+                </>
+              )}
+              {assErro&&<div role="alert" style={{color:"#F0C9C9",fontSize:12,marginTop:8,lineHeight:1.55}}>{assErro}</div>}
+            </div>
           </div>
         )}
       </div>
@@ -272,17 +326,36 @@ export default function ContratoPage({data:d,somenteLeitura}){
         ))}
         <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><div style={{border:"2px solid #8A2B2B",borderRadius:6,padding:"9px 11px",background:"#FDF6F6",fontWeight:600}}><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></div></Clause>
         <Clause n="8ª" t="DIREITO DE ARREPENDIMENTO">Quando a contratação ocorrer <strong>fora do estabelecimento comercial</strong> — inclusive por assinatura eletrônica à distância —, o CONTRATANTE pode desistir do contrato em até <strong>7 (sete) dias corridos</strong> contados da assinatura, com <strong>devolução integral</strong> de todo valor pago, nos termos do art. 49 do Código de Defesa do Consumidor. A desistência deve ser comunicada pelo WhatsApp ou e-mail indicados neste instrumento. Passado esse prazo, aplica-se a cláusula 7ª.</Clause>
-        <Clause n="9ª" t="ASSINATURA E ACEITE">As partes assinam este instrumento por meio eletrônico, com a seguinte ordem: <strong>primeiro a CONTRATADA</strong>, que confere e valida os termos e valores, e <strong>em seguida a CONTRATANTE</strong>, cuja assinatura formaliza a integral concordância com as condições aqui pactuadas. As partes <strong>admitem expressamente como válida entre si</strong> a assinatura eletrônica aqui empregada, ainda que não baseada em certificado ICP-Brasil, na forma do <strong>art. 10, §2º, da MP 2.200-2/2001</strong>. Para tanto, a CONTRATADA registra e conserva: o texto integral do contrato no momento da assinatura e seu resumo criptográfico (hash SHA-256), a data e a hora do servidor, o endereço IP e o navegador utilizados, e o aceite expresso do CONTRATANTE — dossiê que fica à disposição das partes.</Clause>
+        <Clause n="9ª" t="ASSINATURA E ACEITE">Este instrumento é assinado eletronicamente <strong>pelas duas partes</strong>: pela CONTRATADA, que confere e valida os termos e valores — em regra antes do envio ao CONTRATANTE —, e pelo CONTRATANTE, cuja assinatura formaliza a integral concordância com as condições aqui pactuadas. <strong>A data e a hora de cada assinatura são registradas pelo servidor da CONTRATADA</strong> e constam do dossiê, que é a fonte sobre quando e em que ordem cada parte assinou. As partes <strong>admitem expressamente como válida entre si</strong> a assinatura eletrônica aqui empregada, ainda que não baseada em certificado ICP-Brasil, na forma do <strong>art. 10, §2º, da MP 2.200-2/2001</strong>. Para tanto, a CONTRATADA registra e conserva: o texto integral do contrato no momento da assinatura e seu resumo criptográfico (hash SHA-256), a data e a hora do servidor, o endereço IP e o navegador utilizados, o aceite expresso do CONTRATANTE e a identificação de quem assinou pela CONTRATADA — dossiê que fica à disposição das partes.</Clause>
         <Clause n="10ª" t="DISPOSIÇÕES GERAIS">Casos de força maior serão tratados conforme a legislação vigente. Fica eleito o foro da Comarca de <strong>Vitória — ES</strong> para dirimir controvérsias oriundas deste contrato, <strong>ressalvado ao CONTRATANTE consumidor o direito de propor a ação no foro de seu domicílio</strong>, nos termos do art. 101, I, do Código de Defesa do Consumidor.</Clause>
         <div style={{marginTop:30,fontSize:11}}>Vitória — ES, <Ed>{hoje}</Ed>.</div>
+        {/* Linha em branco enquanto ninguém assinou; assinatura REGISTRADA quando
+            existe. O espaço vazio no lugar de uma assinatura que já foi dada faz
+            o documento parecer pendente — e era exatamente o que acontecia com a
+            CONTRATADA, que não tinha como assinar em lugar nenhum. */}
         <div style={{display:"flex",gap:40,marginTop:46}}>
-          {[["1ª · CONTRATADA","ABB Gelateria Ltda · Bentô Gelateria","assina e confere primeiro"],["2ª · CONTRATANTE",d.nome,"assina após a conferência"]].map(([t,n,o])=>(
+          {[["1ª · CONTRATADA","ABB Gelateria Ltda · Bentô Gelateria","assina e confere primeiro",asC&&{quem:asC.porNome,papel:asC.porCargo,em:asC.em}],
+            ["2ª · CONTRATANTE",d.nome,"assina após a conferência",asT&&{quem:asT.nomeDigitado,papel:"Contratante",em:asT.em}]].map(([t,n,o,as])=>(
             <div key={t} style={{flex:1,textAlign:"center"}}>
-              <div style={{fontSize:8.5,letterSpacing:"0.12em",color:"#A9831C",fontWeight:700,marginBottom:34}}>{o.toUpperCase()}</div>
+              <div style={{fontSize:8.5,letterSpacing:"0.12em",color:as?"#3A5A2E":"#A9831C",fontWeight:700,marginBottom:as?6:34}}>
+                {as?"ASSINADO ELETRONICAMENTE":o.toUpperCase()}
+              </div>
+              {as&&(
+                <div style={{fontFamily:"'Fraunces',Georgia,serif",fontSize:15,lineHeight:1.25,paddingBottom:3}}>{as.quem}</div>
+              )}
+              {as&&(
+                <div style={{fontSize:8.5,color:"#555",marginBottom:2}}>{as.papel} · {fmtQuando(as.em)}</div>
+              )}
               <div style={{borderTop:"1px solid #1a1a1a",paddingTop:6,fontSize:10.5}}><strong>{t}</strong><br/>{n}</div>
             </div>
           ))}
         </div>
+        {(asC||asT)&&(
+          <div style={{marginTop:14,fontSize:9,color:"#555",lineHeight:1.6,textAlign:"center"}}>
+            Assinaturas eletrônicas registradas pela CONTRATADA na forma do art. 10, §2º, da MP 2.200-2/2001.
+            Data e hora do servidor (horário de Brasília); IP e navegador de cada assinatura constam do dossiê.
+          </div>
+        )}
         <div style={{marginTop:34,paddingTop:10,borderTop:"1px solid #ccc",fontSize:8.5,color:"#777",textAlign:"center"}}>Documento gerado automaticamente em {hoje} a partir do orçamento online · bentogelateria.com</div>
       </div></div>
     </div>

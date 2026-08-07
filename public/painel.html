@@ -1521,11 +1521,17 @@ async function ctLoad(){
     el.innerHTML = j.contratos.map(function(c){
       var ok = c.status === "assinado";
       var imp = c.status === "importado";
+      var sub = c.status === "substituido";
+      // "Falta a Bentô assinar" precisa aparecer NA LISTA. Escondido dentro do
+      // dossiê, um contrato pela metade só é descoberto quando alguém abre —
+      // isto é, depois de o link já ter ido para o cliente.
+      var faltaNos = !c.contratada && !imp && !sub;
       return '<div style="border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:8px">'+
         '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">'+
           '<strong style="font-size:13.5px">'+ctEsc(c.nome)+'</strong>'+
-          '<span class="tag'+(ok?" conv":"")+'">'+(ok?"assinado":(imp?"histórico":"aguardando"))+'</span>'+
+          '<span class="tag'+(ok?" conv":"")+'">'+(ok?"assinado":(imp?"histórico":(sub?"substituído":"aguardando")))+'</span>'+
         '</div>'+
+        (faltaNos ? '<div style="font-size:10.5px;color:#e8c877;margin-top:4px">⚠ falta a assinatura da Bentô</div>' : '')+
         '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:5px;line-height:1.7">'+
           'evento '+ctEsc(c.data||"—")+' · '+ctMoeda(c.total)+'<br>'+
           'emitido '+ctData(c.criadoEm)+(ok?' · assinado '+ctData(c.assinadoEm):'')+'<br>'+
@@ -1558,13 +1564,49 @@ async function ctNovoLink(id, out, btn){
     btn.textContent = antes;
     if(!j.ok){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9;margin-top:7px">'+ctEsc(j.error||"falhou")+'</div>'; return; }
     var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
+    // Contrato de histórico não ganha link: ganha uma VERSÃO NOVA, com id e hash
+    // próprios. Dizer isso é obrigatório — quem assina é a versão nova, e é ela
+    // que precisa da assinatura da Bentô.
     out.innerHTML = '<div style="margin-top:8px;border:1px solid var(--pist);border-radius:9px;padding:10px 11px;background:#111608">'
+      + (j.derivado ? '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Versão assinável criada a partir do histórico</div>' : '')
       + '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+ctEsc(url)+'</div>'
-      + '<button style="margin-top:8px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button></div>';
+      + '<button style="margin-top:8px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button>'
+      + (j.derivado ? '<div class="mono" style="font-size:10px;color:#e8c877;margin-top:7px;line-height:1.6">O contrato novo apareceu no topo da lista. <b>Assine como Bentô nele</b> antes de mandar o link.</div>' : '')
+      + '</div>';
     out.querySelector("button").onclick = function(){
       var b = out.querySelector("button");
       navigator.clipboard.writeText(url).then(function(){ b.textContent = "Copiado ✓"; }, function(){ prompt("Copie:", url); });
     };
+    if(j.derivado) ctLoad();
+  }catch(e){ btn.textContent = antes; out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">Falha: '+ctEsc(e.message)+'</div>'; }
+}
+
+// Contra-assinatura da Bentô. O contrato sempre disse que as duas partes
+// assinam; até agora só o cliente tinha como fazer isso.
+async function ctAssinarBento(id, hash, out, btn){
+  var quem = "";
+  try{ quem = localStorage.getItem("bento:assinante") || ""; }catch(e){}
+  quem = prompt("Quem está assinando pela Bentô? (nome completo)", quem) || "";
+  if(quem.trim().length < 3) return;
+  try{ localStorage.setItem("bento:assinante", quem.trim()); }catch(e){}
+  var cargo = "";
+  try{ cargo = localStorage.getItem("bento:assinantecargo") || "Representante legal"; }catch(e){ cargo = "Representante legal"; }
+  cargo = prompt("Cargo de quem assina:", cargo) || "";
+  if(cargo.trim()){ try{ localStorage.setItem("bento:assinantecargo", cargo.trim()); }catch(e){} }
+  if(!confirm("Assinar este contrato como CONTRATADA?\n\n"+quem.trim()+" — "+(cargo.trim()||"Representante legal")+"\n\nFica registrado com a hora do servidor e não pode ser desfeito.")) return;
+  var antes = btn.textContent; btn.textContent = "assinando…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ acao:"assinar-contratada", id:id, porNome:quem.trim(), porCargo:cargo.trim(), hashVisto:hash }) });
+    var j = await r.json();
+    btn.textContent = antes;
+    if(!j.ok){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9;margin-top:7px">'+ctEsc(j.error||"falhou")+'</div>'; return; }
+    btn.style.display = "none";
+    out.innerHTML = '<div class="mono" style="font-size:11px;color:var(--pist);margin-top:7px;line-height:1.6">✓ Assinado por <b>'
+      + ctEsc(j.porNome)+'</b> ('+ctEsc(j.porCargo)+') em '+ctData(j.em)+'</div>';
+    ctLoad();
   }catch(e){ btn.textContent = antes; out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">Falha: '+ctEsc(e.message)+'</div>'; }
 }
 
@@ -1599,7 +1641,7 @@ async function ctIAFoto(id, files){
   }catch(e){ msg.innerHTML = '<span style="color:#f0c9c9">Falha: '+ctEsc(e.message)+'</span>'; }
 }
 
-async function ctIA(id){
+async function ctIA(id, historico){
   var cx = $("#ctia_"+id); if(!cx) return;
   var inst = cx.querySelector("textarea").value.trim();
   if(inst.length < 3){ alert("Diga o que deve mudar."); return; }
@@ -1628,16 +1670,22 @@ async function ctIA(id){
       html += '<div style="font-size:11.5px;line-height:1.6;margin-bottom:7px"><b>6.'+(i+1)+' '+ctEsc(c.titulo)+'</b><br>'+ctEsc(c.texto).replace(/\n/g,"<br>")+'</div>';
     });
     html += '<button class="ctiaAplicar" style="margin-top:8px;padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Aplicar e gerar novo link</button>';
-    html += '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px;line-height:1.6">Aplicar cria uma VERSÃO NOVA do contrato. A anterior fica registrada e o link dela morre.</div>';
+    html += '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px;line-height:1.6">'
+         + (historico
+            ? 'Aplicar cria um contrato NOVO, assinável, com link próprio. Este registro de histórico não muda.'
+            : 'Aplicar cria uma VERSÃO NOVA do contrato. A anterior fica registrada e o link dela morre.')
+         + '</div>';
     html += '</div>';
     out.innerHTML = html;
-    out.querySelector(".ctiaAplicar").onclick = function(){ ctAplicar(id, out); };
+    out.querySelector(".ctiaAplicar").onclick = function(){ ctAplicar(id, out, historico); };
   }catch(e){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">Falha: '+ctEsc(e.message)+'</div>'; }
 }
 
-async function ctAplicar(id, out){
+async function ctAplicar(id, out, historico){
   var p = _ctProposta[id]; if(!p){ alert("Gere a proposta primeiro."); return; }
-  if(!confirm("Aplicar e gerar um contrato novo?\n\nA versão atual será encerrada e o link dela deixa de funcionar.")) return;
+  if(!confirm(historico
+    ? "Criar um contrato NOVO com este ajuste?\n\nO registro de histórico continua como está — o que nasce é uma versão assinável, com link próprio."
+    : "Aplicar e gerar um contrato novo?\n\nA versão atual será encerrada e o link dela deixa de funcionar.")) return;
   try{
     var key = localStorage.getItem(KEYSTORE) || "";
     var r = await fetch("/api/contrato", { method:"POST",
@@ -1647,10 +1695,12 @@ async function ctAplicar(id, out){
     if(!j.ok){ alert(j.error || "Não consegui aplicar."); return; }
     var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
     out.innerHTML = '<div style="border:1px solid var(--pist);border-radius:10px;padding:11px 12px;margin-top:9px;background:#111608">'
-      + '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Versão '+j.versao+' criada — envie o link novo</div>'
+      + '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">'
+      + (j.derivado ? 'Contrato assinável criado a partir do histórico' : 'Versão '+j.versao+' criada')
+      + ' — envie o link novo</div>'
       + '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+ctEsc(url)+'</div>'
       + '<button style="margin-top:9px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button>'
-      + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px">Aparece uma única vez.</div></div>';
+      + '<div class="mono" style="font-size:10px;color:#e8c877;margin-top:7px;line-height:1.6">Aparece uma única vez. O contrato novo está no topo da lista — <b>assine como Bentô nele</b> antes de mandar.</div></div>';
     out.querySelector("button").onclick = function(){
       var b = out.querySelector("button");
       navigator.clipboard.writeText(url).then(function(){ b.textContent="Copiado ✓"; }, function(){ prompt("Copie:", url); });
@@ -1669,9 +1719,17 @@ async function ctDossie(id){
     var j = await r.json();
     if(!j.ok){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">'+ctEsc(j.error)+'</div>'; return; }
     var a = j.contrato.assinatura;
+    var ac = j.contrato.assinaturaContratada;
+    var st = j.contrato.status;
+    var podeAssinarBento = !ac && st !== "importado" && st !== "substituido";
     alvo.innerHTML = '<div style="margin-top:9px;border-top:1px solid var(--line);padding-top:9px" class="mono" style="font-size:10.5px">'+
       '<div style="font-size:10.5px;color:var(--soft);line-height:1.8">'+
       'hash completo: <span style="color:var(--ink);word-break:break-all">'+ctEsc(j.contrato.hash)+'</span><br>'+
+      // Quem assinou pela Bentô vem ANTES da assinatura do cliente: é a ordem
+      // que o contrato descreve, e é a que falta conferir quando algo trava.
+      (ac ? ('pela Bentô: <span style="color:var(--ink)">'+ctEsc(ac.porNome)+'</span> ('+ctEsc(ac.porCargo||"—")+')'
+             + ' em '+ctData(ac.em)+' · IP '+ctEsc(ac.ip||"—")+'<br>')
+          : (st === "importado" || st === "substituido" ? '' : '<span style="color:#e8c877">pela Bentô: ainda não assinado</span><br>'))+
       (a ? ('assinou como: <span style="color:var(--ink)">'+ctEsc(a.nomeDigitado)+'</span>'
             + (a.nomeConfere===false ? ' <span style="color:#e8c877">— DIFERENTE do contratante do contrato ('+ctEsc(a.nomeEsperado||'—')+')</span>' : '')
             + '<br>'+
@@ -1691,16 +1749,37 @@ async function ctDossie(id){
           + ctData(j.contrato.ajustePedido.em)+'</div>'
           + '<div class="mono" style="font-size:11px;color:#e8c877;line-height:1.65">'+ctEsc(j.contrato.ajustePedido.pedido)+'</div></div>'
         : '')+
+      // Assinatura da CONTRATADA: fica em cima do botão de gerar link, porque é
+      // essa a ordem que o contrato descreve — conferir e assinar, depois enviar.
+      (podeAssinarBento
+        ? '<div style="margin-top:10px;border:1px solid #4a5c32;border-radius:9px;padding:10px 11px;background:#0f1409">'
+          + '<div class="mono" style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)">Assinatura da Bentô (CONTRATADA)</div>'
+          + '<button class="ctAssB" style="margin-top:7px;padding:9px 14px;border-radius:8px;border:1px solid var(--pist);background:transparent;color:var(--pist);font-weight:700;font-size:12px;cursor:pointer">✍️ Assinar como Bentô</button>'
+          + '<div class="ctAssBOut"></div>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">Registra quem conferiu, com a hora do servidor e o hash deste texto. '
+          + (j.contrato.status === 'assinado' ? 'O cliente já assinou — a contra-assinatura fica com a data de hoje, que é a verdadeira.' : 'Assine antes de mandar o link.')
+          + '</div></div>'
+        : '')+
       // Comando de IA — só faz sentido em contrato que ainda não foi assinado.
       // Sem isto o contrato ficava preso: registrado, aguardando, e sem meio de
       // ser enviado — porque o link só aparecia uma vez, na criação.
-      (['aguardando','ajuste-pedido'].indexOf(j.contrato.status) > -1
-        ? '<div style="margin-top:10px"><button class="ctLink" style="padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">🔗 Gerar link de assinatura</button>'
+      (['aguardando','ajuste-pedido','importado'].indexOf(j.contrato.status) > -1
+        ? '<div style="margin-top:10px"><button class="ctLink" style="padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">'
+          + (j.contrato.status === 'importado' ? '🔗 Gerar versão assinável' : '🔗 Gerar link de assinatura') + '</button>'
           + '<div class="ctLinkOut"></div>'
-          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">O link some depois de exibido — ele não fica guardado. Gerar de novo cria outro e <b>derruba o anterior</b>, o que também serve se o link foi para a pessoa errada.</div></div>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">'
+          + (j.contrato.status === 'importado'
+              ? 'Este é um registro do que já existia — ele não se assina. O botão cria um contrato NOVO com o mesmo conteúdo, esse sim assinável. O histórico fica como está.'
+              : 'O link some depois de exibido — ele não fica guardado. Gerar de novo cria outro e <b>derruba o anterior</b>, o que também serve se o link foi para a pessoa errada.')
+          + '</div></div>'
         : '')+
-      (j.contrato.status === 'assinado'
-        ? '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:9px">Contrato assinado: não pode ser alterado.</div>'
+      // Caixa da IA some em contrato assinado e em versão substituída. Deixá-la
+      // na versão morta era convite a trabalho perdido: a equipe escrevia a
+      // instrução, a IA redigia, e a aplicação recusava no último clique.
+      (st === 'assinado' || st === 'substituido'
+        ? '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:9px">'
+          + (st === 'assinado' ? 'Contrato assinado: não pode ser alterado.' : 'Versão substituída: ajuste a versão atual, não esta.')
+          + '</div>'
         : '<div id="ctia_'+ctEsc(id)+'" style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px">'
           + '<div class="mono" style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)">Ajustar com IA</div>'
           + '<textarea rows="3" placeholder="Ex.: pagamento integral por depósito bancário em até 15 dias após o envio da NF, sem sinal. Manter o resto." '
@@ -1708,13 +1787,17 @@ async function ctDossie(id){
           + '<input type="file" class="ctiaFoto" accept="image/jpeg,image/png,image/webp" style="margin-top:7px;display:block;font-size:11.5px;color:var(--soft)">'
           + '<div class="ctiaFotoMsg mono" style="font-size:10.5px;color:var(--soft);margin-top:4px;line-height:1.6"></div>'
           + '<button class="ctiaGerar" style="margin-top:7px;padding:9px 14px;border-radius:8px;border:1px solid var(--pist);background:transparent;color:var(--pist);font-weight:700;font-size:12px;cursor:pointer">Propor ajuste</button>'
-          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">A IA só redige pagamento e cláusulas. Valor, data, nome e CPF vêm do orçamento e ela não encosta neles.<br>Pode anexar uma foto (print da conversa, e-mail, cartão CNPJ) — ela lê e usa como contexto do ajuste.</div>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">A IA só redige pagamento e cláusulas. Valor, data, nome e CPF vêm do orçamento e ela não encosta neles.<br>Pode anexar uma foto (print da conversa, e-mail, cartão CNPJ) — ela lê e usa como contexto do ajuste.'
+          + (st === 'importado' ? '<br><b>Contrato de histórico:</b> aplicar cria um contrato NOVO, assinável, e mantém este registro intacto.' : '')
+          + '</div>'
           + '<div class="ctiaOut"></div></div>')+
       '</div>';
     var g = alvo.querySelector(".ctiaGerar");
-    if(g) g.onclick = function(){ ctIA(id); };
+    if(g) g.onclick = function(){ ctIA(id, st === 'importado'); };
     var lk = alvo.querySelector(".ctLink");
     if(lk) lk.onclick = function(){ ctNovoLink(id, alvo.querySelector(".ctLinkOut"), lk); };
+    var ab = alvo.querySelector(".ctAssB");
+    if(ab) ab.onclick = function(){ ctAssinarBento(id, j.contrato.hash, alvo.querySelector(".ctAssBOut"), ab); };
     var ft = alvo.querySelector(".ctiaFoto");
     if(ft) ft.onchange = function(e){ ctIAFoto(id, e.target.files); };
   }catch(e){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }

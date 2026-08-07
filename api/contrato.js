@@ -144,6 +144,80 @@ function montaSnapshot(body) {
   };
 }
 
+// Uma versão ASSINÁVEL nascida de um contrato que já existe. São dois casos, e a
+// diferença entre eles importa:
+//
+//  · contrato VIVO (aguardando / ajuste-pedido) — o novo SUBSTITUI o anterior:
+//    a versão antiga é encerrada e o link dela morre. Dois textos assináveis do
+//    mesmo contrato circulando é o começo de uma discussão sobre qual valia.
+//  · contrato de HISTÓRICO (importado) — o registro antigo FICA COMO ESTÁ. Ele é
+//    a prova do que já existia; virar rascunho do que está sendo negociado agora
+//    apagaria justamente o histórico que a importação existiu para criar. O novo
+//    nasce derivado dele, e o antigo só ganha o apontamento.
+function derivar(antigo, ajustes, req) {
+  const base = antigo.snapshot;
+  const a = ajustes || {};
+  // Texto vazio vindo do ajuste é tratado como "não mexeu", nunca como "apague".
+  // A IA recebe o pagamento atual e é instruída a manter o que não foi pedido;
+  // se ainda assim devolver vazio, ela ESQUECEU — e apagar em silêncio uma
+  // condição de pagamento já acordada é bem pior que ignorar a omissão.
+  const snapshot = montaSnapshot({
+    ...base,
+    subtotal: base.subtotal, desconto: base.desconto,
+    pagamento: texto(a.pagamento, 1200) || base.pagamento,
+    clausulas: Array.isArray(a.clausulas) && a.clausulas.length ? a.clausulas : base.clausulas,
+  });
+  const historico = antigo.status === "importado";
+  const agora = new Date();
+  const em = agora.toISOString();
+  const token = crypto.randomBytes(32).toString("base64url");
+  const novo = {
+    id: crypto.randomBytes(9).toString("base64url"),
+    criadoEm: em,
+    expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,
+    status: "aguardando",
+    snapshot,
+    hash: sha256(canonico(snapshot)),
+    tokenHash: sha256(token),
+    versao: historico ? 1 : (antigo.versao || 1) + 1,
+  };
+  if (historico) novo.derivadoDe = antigo.id;
+  else novo.substitui = antigo.id;
+
+  const cmds = [
+    ["SET", "contrato:" + novo.id, JSON.stringify(novo)],
+    ["SET", "contrato:tok:" + novo.tokenHash, novo.id],
+    ["EXPIRE", "contrato:tok:" + novo.tokenHash, VALIDADE_DIAS * 86400],
+    ["LPUSH", "contratos", novo.id],
+    ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
+    ["RPUSH", "contrato:" + novo.id + ":eventos", JSON.stringify({
+      tipo: "criacao", em, ip: ip(req), hash: novo.hash,
+      nota: historico
+        ? "versão assinável gerada a partir do contrato de histórico " + antigo.id
+        : "versão " + novo.versao + ", substitui " + antigo.id,
+    })],
+  ];
+  if (historico) {
+    cmds.push(["SET", "contrato:" + antigo.id, JSON.stringify({
+      ...antigo, derivados: [...(antigo.derivados || []), novo.id],
+    })]);
+    cmds.push(["RPUSH", "contrato:" + antigo.id + ":eventos", JSON.stringify({
+      tipo: "derivacao", em, paraContrato: novo.id,
+      nota: "gerada versão assinável; este registro de histórico permanece inalterado",
+    })]);
+  } else {
+    cmds.push(["SET", "contrato:" + antigo.id, JSON.stringify({ ...antigo, status: "substituido", substituidoPor: novo.id })]);
+    cmds.push(["RPUSH", "contrato:" + antigo.id + ":eventos", JSON.stringify({ tipo: "substituicao", em, porContrato: novo.id })]);
+    if (antigo.tokenHash) cmds.push(["DEL", "contrato:tok:" + antigo.tokenHash]);
+  }
+  return { novo, token, cmds, historico };
+}
+
+// A contra-assinatura mora em CHAVE PRÓPRIA, fora do documento do contrato — ver
+// a ação "assinar-contratada" para o porquê.
+const chaveContratada = (id) => "contrato:" + id + ":contratada";
+const leContratada = (v) => { try { return v ? JSON.parse(v) : null; } catch { return null; } };
+
 const ip = (req) => texto((req.headers["x-forwarded-for"] || "").split(",")[0] || "", 64);
 const ua = (req) => texto(req.headers["user-agent"] || "", 300);
 
@@ -162,21 +236,33 @@ export default async function handler(req, res) {
     if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
     if (req.query.id) {
       const id = texto(req.query.id, 40);
-      const [doc, eventos] = await Promise.all([kv(["GET", "contrato:" + id]), kv(["LRANGE", "contrato:" + id + ":eventos", 0, 200])]);
+      const [doc, eventos, contratada] = await Promise.all([
+        kv(["GET", "contrato:" + id]),
+        kv(["LRANGE", "contrato:" + id + ":eventos", 0, 200]),
+        kv(["GET", chaveContratada(id)]),
+      ]);
       if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
       const c = JSON.parse(doc);
       delete c.tokenHash;   // nunca sai daqui, nem para o painel
+      c.assinaturaContratada = leContratada(contratada);
       res.status(200).json({ ok: true, contrato: c, eventos: (eventos || []).map((e) => JSON.parse(e)) });
       return;
     }
     const ids = (await kv(["LRANGE", "contratos", 0, 199])) || [];
     if (!ids.length) { res.status(200).json({ ok: true, contratos: [] }); return; }
-    const docs = await kvPipe(ids.map((i) => ["GET", "contrato:" + i]));
-    const contratos = docs.map((d) => { try { return JSON.parse(d.result); } catch { return null; } })
-      .filter(Boolean)
-      .map((c) => ({ id: c.id, criadoEm: c.criadoEm, status: c.status, hash: c.hash,
-                     nome: c.snapshot.nome, data: c.snapshot.data, total: c.snapshot.total,
-                     assinadoEm: c.assinadoEm || null }));
+    // Duas leituras por contrato, uma viagem só: a lista precisa mostrar quem
+    // ainda está esperando a assinatura da Bentô sem abrir dossiê por dossiê.
+    const rs = await kvPipe(ids.flatMap((i) => [["GET", "contrato:" + i], ["GET", chaveContratada(i)]]));
+    const contratos = [];
+    ids.forEach((_, n) => {
+      let c = null;
+      try { c = JSON.parse(rs[n * 2].result); } catch { c = null; }
+      if (!c || !c.snapshot) return;
+      contratos.push({ id: c.id, criadoEm: c.criadoEm, status: c.status, hash: c.hash,
+                       nome: c.snapshot.nome, data: c.snapshot.data, total: c.snapshot.total,
+                       assinadoEm: c.assinadoEm || null,
+                       contratada: !!leContratada(rs[n * 2 + 1].result) });
+    });
     res.status(200).json({ ok: true, contratos });
     return;
   }
@@ -186,7 +272,7 @@ export default async function handler(req, res) {
     const token = texto(req.query.t, 64);
     const id = await kv(["GET", "contrato:tok:" + sha256(token)]);
     if (!id) { res.status(404).json({ ok: false, error: "Link inválido ou expirado." }); return; }
-    const doc = await kv(["GET", "contrato:" + id]);
+    const [doc, contratada] = await Promise.all([kv(["GET", "contrato:" + id]), kv(["GET", chaveContratada(id)])]);
     if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
     const c = JSON.parse(doc);
     const expirado = Date.now() > c.expiraEm;
@@ -198,6 +284,9 @@ export default async function handler(req, res) {
       ok: true, id: c.id, snapshot: c.snapshot, hash: c.hash,
       status: c.status, expirado, assinadoEm: c.assinadoEm || null,
       assinatura: c.assinatura || null,
+      // O cliente vê que a Bentô já conferiu e assinou: é o que a cláusula 9ª
+      // promete, e sem isto a promessa ficava só no texto.
+      assinaturaContratada: leContratada(contratada),
     });
     return;
   }
@@ -285,7 +374,16 @@ export default async function handler(req, res) {
     const c = JSON.parse(doc);
     if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Este contrato já foi assinado — não precisa de link." }); return; }
     if (c.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão foi substituída. Use a versão nova." }); return; }
-    if (c.status === "importado") { res.status(409).json({ ok: false, error: "Contrato de histórico não tem link. Gere um novo pelo orçamento." }); return; }
+    // Contrato de histórico nunca teve link — mas recusar aqui deixava a equipe
+    // sem saída justamente quando ela queria o óbvio: reaproveitar um contrato
+    // antigo. Em vez de negar, GERA a versão assinável e devolve o link dela.
+    // O registro importado continua intocado; quem assina é a versão nova.
+    if (c.status === "importado") {
+      const d = derivar(c, null, req);
+      await kvPipe(d.cmds);
+      res.status(200).json({ ok: true, token: d.token, id: d.novo.id, hash: d.novo.hash, derivado: true, de: c.id });
+      return;
+    }
 
     const token = crypto.randomBytes(32).toString("base64url");
     const agora = new Date();
@@ -314,17 +412,24 @@ export default async function handler(req, res) {
   // clique. Contrato assinado não entra aqui de jeito nenhum.
   if (body.acao === "ia-propor") {
     if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
-    if (!process.env.ANTHROPIC_API_KEY) {
-      res.status(503).json({ ok: false, error: "Configure ANTHROPIC_API_KEY na Vercel para usar o ajuste por IA." });
-      return;
-    }
     const id = texto(body.id, 40);
     const instrucao = texto(body.instrucao, 2000);
     if (!id || instrucao.length < 3) { res.status(400).json({ ok: false, error: "Diga o que deve mudar." }); return; }
     const doc = await kv(["GET", "contrato:" + id]);
     if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
     const c = JSON.parse(doc);
+    // O estado do contrato é checado ANTES da chave da IA, de propósito: para
+    // quem está com uma versão morta na tela, "esta versão foi substituída" é a
+    // resposta útil; "configure a ANTHROPIC_API_KEY" manda arrumar a coisa errada.
     if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Contrato assinado não pode ser alterado." }); return; }
+    // Recusar só na hora de APLICAR era cruel: a equipe escrevia a instrução,
+    // esperava a IA redigir, aprovava — e só então descobria que aquela versão
+    // estava morta. O "não" tem de vir antes do trabalho, não depois.
+    if (c.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão já foi substituída. Ajuste a versão atual." }); return; }
+    if (!process.env.ANTHROPIC_API_KEY) {
+      res.status(503).json({ ok: false, error: "Configure ANTHROPIC_API_KEY na Vercel para usar o ajuste por IA." });
+      return;
+    }
 
     const atual = {
       pagamento: c.snapshot.pagamento || "(padrão: 50% na assinatura, 50% até 7 dias antes do evento, via Pix)",
@@ -394,6 +499,10 @@ export default async function handler(req, res) {
   // Não edita o contrato no lugar: cria outro, com hash e link próprios, e
   // aponta para o anterior. O texto que o cliente viu ontem continua existindo —
   // é isso que permite dizer, depois, o que foi proposto e o que foi aceito.
+  //
+  // Contrato de histórico (importado) também passa por aqui: a IA propunha o
+  // ajuste e a aplicação recusava, então o ajuste morria na tela e nenhum link
+  // saía. Agora ele vira uma versão assinável nova, e o registro antigo fica.
   if (body.acao === "aplicar-ajuste") {
     if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
     const id = texto(body.id, 40);
@@ -404,46 +513,53 @@ export default async function handler(req, res) {
     // Partir de versão morta ressuscitaria texto antigo ou criaria dois ramos
     // assináveis do mesmo contrato.
     if (antigo.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão já foi substituída. Ajuste a versão atual." }); return; }
-    if (antigo.status === "importado") { res.status(409).json({ ok: false, error: "Contrato de histórico não é ajustável. Gere um novo pelo orçamento." }); return; }
 
     // Dinheiro e partes vêm SEMPRE do contrato anterior, nunca do que chegou no
     // corpo. Só pagamento e cláusulas podem mudar.
-    const base = antigo.snapshot;
-    const snapshot = montaSnapshot({
-      ...base,
-      subtotal: base.subtotal, desconto: base.desconto,
-      pagamento: body.pagamento, clausulas: body.clausulas,
-    });
-    const novoId = crypto.randomBytes(9).toString("base64url");
-    const token = crypto.randomBytes(32).toString("base64url");
-    const agora = new Date();
-    const novo = {
-      id: novoId, criadoEm: agora.toISOString(),
-      expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,
-      status: "aguardando", snapshot,
-      hash: sha256(canonico(snapshot)),
-      tokenHash: sha256(token),
-      substitui: antigo.id, versao: (antigo.versao || 1) + 1,
-    };
-    const cmds = [
-      ["SET", "contrato:" + novoId, JSON.stringify(novo)],
-      ["SET", "contrato:tok:" + novo.tokenHash, novoId],
-      ["EXPIRE", "contrato:tok:" + novo.tokenHash, VALIDADE_DIAS * 86400],
-      ["LPUSH", "contratos", novoId],
-      ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
-      ["RPUSH", "contrato:" + novoId + ":eventos", JSON.stringify({
-        tipo: "criacao", em: agora.toISOString(), ip: ip(req), hash: novo.hash,
-        nota: "versão " + novo.versao + ", substitui " + antigo.id,
-      })],
-      // o anterior é encerrado e o link dele morre
-      ["SET", "contrato:" + antigo.id, JSON.stringify({ ...antigo, status: "substituido", substituidoPor: novoId })],
-      ["RPUSH", "contrato:" + antigo.id + ":eventos", JSON.stringify({
-        tipo: "substituicao", em: agora.toISOString(), porContrato: novoId,
-      })],
-    ];
-    if (antigo.tokenHash) cmds.push(["DEL", "contrato:tok:" + antigo.tokenHash]);
-    await kvPipe(cmds);
-    res.status(200).json({ ok: true, id: novoId, token, hash: novo.hash, versao: novo.versao });
+    const d = derivar(antigo, { pagamento: body.pagamento, clausulas: body.clausulas }, req);
+    await kvPipe(d.cmds);
+    res.status(200).json({ ok: true, id: d.novo.id, token: d.token, hash: d.novo.hash,
+                           versao: d.novo.versao, derivado: d.historico, de: d.historico ? antigo.id : undefined });
+    return;
+  }
+
+  // ---------- painel: a CONTRATADA assina (contra-assinatura da Bentô) ----------
+  // O documento SEMPRE disse que as duas partes assinam, e a cláusula 9ª chega a
+  // descrever a ordem — só que quem tinha como assinar era o cliente, sozinho.
+  // Instrumento de prova que afirma uma coisa e registra outra é pior do que um
+  // que não afirma nada: a primeira coisa que a outra parte faz numa disputa é
+  // apontar a diferença.
+  //
+  // Grava em CHAVE PRÓPRIA, fora do documento do contrato, e não por capricho:
+  // se as duas assinaturas escrevessem no mesmo registro, uma contra-assinatura
+  // feita no painel no mesmo instante em que o cliente assina sobrescreveria a
+  // assinatura dele com uma leitura velha — apagando justamente a prova que
+  // interessa. Chaves separadas não colidem, e o SETNX ainda garante uma só.
+  if (body.acao === "assinar-contratada") {
+    if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+    const id = texto(body.id, 40);
+    const porNome = texto(body.porNome, 160);
+    const porCargo = texto(body.porCargo, 80) || "Representante legal";
+    if (porNome.length < 3) { res.status(400).json({ ok: false, error: "Diga quem está assinando pela Bentô." }); return; }
+    const doc = await kv(["GET", "contrato:" + id]);
+    if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
+    const c = JSON.parse(doc);
+    if (c.status === "substituido") { res.status(409).json({ ok: false, error: "Esta versão foi substituída — assine a versão atual." }); return; }
+    if (c.status === "importado") { res.status(409).json({ ok: false, error: "Contrato de histórico não recebe assinatura aqui. Gere a versão assinável e assine nela." }); return; }
+    // Assinar é declarar que se conferiu ESTE texto. Se a tela estava velha, o
+    // que a pessoa leu não é o que está gravado — e a assinatura cobriria outro
+    // documento. Mesma trava que o cliente tem.
+    const hashVisto = texto(body.hashVisto, 80);
+    if (hashVisto && hashVisto !== c.hash) {
+      res.status(409).json({ ok: false, error: "O contrato mudou desde que esta tela abriu. Recarregue e confira de novo." });
+      return;
+    }
+    const em = new Date().toISOString();      // hora do SERVIDOR, como a do cliente
+    const assinatura = { em, porNome, porCargo, ip: ip(req), ua: ua(req), hashAssinado: c.hash, via: "painel" };
+    const primeiro = await kv(["SETNX", chaveContratada(id), JSON.stringify(assinatura)]);
+    if (Number(primeiro) !== 1) { res.status(409).json({ ok: false, error: "Este contrato já foi assinado pela CONTRATADA." }); return; }
+    await kv(["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "assinatura-contratada", ...assinatura })]).catch(() => {});
+    res.status(200).json({ ok: true, em, porNome, porCargo });
     return;
   }
 
