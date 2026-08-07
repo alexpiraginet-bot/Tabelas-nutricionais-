@@ -1458,6 +1458,71 @@ async function ctLoad(){
   }catch(e){ el.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }
 }
 
+// ---- Motor de IA sob comando: a equipe manda o que mudar, a IA PROPÕE, e só
+// vira contrato depois de alguém aprovar na tela. Dois cliques de propósito:
+// contrato não é lugar de "aplicar direto".
+var _ctProposta = {};
+
+async function ctIA(id){
+  var cx = $("#ctia_"+id); if(!cx) return;
+  var inst = cx.querySelector("textarea").value.trim();
+  if(inst.length < 3){ alert("Diga o que deve mudar."); return; }
+  var out = cx.querySelector(".ctiaOut");
+  out.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">a IA está redigindo…</div>';
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ acao:"ia-propor", id: id, instrucao: inst }) });
+    var j = await r.json();
+    if(!j.ok){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">'+ctEsc(j.error||"falhou")+'</div>'; return; }
+    _ctProposta[id] = j.proposta;
+    var p = j.proposta;
+    var html = '<div style="border:1px solid var(--pist);border-radius:10px;padding:11px 12px;margin-top:9px;background:#111608">';
+    html += '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Proposta da IA — confira antes de aplicar</div>';
+    if(p.resumo) html += '<div class="mono" style="font-size:11px;color:var(--soft);line-height:1.6;margin-bottom:8px">'+ctEsc(p.resumo)+'</div>';
+    if(p.alertas && p.alertas.length){
+      html += '<div style="border:1px solid #7a5b1b;border-radius:8px;padding:8px 10px;background:#1d1708;margin-bottom:9px">'
+           + '<div style="font-size:11px;font-weight:700;color:#e8c877;margin-bottom:4px">Atenção</div>'
+           + p.alertas.map(function(a){ return '<div class="mono" style="font-size:10.5px;color:#e8c877;line-height:1.6">· '+ctEsc(a)+'</div>'; }).join("")
+           + '</div>';
+    }
+    if(p.pagamento) html += '<div style="font-size:11.5px;line-height:1.6;margin-bottom:8px"><b>PAGAMENTO</b><br>'+ctEsc(p.pagamento).replace(/\n/g,"<br>")+'</div>';
+    (p.clausulas||[]).forEach(function(c,i){
+      html += '<div style="font-size:11.5px;line-height:1.6;margin-bottom:7px"><b>6.'+(i+1)+' '+ctEsc(c.titulo)+'</b><br>'+ctEsc(c.texto).replace(/\n/g,"<br>")+'</div>';
+    });
+    html += '<button class="ctiaAplicar" style="margin-top:8px;padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Aplicar e gerar novo link</button>';
+    html += '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px;line-height:1.6">Aplicar cria uma VERSÃO NOVA do contrato. A anterior fica registrada e o link dela morre.</div>';
+    html += '</div>';
+    out.innerHTML = html;
+    out.querySelector(".ctiaAplicar").onclick = function(){ ctAplicar(id, out); };
+  }catch(e){ out.innerHTML = '<div class="mono" style="font-size:11px;color:#f0c9c9">Falha: '+ctEsc(e.message)+'</div>'; }
+}
+
+async function ctAplicar(id, out){
+  var p = _ctProposta[id]; if(!p){ alert("Gere a proposta primeiro."); return; }
+  if(!confirm("Aplicar e gerar um contrato novo?\n\nA versão atual será encerrada e o link dela deixa de funcionar.")) return;
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ acao:"aplicar-ajuste", id: id, pagamento: p.pagamento, clausulas: p.clausulas }) });
+    var j = await r.json();
+    if(!j.ok){ alert(j.error || "Não consegui aplicar."); return; }
+    var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
+    out.innerHTML = '<div style="border:1px solid var(--pist);border-radius:10px;padding:11px 12px;margin-top:9px;background:#111608">'
+      + '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Versão '+j.versao+' criada — envie o link novo</div>'
+      + '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+ctEsc(url)+'</div>'
+      + '<button style="margin-top:9px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button>'
+      + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px">Aparece uma única vez.</div></div>';
+    out.querySelector("button").onclick = function(){
+      var b = out.querySelector("button");
+      navigator.clipboard.writeText(url).then(function(){ b.textContent="Copiado ✓"; }, function(){ prompt("Copie:", url); });
+    };
+    ctLoad();
+  }catch(e){ alert("Falha: "+e.message); }
+}
+
 async function ctDossie(id){
   var alvo = $("#ctd_"+id); if(!alvo) return;
   if(alvo.innerHTML){ alvo.innerHTML = ""; return; }
@@ -1480,7 +1545,27 @@ async function ctDossie(id){
             'aceites: conteúdo ✓ · cancelamento ✓')
           : 'ainda não assinado')+
       '<br><br>eventos registrados: '+j.eventos.length+
-      '</div></div>';
+      '</div>'+
+      // Pedido do cliente, se houver: fica em destaque, é o gatilho do ajuste.
+      (j.contrato.ajustePedido
+        ? '<div style="border:1px solid #7a5b1b;border-radius:8px;padding:9px 11px;margin-top:9px;background:#1d1708">'
+          + '<div style="font-size:11px;font-weight:700;color:#e8c877;margin-bottom:4px">O cliente pediu um ajuste em '
+          + ctData(j.contrato.ajustePedido.em)+'</div>'
+          + '<div class="mono" style="font-size:11px;color:#e8c877;line-height:1.65">'+ctEsc(j.contrato.ajustePedido.pedido)+'</div></div>'
+        : '')+
+      // Comando de IA — só faz sentido em contrato que ainda não foi assinado.
+      (j.contrato.status === 'assinado'
+        ? '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:9px">Contrato assinado: não pode ser alterado.</div>'
+        : '<div id="ctia_'+ctEsc(id)+'" style="margin-top:10px;border-top:1px solid var(--line);padding-top:9px">'
+          + '<div class="mono" style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)">Ajustar com IA</div>'
+          + '<textarea rows="3" placeholder="Ex.: pagamento integral por depósito bancário em até 15 dias após o envio da NF, sem sinal. Manter o resto." '
+          + 'style="width:100%;margin-top:6px;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:12.5px;line-height:1.5;resize:vertical"></textarea>'
+          + '<button class="ctiaGerar" style="margin-top:7px;padding:9px 14px;border-radius:8px;border:1px solid var(--pist);background:transparent;color:var(--pist);font-weight:700;font-size:12px;cursor:pointer">Propor ajuste</button>'
+          + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:6px;line-height:1.6">A IA só redige pagamento e cláusulas. Valor, data, nome e CPF vêm do orçamento e ela não encosta neles.</div>'
+          + '<div class="ctiaOut"></div></div>')+
+      '</div>';
+    var g = alvo.querySelector(".ctiaGerar");
+    if(g) g.onclick = function(){ ctIA(id); };
   }catch(e){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }
 }
 

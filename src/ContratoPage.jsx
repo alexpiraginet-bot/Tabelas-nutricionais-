@@ -159,14 +159,21 @@ export default function ContratoPage({data:d,somenteLeitura}){
           <div className="ct-bar" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>Para preços negociados, ajuste o <strong>desconto</strong> (em R$) — o total recalcula sozinho. Deixe em 0 se não houver. Some o valor à descrição se preferir percentual.</div>
         </Clause>
         <Clause n="4ª" t="PAGAMENTO">
-          <Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante (os 50% remanescentes) até 7 (sete) dias antes da data do evento. Pagamentos via Pix ou transferência bancária, conforme os dados abaixo.</Ed>
-          <table style={{width:"100%",borderCollapse:"collapse",marginTop:8,fontSize:11}}>
+          {/* Pagamento ACORDADO com este cliente. O padrão 50/50 serve para a
+              maioria, mas cliente empresa costuma pagar integral por depósito
+              contra nota, com prazo — e um contrato afirmando 50/50 quando o
+              combinado foi outro é briga na certa. Com d.pagamento preenchido,
+              ele manda, e a tabela de sinal/saldo some junto. */}
+          {d.pagamento
+            ? <div style={{whiteSpace:"pre-wrap"}}>{d.pagamento}</div>
+            : <Ed block>50% (cinquenta por cento) do valor total na assinatura deste contrato, a título de sinal e reserva de data, e o saldo restante (os 50% remanescentes) até 7 (sete) dias antes da data do evento. Pagamentos via Pix ou transferência bancária, conforme os dados abaixo.</Ed>}
+          {!d.pagamento&&<table style={{width:"100%",borderCollapse:"collapse",marginTop:8,fontSize:11}}>
             <tbody>
               <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Entrada (sinal · 50%) — na assinatura</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(entrada)}</td></tr>
               <tr><td style={{border:"1px solid #999",padding:"6px 10px"}}>Saldo (50%) — até 7 dias antes do evento</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700}}>{money(saldo)}</td></tr>
               {antecipadoOk&&<tr style={{background:"#EEF5E2"}}><td style={{border:"1px solid #1FA855",padding:"6px 10px"}}>💸 <strong>Ou pagamento integral antecipado via Pix — 7% de desconto</strong> (evento com mais de 30 dias). Economia de {money(economia7)}.</td><td style={{border:"1px solid #1FA855",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap",fontWeight:700,color:"#1B7A40"}}>{money(integralDesc)}</td></tr>}
             </tbody>
-          </table>
+          </table>}
           <div style={{marginTop:8,border:"1px solid #C9A86A",borderRadius:6,padding:"10px 12px",fontSize:11,lineHeight:1.7,background:"#FCFAF2"}}>
             <div style={{fontWeight:700,letterSpacing:"0.04em",marginBottom:3}}>DADOS PARA PAGAMENTO</div>
             Titular: <strong>ABB GELATERIA LTDA</strong><br/>
@@ -182,6 +189,15 @@ export default function ContratoPage({data:d,somenteLeitura}){
         </Clause>
         <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
         <Clause n="6ª" t="OBRIGAÇÕES DO CONTRATANTE">Garantir acesso ao local com antecedência mínima de <Ed>[2 horas]</Ed> para montagem; disponibilizar ponto de energia elétrica <Ed>[220V]</Ed> próximo ao local de instalação; informar com antecedência alterações de data, local ou número de convidados.</Clause>
+        {/* Cláusulas negociadas com ESTE cliente. Entram numeradas na sequência,
+            antes do cancelamento, para não empurrar a numeração das que já
+            existem — o contrato assinado precisa manter as referências ("cláusula
+            7ª") que os aceites e o texto citam. */}
+        {Array.isArray(d.clausulas)&&d.clausulas.length>0&&d.clausulas.map((c,i)=>(
+          <Clause key={i} n={"6."+(i+1)} t={c.titulo||"CLÁUSULA ESPECIAL"}>
+            <div style={{whiteSpace:"pre-wrap"}}>{c.texto}</div>
+          </Clause>
+        ))}
         <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><div style={{border:"2px solid #8A2B2B",borderRadius:6,padding:"9px 11px",background:"#FDF6F6",fontWeight:600}}><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></div></Clause>
         <Clause n="8ª" t="DIREITO DE ARREPENDIMENTO">Quando a contratação ocorrer <strong>fora do estabelecimento comercial</strong> — inclusive por assinatura eletrônica à distância —, o CONTRATANTE pode desistir do contrato em até <strong>7 (sete) dias corridos</strong> contados da assinatura, com <strong>devolução integral</strong> de todo valor pago, nos termos do art. 49 do Código de Defesa do Consumidor. A desistência deve ser comunicada pelo WhatsApp ou e-mail indicados neste instrumento. Passado esse prazo, aplica-se a cláusula 7ª.</Clause>
         <Clause n="9ª" t="ASSINATURA E ACEITE">As partes assinam este instrumento por meio eletrônico, com a seguinte ordem: <strong>primeiro a CONTRATADA</strong>, que confere e valida os termos e valores, e <strong>em seguida a CONTRATANTE</strong>, cuja assinatura formaliza a integral concordância com as condições aqui pactuadas. As partes <strong>admitem expressamente como válida entre si</strong> a assinatura eletrônica aqui empregada, ainda que não baseada em certificado ICP-Brasil, na forma do <strong>art. 10, §2º, da MP 2.200-2/2001</strong>. Para tanto, a CONTRATADA registra e conserva: o texto integral do contrato no momento da assinatura e seu resumo criptográfico (hash SHA-256), a data e a hora do servidor, o endereço IP e o navegador utilizados, e o aceite expresso do CONTRATANTE — dossiê que fica à disposição das partes.</Clause>

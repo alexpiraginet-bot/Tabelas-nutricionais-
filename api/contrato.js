@@ -129,6 +129,15 @@ function montaSnapshot(body) {
     // origem: qual orçamento gerou este contrato. Serve para o dossiê mostrar
     // que o valor assinado é o mesmo que o cliente recebeu no orçamento.
     leadTs: numero(body.leadTs, 0, 1e15) || null,
+    // Pagamento ACORDADO. Vazio = vale o padrão 50/50 escrito no contrato.
+    // Cliente empresa costuma pagar integral, por depósito, contra nota, com
+    // prazo — e o contrato precisa dizer o que foi combinado, não o padrão.
+    pagamento: texto(body.pagamento, 1200),
+    // Cláusulas negociadas com este cliente, numeradas 6.1, 6.2… no documento.
+    clausulas: Array.isArray(body.clausulas) ? body.clausulas.slice(0, 12).map((c) => ({
+      titulo: texto(c && c.titulo, 80),
+      texto: texto(c && c.texto, 1800),
+    })).filter((c) => c.texto) : [],
   };
 }
 
@@ -224,6 +233,166 @@ export default async function handler(req, res) {
       })],
     ]);
     res.status(200).json({ ok: true, id, hash: doc.hash, token, expiraEm: doc.expiraEm });
+    return;
+  }
+
+  // ---------- cliente: pede ajuste antes de assinar ----------
+  // Sem isto, quem discorda de uma cláusula só tem o WhatsApp — e o pedido se
+  // perde fora do registro. Aqui ele fica anexado ao contrato, com hora e IP:
+  // se depois houver discussão, está gravado o que o cliente pediu e quando.
+  // NÃO altera nada sozinho: só marca o contrato como "ajuste pedido" e avisa a
+  // equipe. Quem decide e quem aprova é gente.
+  if (body.acao === "pedir-ajuste") {
+    const token = texto(body.token, 64);
+    const pedido = texto(body.pedido, 2000);
+    if (!token || pedido.length < 5) { res.status(400).json({ ok: false, error: "Descreva o que precisa mudar." }); return; }
+    const id = await kv(["GET", "contrato:tok:" + sha256(token)]);
+    if (!id) { res.status(404).json({ ok: false, error: "Link inválido ou expirado." }); return; }
+    const doc = await kv(["GET", "contrato:" + id]);
+    if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
+    const c = JSON.parse(doc);
+    if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Este contrato já foi assinado." }); return; }
+    const em = new Date().toISOString();
+    await kvPipe([
+      ["SET", "contrato:" + id, JSON.stringify({ ...c, status: "ajuste-pedido", ajustePedido: { em, pedido } })],
+      ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "pedido-ajuste", em, pedido, ip: ip(req), ua: ua(req) })],
+    ]);
+    res.status(200).json({ ok: true, em });
+    return;
+  }
+
+  // ---------- painel: motor de IA propõe o ajuste (NÃO aplica) ----------
+  // Regra que não se negocia: a IA só redige TEXTO de pagamento e de cláusulas.
+  // Ela nunca encosta em valor, data, nome ou CPF — esses vêm do orçamento. E a
+  // proposta volta para a tela; quem grava o contrato é a equipe, num segundo
+  // clique. Contrato assinado não entra aqui de jeito nenhum.
+  if (body.acao === "ia-propor") {
+    if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+    if (!process.env.ANTHROPIC_API_KEY) {
+      res.status(503).json({ ok: false, error: "Configure ANTHROPIC_API_KEY na Vercel para usar o ajuste por IA." });
+      return;
+    }
+    const id = texto(body.id, 40);
+    const instrucao = texto(body.instrucao, 2000);
+    if (!id || instrucao.length < 3) { res.status(400).json({ ok: false, error: "Diga o que deve mudar." }); return; }
+    const doc = await kv(["GET", "contrato:" + id]);
+    if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
+    const c = JSON.parse(doc);
+    if (c.status === "assinado") { res.status(409).json({ ok: false, error: "Contrato assinado não pode ser alterado." }); return; }
+
+    const atual = {
+      pagamento: c.snapshot.pagamento || "(padrão: 50% na assinatura, 50% até 7 dias antes do evento, via Pix)",
+      clausulas: c.snapshot.clausulas || [],
+      total: c.snapshot.total, entrada: c.snapshot.entrada, saldo: c.snapshot.saldo,
+      cliente: c.snapshot.nome, evento: c.snapshot.data,
+    };
+    const sistema = [
+      "Você redige cláusulas de contrato de prestação de serviço de buffet de gelato, no Brasil, para a ABB Gelateria (Bentô).",
+      "Devolve SOMENTE JSON, sem cercas de código, no formato:",
+      '{"pagamento":"<texto da cláusula de pagamento>","clausulas":[{"titulo":"<TÍTULO CURTO EM MAIÚSCULAS>","texto":"<texto>"}],"resumo":"<o que você mudou, em 1-2 frases>","alertas":["<risco jurídico ou comercial, se houver>"]}',
+      "REGRAS ABSOLUTAS:",
+      "1. NUNCA invente ou altere valores em reais, datas do evento, nomes ou documentos. Se a instrução pedir isso, ignore e registre em alertas.",
+      "2. Escreva em português do Brasil, tom formal de contrato, direto, sem floreio.",
+      "3. Se a instrução criar risco (ex.: renunciar a garantia do consumidor, prazo abusivo), redija assim mesmo mas AVISE em alertas.",
+      "4. Se a instrução for vaga demais para virar cláusula, devolva pagamento/clausulas inalterados e explique em alertas.",
+      "5. Mantenha as cláusulas existentes que a instrução não mandou mudar.",
+    ].join("\n");
+    const prompt = [
+      "CONTRATO ATUAL (só as partes que você pode mexer):",
+      JSON.stringify(atual, null, 2),
+      "",
+      "INSTRUÇÃO DA EQUIPE:",
+      instrucao,
+    ].join("\n");
+
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: "claude-opus-4-8", max_tokens: 3000, system: sistema,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const j = await r.json();
+      const txt = (((j.content || [])[0] || {}).text || "").trim().replace(/^```(?:json)?|```$/g, "").trim();
+      let proposta;
+      try { proposta = JSON.parse(txt); } catch { proposta = null; }
+      if (!proposta || typeof proposta !== "object") {
+        res.status(200).json({ ok: false, error: "A IA não devolveu um ajuste utilizável. Tente reescrever a instrução." });
+        return;
+      }
+      // Sanea a proposta ANTES de mostrar: o que volta da IA é texto de fora.
+      res.status(200).json({
+        ok: true,
+        proposta: {
+          pagamento: texto(proposta.pagamento, 1200),
+          clausulas: Array.isArray(proposta.clausulas) ? proposta.clausulas.slice(0, 12).map((x) => ({
+            titulo: texto(x && x.titulo, 80), texto: texto(x && x.texto, 1800),
+          })).filter((x) => x.texto) : [],
+          resumo: texto(proposta.resumo, 400),
+          alertas: Array.isArray(proposta.alertas) ? proposta.alertas.slice(0, 6).map((a) => texto(a, 300)).filter(Boolean) : [],
+        },
+      });
+    } catch (e) {
+      res.status(502).json({ ok: false, error: "Falha ao falar com a IA: " + String(e.message || e).slice(0, 120) });
+    }
+    return;
+  }
+
+  // ---------- painel: aplica o ajuste gerando uma VERSÃO NOVA ----------
+  // Não edita o contrato no lugar: cria outro, com hash e link próprios, e
+  // aponta para o anterior. O texto que o cliente viu ontem continua existindo —
+  // é isso que permite dizer, depois, o que foi proposto e o que foi aceito.
+  if (body.acao === "aplicar-ajuste") {
+    if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+    const id = texto(body.id, 40);
+    const doc = await kv(["GET", "contrato:" + id]);
+    if (!doc) { res.status(404).json({ ok: false, error: "Contrato não encontrado." }); return; }
+    const antigo = JSON.parse(doc);
+    if (antigo.status === "assinado") { res.status(409).json({ ok: false, error: "Contrato assinado não pode ser alterado." }); return; }
+
+    // Dinheiro e partes vêm SEMPRE do contrato anterior, nunca do que chegou no
+    // corpo. Só pagamento e cláusulas podem mudar.
+    const base = antigo.snapshot;
+    const snapshot = montaSnapshot({
+      ...base,
+      subtotal: base.subtotal, desconto: base.desconto,
+      pagamento: body.pagamento, clausulas: body.clausulas,
+    });
+    const novoId = crypto.randomBytes(9).toString("base64url");
+    const token = crypto.randomBytes(32).toString("base64url");
+    const agora = new Date();
+    const novo = {
+      id: novoId, criadoEm: agora.toISOString(),
+      expiraEm: agora.getTime() + VALIDADE_DIAS * 86400000,
+      status: "aguardando", snapshot,
+      hash: sha256(canonico(snapshot)),
+      tokenHash: sha256(token),
+      substitui: antigo.id, versao: (antigo.versao || 1) + 1,
+    };
+    const cmds = [
+      ["SET", "contrato:" + novoId, JSON.stringify(novo)],
+      ["SET", "contrato:tok:" + novo.tokenHash, novoId],
+      ["LPUSH", "contratos", novoId],
+      ["LTRIM", "contratos", 0, MAX_CONTRATOS - 1],
+      ["RPUSH", "contrato:" + novoId + ":eventos", JSON.stringify({
+        tipo: "criacao", em: agora.toISOString(), ip: ip(req), hash: novo.hash,
+        nota: "versão " + novo.versao + ", substitui " + antigo.id,
+      })],
+      // o anterior é encerrado e o link dele morre
+      ["SET", "contrato:" + antigo.id, JSON.stringify({ ...antigo, status: "substituido", substituidoPor: novoId })],
+      ["RPUSH", "contrato:" + antigo.id + ":eventos", JSON.stringify({
+        tipo: "substituicao", em: agora.toISOString(), porContrato: novoId,
+      })],
+    ];
+    if (antigo.tokenHash) cmds.push(["DEL", "contrato:tok:" + antigo.tokenHash]);
+    await kvPipe(cmds);
+    res.status(200).json({ ok: true, id: novoId, token, hash: novo.hash, versao: novo.versao });
     return;
   }
 
