@@ -47,7 +47,9 @@ export default function ContratoPage({data:d}){
       <div style={{fontSize:11,lineHeight:1.55,marginTop:4,textAlign:"justify"}}>{children}</div>
     </div>
   );
-  const money=v=>typeof v==="number"?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}):v;
+  // Centavos aparecem quando existem: o Pix é gerado com toFixed(2), então esconder
+  // os centavos aqui fazia o botão anunciar um valor e o app cobrar outro.
+  const money=v=>typeof v==="number"?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:0,maximumFractionDigits:2}):v;
   const dl=(name,text,mime)=>{const b=new Blob([text],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);};
   const exportICS=()=>{
     const [dd,mm,yy]=(d.data||"").split("/");if(!dd||!mm||!yy){alert("Data do evento inválida — não foi possível gerar o .ics.");return;}
@@ -160,7 +162,7 @@ export default function ContratoPage({data:d}){
           <div style={{marginTop:8,border:"1px solid #C9A86A",borderRadius:6,padding:"10px 12px",fontSize:11,lineHeight:1.7,background:"#FCFAF2"}}>
             <div style={{fontWeight:700,letterSpacing:"0.04em",marginBottom:3}}>DADOS PARA PAGAMENTO</div>
             Titular: <strong>ABB GELATERIA LTDA</strong><br/>
-            <strong>Pix (CNPJ):</strong> 61.590.463/0002-26<br/>
+            <strong>Pix (CNPJ):</strong> 61.590.463/0002-26 <span style={{fontWeight:400}}>— filial da CONTRATADA, mesma pessoa jurídica (raiz de CNPJ 61.590.463); o pagamento a esta chave quita a obrigação.</span><br/>
             Banco: <strong>Sicoob</strong> · Agência: <strong>3010</strong> · Conta corrente: <strong>292.558-3</strong>
             <div className="noprint" style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:9}}>
               <button onClick={()=>copyTxt(pixKey,"Chave Pix (CNPJ)")} style={{background:"#C9A86A",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📋 Copiar chave Pix</button>
@@ -172,9 +174,10 @@ export default function ContratoPage({data:d}){
         </Clause>
         <Clause n="5ª" t="OBRIGAÇÕES DA CONTRATADA">Fornecer os produtos na quantidade e qualidade contratadas, dentro dos padrões sanitários; disponibilizar equipe uniformizada e treinada; montar e desmontar a estrutura; manter os produtos em temperatura adequada durante o serviço.</Clause>
         <Clause n="6ª" t="OBRIGAÇÕES DO CONTRATANTE">Garantir acesso ao local com antecedência mínima de <Ed>[2 horas]</Ed> para montagem; disponibilizar ponto de energia elétrica <Ed>[220V]</Ed> próximo ao local de instalação; informar com antecedência alterações de data, local ou número de convidados.</Clause>
-        <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></Clause>
-        <Clause n="8ª" t="ASSINATURA E ACEITE">As partes assinam este instrumento por meio eletrônico, com a seguinte ordem: <strong>primeiro a CONTRATADA</strong>, que confere e valida os termos e valores, e <strong>em seguida a CONTRATANTE</strong>, cuja assinatura formaliza a integral concordância com as condições aqui pactuadas. A assinatura eletrônica é reconhecida como válida nos termos da legislação vigente (MP 2.200-2/2001 e Lei 14.063/2020).</Clause>
-        <Clause n="9ª" t="DISPOSIÇÕES GERAIS">Casos de força maior serão tratados conforme a legislação vigente. Fica eleito o foro da Comarca de <strong>Vitória — ES</strong> para dirimir quaisquer controvérsias oriundas deste contrato.</Clause>
+        <Clause n="7ª" t="CANCELAMENTO E REMARCAÇÃO"><div style={{border:"2px solid #8A2B2B",borderRadius:6,padding:"9px 11px",background:"#FDF6F6",fontWeight:600}}><Ed block>Em caso de cancelamento pelo CONTRATANTE com mais de 30 dias de antecedência, será restituído o valor pago, deduzido de 20% a título de custos administrativos. Com menos de 30 dias, o sinal não será restituído. Remarcações estão sujeitas à disponibilidade de agenda da CONTRATADA.</Ed></div></Clause>
+        <Clause n="8ª" t="DIREITO DE ARREPENDIMENTO">Quando a contratação ocorrer <strong>fora do estabelecimento comercial</strong> — inclusive por assinatura eletrônica à distância —, o CONTRATANTE pode desistir do contrato em até <strong>7 (sete) dias corridos</strong> contados da assinatura, com <strong>devolução integral</strong> de todo valor pago, nos termos do art. 49 do Código de Defesa do Consumidor. A desistência deve ser comunicada pelo WhatsApp ou e-mail indicados neste instrumento. Passado esse prazo, aplica-se a cláusula 7ª.</Clause>
+        <Clause n="9ª" t="ASSINATURA E ACEITE">As partes assinam este instrumento por meio eletrônico, com a seguinte ordem: <strong>primeiro a CONTRATADA</strong>, que confere e valida os termos e valores, e <strong>em seguida a CONTRATANTE</strong>, cuja assinatura formaliza a integral concordância com as condições aqui pactuadas. As partes <strong>admitem expressamente como válida entre si</strong> a assinatura eletrônica aqui empregada, ainda que não baseada em certificado ICP-Brasil, na forma do <strong>art. 10, §2º, da MP 2.200-2/2001</strong>. Para tanto, a CONTRATADA registra e conserva: o texto integral do contrato no momento da assinatura e seu resumo criptográfico (hash SHA-256), a data e a hora do servidor, o endereço IP e o navegador utilizados, e o aceite expresso do CONTRATANTE — dossiê que fica à disposição das partes.</Clause>
+        <Clause n="10ª" t="DISPOSIÇÕES GERAIS">Casos de força maior serão tratados conforme a legislação vigente. Fica eleito o foro da Comarca de <strong>Vitória — ES</strong> para dirimir controvérsias oriundas deste contrato, <strong>ressalvado ao CONTRATANTE consumidor o direito de propor a ação no foro de seu domicílio</strong>, nos termos do art. 101, I, do Código de Defesa do Consumidor.</Clause>
         <div style={{marginTop:30,fontSize:11}}>Vitória — ES, <Ed>{hoje}</Ed>.</div>
         <div style={{display:"flex",gap:40,marginTop:46}}>
           {[["1ª · CONTRATADA","ABB Gelateria Ltda · Bentô Gelateria","assina e confere primeiro"],["2ª · CONTRATANTE",d.nome,"assina após a conferência"]].map(([t,n,o])=>(
