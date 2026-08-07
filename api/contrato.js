@@ -255,7 +255,18 @@ export default async function handler(req, res) {
       });
       jaVistos.add(ts);
     }
-    if (!novos.length) { res.status(200).json({ ok: true, importados: 0, motivo: "todos já estavam registrados" }); return; }
+    // Devolve SEMPRE a contagem completa. "0 importados" pode significar coisas
+    // muito diferentes — tudo já registrado, ou tudo sem nome/valor — e sem
+    // discriminar isso o painel só sabia dizer "não deu", que não ajuda ninguém.
+    const jaRegistrados = lista.filter((l) => {
+      const ts = String(numero(l && l.leadTs, 0, 1e15) || 0);
+      return ts !== "0" && !novos.some((c) => String(c.snapshot.leadTs) === ts);
+    }).length;
+    const semDados = lista.filter((l) => !texto(l && l.nome, 160) || !numero(l && l.subtotal, 0, 1e7)).length;
+    if (!novos.length) {
+      res.status(200).json({ ok: true, importados: 0, recebidos: lista.length, jaRegistrados, semDados });
+      return;
+    }
 
     const cmds = [];
     for (const c of novos) {
@@ -269,7 +280,7 @@ export default async function handler(req, res) {
     }
     cmds.push(["LTRIM", "contratos", 0, MAX_CONTRATOS - 1]);
     await kvPipe(cmds);
-    res.status(200).json({ ok: true, importados: novos.length });
+    res.status(200).json({ ok: true, importados: novos.length, recebidos: lista.length, jaRegistrados, semDados });
     return;
   }
 

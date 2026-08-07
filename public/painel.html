@@ -218,6 +218,7 @@
         assinatura de um deles, gere um contrato novo pelo orçamento.
       </p>
       <button id="ctImportar" style="margin-top:10px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--pist);font-weight:700;font-size:12.5px;cursor:pointer">Importar orçamentos já contratados</button>
+      <button id="ctImportarTodos" style="margin-top:10px;margin-left:8px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--soft);font-weight:700;font-size:12.5px;cursor:pointer">Incluir todos os orçamentos</button>
       <div id="ctImpMsg" class="mono" style="font-size:11px;color:var(--soft);margin-top:8px"></div>
     </div>
     <div class="card">
@@ -1371,23 +1372,42 @@ async function ctCriar(){
 
 // Traz para o registro os contratos que já foram emitidos pelo caminho antigo.
 // Reconhece pelo lead: quem tem link ?contrato= ou já foi marcado como "contrato".
-async function ctImportar(){
+async function ctImportar(todos){
   var msg = $("#ctImpMsg");
-  var leads = (_leadsData && _leadsData.leads) || [];
-  var alvo = leads.filter(function(l){
-    var temContrato = (l.stage === "contrato") || (l.link && l.link.indexOf("contrato=") > -1);
-    return temContrato && l.nome && Number(l.total) > 0;
-  });
-  if(!alvo.length){
-    msg.textContent = "Nenhum orçamento com contrato emitido foi encontrado. (Abra a aba Eventos primeiro para carregar a lista.)";
-    return;
-  }
-  if(!confirm("Importar " + alvo.length + " contrato(s) já emitido(s) como histórico?\n\nEles NÃO ganham link de assinatura.")) return;
-  msg.textContent = "importando…";
+  msg.textContent = "buscando orçamentos…";
+  // Busca os leads AQUI, em vez de depender da aba Eventos ter sido aberta antes.
+  // Essa dependência escondida era o motivo de o botão parecer não fazer nada.
+  var leads = [];
   try{
     var key = localStorage.getItem(KEYSTORE) || "";
+    var rl = await fetch("/api/leads", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+    var jl = await rl.json();
+    leads = (jl && jl.leads) || [];
+  }catch(e){ msg.textContent = "Não consegui carregar os orçamentos: " + e.message; return; }
+
+  var comContrato = leads.filter(function(l){
+    return (l.stage === "contrato") || (l.link && l.link.indexOf("contrato=") > -1);
+  });
+  var base = todos ? leads : comContrato;
+  var alvo = base.filter(function(l){ return l.nome && Number(l.total) > 0; });
+
+  if(!alvo.length){
+    msg.innerHTML = leads.length
+      ? ('Carreguei ' + leads.length + ' orçamento(s), mas nenhum se qualifica: ' + comContrato.length +
+         ' tem contrato emitido e nenhum deles tem nome + valor. ' +
+         '<b>Use “incluir todos os orçamentos”</b> se quiser trazer os demais.')
+      : 'Nenhum orçamento voltou da API. Verifique se a senha do painel ainda vale.';
+    return;
+  }
+  if(!confirm("Importar " + alvo.length + " contrato(s) como histórico?\n\n" +
+              "Carregados: " + leads.length + " orçamento(s)\n" +
+              "Com contrato emitido: " + comContrato.length + "\n\n" +
+              "Eles NÃO ganham link de assinatura.")) { msg.textContent = ""; return; }
+  msg.textContent = "importando " + alvo.length + "…";
+  try{
+    var key2 = localStorage.getItem(KEYSTORE) || "";
     var r = await fetch("/api/contrato", { method:"POST",
-      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key2 },
       body: JSON.stringify({ acao:"importar", leads: alvo.map(function(l){
         return { leadTs: l.ts, nome: l.nome, doc: l.doc || "", email: l.email || "",
                  zap: l.phone || "", empresa: l.empresa || "",
@@ -1396,10 +1416,15 @@ async function ctImportar(){
                  subtotal: l.total || 0, desconto: 0, observacoes: l.obs || "" };
       }) }) });
     var j = await r.json();
-    if(!j.ok){ msg.textContent = j.error || "falhou"; return; }
-    msg.textContent = j.importados
-      ? (j.importados + " contrato(s) importado(s) como histórico.")
-      : ("Nada novo — " + (j.motivo || "já estavam registrados") + ".");
+    if(!j.ok){ msg.textContent = "Erro: " + (j.error || "falhou"); return; }
+    // Relatório completo: "nada importado" tem várias causas e o operador precisa
+    // saber QUAL foi, senão fica com a impressão de que o botão está quebrado.
+    var partes = [];
+    partes.push('<b>' + j.importados + '</b> importado(s)');
+    if(j.jaRegistrados) partes.push(j.jaRegistrados + ' já estavam no registro');
+    if(j.semDados) partes.push(j.semDados + ' sem nome ou valor');
+    msg.innerHTML = partes.join(' · ') + '.' +
+      (j.importados === 0 ? ' Nada novo para trazer.' : '');
     ctLoad();
   }catch(e){ msg.textContent = "Falha: " + e.message; }
 }
@@ -1663,7 +1688,8 @@ document.querySelectorAll('.tabs button[data-t="contratos"]').forEach(function(b
   b.addEventListener("click", function(){ ctDrawForm(); ctLoad(); });
 });
 if($("#ctCriar")) $("#ctCriar").onclick = ctCriar;
-if($("#ctImportar")) $("#ctImportar").onclick = ctImportar;
+if($("#ctImportar")) $("#ctImportar").onclick = function(){ ctImportar(false); };
+if($("#ctImportarTodos")) $("#ctImportarTodos").onclick = function(){ ctImportar(true); };
 (function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
 
 // ---- Sorteio BentôBytes ----
