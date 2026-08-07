@@ -177,4 +177,96 @@ await chamar({method:'POST', body:{acao:'assinar', token:tokNovo, aceiteConteudo
 r3 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:idR}});
 ok(r3.status===409, 'contrato assinado não reemite link');
 
+
+// ---------- auditoria: caminhos em que dinheiro ou identidade poderiam mudar ----------
+console.log('\n--- auditoria de adulteração ---');
+let aud = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Cliente Original', doc:'111.222.333-44', subtotal:1000, data:'01/01/2027'}});
+const aid = aud.body.id, atok = aud.body.token, ahash = aud.body.hash;
+
+// 1. pedir-ajuste é PÚBLICO: pode injetar campo extra e mudar o contrato?
+aud = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:atok,
+  pedido:'preciso mudar a forma de pagamento',
+  subtotal:99999, nome:'Invasor', pagamento:'de graça', status:'assinado'}});
+ok(aud.status===200, 'pedido de ajuste aceito');
+let det = await chamar({query:{id:aid}, auth:'senha-de-teste'});
+ok(det.body.contrato.snapshot.subtotal===1000, 'pedir-ajuste (público) NÃO altera valor');
+ok(det.body.contrato.snapshot.nome==='Cliente Original', 'pedir-ajuste NÃO altera nome');
+ok(det.body.contrato.status==='ajuste-pedido', 'pedir-ajuste NÃO consegue marcar como assinado');
+ok(det.body.contrato.hash===ahash, 'hash intacto depois de pedido público');
+
+// 2. assinar é PÚBLICO: pode injetar campos?
+// Contrato NOVO: o anterior está com ajuste pedido e, desde a correção da
+// auditoria, isso trava a assinatura de propósito.
+let lim = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Cliente Limpo', doc:'111.222.333-44', subtotal:1000, data:'01/01/2027'}});
+const lid = lim.body.id, ltok = lim.body.token, lhash = lim.body.hash;
+aud = await chamar({method:'POST', body:{acao:'assinar', token:ltok, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Cliente Limpo', hashVisto:lhash,
+  subtotal:88888, snapshot:{total:1}, hash:'forjado', status:'aguardando'}});
+det = await chamar({query:{id:lid}, auth:'senha-de-teste'});
+ok(det.body.contrato.snapshot.subtotal===1000, 'assinar (público) NÃO altera valor');
+ok(det.body.contrato.hash===lhash, 'assinar NÃO consegue forjar o hash');
+ok(det.body.contrato.status==='assinado', 'assinatura registrada');
+
+// 3. contrato assinado: nenhuma ação de escrita passa
+for (const acao of ['aplicar-ajuste','novo-link','ia-propor']) {
+  const r = await chamar({method:'POST', auth:'senha-de-teste', body:{acao, id:lid, instrucao:'x', pagamento:'y'}});
+  ok(r.status===409 || r.status===503, 'contrato assinado recusa "'+acao+'" ('+r.status+')');
+}
+aud = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:ltok, pedido:'quero mudar agora'}});
+ok(aud.status===404 || a.status===409, 'assinado recusa pedido de ajuste ('+aud.status+')');
+
+// 4. token de um contrato não abre outro
+let out2 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'criar', nome:'Outro', subtotal:500}});
+const btok = out2.body.token;
+let vis = await chamar({query:{t:btok}});
+ok(vis.body.snapshot.nome==='Outro', 'cada token abre só o seu contrato');
+ok(vis.body.snapshot.subtotal===500, 'e com os valores dele');
+
+
+// ---------- correções da auditoria ----------
+console.log('\n--- achados da auditoria, corrigidos ---');
+let z = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'criar', nome:'Ana Paula Souza', doc:'529.982.247-25', subtotal:3000}});
+const zid = z.body.id, ztok = z.body.token, zhash = z.body.hash;
+
+// 1. pedido de ajuste trava a assinatura (a tela promete isso)
+await chamar({method:'POST', body:{acao:'pedir-ajuste', token:ztok, pedido:'quero mudar o pagamento'}});
+z = await chamar({method:'POST', body:{acao:'assinar', token:ztok, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Ana Paula Souza', hashVisto:zhash}});
+ok(z.status===409, 'com ajuste pedido, NÃO deixa assinar (a tela prometia isso)');
+
+// 2. reemitir mata o link anterior de verdade
+let w = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'criar', nome:'Bruno Lima', doc:'529.982.247-25', subtotal:1500}});
+const wid = w.body.id, wtok1 = w.body.hash && w.body.token;
+w = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:wid}});
+const wtok2 = w.body.token;
+w = await chamar({method:'POST', body:{acao:'assinar', token:wtok1, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Bruno Lima', hashVisto:w.body.hash}});
+ok(w.status===404 || w.status===409, 'link antigo NÃO assina depois da reemissão ('+w.status+')');
+
+// 3. assinatura dupla: a segunda bate no portão
+let d1 = await chamar({query:{t:wtok2}});
+let s1 = await chamar({method:'POST', body:{acao:'assinar', token:wtok2, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Bruno Lima', hashVisto:d1.body.hash}});
+let s2 = await chamar({method:'POST', body:{acao:'assinar', token:wtok2, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Outra Pessoa', hashVisto:d1.body.hash}});
+ok(s1.status===200 && s2.status!==200, 'só a PRIMEIRA assinatura passa ('+s1.status+' depois '+s2.status+')');
+
+// 4. divergencia de nome fica registrada
+let v2 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'criar', nome:'Carla Menezes', doc:'529.982.247-25', subtotal:800}});
+const vtok = v2.body.token, vhash = v2.body.hash, vid = v2.body.id;
+await chamar({method:'POST', body:{acao:'assinar', token:vtok, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'Fulano Qualquer', hashVisto:vhash}});
+v2 = await chamar({query:{id:vid}, auth:'senha-de-teste'});
+ok(v2.body.contrato.assinatura.nomeConfere===false, 'nome divergente é MARCADO no dossiê');
+ok(v2.body.contrato.assinatura.nomeEsperado==='Carla Menezes', 'dossiê guarda quem deveria ter assinado');
+
+// 5. nome igual com acento/caixa diferente NAO e falso alarme
+let u = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'criar', nome:'José Antônio Nóbrega', doc:'529.982.247-25', subtotal:900}});
+await chamar({method:'POST', body:{acao:'assinar', token:u.body.token, aceiteConteudo:true, aceiteCancelamento:true,
+  nomeDigitado:'  jose antonio  nobrega ', hashVisto:u.body.hash}});
+u = await chamar({query:{id:u.body.id}, auth:'senha-de-teste'});
+ok(u.body.contrato.assinatura.nomeConfere===true, 'acento e caixa não geram alarme falso');
+
 srvKV.close();

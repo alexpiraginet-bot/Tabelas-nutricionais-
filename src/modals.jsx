@@ -898,7 +898,10 @@ export function EventosModal({onClose}){
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
-  const ok1=ev.data&&ev.local.trim()&&nConv>=70&&zapOk;
+  // Nome entra na exigência: sem ele o orçamento gera lead anônimo e contrato
+  // sem contratante. Dois nomes bastam para não passar iniciais soltas.
+  const nomeOk=cad.nome.trim().length>=3;
+  const ok1=nomeOk&&ev.data&&ev.local.trim()&&nConv>=70&&zapOk;
   const waMenor=()=>{
     const l=["*Evento Bentô — até 70 convidados* 🎉","Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
@@ -987,6 +990,12 @@ export function EventosModal({onClose}){
               <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`}} onError={onImgErr} />
             </div>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
+            {/* Nome no PASSO 1, não só no 3. O link do contrato é montado aqui,
+                e sem nome ele nascia com "CONTRATANTE:" vazio — documento sem
+                parte não identifica quem assina. Além disso, orçamento sem nome
+                vira lead que a equipe não sabe a quem responder. */}
+            <span className="fm" style={lab}>Seu nome *</span>
+            <input className="fb" style={inp} value={cad.nome} onChange={e=>setC("nome",e.target.value)} placeholder="Nome de quem contrata" autoComplete="name"/>
             <span className="fm" style={lab}>Deixe seu WhatsApp (com DDD) *</span>
             <input className="fb" style={inp} value={cad.zap} onChange={e=>setC("zap",e.target.value)} placeholder="(27) 99999-9999" inputMode="tel"/>
             <div className="fb" style={{fontSize:10.5,color:T.inkSoft,marginTop:5,lineHeight:1.4}}>Deixe seu contato para a gente te enviar o orçamento e mais informações do evento. Sem compromisso.</div>
@@ -1059,6 +1068,21 @@ export function EventosModal({onClose}){
                   </p>
                 </div>
               )}
+              {/* Botão travado sem dizer por quê é o jeito mais rápido de perder
+                  quem estava a um campo de concluir. */}
+              {!ok1&&!busy&&(()=>{
+                const falta=[];
+                if(!nomeOk) falta.push("seu nome");
+                if(!zapOk) falta.push("um WhatsApp com DDD");
+                if(!ev.data) falta.push("a data do evento");
+                if(!ev.local.trim()) falta.push("o local");
+                if(!(nConv>=70)) falta.push("pelo menos 70 convidados");
+                return falta.length?(
+                  <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:14,lineHeight:1.5}}>
+                    Falta {falta.length>1?falta.slice(0,-1).join(", ")+" e "+falta.at(-1):falta[0]} para ver o orçamento.
+                  </div>
+                ):null;
+              })()}
               <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:10,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
               {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
             </>)}
