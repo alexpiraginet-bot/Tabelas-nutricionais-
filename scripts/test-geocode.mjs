@@ -50,3 +50,29 @@ ok(/Vitória/.test(r.endereco||''), 'escolhe o candidato mais perto de uma loja,
 RESPOSTA = [];
 await mod.evGeocode('endereco ruim');
 ok(!globalThis.sessionStorage._d['bento:geo:endereco ruim'], 'falha NÃO é guardada (permite corrigir e tentar de novo)');
+
+// ---------- distinguir FORA DO ES de NAO LOCALIZEI ----------
+console.log('\n--- fora do estado vs nao localizado ---');
+let chamadas = 0;
+const RESPOSTAS = [];
+globalThis.fetch = async (u) => { ultimaURL = u; chamadas++; return { ok:true, json: async()=>RESPOSTAS[chamadas-1] || [] }; };
+
+// caso A: nada no ES, mas o Brasil inteiro acha em Minas -> BLOQUEIA
+chamadas = 0; RESPOSTAS.length = 0;
+RESPOSTAS.push([], [], [{lat:"-19.92",lon:"-43.94",display_name:"Av. Afonso Pena, Belo Horizonte - MG",address:{state:"Minas Gerais","ISO3166-2-lvl4":"BR-MG"}}]);
+r = await mod.evGeocode('Av Afonso Pena 1000 Belo Horizonte');
+ok(r.ok===false && r.fora===true, 'endereço de MG: marcado como FORA (bloqueia)');
+ok(/Minas/.test(r.uf||''), 'diz o estado encontrado: ' + r.uf);
+ok(/Belo Horizonte/.test(r.endereco||''), 'diz o endereço encontrado, para o cliente corrigir se errou');
+
+// caso B: nada em lugar nenhum -> NAO bloqueia
+chamadas = 0; RESPOSTAS.length = 0;
+RESPOSTAS.push([], [], []);
+r = await mod.evGeocode('salao do ze sem endereco');
+ok(r.ok===false && !r.fora, 'endereço não localizado NÃO é bloqueado (equipe confirma)');
+
+// caso C: rede cai na segunda busca -> NAO bloqueia
+chamadas = 0; RESPOSTAS.length = 0;
+globalThis.fetch = async () => { chamadas++; if(chamadas>=3) throw new Error('rede'); return { ok:true, json: async()=>[] }; };
+r = await mod.evGeocode('endereco com rede ruim');
+ok(r.ok===false && !r.fora, 'falha de rede NÃO bloqueia o cliente');
