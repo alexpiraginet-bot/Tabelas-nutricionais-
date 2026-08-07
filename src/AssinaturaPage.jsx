@@ -23,6 +23,11 @@ export default function AssinaturaPage({ token }) {
   const [nome, setNome] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [recibo, setRecibo] = useState(null);
+  // Pedido de ajuste: quem discorda de uma cláusula precisa de um caminho aqui
+  // dentro. No WhatsApp o pedido se perde fora do registro do contrato.
+  const [pedindo, setPedindo] = useState(false);
+  const [pedido, setPedido] = useState("");
+  const [pedidoFeito, setPedidoFeito] = useState(false);
 
   // trilha de leitura — indício de que o cliente viu o documento
   const abertoEm = useRef(Date.now());
@@ -80,6 +85,20 @@ export default function AssinaturaPage({ token }) {
       setErro("Falha de conexão ao assinar. Tente de novo.");
       setEnviando(false);
     }
+  };
+
+  const enviarPedido = async () => {
+    setErro("");
+    try {
+      const r = await fetch("/api/contrato", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao: "pedir-ajuste", token, pedido }),
+      });
+      const j = await r.json();
+      if (!j.ok) { setErro(j.error || "Não consegui enviar seu pedido."); return; }
+      setPedidoFeito(true); setPedindo(false);
+      tk("Contrato · Cliente pediu ajuste");
+    } catch { setErro("Falha de conexão. Tente de novo."); }
   };
 
   if (estado === "carregando") return <Aviso titulo="Abrindo seu contrato…" />;
@@ -170,6 +189,50 @@ export default function AssinaturaPage({ token }) {
                        color: podeAssinar ? T.surface : T.inkSoft }}>
               {enviando ? "Registrando…" : "Assinar contrato"}
             </button>
+
+            {/* Sai do caminho do botão de assinar: quem quer ajustar não deve
+                tropeçar em "Assinar", e quem vai assinar não deve se distrair. */}
+            <div style={{ marginTop: 16, borderTop: `1px solid ${T.borderSoft}`, paddingTop: 14 }}>
+              {pedidoFeito ? (
+                <div className="fb" role="status" style={{ fontSize: 13, color: T.pistacheDark, lineHeight: 1.55, fontWeight: 600 }}>
+                  Recebemos seu pedido. Nossa equipe vai analisar e, se houver mudança, você recebe um
+                  contrato novo para assinar. Este link fica parado até lá.
+                </div>
+              ) : pedindo ? (
+                <>
+                  <div className="fm" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: T.inkSoft }}>
+                    O que precisa mudar?
+                  </div>
+                  <textarea value={pedido} onChange={(e) => setPedido(e.target.value)} rows={4}
+                    placeholder="Ex.: nosso pagamento é integral, por depósito, em até 15 dias após o envio da nota fiscal."
+                    className="fb"
+                    style={{ width: "100%", marginTop: 6, padding: "11px 12px", borderRadius: 10, resize: "vertical",
+                             border: `1px solid ${T.border}`, background: T.surface, color: T.ink, fontSize: 14, lineHeight: 1.5 }} />
+                  <div style={{ display: "flex", gap: 8, marginTop: 9, flexWrap: "wrap" }}>
+                    <button onClick={enviarPedido} disabled={pedido.trim().length < 5} className="fm"
+                      style={{ padding: "11px 16px", borderRadius: 10, border: "none", fontSize: 11,
+                               letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700,
+                               cursor: pedido.trim().length < 5 ? "not-allowed" : "pointer",
+                               background: pedido.trim().length < 5 ? T.borderSoft : T.ink,
+                               color: pedido.trim().length < 5 ? T.inkSoft : T.bg }}>
+                      Enviar pedido
+                    </button>
+                    <button onClick={() => setPedindo(false)} className="fm"
+                      style={{ padding: "11px 16px", borderRadius: 10, border: `1px solid ${T.border}`,
+                               background: "transparent", color: T.inkSoft, fontSize: 11,
+                               letterSpacing: "0.12em", textTransform: "uppercase", cursor: "pointer" }}>
+                      Cancelar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button onClick={() => setPedindo(true)} className="fb"
+                  style={{ background: "none", border: "none", padding: 0, cursor: "pointer",
+                           color: T.pistacheDark, fontSize: 13, textDecoration: "underline" }}>
+                  Preciso ajustar algo antes de assinar
+                </button>
+              )}
+            </div>
 
             <p className="fb" style={{ fontSize: 11.5, color: T.inkSoft, lineHeight: 1.55, marginTop: 12 }}>
               Ao assinar, registramos a data e a hora do nosso servidor, seu endereço IP e o navegador utilizado,

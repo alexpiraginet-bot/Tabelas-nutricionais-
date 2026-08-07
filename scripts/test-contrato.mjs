@@ -96,4 +96,56 @@ ok(r.body.eventos.length>=3, 'cadeia append-only: '+r.body.eventos.length+' even
 r = await chamar({query:{id}});
 ok(r.status===401 || r.status===404, 'dossie sem senha nao abre ('+r.status+')');
 
+
+// ---------- ajuste do cliente + motor de IA ----------
+console.log('\n--- ajuste antes de assinar ---');
+let r2 = await chamar({method:'POST', auth:'senha-de-teste', body:{
+  acao:'criar', nome:'Empresa Kuruma', doc:'11.222.333/0001-44', subtotal:5000,
+  data:'10/09/2026', local:'Sede' }});
+const id2 = r2.body.id, tok2 = r2.body.token;
+ok(r2.status===200, 'contrato novo criado');
+
+r2 = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:tok2, pedido:'x'}});
+ok(r2.status===400, 'pedido vazio -> 400');
+
+r2 = await chamar({method:'POST', body:{acao:'pedir-ajuste', token:tok2,
+  pedido:'Pagamento integral por deposito bancario em ate 15 dias apos a NF, sem sinal.'}});
+ok(r2.status===200, 'cliente consegue pedir ajuste');
+
+r2 = await chamar({query:{id:id2}, auth:'senha-de-teste'});
+ok(r2.body.contrato.status==='ajuste-pedido' && /15 dias/.test(r2.body.contrato.ajustePedido.pedido),
+   'pedido fica gravado no contrato');
+ok(r2.body.eventos.some(e=>e.tipo==='pedido-ajuste'), 'pedido entra na cadeia de eventos');
+
+console.log('\n--- aplicar ajuste gera VERSAO NOVA ---');
+const antes = r2.body.contrato.hash;
+r2 = await chamar({method:'POST', auth:'senha-de-teste', body:{acao:'aplicar-ajuste', id:id2,
+  pagamento:'Pagamento integral, por deposito bancario, em ate 15 (quinze) dias apos o envio da nota fiscal.',
+  clausulas:[{titulo:'NOTA FISCAL', texto:'A CONTRATADA emitira NF em ate 2 dias uteis apos o evento.'}],
+  // tentativa de adulterar dinheiro pelo corpo — tem de ser IGNORADA
+  subtotal: 999999, nome:'Outro Nome'}});
+ok(r2.status===200 && r2.body.versao===2, 'versao 2 criada');
+const id3 = r2.body.id, tok3 = r2.body.token;
+ok(r2.body.hash !== antes, 'hash mudou com o texto novo');
+
+r2 = await chamar({query:{id:id3}, auth:'senha-de-teste'});
+ok(r2.body.contrato.snapshot.subtotal===5000, 'VALOR do corpo foi ignorado (segue 5000)');
+ok(r2.body.contrato.snapshot.nome==='Empresa Kuruma', 'NOME do corpo foi ignorado');
+ok(/15 \(quinze\) dias/.test(r2.body.contrato.snapshot.pagamento), 'pagamento acordado gravado');
+ok(r2.body.contrato.snapshot.clausulas.length===1, 'clausula especial gravada');
+ok(r2.body.contrato.substitui===id2, 'aponta para a versao anterior');
+
+r2 = await chamar({query:{id:id2}, auth:'senha-de-teste'});
+ok(r2.body.contrato.status==='substituido', 'versao antiga marcada como substituida');
+r2 = await chamar({query:{t:tok2}});
+ok(r2.status===404, 'link da versao antiga morreu');
+r2 = await chamar({query:{t:tok3}});
+ok(r2.status===200 && /15 \(quinze\)/.test(r2.body.snapshot.pagamento), 'link novo abre com o pagamento acordado');
+
+console.log('\n--- travas ---');
+r2 = await chamar({method:'POST', body:{acao:'ia-propor', id:id3, instrucao:'muda tudo'}});
+ok(r2.status===401, 'ia-propor sem senha -> 401');
+r2 = await chamar({method:'POST', body:{acao:'aplicar-ajuste', id:id3, pagamento:'x'}});
+ok(r2.status===401, 'aplicar-ajuste sem senha -> 401');
+
 srvKV.close();
