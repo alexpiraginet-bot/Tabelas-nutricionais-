@@ -275,41 +275,47 @@ function hidrata(c, assinaturaKV, contratadaKV) {
 // importante e a que rende a mensagem certa), depois "o documento continua como
 // eu li?", e só então grava tudo o que a transição implica.
 //   1 = feito · 0 = mudou no caminho · -1 = já assinado · -2 = a origem já assinada
-const SEM_CHAVE = "contrato:-nenhuma-";
+//
+// As linhas são juntadas com QUEBRA DE LINHA, e isso não é estilo: "--" em Lua
+// comenta até o fim da LINHA. Juntando com espaço, o rótulo do começo comentava
+// o script inteiro e todo EVAL virava um nada silencioso. Nenhum teste de
+// unidade pega isso — por isso existe o scripts/test-lua-contrato.mjs, que roda
+// os quatro scripts num Redis de verdade.
+export const SEM_CHAVE = "contrato:-nenhuma-";
 const chaveTok = (h) => "contrato:tok:" + (h || "-sem-token-");
 
 // pedir-ajuste: só mexe em status e no pedido registrado.
-const LUA_CAS = [
+export const LUA_CAS = [
   "-- cas",
   "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
   "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
   "redis.call('SET',KEYS[1],ARGV[2]) return 1",
-].join(" ");
+].join("\n");
 
 // assinar: assinatura, documento e queima do link, indivisíveis.
-const LUA_ASSINA = [
+export const LUA_ASSINA = [
   "-- assina",
   "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
   "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
   "redis.call('SET',KEYS[2],ARGV[3]) redis.call('SET',KEYS[1],ARGV[2])",
   "redis.call('DEL',KEYS[3]) return 1",
-].join(" ");
+].join("\n");
 
 // novo-link: o link novo nasce e o anterior morre no mesmo instante. Separado,
 // uma falha no meio deixava o contrato com um tokenHash sem índice — sem link.
-const LUA_RELINK = [
+export const LUA_RELINK = [
   "-- relink",
   "if redis.call('EXISTS',KEYS[2])==1 then return -1 end",
   "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
   "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3])",
   "redis.call('SET',KEYS[4],ARGV[3]) redis.call('EXPIRE',KEYS[4],tonumber(ARGV[4])) return 1",
-].join(" ");
+].join("\n");
 
 // derivar: a transição inteira — encerra a versão vigente, atualiza a origem,
 // cria o contrato novo e publica o link dele. Em passos separados isto precisava
 // de rollback, e rollback por SET incondicional atropela quem chegou no meio:
 // reabrir uma versão encerrada podia deixar dois textos assináveis vivos.
-const LUA_DERIVA = [
+export const LUA_DERIVA = [
   "-- deriva",
   "if redis.call('EXISTS',KEYS[2])==1 then return -2 end",
   "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end",
@@ -322,7 +328,7 @@ const LUA_DERIVA = [
   "redis.call('SET',KEYS[5],ARGV[4]) redis.call('EXPIRE',KEYS[5],tonumber(ARGV[7]))",
   "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3])",
   "redis.call('LPUSH',KEYS[9],ARGV[4]) return 1",
-].join(" ");
+].join("\n");
 
 async function trocaSe(id, anterior, novo) {
   const r = await kv(["EVAL", LUA_CAS, 2, "contrato:" + id, chaveAssinatura(id),
