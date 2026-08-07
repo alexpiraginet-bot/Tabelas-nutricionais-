@@ -206,6 +206,18 @@
         O link é de uso único e vale 30 dias. Assinado é assinado: não dá para reemitir nem editar.
       </p>
       <div id="ctForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px"></div>
+      <div id="ctDoc" style="margin-top:12px;border:1px dashed var(--line);border-radius:10px;padding:11px 12px">
+        <div style="font-size:12.5px;font-weight:700;margin-bottom:5px">📷 Ler documento por foto</div>
+        <div class="mono" style="font-size:10.5px;color:var(--soft);line-height:1.65">
+          Cartão CNPJ, comprovante, print. A foto é lida e usada só para preencher os campos acima — não fica
+          guardada nos nossos servidores. Ela é enviada à Anthropic (EUA) para leitura; por política do
+          fornecedor, pode ficar até 30 dias no sistema dele para controle de abuso. Envie apenas documento
+          que o titular mandou para este fim. <b>Sempre confira os campos antes de gerar o contrato.</b>
+        </div>
+        <input type="file" id="ctDocFile" accept="image/jpeg,image/png,image/webp" multiple
+          style="margin-top:9px;font-size:12px;color:var(--soft)">
+        <div id="ctDocMsg" class="mono" style="font-size:11px;color:var(--soft);margin-top:7px;line-height:1.6"></div>
+      </div>
       <button id="ctCriar" style="margin-top:12px;padding:11px 18px;border-radius:10px;border:none;background:var(--pist);color:#0c0f0a;font-weight:800;font-size:13px;cursor:pointer">Gerar contrato e link</button>
       <div id="ctNovo" style="margin-top:12px"></div>
     </div>
@@ -1341,6 +1353,75 @@ function ctEsc(t){ return String(t==null?"":t).replace(/[&<>"]/g,function(c){ret
 function ctMoeda(v){ return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
 function ctData(iso){ try{ return new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}); }catch(e){ return iso||""; } }
 
+// Redimensiona no NAVEGADOR antes de enviar. A função serverless da Vercel corta
+// corpo acima de ~4,5 MB na borda, antes do handler rodar — então validar tamanho
+// no servidor não adiantaria: o 413 vem antes. Foto de celular tem 4 a 12 MB.
+async function ctDocReduz(file){
+  var bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+  var maior = Math.max(bmp.width, bmp.height);
+  var esc = maior > 2000 ? 2000 / maior : 1;
+  var cv = document.createElement("canvas");
+  cv.width = Math.round(bmp.width * esc); cv.height = Math.round(bmp.height * esc);
+  cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+  bmp.close && bmp.close();
+  var blob = await new Promise(function(r){ cv.toBlob(r, "image/jpeg", 0.85); });
+  return await new Promise(function(res, rej){
+    var fr = new FileReader();
+    fr.onload = function(){ res(String(fr.result).split(",")[1]); };
+    fr.onerror = rej; fr.readAsDataURL(blob);
+  });
+}
+
+async function ctDocLer(files){
+  var msg = $("#ctDocMsg");
+  if(!files || !files.length) return;
+  msg.textContent = "preparando imagem…";
+  var imagens = [];
+  try{
+    for(var i = 0; i < Math.min(files.length, 2); i++){
+      imagens.push({ b64: await ctDocReduz(files[i]) });
+    }
+  }catch(e){
+    msg.innerHTML = 'Não consegui abrir esse arquivo. Se for HEIC do iPhone, troque para JPEG '
+      + '(Ajustes → Câmera → Formatos → Mais Compatível) ou tire um print da foto.';
+    return;
+  }
+  msg.textContent = "lendo o documento…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/doc-ocr", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ imagens: imagens }) });
+    var j = await r.json();
+    if(!j.ok){ msg.innerHTML = '<span style="color:#f0c9c9">'+ctEsc(j.error||"não consegui ler")+'</span>'; return; }
+
+    // Preenche SÓ o que veio preenchido e SÓ o que está vazio no formulário —
+    // nunca sobrescreve o que a equipe já digitou.
+    var mapa = { nome:"nome", doc:"doc", email:"email", telefone:"zap" };
+    var postos = [];
+    Object.keys(mapa).forEach(function(k){
+      var el = $("#ct_"+mapa[k]);
+      if(el && j.campos[k] && !el.value.trim()){
+        el.value = j.campos[k];
+        el.style.borderColor = "var(--pist)";     // marca visualmente o que veio da IA
+        postos.push(mapa[k]);
+      }
+    });
+    // endereço vira uma linha só, para o campo local
+    var end = [j.campos.logradouro, j.campos.numero, j.campos.bairro, j.campos.cidade, j.campos.uf]
+      .filter(Boolean).join(", ");
+    var elLocal = $("#ct_local");
+    if(elLocal && end && !elLocal.value.trim()){ elLocal.value = end; elLocal.style.borderColor = "var(--pist)"; postos.push("local"); }
+
+    var partes = [];
+    partes.push('<b>'+ctEsc(j.tipoDocumento||"documento")+'</b> lido.');
+    partes.push(postos.length ? (postos.length + ' campo(s) preenchido(s), em verde.') : 'Nenhum campo novo — os que eu li já estavam preenchidos.');
+    if(j.avisos && j.avisos.length) partes.push('<span style="color:#e8c877">'+j.avisos.map(ctEsc).join(' ')+'</span>');
+    partes.push('<b>Confira tudo antes de gerar o contrato.</b>');
+    msg.innerHTML = partes.join('<br>');
+  }catch(e){ msg.innerHTML = '<span style="color:#f0c9c9">Falha: '+ctEsc(e.message)+'</span>'; }
+}
+
 async function ctCriar(){
   var msg = $("#ctMsg"); msg.textContent = "Gerando…";
   var body = { acao:"criar" };
@@ -1773,6 +1854,7 @@ document.querySelectorAll('.tabs button[data-t="contratos"]').forEach(function(b
   b.addEventListener("click", function(){ ctDrawForm(); ctLoad(); });
 });
 if($("#ctCriar")) $("#ctCriar").onclick = ctCriar;
+if($("#ctDocFile")) $("#ctDocFile").onchange = function(e){ ctDocLer(e.target.files); };
 if($("#ctImportar")) $("#ctImportar").onclick = function(){ ctImportar(false); };
 if($("#ctImportarTodos")) $("#ctImportarTodos").onclick = function(){ ctImportar(true); };
 (function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
