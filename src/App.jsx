@@ -1078,6 +1078,8 @@ function ProductDetail({productId,onBack,onSelectProduct,favorites,onToggleFav,c
 /* ========== APP ========== */
 
 const ContratoPage = lazy(() => import("./ContratoPage.jsx"));
+// Assinatura do cliente: só o TOKEN vem na URL — o contrato vem do servidor.
+const AssinaturaPage = lazy(() => import("./AssinaturaPage.jsx"));
 
 const PrivacidadePage = lazy(() => import("./PrivacidadePage.jsx"));
 
@@ -1309,6 +1311,9 @@ const BADGES=[
 ];
 
 export default function App(){
+  const[assinar]=useState(()=>{ // link do cliente ?assinar=<token>
+    try{ return new URLSearchParams(window.location.search).get("assinar")||null; }catch{ return null; }
+  });
   const[contrato]=useState(()=>{ // link interno ?contrato=<base64> vindo do orçamento de eventos
     try{
       const p=new URLSearchParams(window.location.search).get("contrato");
@@ -1404,6 +1409,9 @@ export default function App(){
   const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
+  // A assinatura vem ANTES do contrato interno: se as duas chaves vierem na URL,
+  // vale a do cliente, que é a que carrega o texto congelado do servidor.
+  if(assinar) return(<><GStyle/><Suspense fallback={null}><AssinaturaPage token={assinar}/></Suspense></>);
   if(contrato) return(<><GStyle/><Suspense fallback={null}><ContratoPage data={contrato}/></Suspense></>);
   if(privacidade) return(<><GStyle/><Suspense fallback={null}><PrivacidadePage/></Suspense></>);
   if(termos) return(<><GStyle/><Suspense fallback={null}><TermosPage/></Suspense></>);

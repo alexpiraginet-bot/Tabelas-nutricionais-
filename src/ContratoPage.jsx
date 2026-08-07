@@ -2,7 +2,11 @@
 // apenas quando a URL traz ?contrato=<base64> — fica fora do bundle inicial.
 import { useState } from "react";
 const CONTROLE_URL="https://bento-os-seven.vercel.app/"; // Bentô OS · Controle de Produção
-export default function ContratoPage({data:d}){
+// somenteLeitura: usado pela página de assinatura. O cliente precisa ver
+// EXATAMENTE o texto que está congelado no servidor — nenhum campo editável,
+// nenhum valor recalculado na tela. É o mesmo componente de propósito: dois
+// componentes diferentes divergiriam, e aí ninguém saberia o que foi assinado.
+export default function ContratoPage({data:d,somenteLeitura}){
   const hoje=new Date().toLocaleDateString("pt-BR");
   const subtotal=Number(d.total)||0;
   // Desconto negociado (editável pela equipe ao emitir o contrato) — recalcula o total na hora.
@@ -37,7 +41,9 @@ export default function ContratoPage({data:d}){
     alert(label+" copiado! ✅");
   };
   const Ed=({children,block})=>( // campo editável pela equipe antes de imprimir
-    <span contentEditable suppressContentEditableWarning spellCheck={false}
+    somenteLeitura
+      ? <span style={{display:block?"block":"inline"}}>{children}</span>
+      : <span contentEditable suppressContentEditableWarning spellCheck={false}
       style={{background:"#FFF7D6",borderBottom:"1px dashed #C9A86A",padding:"0 2px",display:block?"block":"inline",outline:"none"}}
       className="ed">{children}</span>
   );
@@ -141,8 +147,10 @@ export default function ContratoPage({data:d}){
                   <input className="descMotivo" value={motivo} onChange={e=>setMotivo(e.target.value)} aria-label="Descrição do desconto"/>
                 </td>
                 <td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>
-                  −&nbsp;R$&nbsp;<input className="descInput" type="number" min="0" step="1" value={desc}
-                    onChange={e=>setDesc(e.target.value)} aria-label="Valor do desconto em reais"/>
+                  −&nbsp;{somenteLeitura
+                    ? money(descV)
+                    : <>R$&nbsp;<input className="descInput" type="number" min="0" step="1" value={desc}
+                        onChange={e=>setDesc(e.target.value)} aria-label="Valor do desconto em reais"/></>}
                 </td>
               </tr>
               <tr><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",fontWeight:700}}>TOTAL</td><td style={{border:"1px solid #1a1a1a",padding:"7px 10px",textAlign:"right",fontWeight:700,whiteSpace:"nowrap"}}>{money(total)}</td></tr>

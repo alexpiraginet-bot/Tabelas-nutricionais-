@@ -172,6 +172,7 @@
     <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
     <button data-t="clube">👑 Clube <span class="tbg" id="bgClube"></span></button>
     <button data-t="site">🎛️ Site</button>
+    <button data-t="contratos">📄 Contratos</button>
     <button data-t="links">🔗 Links</button>
     <a class="tabbtn" href="/fichas.html">🧪 Fichas Técnicas ↗</a>
   </nav>
@@ -192,6 +193,25 @@
   </div>
 
   <!-- ================= ABA SITE: conteúdo editável sem código ================= -->
+  <div class="pane" data-pane="contratos" hidden>
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span>📄 Contratos de evento</span>
+        <span class="mono" id="ctMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
+      </h3>
+      <p class="mono" style="font-size:11px;color:var(--soft);line-height:1.6">
+        O contrato é gravado aqui ANTES de existir link. O texto fica congelado e ganha um código único (hash).
+        O link é de uso único e vale 30 dias. Assinado é assinado: não dá para reemitir nem editar.
+      </p>
+      <div id="ctForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px"></div>
+      <button id="ctCriar" style="margin-top:12px;padding:11px 18px;border-radius:10px;border:none;background:var(--pist);color:#0c0f0a;font-weight:800;font-size:13px;cursor:pointer">Gerar contrato e link</button>
+      <div id="ctNovo" style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h3>Emitidos</h3>
+      <div id="ctLista" style="margin-top:10px"></div>
+    </div>
+  </div>
   <div class="pane" data-pane="site" hidden>
     <div class="card" style="margin-bottom:14px">
       <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
@@ -1228,6 +1248,110 @@ function renderClube(d){
   if(!shown && ms.length) stackNone(box, "Nenhum membro nesta categoria.");
 }
 
+// ================= ABA CONTRATOS (/api/contrato) =================
+// O painel NUNCA monta o contrato: manda os campos e o servidor congela o
+// snapshot e devolve o hash. Assim o que vale é sempre o que está gravado.
+var CT_CAMPOS = [
+  ["nome","Nome do contratante *"],["doc","CPF / CNPJ"],["email","E-mail"],["zap","WhatsApp"],
+  ["data","Data do evento (dd/mm/aaaa)"],["horario","Horário"],["local","Local do evento"],
+  ["convidados","Nº de convidados"],["subtotal","Subtotal (R$) *"],["desconto","Desconto (R$)"],
+  ["descMotivo","Motivo do desconto"],["observacoes","Observações"]
+];
+function ctDrawForm(){
+  var el = $("#ctForm"); if(!el) return;
+  el.innerHTML = CT_CAMPOS.map(function(c){
+    return '<label style="display:block"><span class="mono" style="font-size:9px;color:var(--soft);text-transform:uppercase">'+c[1]+'</span>'+
+      '<input id="ct_'+c[0]+'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:13px"></label>';
+  }).join("");
+}
+function ctVal(k){ var i = $("#ct_"+k); return i ? i.value.trim() : ""; }
+function ctEsc(t){ return String(t==null?"":t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function ctMoeda(v){ return (Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function ctData(iso){ try{ return new Date(iso).toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",dateStyle:"short",timeStyle:"short"}); }catch(e){ return iso||""; } }
+
+async function ctCriar(){
+  var msg = $("#ctMsg"); msg.textContent = "Gerando…";
+  var body = { acao:"criar" };
+  CT_CAMPOS.forEach(function(c){ body[c[0]] = ctVal(c[0]); });
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify(body) });
+    var j = await r.json();
+    if(!j.ok){ msg.textContent = ""; alert(j.error || "Não consegui gerar."); return; }
+    var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
+    $("#ctNovo").innerHTML =
+      '<div style="border:1px solid var(--pist);border-radius:10px;padding:12px 13px;background:#111608">'+
+      '<div style="font-weight:700;font-size:13px;margin-bottom:6px">Contrato gerado — envie este link ao cliente</div>'+
+      '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+ctEsc(url)+'</div>'+
+      '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:8px">hash: '+ctEsc(j.hash)+'</div>'+
+      '<button id="ctCopiar" style="margin-top:10px;padding:9px 14px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button>'+
+      '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:8px;line-height:1.6">Este link aparece UMA vez — ele não fica guardado em lugar nenhum. Copie agora.</div>'+
+      '</div>';
+    $("#ctCopiar").onclick = function(){
+      navigator.clipboard.writeText(url).then(function(){ $("#ctCopiar").textContent = "Copiado ✓"; },
+        function(){ prompt("Copie o link:", url); });
+    };
+    msg.textContent = "";
+    ctLoad();
+  }catch(e){ msg.textContent=""; alert("Falha: "+e.message); }
+}
+
+async function ctLoad(){
+  var el = $("#ctLista"); if(!el) return;
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato?listar=1", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+    var j = await r.json();
+    if(!j.ok){ el.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">'+ctEsc(j.error||"erro")+'</div>'; return; }
+    if(!j.contratos.length){ el.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Nenhum contrato ainda.</div>'; return; }
+    el.innerHTML = j.contratos.map(function(c){
+      var ok = c.status === "assinado";
+      return '<div style="border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:8px">'+
+        '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">'+
+          '<strong style="font-size:13.5px">'+ctEsc(c.nome)+'</strong>'+
+          '<span class="tag'+(ok?" conv":"")+'">'+(ok?"assinado":"aguardando")+'</span>'+
+        '</div>'+
+        '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:5px;line-height:1.7">'+
+          'evento '+ctEsc(c.data||"—")+' · '+ctMoeda(c.total)+'<br>'+
+          'emitido '+ctData(c.criadoEm)+(ok?' · assinado '+ctData(c.assinadoEm):'')+'<br>'+
+          'hash '+ctEsc(String(c.hash||"").slice(0,24))+'…'+
+        '</div>'+
+        '<button data-ct="'+ctEsc(c.id)+'" style="margin-top:8px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--pist);font-size:11px;cursor:pointer">Ver dossiê</button>'+
+        '<div id="ctd_'+ctEsc(c.id)+'"></div>'+
+      '</div>';
+    }).join("");
+    el.querySelectorAll("button[data-ct]").forEach(function(b){ b.onclick = function(){ ctDossie(b.dataset.ct); }; });
+  }catch(e){ el.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }
+}
+
+async function ctDossie(id){
+  var alvo = $("#ctd_"+id); if(!alvo) return;
+  if(alvo.innerHTML){ alvo.innerHTML = ""; return; }
+  alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft);margin-top:8px">carregando…</div>';
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato?id="+encodeURIComponent(id), { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+    var j = await r.json();
+    if(!j.ok){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">'+ctEsc(j.error)+'</div>'; return; }
+    var a = j.contrato.assinatura;
+    alvo.innerHTML = '<div style="margin-top:9px;border-top:1px solid var(--line);padding-top:9px" class="mono" style="font-size:10.5px">'+
+      '<div style="font-size:10.5px;color:var(--soft);line-height:1.8">'+
+      'hash completo: <span style="color:var(--ink);word-break:break-all">'+ctEsc(j.contrato.hash)+'</span><br>'+
+      (a ? ('assinou como: <span style="color:var(--ink)">'+ctEsc(a.nomeDigitado)+'</span><br>'+
+            'em: '+ctData(a.em)+' (hora do servidor)<br>'+
+            'IP: '+ctEsc(a.ip||"—")+'<br>'+
+            'navegador: '+ctEsc(String(a.ua||"").slice(0,90))+'<br>'+
+            'rolou até o fim: '+(a.leitura && a.leitura.rolouAteOFim ? "sim" : "não")+
+            ' · '+(a.leitura ? a.leitura.segundosNaPagina : "?")+'s na página<br>'+
+            'aceites: conteúdo ✓ · cancelamento ✓')
+          : 'ainda não assinado')+
+      '<br><br>eventos registrados: '+j.eventos.length+
+      '</div></div>';
+  }catch(e){ alvo.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Falha: '+ctEsc(e.message)+'</div>'; }
+}
+
 // ================= ABA SITE: config editável (/api/site-config) =================
 // Espelha o que o site sabe fazer. Campo em branco = volta ao padrão do código.
 var SC_LOJAS = [["praia-do-canto","Praia do Canto"],["jardim-camburi","Jardim Camburi"]];
@@ -1427,6 +1551,11 @@ function showTab(t){
   try{ localStorage.setItem("bento:panelTab", t); }catch(e){}
 }
 document.querySelectorAll(".tabs button").forEach(function(b){ b.onclick=function(){ showTab(b.dataset.t); }; });
+// A aba Contratos só monta quando é aberta: evita pedir a lista a cada login.
+document.querySelectorAll('.tabs button[data-t="contratos"]').forEach(function(b){
+  b.addEventListener("click", function(){ ctDrawForm(); ctLoad(); });
+});
+if($("#ctCriar")) $("#ctCriar").onclick = ctCriar;
 (function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
 
 // ---- Sorteio BentôBytes ----
