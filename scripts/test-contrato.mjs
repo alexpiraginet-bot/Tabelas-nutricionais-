@@ -17,10 +17,22 @@ const srvKV = http.createServer((req,res)=>{
         case 'LREM': { const l=lists.get(a[0])||[]; const n=l.length; lists.set(a[0], l.filter(x=>x!==a[2])); return n-(lists.get(a[0]).length); }
         // EVAL: o único script usado é o compare-and-set. Emular a semântica dele
         // basta; interpretar Lua aqui seria trocar um teste por outro programa.
+        // EVAL: emula a semântica dos três scripts usados. Interpretar Lua aqui
+        // seria trocar um teste por outro programa.
         case 'EVAL': {
-          const [, , , chave, esperado, novo] = cmd;   // EVAL script numkeys key arg1 arg2
-          if (db.get(chave) !== esperado) return 0;
-          db.set(chave, novo); return 1;
+          const script = cmd[1], nk = Number(cmd[2]);
+          const keys = cmd.slice(3, 3 + nk), argv = cmd.slice(3 + nk);
+          if (nk === 1) {                                   // LUA_CAS
+            if (db.get(keys[0]) !== argv[0]) return 0;
+            db.set(keys[0], argv[1]); return 1;
+          }
+          // LUA_ASSINA e LUA_ENCERRA: [doc, assinatura, token]
+          if (db.get(keys[0]) !== argv[0]) return 0;
+          if (db.has(keys[1])) return -1;
+          if (/ARGV\[3\]/.test(script)) db.set(keys[1], argv[2]);   // só o LUA_ASSINA grava
+          db.set(keys[0], argv[1]);
+          db.delete(keys[2]);
+          return 1;
         }
         default: return null;
       }
@@ -431,15 +443,24 @@ ok(dois.filter(x=>x.status===200).length===1 && dois.filter(x=>x.status===409).l
 let rc = await chamar({method:'POST', auth:'senha-de-teste', body:{
   acao:'criar', nome:'Paula Reis', doc:'529.982.247-25', subtotal:2500}});
 const rcId = rc.body.id, rcTok = rc.body.token, rcHash = rc.body.hash;
-await Promise.all([
+const [ass, rel] = await Promise.all([
   chamar({method:'POST', body:{acao:'assinar', token:rcTok, aceiteConteudo:true, aceiteCancelamento:true,
     nomeDigitado:'Paula Reis', hashVisto:rcHash}}),
   chamar({method:'POST', auth:'senha-de-teste', body:{acao:'novo-link', id:rcId}}),
 ]);
 rc = await chamar({query:{id:rcId}, auth:'senha-de-teste'});
-ok(rc.body.contrato.status==='assinado', 'assinatura SOBREVIVE à reemissão simultânea (status)');
-ok(rc.body.contrato.assinatura && rc.body.contrato.assinatura.nomeDigitado==='Paula Reis',
-   'a assinatura em si continua no dossiê');
+// A garantia NÃO é "a assinatura sempre vence" — é que o resultado nunca fica
+// pela metade. Ou a assinatura entra inteira, ou é recusada com o motivo e o
+// contrato segue limpo. Assinar por cima de um documento que a equipe acabou de
+// trocar seria pior: o cliente assinaria a versão que já foi substituída.
+ok((ass.status===200) !== (rel.status===200),
+   'assinar e reemitir ao mesmo tempo: só um dos dois passa ('+ass.status+'/'+rel.status+')');
+ok(ass.status===200
+   ? (rc.body.contrato.status==='assinado' && rc.body.contrato.assinatura.nomeDigitado==='Paula Reis')
+   : (rc.body.contrato.status==='aguardando' && !rc.body.contrato.assinatura),
+   'e o contrato fica INTEIRO no desfecho que venceu ('+(ass.status===200?'assinou':'reemitiu')+')');
+ok(ass.status===200 || /Recarregue/i.test(ass.body.error||''),
+   'quando a assinatura perde, o cliente recebe o motivo e não um silêncio');
 
 // 3. Gravação parcial: se o documento ficar para trás, a chave da assinatura
 //    reconstrói o estado. É o que impede "link queimado + contrato aguardando".

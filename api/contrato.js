@@ -216,22 +216,42 @@ async function derivar(antigo, docAntigoRaw, ajustes, req) {
     })],
   ]);
 
-  // PASSO 2 — CAS no contrato de origem. Se o cliente assinou entre a leitura e
-  // agora, esta ação perde a corrida e nada do que ela faria vale.
+  const desfazPasso1 = () => kvPipe([
+    ["DEL", "contrato:" + novo.id],
+    ["LREM", "contratos", 0, novo.id],
+    ["DEL", "contrato:" + novo.id + ":eventos"],
+  ]).catch(() => {});
+
+  // PASSO 2 — encerra a versão vigente do histórico, atomicamente. A checagem lá
+  // em cima é só para dar erro cedo e com o motivo certo; a garantia é esta: o
+  // script só encerra se a versão continuar como foi lida E ninguém a tiver
+  // assinado. Sem isso, uma assinatura que chegasse entre a checagem e a
+  // gravação seria marcada como "substituída" e teria o link queimado.
+  if (vigente && vigenteRaw) {
+    const r = await encerraSe(vigente, vigenteRaw, { ...vigente, status: "substituido", substituidoPor: novo.id });
+    if (r !== 1) {
+      await desfazPasso1();
+      return { conflito: r === -1
+        ? "A versão gerada antes a partir deste histórico acabou de ser assinada pelo cliente — é ela que vale."
+        : CONFLITO.error };
+    }
+    await kv(["RPUSH", "contrato:" + vigente.id + ":eventos", JSON.stringify({ tipo: "substituicao", em, porContrato: novo.id })]).catch(() => {});
+  }
+
+  // PASSO 3 — CAS no contrato de origem. Se ele mudou entre a leitura e agora,
+  // esta ação perde a corrida e nada do que ela faria vale.
   const origemAtualizada = historico
     ? { ...antigo, derivadoVigente: novo.id, derivados: [...(antigo.derivados || []), novo.id] }
     : { ...antigo, status: "substituido", substituidoPor: novo.id };
   if (!await trocaSe(antigo.id, docAntigoRaw, origemAtualizada)) {
-    // desfaz o passo 1 — o token nunca chegou a existir, então nada era alcançável
-    await kvPipe([
-      ["DEL", "contrato:" + novo.id],
-      ["LREM", "contratos", 0, novo.id],
-      ["DEL", "contrato:" + novo.id + ":eventos"],
-    ]).catch(() => {});
+    // desfaz o passo 1 — o token nunca chegou a existir, então nada era alcançável.
+    // Se o passo 2 tinha encerrado a vigente, reabre: ela era a versão boa.
+    await desfazPasso1();
+    if (vigente && vigenteRaw) await kv(["SET", "contrato:" + vigente.id, vigenteRaw]).catch(() => {});
     return { conflito: CONFLITO.error };
   }
 
-  // PASSO 3 — só agora o link passa a existir, e os anteriores morrem.
+  // PASSO 4 — só agora o link passa a existir, e o anterior morre.
   const cmds = [
     ["SET", "contrato:tok:" + novo.tokenHash, novo.id],
     ["EXPIRE", "contrato:tok:" + novo.tokenHash, VALIDADE_DIAS * 86400],
@@ -241,11 +261,6 @@ async function derivar(antigo, docAntigoRaw, ajustes, req) {
       : { tipo: "substituicao", em, porContrato: novo.id })],
   ];
   if (antigo.tokenHash) cmds.push(["DEL", "contrato:tok:" + antigo.tokenHash]);
-  if (vigente && vigenteRaw) {
-    cmds.push(["SET", "contrato:" + vigente.id, JSON.stringify({ ...vigente, status: "substituido", substituidoPor: novo.id })]);
-    cmds.push(["RPUSH", "contrato:" + vigente.id + ":eventos", JSON.stringify({ tipo: "substituicao", em, porContrato: novo.id })]);
-    if (vigente.tokenHash) cmds.push(["DEL", "contrato:tok:" + vigente.tokenHash]);
-  }
   await kvPipe(cmds);
   return { novo, token, historico };
 }
@@ -281,6 +296,34 @@ const LUA_CAS = "if redis.call('GET', KEYS[1]) == ARGV[1] then redis.call('SET',
 async function trocaSe(id, anterior, novo) {
   const r = await kv(["EVAL", LUA_CAS, 1, "contrato:" + id, anterior, JSON.stringify(novo)]);
   return Number(r) === 1;
+}
+
+// ASSINAR é uma operação só, e tem de ser. Enquanto a assinatura gravava numa
+// chave e o documento noutra, as duas gravações eram atômicas separadamente e
+// se cruzavam mesmo assim: o painel trocava o documento no meio, e a assinatura
+// gravava a cópia velha por cima logo depois — devolvendo o token antigo ou
+// deixando a origem assinada e uma versão nova publicada ao mesmo tempo.
+//
+// Aqui vai tudo junto, sob a mesma trava do Redis: confere que o documento não
+// mudou, confere que ninguém assinou antes, grava a assinatura, grava o
+// documento e queima o link. Assim assinatura e ações do painel disputam O
+// MESMO estado — quem chega depois perde, e perde sabendo.
+//   1 = assinou · 0 = o documento mudou no caminho · -1 = já estava assinado
+const LUA_ASSINA = "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end "
+  + "if redis.call('EXISTS',KEYS[2])==1 then return -1 end "
+  + "redis.call('SET',KEYS[2],ARGV[3]) redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3]) return 1";
+// Mesma ideia para ENCERRAR uma versão: só encerra se ela continuar como foi
+// lida e se ninguém a tiver assinado. É o que impede marcar como "substituída"
+// uma versão que o cliente acabou de assinar.
+const LUA_ENCERRA = "if redis.call('GET',KEYS[1])~=ARGV[1] then return 0 end "
+  + "if redis.call('EXISTS',KEYS[2])==1 then return -1 end "
+  + "redis.call('SET',KEYS[1],ARGV[2]) redis.call('DEL',KEYS[3]) return 1";
+const chaveTok = (h) => "contrato:tok:" + (h || "-sem-token-");
+async function encerraSe(c, bruto, novoDoc) {
+  const r = await kv(["EVAL", LUA_ENCERRA, 3,
+    "contrato:" + c.id, chaveAssinatura(c.id), chaveTok(c.tokenHash),
+    bruto, JSON.stringify(novoDoc)]);
+  return Number(r);
 }
 const CONFLITO = { ok: false, error: "Este contrato mudou enquanto você trabalhava nele — o cliente pode ter assinado ou pedido ajuste. Recarregue a lista e confira antes de repetir." };
 
@@ -762,24 +805,19 @@ export default async function handler(req, res) {
       nomeEsperado: c.snapshot.nome || "",
       nomeConfere: normaliza(nomeDigitado) === normaliza(c.snapshot.nome || ""),
     };
-    // Portão ATÔMICO contra assinatura simultânea: SETNX devolve 1 só para quem
-    // chegou primeiro. Checar o status e depois gravar seria uma janela em que
-    // duas requisições passariam pelas duas leituras antes de qualquer escrita.
-    //
-    // O portão é a PRÓPRIA gravação da assinatura, e essa é a diferença que
-    // importa: antes o portão queimava o token e só depois gravava, então uma
-    // falha no meio deixava o contrato sem link, sem assinatura e sem saída. Se
-    // agora falhar depois desta linha, a assinatura já está guardada — a leitura
-    // a encontra e o contrato aparece assinado do mesmo jeito.
-    const portao = await kv(["SETNX", chaveAssinatura(id), JSON.stringify(assinatura)]);
-    if (Number(portao) !== 1) { res.status(409).json({ ok: false, error: "Este contrato acabou de ser assinado." }); return; }
-
+    // Assinatura, documento e queima do link, tudo num comando só (LUA_ASSINA).
+    // Ver o comentário do script: separado, isso se cruzava com as ações do
+    // painel e a assinatura era a que se perdia.
     const atualizado = { ...c, status: "assinado", assinadoEm: em, assinatura };
-    await kvPipe([
-      ["SET", "contrato:" + id, JSON.stringify(atualizado)],
-      ["DEL", "contrato:tok:" + c.tokenHash],   // link de uso único
-      ["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "assinatura", ...assinatura })],
-    ]);
+    const portao = Number(await kv(["EVAL", LUA_ASSINA, 3,
+      "contrato:" + id, chaveAssinatura(id), chaveTok(c.tokenHash),
+      doc, JSON.stringify(atualizado), JSON.stringify(assinatura)]));
+    if (portao === -1) { res.status(409).json({ ok: false, error: "Este contrato acabou de ser assinado." }); return; }
+    if (portao !== 1) {
+      res.status(409).json({ ok: false, error: "O contrato mudou enquanto você lia — nossa equipe pode ter enviado uma versão nova. Recarregue a página." });
+      return;
+    }
+    await kv(["RPUSH", "contrato:" + id + ":eventos", JSON.stringify({ tipo: "assinatura", ...assinatura })]).catch(() => {});
     res.status(200).json({ ok: true, assinadoEm: em, hash: c.hash });
     return;
   }
