@@ -176,7 +176,12 @@ function limpaConfig(body) {
 
 export default async function handler(req, res) {
   if (req.method === "GET") {
-    res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    // O cache de borda existe para o SITE, que lê isto a cada visita. Mas o
+    // PAINEL não pode passar por ele: salvar e recarregar dentro da janela de
+    // 60s devolvia a config antiga, e parecia que a edição não tinha pegado.
+    // `cache: "no-store"` no fetch fura o cache do navegador, não o da CDN.
+    if (req.query && req.query.fresh !== undefined) res.setHeader("Cache-Control", "no-store");
+    else res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     let cfg = {};
     try {
       const v = KV_URL && KV_TOKEN ? await kv(["GET", KEY]) : null;

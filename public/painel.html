@@ -1119,7 +1119,7 @@ function drawDestaque(){
 }
 async function loadDestaque(){
   try{
-    var r = await fetch("/api/destaque", { cache:"no-store" });
+    var r = await fetch("/api/destaque?fresh=1&_=" + Date.now(), { cache:"no-store" });
     if(!r.ok) return;
     _dstAtual = ((await r.json())||{}).destaque || "eventos";
     drawDestaque();
@@ -1732,7 +1732,7 @@ function scLerLojas(){
 function scDrawTudo(){ scDrawLojas(); scDrawBanners(); scDrawPush(); scDrawVisual(); }
 async function loadSiteConfig(){
   try{
-    var r = await fetch("/api/site-config", { cache:"no-store" });
+    var r = await fetch("/api/site-config?fresh=1&_=" + Date.now(), { cache:"no-store" });
     if(!r.ok) return;
     _sc = (await r.json()) || {};
     scDrawTudo();
