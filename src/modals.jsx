@@ -811,9 +811,28 @@ async function evGeocode(text){
       }
     }catch(e){ /* timeout/rede: tenta próxima; se todas falharem, retorna ok:false */ }
   }
-  // Só guarda acerto: errar e guardar o erro faria o mesmo endereço falhar de novo
-  // mesmo depois de a pessoa corrigir a digitação.
-  if(res.ok){ try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{} }
+  // Não achou no ES. Antes de desistir, descobre ONDE é: sem isso, "fora do
+  // estado" e "não consegui localizar" ficam indistinguíveis — e bloquear os dois
+  // barraria cliente de Vitória cujo endereço só não geocodificou.
+  if(!res.ok){
+    try{
+      const r=await fetch("https://nominatim.openstreetmap.org/search"
+        +"?format=json&addressdetails=1&limit=1&countrycodes=br&q="+encodeURIComponent(base),
+        {headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
+      if(r.ok){
+        const j=await r.json();
+        if(Array.isArray(j)&&j[0]&&!evNoES(j[0].address)){
+          const a=j[0].address||{};
+          res={ok:false,fora:true,
+               uf:String(a.state||"").slice(0,40),
+               endereco:String(j[0].display_name||"").slice(0,140)};
+        }
+      }
+    }catch(e){ /* rede ruim: segue como "não localizei", que NÃO bloqueia */ }
+  }
+  // Só guarda acerto ou certeza de fora. "Não localizei" não é guardado: seria
+  // prender um endereço mal digitado mesmo depois de a pessoa corrigir.
+  if(res.ok||res.fora){ try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{} }
   return res;
 }
 
@@ -868,6 +887,10 @@ export function EventosModal({onClose}){
     const g=await evGeocode(ev.local);
     setGeo(g);
     setBusy(false);
+    // Só bloqueia com CERTEZA de que o endereço é de outro estado. "Não
+    // consegui localizar" segue em frente — a equipe confirma o deslocamento.
+    // Bloquear na dúvida perderia cliente de Vitória por endereço mal digitado.
+    if(g&&g.fora) return;
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
     const link2=mkLink(mkPayload(q2,g));
     tk("Lead · Orçamento gerado");
@@ -999,6 +1022,43 @@ export function EventosModal({onClose}){
                 <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
+              {/* Fora do ES: diz onde entendeu que é, para o cliente corrigir se
+                  a busca errou, e não deixa seguir. Só aparece com CERTEZA — se
+                  não localizamos, o orçamento segue e a equipe confirma. */}
+              {/* Fora do ES: diz onde entendeu que é, para o cliente corrigir se
+                  a busca errou, e não deixa seguir. Só aparece com CERTEZA — se
+                  não localizamos, o orçamento segue e a equipe confirma. */}
+              {geo&&geo.fora&&(
+                <div role="alert" style={{marginTop:16,border:`1px solid ${T.accent}`,borderRadius:14,padding:"16px 17px",background:T.surface}}>
+                  <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent}}>
+                    Fora da nossa área
+                  </div>
+                  <div className="fd" style={{fontSize:19,color:T.pistacheDark,marginTop:5,lineHeight:1.2}}>
+                    Que pena — ainda não chegamos {geo.uf?<>a{/^[AEIOU]/i.test(geo.uf)?"o":""} {geo.uf}</>:"nesse estado"}
+                  </div>
+                  <p className="fb" style={{fontSize:13.5,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
+                    Nossos carrinhos saem das lojas de <strong>Vitória</strong>, e por enquanto atendemos eventos
+                    só no <strong>Espírito Santo</strong>. Adoraríamos levar a Bentô para o seu evento — mas seria
+                    desonesto prometer o que a gente ainda não consegue entregar aí.
+                  </p>
+                  {geo.endereco&&(
+                    <p className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
+                      Entendemos o local como <strong>{geo.endereco}</strong>. Se não for aí, é só corrigir o local
+                      do evento acima e tentar de novo.
+                    </p>
+                  )}
+                  <a href={"https://wa.me/5527999159995?text="+encodeURIComponent("Oi! Meu evento é "+(geo.uf?("em "+geo.uf):"fora do ES")+" — dá para conversar sobre uma exceção?")}
+                    target="_blank" rel="noopener" onClick={()=>tk("Evento · Fora do ES · WhatsApp")}
+                    className="fm" style={{display:"inline-block",marginTop:13,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",
+                      background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"11px 17px",textDecoration:"none"}}>
+                    Quero conversar assim mesmo
+                  </a>
+                  <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
+                    Se um dia formos para o seu estado, você vai saber — é só nos seguir no Instagram
+                    <strong> @bentogelatos</strong>.
+                  </p>
+                </div>
+              )}
               <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:10,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
               {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
             </>)}
