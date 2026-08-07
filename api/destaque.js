@@ -40,7 +40,9 @@ function authed(req) {
 export default async function handler(req, res) {
   if (req.method === "GET") {
     // cache de borda curto: o site inteiro lê daqui a cada visita
-    res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    // ?fresh=1 pula a borda — o painel precisa do valor recém-salvo, não do cacheado.
+    if (req.query && req.query.fresh !== undefined) res.setHeader("Cache-Control", "no-store");
+    else res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     let destaque = PADRAO;
     try {
       const v = KV_URL && KV_TOKEN ? await kv(["GET", KEY]) : null;
