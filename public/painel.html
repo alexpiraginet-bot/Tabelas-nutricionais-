@@ -166,13 +166,13 @@
   <nav class="tabs" id="tabs">
     <button data-t="geral" class="on">📊 Visão geral</button>
     <button data-t="eventos">🎉 Eventos <span class="tbg" id="bgEventos"></span></button>
+    <button data-t="contratos">📄 Contratos <span class="tbg" id="bgContratos"></span></button>
     <button data-t="prevendas">🍫 Pré-vendas <span class="tbg" id="bgPrev"></span></button>
     <button data-t="vagas">💼 Vagas <span class="tbg" id="bgVagas"></span></button>
     <button data-t="sejabento">🤝 Seja Bentô <span class="tbg" id="bgSejaBento"></span></button>
     <button data-t="sorteio">🎁 Sorteio <span class="tbg" id="bgSorteio"></span></button>
     <button data-t="clube">👑 Clube <span class="tbg" id="bgClube"></span></button>
     <button data-t="site">🎛️ Site</button>
-    <button data-t="contratos">📄 Contratos</button>
     <button data-t="links">🔗 Links</button>
     <a class="tabbtn" href="/fichas.html">🧪 Fichas Técnicas ↗</a>
   </nav>
@@ -200,12 +200,25 @@
         <span class="mono" id="ctMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
       </h3>
       <p class="mono" style="font-size:11px;color:var(--soft);line-height:1.6">
-        O contrato é gravado aqui ANTES de existir link. O texto fica congelado e ganha um código único (hash).
+        <b>O caminho normal é pela aba Eventos:</b> em cada orçamento há o botão “✍️ Gerar contrato para assinar”,
+        que aproveita o que o cliente já preencheu. Use o formulário abaixo só para contrato que não veio de um orçamento.<br><br>
+        O contrato é gravado ANTES de existir link. O texto fica congelado e ganha um código único (hash).
         O link é de uso único e vale 30 dias. Assinado é assinado: não dá para reemitir nem editar.
       </p>
       <div id="ctForm" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:12px"></div>
       <button id="ctCriar" style="margin-top:12px;padding:11px 18px;border-radius:10px;border:none;background:var(--pist);color:#0c0f0a;font-weight:800;font-size:13px;cursor:pointer">Gerar contrato e link</button>
       <div id="ctNovo" style="margin-top:12px"></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <h3>Histórico dos contratos antigos</h3>
+      <p class="mono" style="font-size:11px;color:var(--soft);line-height:1.6">
+        Os contratos emitidos antes deste registro viviam só no link do orçamento e nunca foram gravados.
+        Dá para trazê-los para cá como <b>histórico</b>. Eles entram marcados como “importado” e <b>sem link de
+        assinatura</b> — porque não foram assinados aqui, e o painel não vai fingir que foram. Para colher
+        assinatura de um deles, gere um contrato novo pelo orçamento.
+      </p>
+      <button id="ctImportar" style="margin-top:10px;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--pist);font-weight:700;font-size:12.5px;cursor:pointer">Importar orçamentos já contratados</button>
+      <div id="ctImpMsg" class="mono" style="font-size:11px;color:var(--soft);margin-top:8px"></div>
     </div>
     <div class="card">
       <h3>Emitidos</h3>
@@ -650,11 +663,68 @@ function leadQuoteRow(l){
   var acts = [];
   if(l.link && /^https?:\/\//i.test(l.link)) acts.push('<a class="qact" href="'+escapeHtml(l.link)+'" target="_blank" rel="noopener">📄 Abrir orçamento</a>');
   if(l.data) acts.push('<a class="qact resBook" href="#" data-d="'+escapeHtml(l.data)+'" data-h="'+escapeHtml(l.hora||"")+'" style="color:var(--gold)">📅 Reservar data</a>');
+  // O cliente já preencheu tudo no orçamento: nome, CPF, e-mail, data, local,
+  // convidados e valor. Redigitar isso à mão seria trabalho inventado — e cada
+  // redigitação é uma chance de o contrato sair com valor diferente do orçado.
+  if(l.nome && Number(l.total) > 0)
+    acts.push('<a class="qact leadCt" href="#" data-lead="'+escapeHtml(String(l.ts))+'" style="color:var(--pist)">✍️ Gerar contrato para assinar</a>');
   row.innerHTML = '<div class="ql1"><span class="mono qwhen">'+quando+'</span>'+stageTag+'<span class="mono qtot">'+total+'</span></div>'
     + (det ? '<div class="ql2">'+escapeHtml(det)+'</div>' : '')
     + (acts.length ? '<div class="ql3">'+acts.join("")+'</div>' : '');
   return row;
 }
+// Gera o contrato a partir do LEAD, sem redigitar nada. O que o cliente
+// preencheu no orçamento é o que vai para o snapshot congelado — se alguém
+// quiser mudar valor ou desconto, muda no orçamento, não no meio do caminho.
+async function ctDoLead(ts, el){
+  var lead = ((_leadsData && _leadsData.leads) || []).find(function(x){ return String(x.ts) === String(ts); });
+  if(!lead){ alert("Não encontrei este orçamento."); return; }
+  var resumo = [lead.nome, lead.data ? ("evento " + fmtDateBR(lead.data)) : "",
+                (Number(lead.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"})]
+               .filter(Boolean).join(" · ");
+  if(!confirm("Gerar contrato para assinar?\n\n" + resumo +
+              "\n\nO texto fica congelado e o link é de uso único.")) return;
+  var antes = el.textContent; el.textContent = "gerando…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({
+        acao:"criar",
+        nome: lead.nome, doc: lead.doc || "", email: lead.email || "",
+        zap: lead.phone || "", empresa: lead.empresa || "",
+        data: lead.data ? fmtDateBR(lead.data) : "", horario: lead.hora || "",
+        local: lead.local || "", convidados: lead.convidados || 0,
+        subtotal: lead.total || 0, desconto: 0,
+        observacoes: lead.obs || "",
+        leadTs: lead.ts,
+      }) });
+    var j = await r.json();
+    el.textContent = antes;
+    if(!j.ok){ alert(j.error || "Não consegui gerar."); return; }
+    var url = location.origin + "/?assinar=" + encodeURIComponent(j.token);
+    ctMostraLink(url, j.hash, el);
+    if(typeof ctLoad === "function") ctLoad();
+  }catch(e){ el.textContent = antes; alert("Falha: " + e.message); }
+}
+
+// O link aparece UMA vez — não fica guardado em lugar nenhum, nem no painel.
+function ctMostraLink(url, hash, perto){
+  var cx = document.createElement("div");
+  cx.style.cssText = "margin-top:8px;border:1px solid var(--pist);border-radius:10px;padding:11px 12px;background:#111608";
+  cx.innerHTML = '<div style="font-weight:700;font-size:12.5px;margin-bottom:6px">Contrato gerado — envie este link ao cliente</div>'
+    + '<div class="mono" style="font-size:11px;word-break:break-all;color:var(--pist);line-height:1.6">'+escapeHtml(url)+'</div>'
+    + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px">hash: '+escapeHtml(String(hash).slice(0,32))+'…</div>'
+    + '<button style="margin-top:9px;padding:8px 13px;border-radius:8px;border:none;background:var(--pist);color:#0c0f0a;font-weight:700;font-size:12px;cursor:pointer">Copiar link</button>'
+    + '<div class="mono" style="font-size:10px;color:var(--soft);margin-top:7px;line-height:1.6">Este link aparece uma única vez. Copie agora.</div>';
+  cx.querySelector("button").onclick = function(){
+    var b = cx.querySelector("button");
+    navigator.clipboard.writeText(url).then(function(){ b.textContent = "Copiado ✓"; },
+      function(){ prompt("Copie o link:", url); });
+  };
+  perto.closest(".qrow").appendChild(cx);
+}
+
 function renderLeads(d){
   _leadsData = d;
   var leads = (d && d.leads) || [];
@@ -724,6 +794,7 @@ function renderLeads(d){
     box.appendChild(none);
   }
   box.querySelectorAll(".resBook").forEach(function(a){ a.onclick = function(e){ e.preventDefault(); bookAction("add", a.getAttribute("data-d"), a.getAttribute("data-h")); }; });
+  box.querySelectorAll(".leadCt").forEach(function(a){ a.onclick = function(e){ e.preventDefault(); ctDoLead(a.getAttribute("data-lead"), a); }; });
 }
 
 function fmtDateBR(d){ const p=String(d).split("-"); return p.length===3 ? (p[2]+"/"+p[1]+"/"+p[0]) : d; }
@@ -1298,6 +1369,41 @@ async function ctCriar(){
   }catch(e){ msg.textContent=""; alert("Falha: "+e.message); }
 }
 
+// Traz para o registro os contratos que já foram emitidos pelo caminho antigo.
+// Reconhece pelo lead: quem tem link ?contrato= ou já foi marcado como "contrato".
+async function ctImportar(){
+  var msg = $("#ctImpMsg");
+  var leads = (_leadsData && _leadsData.leads) || [];
+  var alvo = leads.filter(function(l){
+    var temContrato = (l.stage === "contrato") || (l.link && l.link.indexOf("contrato=") > -1);
+    return temContrato && l.nome && Number(l.total) > 0;
+  });
+  if(!alvo.length){
+    msg.textContent = "Nenhum orçamento com contrato emitido foi encontrado. (Abra a aba Eventos primeiro para carregar a lista.)";
+    return;
+  }
+  if(!confirm("Importar " + alvo.length + " contrato(s) já emitido(s) como histórico?\n\nEles NÃO ganham link de assinatura.")) return;
+  msg.textContent = "importando…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/contrato", { method:"POST",
+      headers:{ "Content-Type":"application/json", Authorization:"Bearer "+key },
+      body: JSON.stringify({ acao:"importar", leads: alvo.map(function(l){
+        return { leadTs: l.ts, nome: l.nome, doc: l.doc || "", email: l.email || "",
+                 zap: l.phone || "", empresa: l.empresa || "",
+                 data: l.data ? fmtDateBR(l.data) : "", horario: l.hora || "",
+                 local: l.local || "", convidados: l.convidados || 0,
+                 subtotal: l.total || 0, desconto: 0, observacoes: l.obs || "" };
+      }) }) });
+    var j = await r.json();
+    if(!j.ok){ msg.textContent = j.error || "falhou"; return; }
+    msg.textContent = j.importados
+      ? (j.importados + " contrato(s) importado(s) como histórico.")
+      : ("Nada novo — " + (j.motivo || "já estavam registrados") + ".");
+    ctLoad();
+  }catch(e){ msg.textContent = "Falha: " + e.message; }
+}
+
 async function ctLoad(){
   var el = $("#ctLista"); if(!el) return;
   try{
@@ -1308,10 +1414,11 @@ async function ctLoad(){
     if(!j.contratos.length){ el.innerHTML = '<div class="mono" style="font-size:11px;color:var(--soft)">Nenhum contrato ainda.</div>'; return; }
     el.innerHTML = j.contratos.map(function(c){
       var ok = c.status === "assinado";
+      var imp = c.status === "importado";
       return '<div style="border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:8px">'+
         '<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">'+
           '<strong style="font-size:13.5px">'+ctEsc(c.nome)+'</strong>'+
-          '<span class="tag'+(ok?" conv":"")+'">'+(ok?"assinado":"aguardando")+'</span>'+
+          '<span class="tag'+(ok?" conv":"")+'">'+(ok?"assinado":(imp?"histórico":"aguardando"))+'</span>'+
         '</div>'+
         '<div class="mono" style="font-size:10.5px;color:var(--soft);margin-top:5px;line-height:1.7">'+
           'evento '+ctEsc(c.data||"—")+' · '+ctMoeda(c.total)+'<br>'+
@@ -1556,6 +1663,7 @@ document.querySelectorAll('.tabs button[data-t="contratos"]').forEach(function(b
   b.addEventListener("click", function(){ ctDrawForm(); ctLoad(); });
 });
 if($("#ctCriar")) $("#ctCriar").onclick = ctCriar;
+if($("#ctImportar")) $("#ctImportar").onclick = ctImportar;
 (function(){ var lt; try{ lt=localStorage.getItem("bento:panelTab"); }catch(e){} showTab(lt||"geral"); })();
 
 // ---- Sorteio BentôBytes ----

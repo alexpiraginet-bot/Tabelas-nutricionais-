@@ -126,6 +126,9 @@ function montaSnapshot(body) {
     total, entrada, saldo: Math.round((total - entrada) * 100) / 100,
     // subtotal é o que o ContratoPage recebe como `total` (ele aplica o desconto)
     observacoes: texto(body.observacoes, 2000),
+    // origem: qual orçamento gerou este contrato. Serve para o dossiê mostrar
+    // que o valor assinado é o mesmo que o cliente recebeu no orçamento.
+    leadTs: numero(body.leadTs, 0, 1e15) || null,
   };
 }
 
@@ -221,6 +224,52 @@ export default async function handler(req, res) {
       })],
     ]);
     res.status(200).json({ ok: true, id, hash: doc.hash, token, expiraEm: doc.expiraEm });
+    return;
+  }
+
+  // ---------- painel: importa contratos já emitidos pelo caminho antigo ----------
+  // Os contratos anteriores viviam só no link ?contrato=<base64> guardado no
+  // lead: nunca foram registrados. Trazê-los para cá dá histórico à aba sem
+  // FINGIR que foram assinados aqui — entram com status "importado" e SEM link
+  // de assinatura. Se a equipe quiser colher assinatura de um deles, gera um
+  // contrato novo pelo orçamento; este fica como registro do que já existia.
+  if (body.acao === "importar") {
+    if (!autorizado(req)) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+    const lista = Array.isArray(body.leads) ? body.leads.slice(0, 200) : [];
+    if (!lista.length) { res.status(400).json({ ok: false, error: "Nada para importar." }); return; }
+
+    // já importados antes? não duplica
+    const jaVistos = new Set(((await kv(["LRANGE", "contratos:importados", 0, 4999])) || []).map(String));
+    const novos = [];
+    for (const l of lista) {
+      const ts = String(numero(l && l.leadTs, 0, 1e15) || 0);
+      if (!ts || ts === "0" || jaVistos.has(ts)) continue;
+      const snapshot = montaSnapshot({ ...l, leadTs: ts });
+      if (!snapshot.nome || !snapshot.total) continue;
+      const id = crypto.randomBytes(9).toString("base64url");
+      const criadoEm = new Date(Number(ts)).toISOString();
+      novos.push({
+        id, criadoEm, expiraEm: 0,
+        status: "importado",           // nunca "aguardando": não há link para assinar
+        snapshot, hash: sha256(canonico(snapshot)),
+      });
+      jaVistos.add(ts);
+    }
+    if (!novos.length) { res.status(200).json({ ok: true, importados: 0, motivo: "todos já estavam registrados" }); return; }
+
+    const cmds = [];
+    for (const c of novos) {
+      cmds.push(["SET", "contrato:" + c.id, JSON.stringify(c)]);
+      cmds.push(["LPUSH", "contratos", c.id]);
+      cmds.push(["RPUSH", "contratos:importados", String(c.snapshot.leadTs)]);
+      cmds.push(["RPUSH", "contrato:" + c.id + ":eventos", JSON.stringify({
+        tipo: "importacao", em: new Date().toISOString(), ip: ip(req),
+        nota: "emitido pelo fluxo antigo (link em base64), sem registro de assinatura",
+      })]);
+    }
+    cmds.push(["LTRIM", "contratos", 0, MAX_CONTRATOS - 1]);
+    await kvPipe(cmds);
+    res.status(200).json({ ok: true, importados: novos.length });
     return;
   }
 
