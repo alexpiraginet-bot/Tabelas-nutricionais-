@@ -2139,8 +2139,42 @@ function bindSorteio(){
 }
 bindSorteio();
 
-async function refresh(){
-  try{ const d = await load(); closeGate(); render(d); afterLogin(); loadDestaque().catch(()=>{}); loadSiteConfig().catch(()=>{}); loadLeads().catch(()=>{}); loadBooked().catch(()=>{}); loadVagas().catch(()=>{}); loadSejaBento().catch(()=>{}); loadPrevendas().catch(()=>{}); loadSorteio().catch(()=>{}); loadClube().catch(()=>{}); }
+// Qual carregamento pertence a cada aba. Serve para o recarregamento
+// automático pedir SÓ o que está na tela.
+var LOADERS = {
+  geral:      [loadDestaque],
+  eventos:    [loadLeads, loadBooked],
+  contratos:  [ctLoad],
+  prevendas:  [loadPrevendas],
+  vagas:      [loadVagas],
+  sejabento:  [loadSejaBento],
+  sorteio:    [loadSorteio],
+  clube:      [loadClube],
+  site:       [loadSiteConfig, loadDestaque]
+};
+function abaAtual(){
+  var b = document.querySelector(".tabs button.on");
+  return (b && b.dataset.t) || "geral";
+}
+
+// refresh(true) = tique automático: recarrega o painel de números e SÓ a aba
+// aberta. refresh() = entrada ou clique em "Atualizar": carrega tudo.
+//
+// POR QUE: cada ciclo pedia os DEZ endpoints, olhando ou não. Uma aba esquecida
+// aberta fazia ~2.600 chamadas por dia em cada um deles, cada chamada com um a
+// três comandos no Redis. Deu para queimar as 500 mil requisições do plano
+// mensal em pouco mais de uma semana — e quando o banco começou a recusar,
+// o painel apareceu vazio e pareceu perda de dados. O gasto era de uma aba
+// aberta em cima da mesa.
+async function refresh(soAAbaAberta){
+  try{
+    const d = await load(); closeGate(); render(d); afterLogin();
+    var fila = soAAbaAberta
+      ? (LOADERS[abaAtual()] || [])
+      : [loadDestaque, loadSiteConfig, loadLeads, loadBooked, loadVagas,
+         loadSejaBento, loadPrevendas, loadSorteio, loadClube];
+    fila.forEach(function(f){ try{ var r=f(); if(r&&r.catch) r.catch(()=>{}); }catch(e){} });
+  }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
 }
 
@@ -2153,7 +2187,7 @@ $("#faceEnable").onclick = async ()=>{
   catch(e){ alert("Não consegui ativar o Face ID aqui: "+((e&&e.message)||e)); }
 };
 $("#bookAdd").onclick = ()=>{ const d = $("#bookDate").value; if(d) bookAction("add", d, $("#bookTime").value); else alert("Escolha uma data."); };
-$("#refresh").onclick = refresh;
+$("#refresh").onclick = function(){ refresh(); };   // clique do dono: carrega tudo
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.removeItem(CREDSTORE); openGate(""); };
 
 // início: com Face ID configurado, sempre exige a biometria; senão, mantém o atalho pela senha salva.
@@ -2164,7 +2198,7 @@ else openGate("");
 // banco a cada 30s por dias — 2.880 ciclos/dia, vários comandos cada, sem
 // ninguém olhando. Custo de banco não pode ser gerado por aba esquecida.
 setInterval(()=>{ if(document.hidden) return;
-                  if($("#app").style.display!=="none") refresh(); }, 60000);
+                  if($("#app").style.display!=="none") refresh(true); }, 60000);
 </script>
 </body>
 </html>
