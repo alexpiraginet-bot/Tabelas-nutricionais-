@@ -239,6 +239,21 @@
     </div>
   </div>
   <div class="pane" data-pane="site" hidden>
+    <!-- Backup: fica NA CARA, na primeira coisa da aba. Um backup que ninguém
+         vê é um backup que ninguém sabe que parou de rodar — e só se descobre
+         no dia em que ele fazia falta. -->
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span>💾 Cópia de segurança</span>
+        <span class="mono" id="bkMsg" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0"></span>
+      </h3>
+      <p class="mono" style="color:var(--soft);font-size:10px;text-transform:none;letter-spacing:0;margin:0 0 8px;line-height:1.6">
+        Roda sozinha todo dia às 5h e guarda no Supabase, em bucket privado — um arquivo por dia, nada é sobrescrito.
+        Vai tudo: leads, contratos com as assinaturas, clube, pré-vendas, vagas, agenda e a config do site.
+      </p>
+      <div id="bkLista" class="mono" style="font-size:11px;color:var(--soft);line-height:1.9"></div>
+      <button id="bkAgora" style="margin-top:9px;padding:9px 14px;border-radius:8px;border:1px solid var(--pist);background:transparent;color:var(--pist);font-weight:700;font-size:12px;cursor:pointer">Copiar agora</button>
+    </div>
     <div class="card" style="margin-bottom:14px">
       <h3 style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
         <span>🎛️ Site — conteúdo editável</span>
@@ -2005,6 +2020,49 @@ document.addEventListener("click", function(e){
   }
 });
 
+// ---- Cópia de segurança ----
+async function bkLoad(){
+  var el = $("#bkLista"); if(!el) return;
+  el.textContent = "conferindo…";
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/backup?listar=1", { cache:"no-store", headers:{ Authorization:"Bearer "+key } });
+    var j = await r.json();
+    if(!j.ok){ el.innerHTML = '<span style="color:#f0c9c9">'+ctEsc(j.error||"erro")+'</span>'; return; }
+    if(!j.arquivos.length){ el.innerHTML = '<span style="color:#e8c877">⚠ Nenhuma cópia ainda. Clique em “Copiar agora”.</span>'; return; }
+    var ult = j.arquivos[0];
+    // Idade da última cópia: mais de 2 dias significa que o cron parou, e isso
+    // precisa gritar aqui em vez de esperar o dia do aperto.
+    var dia = (ult.nome.match(/(\d{4}-\d{2}-\d{2})/)||[])[1];
+    var idade = dia ? Math.round((Date.now() - new Date(dia+"T05:00:00Z").getTime())/86400000) : null;
+    var alerta = (idade!==null && idade > 2)
+      ? '<div style="color:#f0c9c9;margin-top:4px">⚠ A última cópia tem '+idade+' dias — a rotina automática pode ter parado.</div>' : '';
+    el.innerHTML = '<b style="color:var(--ink)">última: '+ctEsc(ult.nome)+'</b>'
+      + (ult.bytes ? ' · '+(ult.bytes/1024).toFixed(0)+' KB' : '')
+      + ' · <a href="#" id="bkBaixar" style="color:var(--pist)">baixar</a><br>'
+      + j.arquivos.length + ' cópia(s) guardada(s) no bucket "'+ctEsc(j.bucket)+'"' + alerta;
+    var b = $("#bkBaixar");
+    if(b) b.onclick = async function(e){
+      e.preventDefault(); b.textContent = "gerando link…";
+      var rr = await fetch("/api/backup?listar=1&baixar="+encodeURIComponent(ult.nome), { headers:{ Authorization:"Bearer "+key } });
+      var jj = await rr.json();
+      b.textContent = "baixar";
+      if(jj.baixar) window.open(jj.baixar, "_blank"); else alert("Não consegui gerar o link.");
+    };
+  }catch(e){ el.innerHTML = '<span style="color:#f0c9c9">Falha: '+ctEsc(e.message)+'</span>'; }
+}
+if($("#bkAgora")) $("#bkAgora").onclick = async function(){
+  var b = $("#bkAgora"), antes = b.textContent; b.textContent = "copiando…"; b.disabled = true;
+  try{
+    var key = localStorage.getItem(KEYSTORE) || "";
+    var r = await fetch("/api/backup", { method:"POST", headers:{ Authorization:"Bearer "+key } });
+    var j = await r.json();
+    b.textContent = antes; b.disabled = false;
+    $("#bkMsg").textContent = j.ok ? ("copiado: "+j.registros+" registros") : ("falhou: "+(j.error||""));
+    bkLoad();
+  }catch(e){ b.textContent = antes; b.disabled = false; $("#bkMsg").textContent = "falhou: "+e.message; }
+};
+
 // ---- Abas superiores ----
 function setBadge(id,n){ var e=$("#"+id); if(e) e.textContent = n>0 ? String(n) : ""; }
 function showTab(t){
@@ -2150,7 +2208,7 @@ var LOADERS = {
   sejabento:  [loadSejaBento],
   sorteio:    [loadSorteio],
   clube:      [loadClube],
-  site:       [loadSiteConfig, loadDestaque]
+  site:       [loadSiteConfig, loadDestaque, bkLoad]
 };
 function abaAtual(){
   var b = document.querySelector(".tabs button.on");
