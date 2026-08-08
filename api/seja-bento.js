@@ -44,12 +44,22 @@ function clean(s, max) { let o = ""; for (const ch of String(s)) if (ch.codePoin
 const s120 = (s) => clean(s, 120);
 const arr = (v, max) => (Array.isArray(v) ? v.slice(0, 12).map((x) => s120(x)) : []).slice(0, max || 12);
 
+// Um banco que RECUSA comando não pode parecer um banco VAZIO. Sem esta
+// checagem, um 429 da Upstash virava "nenhum lead", "nenhuma config", "nenhum
+// contrato" — e o painel anunciava perda de dados que não houve.
+const KV_RECUSOU = (s, corpo) => new Error(
+  "O banco recusou o comando (HTTP " + s + "). " +
+  "Costuma ser limite do plano estourado, token inválido ou banco suspenso. " +
+  "Isto NÃO significa que os dados sumiram — significa que não estamos conseguindo lê-los. " +
+  String(corpo || "").slice(0, 200));
+
 async function pipeline(cmds) {
   const r = await fetch(KV_URL + "/pipeline", {
     method: "POST",
     headers: { Authorization: "Bearer " + KV_TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(cmds),
   });
+  if (!r.ok) throw KV_RECUSOU(r.status, await r.text().catch(() => ""));
   if (!r.ok) throw new Error("kv " + r.status);
   return r.json();
 }
@@ -59,6 +69,7 @@ async function cmd(args) {
     headers: { Authorization: "Bearer " + KV_TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(args),
   });
+  if (!r.ok) throw KV_RECUSOU(r.status, await r.text().catch(() => ""));
   const j = await r.json();
   return j.result;
 }

@@ -33,12 +33,22 @@ const KEY = "site:config";
 const BANNERS = ["eventos", "studio", "bytes", "tabelas", "cardapio", "parceiro", "conheca", "carreira", "creators"];
 const PUSH_TIPOS = ["nenhum", "entrega", "lancamento"];
 
+// Um banco que RECUSA comando não pode parecer um banco VAZIO. Sem esta
+// checagem, um 429 da Upstash virava "nenhum lead", "nenhuma config", "nenhum
+// contrato" — e o painel anunciava perda de dados que não houve.
+const KV_RECUSOU = (s, corpo) => new Error(
+  "O banco recusou o comando (HTTP " + s + "). " +
+  "Costuma ser limite do plano estourado, token inválido ou banco suspenso. " +
+  "Isto NÃO significa que os dados sumiram — significa que não estamos conseguindo lê-los. " +
+  String(corpo || "").slice(0, 200));
+
 async function kv(args) {
   const r = await fetch(KV_URL, {
     method: "POST",
     headers: { Authorization: "Bearer " + KV_TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(args),
   });
+  if (!r.ok) throw KV_RECUSOU(r.status, await r.text().catch(() => ""));
   return (await r.json().catch(() => ({}))).result;
 }
 function authed(req) {
@@ -187,7 +197,17 @@ export default async function handler(req, res) {
       const v = KV_URL && KV_TOKEN ? await kv(["GET", KEY]) : null;
       const j = v ? JSON.parse(v) : null;
       if (j && typeof j === "object") cfg = limpaConfig(j); // sanea também na leitura
-    } catch { /* qualquer falha: config vazia = site roda no padrão do código */ }
+    } catch (e) {
+      // O SITE nunca quebra por causa do banco: sem config, roda no padrão do
+      // código e o cliente nem percebe. Mas o PAINEL (que lê com ?fresh) tem de
+      // ouvir a verdade — foi exatamente por não ouvir que uma recusa do banco
+      // apareceu como "config vazia" e virou pânico de perda de dados.
+      if (req.query && req.query.fresh !== undefined) {
+        res.status(503).json({ ok: false, error: String((e && e.message) || e) });
+        return;
+      }
+      /* site: segue no padrão do código */
+    }
     res.status(200).json(cfg);
     return;
   }

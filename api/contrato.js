@@ -44,12 +44,22 @@ const PANEL_KEY = process.env.PANEL_KEY;
 const MAX_CONTRATOS = 2000;      // teto do índice; o documento em si nunca é apagado
 const VALIDADE_DIAS = 30;        // depois disso o link não assina mais (mas o contrato fica)
 
+// Um banco que RECUSA comando não pode parecer um banco VAZIO. Sem esta
+// checagem, um 429 da Upstash virava "nenhum lead", "nenhuma config", "nenhum
+// contrato" — e o painel anunciava perda de dados que não houve.
+const KV_RECUSOU = (s, corpo) => new Error(
+  "O banco recusou o comando (HTTP " + s + "). " +
+  "Costuma ser limite do plano estourado, token inválido ou banco suspenso. " +
+  "Isto NÃO significa que os dados sumiram — significa que não estamos conseguindo lê-los. " +
+  String(corpo || "").slice(0, 200));
+
 async function kv(args) {
   const r = await fetch(KV_URL, {
     method: "POST",
     headers: { Authorization: "Bearer " + KV_TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(args),
   });
+  if (!r.ok) throw KV_RECUSOU(r.status, await r.text().catch(() => ""));
   return (await r.json().catch(() => ({}))).result;
 }
 async function kvPipe(cmds) {
@@ -58,7 +68,7 @@ async function kvPipe(cmds) {
     headers: { Authorization: "Bearer " + KV_TOKEN, "Content-Type": "application/json" },
     body: JSON.stringify(cmds),
   });
-  if (!r.ok) throw new Error("kv " + r.status);
+  if (!r.ok) throw KV_RECUSOU(r.status, await r.text().catch(() => ""));
   return r.json();
 }
 

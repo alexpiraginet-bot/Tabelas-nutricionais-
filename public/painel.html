@@ -2160,7 +2160,11 @@ $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.rem
 if (waOK && localStorage.getItem(CREDSTORE)) openGate("");
 else if (localStorage.getItem(KEYSTORE)) refresh();
 else openGate("");
-setInterval(()=>{ if($("#app").style.display!=="none") refresh(); }, 30000);
+// Só recarrega com a aba VISÍVEL. Uma aba do painel esquecida aberta batia no
+// banco a cada 30s por dias — 2.880 ciclos/dia, vários comandos cada, sem
+// ninguém olhando. Custo de banco não pode ser gerado por aba esquecida.
+setInterval(()=>{ if(document.hidden) return;
+                  if($("#app").style.display!=="none") refresh(); }, 60000);
 </script>
 </body>
 </html>
