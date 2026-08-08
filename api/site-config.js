@@ -197,7 +197,17 @@ export default async function handler(req, res) {
       const v = KV_URL && KV_TOKEN ? await kv(["GET", KEY]) : null;
       const j = v ? JSON.parse(v) : null;
       if (j && typeof j === "object") cfg = limpaConfig(j); // sanea também na leitura
-    } catch { /* qualquer falha: config vazia = site roda no padrão do código */ }
+    } catch (e) {
+      // O SITE nunca quebra por causa do banco: sem config, roda no padrão do
+      // código e o cliente nem percebe. Mas o PAINEL (que lê com ?fresh) tem de
+      // ouvir a verdade — foi exatamente por não ouvir que uma recusa do banco
+      // apareceu como "config vazia" e virou pânico de perda de dados.
+      if (req.query && req.query.fresh !== undefined) {
+        res.status(503).json({ ok: false, error: String((e && e.message) || e) });
+        return;
+      }
+      /* site: segue no padrão do código */
+    }
     res.status(200).json(cfg);
     return;
   }
