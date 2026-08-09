@@ -16,6 +16,13 @@ function findKV() {
   return { url, token };
 }
 const { url: KV_URL, token: KV_TOKEN } = findKV();
+
+// A captura vale mais que o banco. Antes, a gravação vinha PRIMEIRO e o aviso no
+// Telegram depois: com o banco recusando comandos, o erro caía no catch de fora,
+// a resposta saía como sucesso e o contato sumia dos dois lugares — do painel e
+// do celular do dono. Agora a gravação é tentada em separado e o aviso sai DE
+// QUALQUER JEITO, com um alerta em cima quando não deu para gravar.
+const AVISO_SEM_BANCO = "⚠️ <b>NÃO FOI GRAVADO NO PAINEL</b> — o banco recusou (cota/plano).\n<b>Responda por aqui, este é o único registro.</b>\n\n";
 const PANEL_KEY = process.env.PANEL_KEY;
 
 function getKey(req) {
@@ -259,12 +266,15 @@ export default async function handler(req, res) {
       status: s120(body.status || "aguardando pagamento"),
       ref: s120(body.ref || ""),
     };
-    await pipeline([
-      ["LPUSH", "prevendas", JSON.stringify(ped)],
-      ["LTRIM", "prevendas", 0, 999],
-      ["INCR", "prevendas:count"],
-      ["INCRBY", "prevendas:units", qty],
-    ]);
+    let gravou = true;
+    try {
+      await pipeline([
+        ["LPUSH", "prevendas", JSON.stringify(ped)],
+        ["LTRIM", "prevendas", 0, 999],
+        ["INCR", "prevendas:count"],
+        ["INCRBY", "prevendas:units", qty],
+      ]);
+    } catch { gravou = false; }
     try {
       const dig = String(ped.phone).replace(/\D/g, "");
       const wa = "https://wa.me/" + (dig.length <= 11 ? "55" : "") + dig;
@@ -279,7 +289,7 @@ export default async function handler(req, res) {
         `💰 ${brl(ped.total)} · ${esc(ped.status)}`,
         `📲 <a href="${wa}">Falar / receber comprovante</a>`,
       ].filter(Boolean).join("\n");
-      await sendTelegram(msg);
+      await sendTelegram((gravou ? "" : AVISO_SEM_BANCO) + msg);
     } catch {}
     res.status(204).end();
   } catch {

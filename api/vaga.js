@@ -16,6 +16,13 @@ function findKV() {
   return { url, token };
 }
 const { url: KV_URL, token: KV_TOKEN } = findKV();
+
+// A captura vale mais que o banco. Antes, a gravação vinha PRIMEIRO e o aviso no
+// Telegram depois: com o banco recusando comandos, o erro caía no catch de fora,
+// a resposta saía como sucesso e o contato sumia dos dois lugares — do painel e
+// do celular do dono. Agora a gravação é tentada em separado e o aviso sai DE
+// QUALQUER JEITO, com um alerta em cima quando não deu para gravar.
+const AVISO_SEM_BANCO = "⚠️ <b>NÃO FOI GRAVADO NO PAINEL</b> — o banco recusou (cota/plano).\n<b>Responda por aqui, este é o único registro.</b>\n\n";
 const PANEL_KEY = process.env.PANEL_KEY;
 
 // Material liberado por cargo APÓS a candidatura ser registrada. A URL vive
@@ -139,11 +146,14 @@ export default async function handler(req, res) {
       sobre: clean(body.sobre || "", 600),
       bairro: s120(body.bairro || ""),
     };
-    await pipeline([
-      ["LPUSH", "vagas", JSON.stringify(cand)],
-      ["LTRIM", "vagas", 0, 499],
-      ["INCR", "vagas:count"],
-    ]);
+    let gravou = true;
+    try {
+      await pipeline([
+        ["LPUSH", "vagas", JSON.stringify(cand)],
+        ["LTRIM", "vagas", 0, 499],
+        ["INCR", "vagas:count"],
+      ]);
+    } catch { gravou = false; }
     try {
       const dig = String(cand.phone).replace(/\D/g, "");
       const wa = "https://wa.me/" + (dig.length <= 11 ? "55" : "") + dig;
@@ -158,7 +168,7 @@ export default async function handler(req, res) {
         cand.sobre ? `💬 ${esc(cand.sobre)}` : "",
         `📲 <a href="${wa}">Chamar no WhatsApp</a>`,
       ].filter(Boolean).join("\n");
-      await sendTelegram(msg);
+      await sendTelegram((gravou ? "" : AVISO_SEM_BANCO) + msg);
     } catch {}
     const mat = MATERIAIS[cand.cargo.trim().toLowerCase()];
     if (mat) { res.status(200).json({ ok: true, material: mat }); return; }
