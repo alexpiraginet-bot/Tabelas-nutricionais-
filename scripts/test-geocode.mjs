@@ -62,6 +62,54 @@ RESPOSTA = [];
 await mod.evGeocode('endereco ruim');
 ok(!globalThis.sessionStorage._d['bento:geo:endereco ruim'], 'falha NÃO é guardada (permite corrigir e tentar de novo)');
 
+// ---------- A EQUAÇÃO ----------
+// O preço é uma conta, e conta se confere com o resultado na mão. Cada caso
+// abaixo tem o valor calculado FORA do código; se a fórmula mudar sem querer,
+// o número aqui denuncia.
+console.log('\n--- a equação do orçamento ---');
+const calc = new Function('EV_POTINHO','EV_CARRINHO','EV_KM_RATE',
+  src.slice(src.indexOf('function calcEvento('), src.indexOf('export function EventosModal')) + '\nreturn calcEvento;'
+)(0.5, 200, 2.0);
+
+// 100 pessoas, nada personalizado, 20 km:
+//   serviço   100 × 27 = 2.700
+//   logística  20 × 2 × 2,00 = 80
+//   total     2.780
+let e = calc(100, 'Mix (gelatos + picolés)', [], 20);
+ok(e.base === 2700, 'serviço = 27 × convidados (100 -> 2.700)');
+ok(e.logistica === 80, 'logística = km × 2 (ida e volta) × R$ 2,00 (20 km -> 80)');
+ok(e.total === 2780, 'total fecha: 2.700 + 80 = ' + e.total);
+
+// 137 pessoas com potinhos: 137 × 2 × R$ 0,50 = 137,00 exatos. É o único ponto
+// da conta com centavo, e onde erro de ponto flutuante apareceria: (n×2) é par,
+// e par × 0,5 é sempre inteiro exato.
+e = calc(137, 'Gelatos', ['Potinhos personalizados'], 13);
+ok(e.potinhos === 137, 'potinhos = convidados exatos, sem centavo perdido (137)');
+ok(Number.isInteger(e.total), 'total continua inteiro — sem resíduo de ponto flutuante');
+ok(e.total === 137*27 + 137 + 52, 'total fecha: 3.699 + 137 + 52 = ' + e.total);
+
+e = calc(80, 'Picolés', ['Carrinho personalizado'], null);
+ok(e.carrinho === 200, 'carrinho personalizado é fixo em 200, não por pessoa');
+ok(e.logistica === null && e.total === 80*27 + 200,
+   'sem distância, a logística NÃO entra no total (fica a combinar): ' + e.total);
+
+e = calc(90, 'Mix (gelatos + picolés)', ['Outra personalização'], null);
+ok(e.persACombinar.length === 1, 'personalização sem tabela fica "a combinar", não vira zero silencioso');
+
+ok(calc(300,'Gelatos',[],null).promotoras === 1, '300 convidados: 1 promotora');
+ok(calc(301,'Gelatos',[],null).promotoras === 2, '301 convidados: 2 promotoras');
+ok(calc(301,'Gelatos',[],null).corporativo === true, 'acima de 300 marca como corporativo');
+ok(calc(70,'Gelatos',[],null).sabores === 3, '70 convidados: 3 sabores (70 × 6 ÷ 150)');
+ok(calc(150,'Gelatos',[],null).sabores === 6, '150+: teto de 6 sabores');
+
+ok(/15 L de gelato/.test(calc(100,'Gelatos',[],null).rend), 'Gelatos: 150 ml/pessoa (100 -> 15 L)');
+ok(/200 picolés/.test(calc(100,'Picolés',[],null).rend), 'Picolés: 2 por pessoa (100 -> 200)');
+ok(/8 L de gelato/.test(calc(100,'Mix (gelatos + picolés)',[],null).rend), 'Mix: 75 ml/pessoa (100 -> ~8 L)');
+
+let faixaOk = true;
+for (const km of [1,7,23,100,320]) if (calc(70,'Gelatos',[],km).logistica !== km*4) faixaOk = false;
+ok(faixaOk, 'logística = 4 × km em toda a faixa (1, 7, 23, 100 e 320 km)');
+
 // ---------- distinguir FORA DO ES de NAO LOCALIZEI ----------
 console.log('\n--- fora do estado vs nao localizado ---');
 let chamadas = 0;
@@ -87,3 +135,41 @@ chamadas = 0; RESPOSTAS.length = 0;
 globalThis.fetch = async () => { chamadas++; if(chamadas>=3) throw new Error('rede'); return { ok:true, json: async()=>[] }; };
 r = await mod.evGeocode('endereco com rede ruim');
 ok(r.ok===false && !r.fora, 'falha de rede NÃO bloqueia o cliente');
+
+// ---------- fora do ES: PERTO tem preço, LONGE tem distância ----------
+// A conta de R$/km foi feita para bate-volta. Até EV_MAX_KM ela vale igual do
+// outro lado da divisa — recusar preço para uma cidade a 90 km só porque a
+// placa mudou de estado era jogar fora uma conta que estava certa. Acima disso
+// a fórmula não vale (pernoite, dias de equipe), e aí o honesto é dizer a
+// distância e orçar à parte.
+console.log('\n--- fora do ES: perto x longe ---');
+
+// Muniz Freire/MG-ish: ~100 km em linha reta de Vitória, ainda bate-volta
+RESPOSTA = []; URLS = [];
+let perto = null;
+{
+  let n = 0;
+  globalThis.fetch = async (u) => { ultimaURL = u; URLS.push(u); n++;
+    return { ok:true, json: async () => n <= 2 ? [] : [{lat:"-20.60",lon:"-41.20",display_name:"Centro, Manhuaçu - MG",
+      address:{state:"Minas Gerais","ISO3166-2-lvl4":"BR-MG"}}] }; };
+  perto = await mod.evGeocode('Centro, Manhuacu');
+}
+ok(perto.fora === true, 'cidade de MG perto: continua marcada como fora do estado');
+ok(perto.km != null && perto.km > 0, 'mas AGORA tem distância medida (' + perto.km + ' km)');
+ok(perto.ok === true, 'e dentro do bate-volta o preço FECHA (ok=true)');
+ok(perto.loja, 'sabendo de qual loja sai: ' + perto.loja);
+ok(calc(100,'Gelatos',[],perto.km).logistica === perto.km * 4,
+   'a logística dela entra na conta: ' + (perto.km*4));
+
+// Manaus: longe demais para a fórmula valer
+{
+  let n = 0;
+  globalThis.fetch = async (u) => { ultimaURL = u; URLS.push(u); n++;
+    return { ok:true, json: async () => n <= 2 ? [] : [{lat:"-3.10",lon:"-60.02",display_name:"Centro, Manaus - AM",
+      address:{state:"Amazonas","ISO3166-2-lvl4":"BR-AM"}}] }; };
+  const longe = await mod.evGeocode('Centro, Manaus');
+  ok(longe.fora === true && longe.km != null, 'Manaus: fora e com distância medida (' + longe.km + ' km)');
+  ok(longe.ok === false, 'mas o preço NÃO fecha — a fórmula de bate-volta não vale a essa distância');
+  ok(longe.km > 2000, 'a distância é real, não um teto inventado (' + longe.km + ' km)');
+}
+
