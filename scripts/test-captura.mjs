@@ -19,6 +19,7 @@ const porta = () => new Promise((r) => {
 
 // Redis que aceita tudo, ou que recusa tudo — a chave do teste.
 let RECUSANDO = false;
+const gravados = [];
 const pKV = await porta();
 const kv = http.createServer((q, s) => {
   let b = ""; q.on("data", (c) => (b += c)); q.on("end", () => {
@@ -29,6 +30,8 @@ const kv = http.createServer((q, s) => {
     }
     const corpo = JSON.parse(b || "[]");
     const pipeline = q.url.includes("/pipeline");
+    // guarda o que foi gravado: é como o teste confere o que chega no painel
+    for (const c of (pipeline ? corpo : [corpo])) if (String(c[0]).toUpperCase() === "LPUSH") gravados.push(c[2]);
     s.setHeader("content-type", "application/json");
     s.end(JSON.stringify(pipeline ? corpo.map(() => ({ result: 1 })) : { result: 1 }));
   });
@@ -97,5 +100,35 @@ r = await chama(lead, { nome: "Sem Saida", phone: "27977776666", cidade: "Serra"
 ok(enviados.length === 0 && r.status === 204,
    "sem banco E sem Telegram não há o que salvar — é o limite conhecido, não um bug escondido");
 
+// ---------- evento FORA do ES: chega, e chega marcado ----------
+// Antes o site barrava e o contato nem existia. Agora ele passa — e tanto o
+// painel quanto o aviso no celular precisam deixar claro que o valor NÃO inclui
+// a viagem, senão alguém responde como se fosse um evento em Vitória.
+process.env.TELEGRAM_BOT_TOKEN = "tok";
+RECUSANDO = false;
+enviados.length = 0;
+gravados.length = 0;
+r = await chama(lead, { nome: "Cerimonial Minas", phone: "31988887777", cidade: "Belo Horizonte",
+                        data: "18/07/2027", local: "Rua das Flores, Belo Horizonte", convidados: 200,
+                        total: 5400, km: null, fora: true, uf: "Minas Gerais" });
+ok(r.status === 204, "orçamento de fora do ES é aceito");
+const gravado = gravados.length ? JSON.parse(gravados[0]) : null;
+ok(!!gravado && gravado.fora === true, "o lead é gravado com a marca fora=true");
+ok(!!gravado && gravado.uf === "Minas Gerais", "e com o estado, para a equipe saber de onde é");
+ok(!!gravado && gravado.nome === "Cerimonial Minas" && gravado.phone.includes("31988887777"),
+   "com nome e telefone inteiros — é justamente o contato que se perdia");
+const av = enviados[0] || "";
+ok(/FORA DO ES/.test(av) && /Minas Gerais/.test(av), "o aviso no celular abre com FORA DO ES · Minas Gerais");
+ok(/deslocamento NÃO está no valor/.test(av), "e diz que o deslocamento não está no valor");
+
+// evento normal não pode ganhar a marca por engano
+enviados.length = 0; gravados.length = 0;
+await chama(lead, { nome: "Festa Vitória", phone: "27977776666", cidade: "Vitória",
+                    local: "Praia do Canto", convidados: 100, total: 3000, km: 8 });
+const normal = gravados.length ? JSON.parse(gravados[0]) : null;
+ok(!!normal && normal.fora === false, "evento no ES continua sem a marca");
+ok(!/FORA DO ES/.test(enviados[0] || ""), "e o aviso dele não leva o alerta");
+
 kv.close(); tg.close();
+
 console.log("\nCaptura: com o banco fora, o contato ainda chega no celular.");

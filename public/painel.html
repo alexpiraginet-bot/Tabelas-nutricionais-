@@ -682,11 +682,16 @@ function leadQuoteRow(l){
   var quando = new Date(l.ts||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
   var total = (Number(l.total)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
   var stageTag = l.stage==="contrato" ? '<span class="tag conv">contrato</span>' : '<span class="tag">orçamento</span>';
+  // Fora do ES precisa saltar aos olhos NO CARD: o valor mostrado não inclui a
+  // viagem, e responder esse lead como se fosse um evento em Vitória seria
+  // prometer um preço que não fecha.
+  if(l.fora) stageTag += ' <span class="tag" style="border-color:#e8c877;color:#e8c877">fora do ES'+(l.uf?" · "+escapeHtml(l.uf):"")+'</span>';
   var det = [
     l.convidados ? ("👥 "+l.convidados+" convid.") : "",
     leadTipo(l),
     l.data ? ("📅 "+fmtDateBR(l.data)+(l.hora?(" ⏰ "+l.hora):"")) : "",
-    l.local ? ("📍 "+l.local) : ""
+    l.local ? ("📍 "+l.local) : "",
+    l.fora ? "⚠ deslocamento NÃO incluso no valor" : ""
   ].filter(Boolean).join(" · ");
   var acts = [];
   if(l.link && /^https?:\/\//i.test(l.link)) acts.push('<a class="qact" href="'+escapeHtml(l.link)+'" target="_blank" rel="noopener">📄 Abrir orçamento</a>');

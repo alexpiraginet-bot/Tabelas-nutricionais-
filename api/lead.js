@@ -103,6 +103,10 @@ export default async function handler(req, res) {
       total: Number(body.total) || 0,
       km: body.km == null ? null : Number(body.km),
       loja: semControle(body.loja || ""),
+      // Evento fora do ES: antes o site barrava e o contato nem chegava aqui.
+      // Agora chega marcado, para a equipe ver de cara que a viagem é caso a caso.
+      fora: !!body.fora,
+      uf: semControle(body.uf || ""),
       // Orçamento completo (para abrir/imprimir o PDF no painel) + detalhes do evento
       doc: semControle(body.doc || ""),
       empresa: semControle(body.empresa || ""),
@@ -132,6 +136,7 @@ export default async function handler(req, res) {
       const brl = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       const msg = [
         `🎉 <b>Novo orçamento de evento</b>${lead.stage === "contrato" ? " — pediu CONTRATO" : ""}`,
+        lead.fora ? `🚩 <b>FORA DO ES${lead.uf ? " · " + esc(lead.uf) : ""}</b> — deslocamento NÃO está no valor` : "",
         `👤 ${esc(lead.nome || "—")} · ${esc(lead.phone)}`,
         (lead.data || lead.hora) ? `📅 ${esc(lead.data)}${lead.hora ? ` ⏰ ${esc(lead.hora)}` : ""}` : "",
         lead.local ? `📍 ${esc(lead.local)}` : "",
