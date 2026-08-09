@@ -136,7 +136,7 @@ export default async function handler(req, res) {
       const brl = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       const msg = [
         `🎉 <b>Novo orçamento de evento</b>${lead.stage === "contrato" ? " — pediu CONTRATO" : ""}`,
-        lead.fora ? `🚩 <b>FORA DO ES${lead.uf ? " · " + esc(lead.uf) : ""}</b> — deslocamento NÃO está no valor` : "",
+        lead.fora ? `🚩 <b>FORA DO ES${lead.uf ? " · " + esc(lead.uf) : ""}</b> — orçamento BLOQUEADO, só o contato${lead.km ? ` · ~${lead.km} km` : ""}` : "",
         `👤 ${esc(lead.nome || "—")} · ${esc(lead.phone)}`,
         (lead.data || lead.hora) ? `📅 ${esc(lead.data)}${lead.hora ? ` ⏰ ${esc(lead.hora)}` : ""}` : "",
         lead.local ? `📍 ${esc(lead.local)}` : "",

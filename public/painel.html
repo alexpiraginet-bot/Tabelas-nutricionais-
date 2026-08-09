@@ -685,13 +685,15 @@ function leadQuoteRow(l){
   // Fora do ES precisa saltar aos olhos NO CARD: o valor mostrado não inclui a
   // viagem, e responder esse lead como se fosse um evento em Vitória seria
   // prometer um preço que não fecha.
-  if(l.fora) stageTag += ' <span class="tag" style="border-color:#e8c877;color:#e8c877">fora do ES'+(l.uf?" · "+escapeHtml(l.uf):"")+'</span>';
+  // Fora do ES é BLOQUEADO: não houve orçamento, só o contato. A etiqueta diz
+  // isso, porque um card sem valor sem explicação parece cadastro pela metade.
+  if(l.fora) stageTag = '<span class="tag" style="border-color:#e8c877;color:#e8c877">bloqueado · fora do ES'+(l.uf?" · "+escapeHtml(l.uf):"")+'</span>';
   var det = [
     l.convidados ? ("👥 "+l.convidados+" convid.") : "",
     leadTipo(l),
     l.data ? ("📅 "+fmtDateBR(l.data)+(l.hora?(" ⏰ "+l.hora):"")) : "",
     l.local ? ("📍 "+l.local) : "",
-    l.fora ? "⚠ deslocamento NÃO incluso no valor" : ""
+    l.fora ? ("⚠ não atendemos aí — sem orçamento"+(l.km?(" · ~"+l.km+" km de Vitória"):"")) : ""
   ].filter(Boolean).join(" · ");
   var acts = [];
   if(l.link && /^https?:\/\//i.test(l.link)) acts.push('<a class="qact" href="'+escapeHtml(l.link)+'" target="_blank" rel="noopener">📄 Abrir orçamento</a>');
