@@ -21,7 +21,8 @@
     "test:geocode": "node scripts/test-geocode.mjs",
     "test:docvalida": "node scripts/test-docvalida.mjs",
     "test:lua": "node scripts/test-lua-contrato.mjs",
-    "test:backup": "node scripts/test-backup.mjs"
+    "test:backup": "node scripts/test-backup.mjs",
+    "test:captura": "node scripts/test-captura.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",

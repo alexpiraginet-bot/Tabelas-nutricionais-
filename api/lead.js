@@ -16,6 +16,16 @@ function findKV() {
 }
 const { url: KV_URL, token: KV_TOKEN } = findKV();
 
+// A captura vale mais que o banco. Antes, a gravação vinha PRIMEIRO e o aviso no
+// Telegram depois: com o banco recusando comandos, o erro caía no catch de fora,
+// a resposta saía 204 (sucesso) e o contato sumia dos dois lugares — do painel e
+// do seu celular. O cliente achava que tinha mandado; ninguém nunca soube.
+//
+// Agora a gravação é tentada em separado e o aviso sai DE QUALQUER JEITO, com um
+// alerta em cima quando não foi possível gravar. Banco fora do ar vira "responda
+// por aqui", não vira lead perdido.
+const AVISO_SEM_BANCO = "⚠️ <b>NÃO FOI GRAVADO NO PAINEL</b> — o banco recusou (cota/plano).\n<b>Responda por aqui, este é o único registro.</b>\n\n";
+
 function readRaw(req) {
   if (req.body !== undefined && req.body !== null) return Promise.resolve(req.body);
   return new Promise((resolve) => {
@@ -107,11 +117,14 @@ export default async function handler(req, res) {
       pers: Array.isArray(body.pers) ? body.pers.slice(0, 8).map((x) => semControle(x)) : [],
       link: clean(body.link || "", 6000),
     };
-    await pipeline([
-      ["LPUSH", "leads", JSON.stringify(lead)],
-      ["LTRIM", "leads", 0, 999],
-      ["INCR", "leads:count"],
-    ]);
+    let gravou = true;
+    try {
+      await pipeline([
+        ["LPUSH", "leads", JSON.stringify(lead)],
+        ["LTRIM", "leads", 0, 999],
+        ["INCR", "leads:count"],
+      ]);
+    } catch { gravou = false; }
     // Notificação na hora (Telegram) — best-effort, não atrapalha a resposta
     try {
       const dig = String(lead.phone).replace(/\D/g, "");
@@ -127,7 +140,7 @@ export default async function handler(req, res) {
         lead.link ? `📄 <a href="${esc(lead.link)}">Abrir orçamento</a>` : "",
         `💬 <a href="${wa}">Responder no WhatsApp</a>`,
       ].filter(Boolean).join("\n");
-      await sendTelegram(msg);
+      await sendTelegram((gravou ? "" : AVISO_SEM_BANCO) + msg);
     } catch {}
     res.status(204).end();
   } catch {
