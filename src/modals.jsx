@@ -823,9 +823,27 @@ async function evGeocode(text){
         const j=await r.json();
         if(Array.isArray(j)&&j[0]&&!evNoES(j[0].address)){
           const a=j[0].address||{};
-          res={ok:false,fora:true,
+          // A COORDENADA ESTAVA AQUI E ERA JOGADA FORA. Sem ela, uma cidade de
+          // Minas a 90 km de Vitória caía no mesmo balde que Manaus: as duas
+          // sem logística. A distância é medida do mesmo jeito que dentro do ES.
+          const la=+j[0].lat, lo=+j[0].lon;
+          let melhor=null;
+          if(Number.isFinite(la)&&Number.isFinite(lo)){
+            for(const st of LOJAS){
+              const d=evHaversine(la,lo,st.lat,st.lng);
+              if(!melhor||d<melhor.km) melhor={km:d,loja:st.nome};
+            }
+          }
+          const km=melhor?Math.max(1,Math.round(melhor.km*EV_ROTA)):null;
+          // `ok` quer dizer "dá para FECHAR o preço do deslocamento", não "é no
+          // ES". Até EV_MAX_KM a viagem é bate-volta, que é para o que a conta
+          // de R$/km foi feita — vale igual do outro lado da divisa. Acima
+          // disso a fórmula não vale (pernoite, mais de um dia), então a
+          // distância é mostrada e o valor fica a combinar.
+          res={ok:km!=null&&km<=EV_MAX_KM,fora:true,
                uf:String(a.state||"").slice(0,40),
-               endereco:String(j[0].display_name||"").slice(0,140)};
+               endereco:String(j[0].display_name||"").slice(0,140),
+               km,loja:melhor?melhor.loja:null};
         }
       }
     }catch(e){ /* rede ruim: segue como "não localizei", que NÃO bloqueia */ }
@@ -898,7 +916,7 @@ export function EventosModal({onClose}){
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
     const link2=mkLink(mkPayload(q2,g));
     tk(fora?"Lead · Orçamento gerado (fora do ES)":"Lead · Orçamento gerado");
-    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,fora,uf:fora?(g.uf||""):"",...orcFields(q2,g,link2)});
+    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.km!=null?g.km:null,loja:g&&g.loja?g.loja:null,fora,uf:fora?(g.uf||""):"",...orcFields(q2,g,link2)});
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
@@ -942,7 +960,8 @@ export function EventosModal({onClose}){
       `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,"",
       "*— Orçamento online —*",
       `*Serviço (R$ 27 × ${ev.convidados}):* ${fmtBRL(q.base)}`,
-      geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`:"*Logística:* a confirmar",
+      geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`
+        :(geo&&geo.km!=null?`*Logística (~${geo.km} km):* a combinar — fora do bate-volta`:"*Logística:* a confirmar"),
       q.potinhos>0&&`*Potinhos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
       q.carrinho>0&&`*Personalização do carrinho:* ${fmtBRL(q.carrinho)}`,
       q.persACombinar.length>0&&`*A combinar:* ${q.persACombinar.join(", ")}`,
@@ -1072,12 +1091,21 @@ export function EventosModal({onClose}){
                   Fora do Espírito Santo
                 </div>
                 <div className="fd" style={{fontSize:18,color:T.pistacheDark,marginTop:5,lineHeight:1.25}}>
-                  {geo.uf?<>Ainda não atendemos {/^[AEIOU]/i.test(geo.uf)?"o":"a"} {geo.uf} de rotina</>:"Ainda não atendemos nesse estado de rotina"}
+                  {geo.uf?<>Seu evento é {/^[AEIOU]/i.test(geo.uf)?"n":""}{/^[AEIOU]/i.test(geo.uf)?"o":"na"} {geo.uf}</>:"Seu evento é fora do Espírito Santo"}
                 </div>
                 <p className="fb" style={{fontSize:13,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
-                  Nossos carrinhos saem das lojas de <strong>Vitória</strong>. Fizemos o orçamento assim mesmo —
-                  ele está completo, <strong>menos o deslocamento</strong>, que para fora do estado a gente combina
-                  caso a caso, olhando a data e o tamanho do evento. Chama a gente que a conversa é de verdade.
+                  {/* Se o deslocamento COUBE na conta, o card não pode dizer que
+                      ficou de fora — seria a tela contradizendo a própria linha
+                      de logística logo abaixo. */}
+                  {geo.ok
+                    ? <>Nossos carrinhos saem das lojas de <strong>Vitória</strong>, mas seu evento está a{" "}
+                        <strong>{geo.km} km</strong> — dentro do nosso bate-volta. O orçamento abaixo está
+                        completo, <strong>com o deslocamento já incluído</strong>. Fale com a gente para
+                        confirmarmos a data.</>
+                    : <>Nossos carrinhos saem das lojas de <strong>Vitória</strong>. Fizemos o orçamento assim
+                        mesmo — ele está completo, <strong>menos o deslocamento</strong>, que a essa distância
+                        a gente orça à parte, olhando a data e o tamanho do evento. Chama a gente que a conversa
+                        é de verdade.</>}
                 </p>
                 {geo.endereco&&(
                   <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"9px 0 0"}}>
@@ -1107,21 +1135,35 @@ export function EventosModal({onClose}){
                     </div>}
                   </>
                 : <>
-                    <Row l="Logística (deslocamento)" v="a confirmar"/>
+                    {/* Sem "(ida e volta)" aqui: essa etiqueta descreve a conta
+                        de bate-volta, que NÃO foi feita neste caso. Rótulo que
+                        descreve um cálculo inexistente é promessa de preço. */}
+                    <Row l={geo&&geo.km!=null?`Logística · ~${geo.km} km (fora do bate-volta)`:"Logística (deslocamento)"} v="a combinar"/>
                     <div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,padding:"0 0 8px",marginTop:-4}}>
-                      Não localizamos esse endereço no Espírito Santo. A equipe confirma o deslocamento com você —
-                      o restante do orçamento já vale.
+                      {/* Três situações que antes diziam a mesma frase: achamos e é
+                          longe demais para bate-volta; não achamos nada. Dizer
+                          "não localizamos" quando localizamos e sabemos a
+                          distância é errar na cara do cliente. */}
+                      {geo&&geo.km!=null
+                        ? <>Essa distância passa do nosso bate-volta, então a viagem é orçada à parte —
+                            hospedagem e dias de equipe entram na conta. O resto do orçamento já vale.</>
+                        : <>Não conseguimos localizar esse endereço. A equipe confirma o deslocamento com você —
+                            o restante do orçamento já vale.</>}
                     </div>
                   </>}
               {q.potinhos>0&&<Row l={`Potinhos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
               {q.carrinho>0&&<Row l="Personalização do carrinho" v={fmtBRL(q.carrinho)}/>}
               {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
-                <span className="fb" style={{fontSize:13,color:T.inkSoft}}>Total estimado</span>
+                <span className="fb" style={{fontSize:13,color:T.inkSoft}}>
+                  Total estimado{q.logistica==null&&<span style={{display:"block",fontSize:11}}>sem o deslocamento</span>}
+                </span>
                 <span className="fd" style={{fontSize:28,color:T.pistacheDark,fontWeight:600}}>{fmtBRL(q.total)}</span>
               </div>
             </div>
-            {geo&&!geo.ok&&(
+            {/* Só quando REALMENTE não localizamos. Antes isto aparecia junto com
+                o card que dizia o estado do cliente — a tela se contradizia. */}
+            {geo&&!geo.ok&&geo.km==null&&(
               <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>📍 Não conseguimos localizar o endereço para calcular a logística — confirmamos o deslocamento no fechamento. Dica: volte e inclua bairro e cidade no local.</div>
             )}
             {geo&&geo.ok&&(
