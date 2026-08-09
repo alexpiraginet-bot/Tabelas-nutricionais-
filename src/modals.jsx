@@ -887,14 +887,18 @@ export function EventosModal({onClose}){
     const g=await evGeocode(ev.local);
     setGeo(g);
     setBusy(false);
-    // Só bloqueia com CERTEZA de que o endereço é de outro estado. "Não
-    // consegui localizar" segue em frente — a equipe confirma o deslocamento.
-    // Bloquear na dúvida perderia cliente de Vitória por endereço mal digitado.
-    if(g&&g.fora) return;
+    // Endereço de outro estado NÃO bloqueia mais — avisa e segue. Antes o
+    // fluxo parava aqui, e como o postLead vem DEPOIS, o contato se perdia por
+    // inteiro: nem orçamento, nem telefone, nem notícia de que existiu. Uma
+    // recusa que apaga o cliente é pior que uma conversa que talvez não role.
+    //
+    // Sair barato demais não é risco: sem `km`, a logística fica em "a
+    // confirmar" e o total não finge incluir a viagem.
+    const fora=!!(g&&g.fora);
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
     const link2=mkLink(mkPayload(q2,g));
-    tk("Lead · Orçamento gerado");
-    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,...orcFields(q2,g,link2)});
+    tk(fora?"Lead · Orçamento gerado (fora do ES)":"Lead · Orçamento gerado");
+    postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.ok?g.km:null,loja:g&&g.ok?g.loja:null,fora,uf:fora?(g.uf||""):"",...orcFields(q2,g,link2)});
     setStep(2);
   };
   const menor=nConv>0&&nConv<70;
@@ -1037,37 +1041,6 @@ export function EventosModal({onClose}){
               {/* Fora do ES: diz onde entendeu que é, para o cliente corrigir se
                   a busca errou, e não deixa seguir. Só aparece com CERTEZA — se
                   não localizamos, o orçamento segue e a equipe confirma. */}
-              {geo&&geo.fora&&(
-                <div role="alert" style={{marginTop:16,border:`1px solid ${T.accent}`,borderRadius:14,padding:"16px 17px",background:T.surface}}>
-                  <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent}}>
-                    Fora da nossa área
-                  </div>
-                  <div className="fd" style={{fontSize:19,color:T.pistacheDark,marginTop:5,lineHeight:1.2}}>
-                    Que pena — ainda não chegamos {geo.uf?<>a{/^[AEIOU]/i.test(geo.uf)?"o":""} {geo.uf}</>:"nesse estado"}
-                  </div>
-                  <p className="fb" style={{fontSize:13.5,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
-                    Nossos carrinhos saem das lojas de <strong>Vitória</strong>, e por enquanto atendemos eventos
-                    só no <strong>Espírito Santo</strong>. Adoraríamos levar a Bentô para o seu evento — mas seria
-                    desonesto prometer o que a gente ainda não consegue entregar aí.
-                  </p>
-                  {geo.endereco&&(
-                    <p className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
-                      Entendemos o local como <strong>{geo.endereco}</strong>. Se não for aí, é só corrigir o local
-                      do evento acima e tentar de novo.
-                    </p>
-                  )}
-                  <a href={"https://wa.me/5527999159995?text="+encodeURIComponent("Oi! Meu evento é "+(geo.uf?("em "+geo.uf):"fora do ES")+" — dá para conversar sobre uma exceção?")}
-                    target="_blank" rel="noopener" onClick={()=>tk("Evento · Fora do ES · WhatsApp")}
-                    className="fm" style={{display:"inline-block",marginTop:13,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",
-                      background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"11px 17px",textDecoration:"none"}}>
-                    Quero conversar assim mesmo
-                  </a>
-                  <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
-                    Se um dia formos para o seu estado, você vai saber — é só nos seguir no Instagram
-                    <strong> @bentogelatos</strong>.
-                  </p>
-                </div>
-              )}
               {/* Botão travado sem dizer por quê é o jeito mais rápido de perder
                   quem estava a um campo de concluir. */}
               {!ok1&&!busy&&(()=>{
@@ -1089,6 +1062,31 @@ export function EventosModal({onClose}){
           </>)}
 
           {step===2&&(<>
+            {/* Fora do ES: o orçamento SAI, e este aviso vem em cima dele. A
+                tela não pode mostrar um preço e dizer "não atendemos aí" ao
+                mesmo tempo — ou promete demais, ou nega o que está exibindo.
+                O texto diz exatamente o que é: conta fechada, viagem em aberto. */}
+            {geo&&geo.fora&&(
+              <div role="alert" style={{marginBottom:14,border:`1px solid ${T.accent}`,borderRadius:14,padding:"15px 16px",background:T.surface}}>
+                <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent}}>
+                  Fora do Espírito Santo
+                </div>
+                <div className="fd" style={{fontSize:18,color:T.pistacheDark,marginTop:5,lineHeight:1.25}}>
+                  {geo.uf?<>Ainda não atendemos {/^[AEIOU]/i.test(geo.uf)?"o":"a"} {geo.uf} de rotina</>:"Ainda não atendemos nesse estado de rotina"}
+                </div>
+                <p className="fb" style={{fontSize:13,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
+                  Nossos carrinhos saem das lojas de <strong>Vitória</strong>. Fizemos o orçamento assim mesmo —
+                  ele está completo, <strong>menos o deslocamento</strong>, que para fora do estado a gente combina
+                  caso a caso, olhando a data e o tamanho do evento. Chama a gente que a conversa é de verdade.
+                </p>
+                {geo.endereco&&(
+                  <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"9px 0 0"}}>
+                    Entendemos o local como <strong>{geo.endereco}</strong>. Se não for aí, volte e corrija —
+                    dentro do ES o deslocamento entra na conta automaticamente.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="fm" style={{fontSize:9,letterSpacing:"0.25em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:10}}>Seu orçamento online</div>
             <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:12,padding:"6px 16px 4px"}}>
               <Row l="Convidados" v={ev.convidados}/>
