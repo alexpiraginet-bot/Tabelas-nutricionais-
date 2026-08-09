@@ -100,18 +100,20 @@ r = await chama(lead, { nome: "Sem Saida", phone: "27977776666", cidade: "Serra"
 ok(enviados.length === 0 && r.status === 204,
    "sem banco E sem Telegram não há o que salvar — é o limite conhecido, não um bug escondido");
 
-// ---------- evento FORA do ES: chega, e chega marcado ----------
-// Antes o site barrava e o contato nem existia. Agora ele passa — e tanto o
-// painel quanto o aviso no celular precisam deixar claro que o valor NÃO inclui
-// a viagem, senão alguém responde como se fosse um evento em Vitória.
+// ---------- evento FORA do ES: bloqueado, mas o contato fica ----------
+// Fora do estado NÃO sai orçamento — regra do dono. Mas recusar o orçamento e
+// jogar fora o telefone são duas coisas, e antes elas aconteciam juntas sem
+// ninguém ter decidido a segunda. Agora o contato é guardado, sem valor, e o
+// aviso diz claramente que foi bloqueado.
 process.env.TELEGRAM_BOT_TOKEN = "tok";
 RECUSANDO = false;
 enviados.length = 0;
 gravados.length = 0;
-r = await chama(lead, { nome: "Cerimonial Minas", phone: "31988887777", cidade: "Belo Horizonte",
-                        data: "18/07/2027", local: "Rua das Flores, Belo Horizonte", convidados: 200,
-                        total: 5400, km: null, fora: true, uf: "Minas Gerais" });
-ok(r.status === 204, "orçamento de fora do ES é aceito");
+r = await chama(lead, { stage: "fora-do-es", nome: "Cerimonial Minas", phone: "31988887777",
+                        cidade: "Belo Horizonte", data: "18/07/2027",
+                        local: "Rua das Flores, Belo Horizonte", convidados: 200,
+                        km: 470, fora: true, uf: "Minas Gerais" });
+ok(r.status === 204, "contato de fora do ES é guardado (o orçamento foi bloqueado antes)");
 const gravado = gravados.length ? JSON.parse(gravados[0]) : null;
 ok(!!gravado && gravado.fora === true, "o lead é gravado com a marca fora=true");
 ok(!!gravado && gravado.uf === "Minas Gerais", "e com o estado, para a equipe saber de onde é");
@@ -119,7 +121,8 @@ ok(!!gravado && gravado.nome === "Cerimonial Minas" && gravado.phone.includes("3
    "com nome e telefone inteiros — é justamente o contato que se perdia");
 const av = enviados[0] || "";
 ok(/FORA DO ES/.test(av) && /Minas Gerais/.test(av), "o aviso no celular abre com FORA DO ES · Minas Gerais");
-ok(/deslocamento NÃO está no valor/.test(av), "e diz que o deslocamento não está no valor");
+ok(/orçamento BLOQUEADO/.test(av), "e diz que o orçamento foi bloqueado, é só o contato");
+ok(/470 km/.test(av), "com a distância medida, para dar para julgar a exceção");
 
 // evento normal não pode ganhar a marca por engano
 enviados.length = 0; gravados.length = 0;

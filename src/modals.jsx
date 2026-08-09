@@ -737,7 +737,12 @@ export function SejaParceiro({onClose,onForm}){
 
 /* ========== EVENTOS ========== */
 
-const EV_PERS=["Carrinho personalizado","Potinhos personalizados","Outra personalização"];
+const EV_PERS=["Carrinho personalizado","Potinhos ou rótulos personalizados","Outra personalização"];
+// O rótulo mudou de nome. Orçamento antigo — link salvo, lead no painel, PDF
+// impresso — carrega o texto velho, e comparar por igualdade faria o item
+// simplesmente sumir da conta: preço menor, sem ninguém perceber. Por isso os
+// dois nomes valem.
+const EV_POTINHOS=(pers)=>pers.includes("Potinhos ou rótulos personalizados")||pers.includes("Potinhos personalizados");
 
 const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
 
@@ -835,12 +840,12 @@ async function evGeocode(text){
             }
           }
           const km=melhor?Math.max(1,Math.round(melhor.km*EV_ROTA)):null;
-          // `ok` quer dizer "dá para FECHAR o preço do deslocamento", não "é no
-          // ES". Até EV_MAX_KM a viagem é bate-volta, que é para o que a conta
-          // de R$/km foi feita — vale igual do outro lado da divisa. Acima
-          // disso a fórmula não vale (pernoite, mais de um dia), então a
-          // distância é mostrada e o valor fica a combinar.
-          res={ok:km!=null&&km<=EV_MAX_KM,fora:true,
+          // `ok:false` SEMPRE: fora do ES não sai orçamento, então não existe
+          // preço de deslocamento a fechar. O km segue sendo medido porque é
+          // informação de decisão no painel — 131 km é uma exceção que pode
+          // valer a pena, 3.728 km não é —, mas ele não vira preço em lugar
+          // nenhum. Medir e precificar são coisas separadas.
+          res={ok:false,fora:true,
                uf:String(a.state||"").slice(0,40),
                endereco:String(j[0].display_name||"").slice(0,140),
                km,loja:melhor?melhor.loja:null};
@@ -861,9 +866,9 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
   else if(tipo==="Picolés") rend=`~${n*2} picolés Bistrô · 2 por pessoa`;
   else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
   const base=n*27;                                                        // R$ 27 por pessoa
-  const potinhos=pers.includes("Potinhos personalizados")?n*2*EV_POTINHO:0; // 2 potinhos/pessoa
+  const potinhos=EV_POTINHOS(pers)?n*2*EV_POTINHO:0;                       // 2 por pessoa
   const carrinho=pers.includes("Carrinho personalizado")?EV_CARRINHO:0;
-  const persACombinar=pers.filter(p=>p!=="Potinhos personalizados"&&p!=="Carrinho personalizado");
+  const persACombinar=pers.filter(p=>!EV_POTINHOS([p])&&p!=="Carrinho personalizado");
   const logistica=km!=null?Math.round(km*2*EV_KM_RATE):null;              // ida e volta × R$/km
   return{
     sabores:n>=150?6:Math.max(2,Math.round(n*6/150)),   // até 6 sabores (150+); proporcional abaixo
@@ -905,14 +910,21 @@ export function EventosModal({onClose}){
     const g=await evGeocode(ev.local);
     setGeo(g);
     setBusy(false);
-    // Endereço de outro estado NÃO bloqueia mais — avisa e segue. Antes o
-    // fluxo parava aqui, e como o postLead vem DEPOIS, o contato se perdia por
-    // inteiro: nem orçamento, nem telefone, nem notícia de que existiu. Uma
-    // recusa que apaga o cliente é pior que uma conversa que talvez não role.
+    // FORA DO ES BLOQUEIA: não sai orçamento. Decisão do dono, e o site respeita
+    // sem meio-termo — nada de mostrar preço para quem não vamos atender.
     //
-    // Sair barato demais não é risco: sem `km`, a logística fica em "a
-    // confirmar" e o total não finge incluir a viagem.
+    // O contato, porém, é GUARDADO. São duas coisas diferentes: recusar o
+    // orçamento é regra de negócio; jogar fora o telefone de quem procurou é
+    // desperdício. Antes o `return` vinha antes do postLead e as duas
+    // aconteciam juntas, sem ninguém ter decidido a segunda.
     const fora=!!(g&&g.fora);
+    if(fora){
+      tk("Lead · Fora do ES (bloqueado)");
+      postLead({stage:"fora-do-es",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,
+                local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
+                km:g.km!=null?g.km:null,fora:true,uf:g.uf||""});
+      return;
+    }
     const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
     const link2=mkLink(mkPayload(q2,g));
     tk(fora?"Lead · Orçamento gerado (fora do ES)":"Lead · Orçamento gerado");
@@ -960,9 +972,8 @@ export function EventosModal({onClose}){
       `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,"",
       "*— Orçamento online —*",
       `*Serviço (R$ 27 × ${ev.convidados}):* ${fmtBRL(q.base)}`,
-      geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`
-        :(geo&&geo.km!=null?`*Logística (~${geo.km} km):* a combinar — fora do bate-volta`:"*Logística:* a confirmar"),
-      q.potinhos>0&&`*Potinhos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
+      geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`:"*Logística:* a confirmar",
+      q.potinhos>0&&`*Potinhos ou rótulos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
       q.carrinho>0&&`*Personalização do carrinho:* ${fmtBRL(q.carrinho)}`,
       q.persACombinar.length>0&&`*A combinar:* ${q.persACombinar.join(", ")}`,
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
@@ -1060,6 +1071,37 @@ export function EventosModal({onClose}){
               {/* Fora do ES: diz onde entendeu que é, para o cliente corrigir se
                   a busca errou, e não deixa seguir. Só aparece com CERTEZA — se
                   não localizamos, o orçamento segue e a equipe confirma. */}
+              {geo&&geo.fora&&(
+                <div role="alert" style={{marginTop:16,border:`1px solid ${T.accent}`,borderRadius:14,padding:"16px 17px",background:T.surface}}>
+                  <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent}}>
+                    Fora da nossa área
+                  </div>
+                  <div className="fd" style={{fontSize:19,color:T.pistacheDark,marginTop:5,lineHeight:1.2}}>
+                    Que pena — ainda não chegamos {geo.uf?<>a{/^[AEIOU]/i.test(geo.uf)?"o":""} {geo.uf}</>:"nesse estado"}
+                  </div>
+                  <p className="fb" style={{fontSize:13.5,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
+                    Nossos carrinhos saem das lojas de <strong>Vitória</strong>, e por enquanto atendemos eventos
+                    só no <strong>Espírito Santo</strong>. Adoraríamos levar a Bentô para o seu evento — mas seria
+                    desonesto prometer o que a gente ainda não consegue entregar aí.
+                  </p>
+                  {geo.endereco&&(
+                    <p className="fb" style={{fontSize:11.5,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
+                      Entendemos o local como <strong>{geo.endereco}</strong>. Se não for aí, é só corrigir o local
+                      do evento acima e tentar de novo.
+                    </p>
+                  )}
+                  <a href={"https://wa.me/5527999159995?text="+encodeURIComponent("Oi! Meu evento é "+(geo.uf?("em "+geo.uf):"fora do ES")+" — dá para conversar sobre uma exceção?")}
+                    target="_blank" rel="noopener" onClick={()=>tk("Evento · Fora do ES · WhatsApp")}
+                    className="fm" style={{display:"inline-block",marginTop:13,fontSize:9.5,letterSpacing:"0.12em",textTransform:"uppercase",
+                      background:T.pistacheDark,color:T.surface,borderRadius:999,padding:"11px 17px",textDecoration:"none"}}>
+                    Quero conversar assim mesmo
+                  </a>
+                  <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"10px 0 0"}}>
+                    Se um dia formos para o seu estado, você vai saber — é só nos seguir no Instagram
+                    <strong> @bentogelatos</strong>.
+                  </p>
+                </div>
+              )}
               {/* Botão travado sem dizer por quê é o jeito mais rápido de perder
                   quem estava a um campo de concluir. */}
               {!ok1&&!busy&&(()=>{
@@ -1081,40 +1123,6 @@ export function EventosModal({onClose}){
           </>)}
 
           {step===2&&(<>
-            {/* Fora do ES: o orçamento SAI, e este aviso vem em cima dele. A
-                tela não pode mostrar um preço e dizer "não atendemos aí" ao
-                mesmo tempo — ou promete demais, ou nega o que está exibindo.
-                O texto diz exatamente o que é: conta fechada, viagem em aberto. */}
-            {geo&&geo.fora&&(
-              <div role="alert" style={{marginBottom:14,border:`1px solid ${T.accent}`,borderRadius:14,padding:"15px 16px",background:T.surface}}>
-                <div className="fm" style={{fontSize:9,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent}}>
-                  Fora do Espírito Santo
-                </div>
-                <div className="fd" style={{fontSize:18,color:T.pistacheDark,marginTop:5,lineHeight:1.25}}>
-                  {geo.uf?<>Seu evento é {/^[AEIOU]/i.test(geo.uf)?"n":""}{/^[AEIOU]/i.test(geo.uf)?"o":"na"} {geo.uf}</>:"Seu evento é fora do Espírito Santo"}
-                </div>
-                <p className="fb" style={{fontSize:13,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
-                  {/* Se o deslocamento COUBE na conta, o card não pode dizer que
-                      ficou de fora — seria a tela contradizendo a própria linha
-                      de logística logo abaixo. */}
-                  {geo.ok
-                    ? <>Nossos carrinhos saem das lojas de <strong>Vitória</strong>, mas seu evento está a{" "}
-                        <strong>{geo.km} km</strong> — dentro do nosso bate-volta. O orçamento abaixo está
-                        completo, <strong>com o deslocamento já incluído</strong>. Fale com a gente para
-                        confirmarmos a data.</>
-                    : <>Nossos carrinhos saem das lojas de <strong>Vitória</strong>. Fizemos o orçamento assim
-                        mesmo — ele está completo, <strong>menos o deslocamento</strong>, que a essa distância
-                        a gente orça à parte, olhando a data e o tamanho do evento. Chama a gente que a conversa
-                        é de verdade.</>}
-                </p>
-                {geo.endereco&&(
-                  <p className="fb" style={{fontSize:11,color:T.inkSoft,lineHeight:1.5,margin:"9px 0 0"}}>
-                    Entendemos o local como <strong>{geo.endereco}</strong>. Se não for aí, volte e corrija —
-                    dentro do ES o deslocamento entra na conta automaticamente.
-                  </p>
-                )}
-              </div>
-            )}
             <div className="fm" style={{fontSize:9,letterSpacing:"0.25em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:10}}>Seu orçamento online</div>
             <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:12,padding:"6px 16px 4px"}}>
               <Row l="Convidados" v={ev.convidados}/>
@@ -1135,23 +1143,15 @@ export function EventosModal({onClose}){
                     </div>}
                   </>
                 : <>
-                    {/* Sem "(ida e volta)" aqui: essa etiqueta descreve a conta
-                        de bate-volta, que NÃO foi feita neste caso. Rótulo que
-                        descreve um cálculo inexistente é promessa de preço. */}
-                    <Row l={geo&&geo.km!=null?`Logística · ~${geo.km} km (fora do bate-volta)`:"Logística (deslocamento)"} v="a combinar"/>
+                    {/* Aqui só chega quem NÃO foi localizado: fora do ES é
+                        barrado antes, e o orçamento nem é gerado. */}
+                    <Row l="Logística (deslocamento)" v="a confirmar"/>
                     <div className="fb" style={{fontSize:10.5,color:T.inkSoft,lineHeight:1.5,padding:"0 0 8px",marginTop:-4}}>
-                      {/* Três situações que antes diziam a mesma frase: achamos e é
-                          longe demais para bate-volta; não achamos nada. Dizer
-                          "não localizamos" quando localizamos e sabemos a
-                          distância é errar na cara do cliente. */}
-                      {geo&&geo.km!=null
-                        ? <>Essa distância passa do nosso bate-volta, então a viagem é orçada à parte —
-                            hospedagem e dias de equipe entram na conta. O resto do orçamento já vale.</>
-                        : <>Não conseguimos localizar esse endereço. A equipe confirma o deslocamento com você —
-                            o restante do orçamento já vale.</>}
+                      Não conseguimos localizar esse endereço. A equipe confirma o deslocamento com você —
+                      o restante do orçamento já vale.
                     </div>
                   </>}
-              {q.potinhos>0&&<Row l={`Potinhos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
+              {q.potinhos>0&&<Row l={`Potinhos ou rótulos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
               {q.carrinho>0&&<Row l="Personalização do carrinho" v={fmtBRL(q.carrinho)}/>}
               {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
@@ -1163,7 +1163,7 @@ export function EventosModal({onClose}){
             </div>
             {/* Só quando REALMENTE não localizamos. Antes isto aparecia junto com
                 o card que dizia o estado do cliente — a tela se contradizia. */}
-            {geo&&!geo.ok&&geo.km==null&&(
+            {geo&&!geo.ok&&(
               <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>📍 Não conseguimos localizar o endereço para calcular a logística — confirmamos o deslocamento no fechamento. Dica: volte e inclua bairro e cidade no local.</div>
             )}
             {geo&&geo.ok&&(

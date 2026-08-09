@@ -261,7 +261,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
             <tbody>
               {[["Serviço de gelateria (R$ 27 × "+d.convidados+" convidados)",money(d.base)],
                 d.logistica!=null?["Logística — ~"+d.km+" km · referência Bentô "+d.loja+" (ida e volta)",money(d.logistica)]:["Logística (deslocamento)","a confirmar"],
-                d.potinhos>0?["Potinhos personalizados (2 por pessoa)",money(d.potinhos)]:null,
+                d.potinhos>0?["Potinhos ou rótulos personalizados (2 por pessoa)",money(d.potinhos)]:null,
                 d.carrinho>0?["Personalização do carrinho",money(d.carrinho)]:null,
                 d.persAC&&d.persAC.length>0?[d.persAC.join(", "),"a combinar"]:null,
               ].filter(Boolean).map(([l,v],i)=>(
