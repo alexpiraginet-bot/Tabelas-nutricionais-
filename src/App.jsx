@@ -1,4 +1,13 @@
 import { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from "react";
+// Rolagem-cinema (motion.dev): valores presos ao scroll, sem re-render por
+// frame. Três usos, todos sobre CONTEÚDO REAL — nada de enfeite solto:
+//   · parallax DENTRO das artes fotográficas dos banners (profundidade
+//     editorial: a foto viaja mais devagar que a moldura);
+//   · o hero recua em profundidade quando o filme de fundo assume;
+//   · o trilho do filme: os 6 capítulos do vídeo viram navegação real.
+// Regra da casa: movimento comandado pela rolagem NUNCA desliga — Reduce
+// Motion corta animação autônoma, não gesto do usuário (ver CLAUDE.md).
+import { motion, useScroll, useTransform, useSpring, useMotionValueEvent } from "motion/react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer, Clock } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim, sugarClaim } from "./data.js";
 import { Analytics } from "@vercel/analytics/react";
@@ -140,6 +149,11 @@ const BANNER_DIMS={
    foto real à esquerda (40%) + informação à direita (60%), selo dourado fosco
    e seta discreta. Sem gradientes/bordas coloridas: "luxo silencioso". */
 function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,delay,full,alt,priority,gap}){
+  // Parallax editorial DENTRO da moldura: enquanto o card cruza a tela, a
+  // fotografia viaja um pouco mais devagar — o olho lê profundidade, como em
+  // editorial impresso. O movimento vem da arte real, não de enfeite por cima.
+  const parRef=useRef(null);
+  const{scrollYProgress}=useScroll({target:parRef,offset:["start end","end start"]});
   // Translucidez iOS sutil: o card deixa o filme de fundo "respirar" pelas
   // bordas e pela arte (92%) sem lavar as artes oficiais dos banners.
   // "gap" maior na home abre o vão entre cards para o filme 3D aparecer na rolagem.
@@ -160,13 +174,20 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
   // fechava. Com 9% são 72 px na horizontal e 24 px na vertical: o filete
   // desenhado some de vez, e quem faz a moldura é a borda do card — que curva
   // certo nos quatro cantos, porque é uma borda de CSS de verdade.
+  //
+  // O parallax pede folga a mais: 1.16 de escala deixa 8% de sobra vertical de
+  // cada lado; transladando no máximo 3.2%, ainda restam os mesmos ~4.5% que o
+  // 1.09 original tinha para esconder o filete desenhado. A conta fecha — a
+  // moldura nunca aparece, em nenhum ponto do percurso.
+  const parY=useTransform(scrollYProgress,[0,1],["-3.2%","3.2%"]);
+  const parYCol=useTransform(scrollYProgress,[0,1],["-4%","4%"]);
   const inner=full?(
-    <img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",transform:"scale(1.09)"}}/>
+    <motion.img src={img} alt={alt||title||""} width={d&&d[0]} height={d&&d[1]} loading={priority?"eager":"lazy"} fetchpriority={priority?"high":undefined} decoding={priority?"auto":"async"} onError={onImgErr} style={{display:"block",width:"100%",height:"auto",scale:1.16,y:parY,willChange:"transform"}}/>
   ):(
     <>
       <div style={{flexBasis:"40%",maxWidth:"40%",flexShrink:0,alignSelf:"stretch",position:"relative",overflow:"hidden"}}>
-        <img src={img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr}
-          style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:imgPos||"center"}}/>
+        <motion.img src={img} alt="" aria-hidden="true" loading="lazy" onError={onImgErr}
+          style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"cover",objectPosition:imgPos||"center",scale:1.14,y:parYCol,willChange:"transform"}}/>
       </div>
       <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column",justifyContent:"center",padding:"15px 8px 15px 18px"}}>
         {selo&&<span className="fm" style={{display:"inline-block",alignSelf:"flex-start",fontSize:8.5,letterSpacing:"0.22em",textTransform:"uppercase",color:T.accent,background:"transparent",border:`1px solid ${T.accent}`,borderRadius:999,padding:"3px 11px",marginBottom:8}}>{selo}</span>}
@@ -176,8 +197,75 @@ function PhotoBanner({as="button",href,target,onClick,img,imgPos,selo,title,sub,
       <span aria-hidden="true" style={{display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,alignSelf:"center",margin:"0 14px 0 4px",width:34,height:34,borderRadius:"50%",background:T.pistacheDark,color:T.surface}}><ChevronRight size={18} strokeWidth={2}/></span>
     </>
   );
-  if(as==="a") return <a href={href} target={target} rel="noopener" onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</a>;
-  return <button onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
+  if(as==="a") return <a ref={parRef} href={href} target={target} rel="noopener" onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</a>;
+  return <button ref={parRef} onClick={onClick} className="hl rise" style={{...common,animationDelay:delay}}>{inner}</button>;
+}
+
+/* ========== HERO EM PROFUNDIDADE ==========
+   Ao rolar para dentro do filme, o painel de vidro do hero recua: sobe mais
+   devagar que a página, encolhe de leve e cede o palco ao atelier 3D. Preso ao
+   scroll nos dois sentidos — rolar de volta traz o hero de volta, quadro a
+   quadro, como o próprio filme de fundo. */
+function HeroRecede({children}){
+  const ref=useRef(null);
+  const{scrollYProgress}=useScroll({target:ref,offset:["start start","end start"]});
+  const y=useTransform(scrollYProgress,[0,1],[0,72]);          // fica para trás: profundidade
+  const scale=useTransform(scrollYProgress,[0,1],[1,.93]);
+  // A mola aqui não é estética: ela força a opacidade pelo caminho JS. Sem ela,
+  // o motion entrega a opacidade ao ScrollTimeline NATIVO, que reverte ao valor
+  // base quando o alvo sai do range — enquanto o transform (JS) congela no
+  // estado final. Dois canais, dois finais diferentes. A mola unifica o canal;
+  // e é rabeira de gesto, não animação autônoma: parou a rolagem, ela assenta.
+  const opacity=useSpring(useTransform(scrollYProgress,[0,.9],[1,.22]),{stiffness:300,damping:36});
+  return <motion.div ref={ref} style={{width:"100%",y,scale,opacity,transformOrigin:"50% 100%",willChange:"transform,opacity"}}>{children}</motion.div>;
+}
+
+/* ========== TRILHO DO FILME ==========
+   O fundo da home é um filme real de 6 capítulos comandado pela rolagem
+   (WorldFundo mapeia o progresso da página linearmente sobre os 6 legs — a
+   mesma conta de lá vale aqui, e é por isso que o trilho é VERDADEIRO, não um
+   progresso decorativo). Este trilho dá corpo a isso: mostra em que capítulo o
+   filme está e leva a qualquer um deles com um toque. Desktop apenas — no
+   celular a coluna já é estreita demais para um trilho lateral. */
+function FilmRail(){
+  const[on,setOn]=useState(false);
+  useEffect(()=>{
+    const mq=window.matchMedia("(min-width: 1080px)");
+    const f=()=>setOn(mq.matches);
+    f();mq.addEventListener("change",f);
+    return()=>mq.removeEventListener("change",f);
+  },[]);
+  const{scrollYProgress}=useScroll();
+  // A mola suaviza o cursor do trilho sem soltá-lo do dedo: é rabeira de gesto,
+  // não animação autônoma — parada a rolagem, ela assenta e silencia.
+  const suave=useSpring(scrollYProgress,{stiffness:170,damping:30,mass:.4});
+  const cursorTop=useTransform(suave,v=>`${(v*100).toFixed(2)}%`);
+  const[leg,setLeg]=useState(0);
+  useMotionValueEvent(scrollYProgress,"change",(v)=>{
+    const l=Math.min(5,Math.floor(v*6));
+    setLeg((p)=>p===l?p:l);
+  });
+  if(!on) return null;
+  const vai=(i)=>{
+    const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+    window.scrollTo({top:((i+0.5)/6)*max,behavior:"smooth"});
+  };
+  return(
+    <div style={{position:"fixed",right:22,top:"50%",transform:"translateY(-50%)",zIndex:40,display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
+      <span className="fm" style={{fontSize:8.5,letterSpacing:"0.3em",textTransform:"uppercase",color:T.inkSoft,writingMode:"vertical-rl"}}>filme do ateliê</span>
+      <div style={{position:"relative",width:1,height:168,background:"rgba(58,69,40,.22)"}}>
+        <motion.span aria-hidden="true" style={{position:"absolute",left:-2.5,top:cursorTop,width:6,height:6,marginTop:-3,borderRadius:"50%",background:T.accent,boxShadow:"0 0 0 3px rgba(201,162,74,.22)"}}/>
+        {Array.from({length:6},(_,i)=>(
+          <button key={i} onClick={()=>{tk("Home · Trilho do filme · Cap "+(i+1));vai(i);}}
+            aria-label={`Ir ao capítulo ${i+1} do filme`}
+            style={{position:"absolute",left:-13,top:`${((i+0.5)/6)*100}%`,width:27,height:16,marginTop:-8,padding:0,background:"transparent",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <span style={{display:"block",width:leg===i?15:9,height:1,background:leg===i?T.pistacheDark:"rgba(58,69,40,.4)",transition:"width .3s cubic-bezier(.2,.8,.2,1), background .3s"}}/>
+          </button>
+        ))}
+      </div>
+      <span className="fm" style={{fontSize:9,letterSpacing:"0.14em",color:T.pistacheDark}}>0{leg+1}<span style={{color:T.inkSoft}}>/06</span></span>
+    </div>
+  );
 }
 
 // ⭐ Banners da home em ordem dinâmica: o 1º card ("destaque") é escolhido no
@@ -500,8 +588,11 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
   const BANNERS=bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas});
   return(
     <div className="fade">
+      <FilmRail/>
       <section style={{minHeight:"calc(100svh - 64px)",maxWidth:760,margin:"0 auto",padding:"34px 20px 40px",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-start",textAlign:"center"}}>
-        {/* Hero premium — painel de vidro iOS flutuando sobre o filme do atelier */}
+        {/* Hero premium — painel de vidro iOS flutuando sobre o filme do atelier.
+            HeroRecede: ao rolar, o painel recua em profundidade e o filme assume. */}
+        <HeroRecede>
         <div className="glass" style={{width:"100%",borderRadius:28,padding:"28px 18px 26px",display:"flex",flexDirection:"column",alignItems:"center",boxShadow:"0 24px 60px -38px rgba(35,38,25,.45)"}}>
         <div className="rise"><BentoLogo size={84}/></div>
         <h1 className="fd rise" style={{fontSize:"clamp(28px,5.2vw,48px)",lineHeight:1.04,color:T.ink,marginTop:16,fontWeight:400,letterSpacing:"-0.02em",animationDelay:"50ms"}}>
@@ -532,6 +623,7 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
           </div>
         )}
         </div>
+        </HeroRecede>
 
         <FaixaEntregaGratis cfg={entregaEstado}/>
 
