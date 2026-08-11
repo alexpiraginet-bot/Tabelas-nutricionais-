@@ -139,8 +139,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
-    <script src="https://alex-hub-three.vercel.app/support-widget.js" data-app="tabelas-nutricionais" defer></script>
-    <!-- Captação: pílula "Feito pela Lex" → WhatsApp comercial (canto oposto ao suporte). -->
-    <script src="https://alex-hub-three.vercel.app/lex-cta.js" data-app="tabelas-nutricionais" data-label="gerador de tabelas nutricionais" defer></script>
+    <script>
+      // As apresentações têm formulários longos e CTAs no rodapé. Em telas móveis,
+      // os widgets globais cobriam esses controles; mantenha-os apenas no site principal.
+      if (!location.pathname.startsWith("/movimento")) {
+        var _support = document.createElement("script");
+        _support.src = "https://alex-hub-three.vercel.app/support-widget.js";
+        _support.dataset.app = "tabelas-nutricionais";
+        document.body.appendChild(_support);
+
+        var _lexCta = document.createElement("script");
+        _lexCta.src = "https://alex-hub-three.vercel.app/lex-cta.js";
+        _lexCta.dataset.app = "tabelas-nutricionais";
+        _lexCta.dataset.label = "gerador de tabelas nutricionais";
+        document.body.appendChild(_lexCta);
+      }
+    </script>
   </body>
 </html>

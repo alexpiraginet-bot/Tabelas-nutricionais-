@@ -156,7 +156,7 @@ export function ClubeBento({onClose,quiz,badgeList,albumCount,missions,onMerged}
     }catch{setErro("Sem conexão — tente novamente.");}
     setBusy(false);
   }
-  useEffect(()=>{const ph=fone.replace(/\D/g,"");if(ph.length>=10)syncNow(ph);},[]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(()=>{const ph=fone.replace(/\D/g,"");if(ph.length>=10)syncNow(ph);},[]);
   async function resgatar(reward){
     const ph=fone.replace(/\D/g,"");if(!ph)return;
     setBusy(true);setErro("");
