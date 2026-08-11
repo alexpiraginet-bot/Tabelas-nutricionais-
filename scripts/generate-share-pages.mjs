@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const ROOT = process.env.BENTO_SHARE_ROOT || join(dirname(fileURLToPath(import.meta.url)), "..");
 const SITE = "https://bentogelateria.com";
 
 // view → conteúdo do preview (imagens 1200×630 em public/og-share/, geradas dos banners)
@@ -59,6 +59,21 @@ const VIEWS = {
   },
 };
 
+const PATH_VIEWS = {
+  "/movimento": {
+    file: "movimento/index.html",
+    title: "Bentô em Movimento — Convite 2026",
+    desc: "Um projeto de 12 meses que começa em 12 de setembro no Le Buffet Lounge, em Vitória.",
+    image: "/movimento/og-influenciadoras.jpg",
+  },
+  "/movimento/parceiros": {
+    file: "movimento/parceiros/index.html",
+    title: "Bentô em Movimento — Parcerias",
+    desc: "Uma plataforma anual de experiência, presença e relacionamento para marcas parceiras.",
+    image: "/movimento/og-parceiros.jpg",
+  },
+};
+
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const base = readFileSync(join(ROOT, "dist", "index.html"), "utf8");
 mkdirSync(join(ROOT, "dist", "share"), { recursive: true });
@@ -72,19 +87,30 @@ const mustReplace = (html, re, replacement, what) => {
 const setMeta = (html, attr, key, value) =>
   mustReplace(html, new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`), `$1${esc(value)}$2`, `meta ${key}`);
 
-for (const [view, v] of Object.entries(VIEWS)) {
+const renderSharePage = (v, targetUrl) => {
   let html = base;
   html = mustReplace(html, /<title>[^<]*<\/title>/, `<title>${v.title.replace(/</g, "&lt;")}</title>`, "title");
   html = setMeta(html, "name", "description", v.desc);
   html = setMeta(html, "property", "og:title", v.title);
   html = setMeta(html, "property", "og:description", v.desc);
-  const alvo = v.url ? `${SITE}${v.url}` : `${SITE}/?${view}`;
-  html = setMeta(html, "property", "og:url", alvo);
+  html = setMeta(html, "property", "og:url", targetUrl);
   html = setMeta(html, "property", "og:image", SITE + v.image);
   html = setMeta(html, "name", "twitter:title", v.title);
   html = setMeta(html, "name", "twitter:description", v.desc);
   html = setMeta(html, "name", "twitter:image", SITE + v.image);
-  html = mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${alvo}$2`, "link canonical");
+  return mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${targetUrl}$2`, "link canonical");
+};
+
+for (const [view, v] of Object.entries(VIEWS)) {
+  const alvo = v.url ? `${SITE}${v.url}` : `${SITE}/?${view}`;
+  const html = renderSharePage(v, alvo);
   writeFileSync(join(ROOT, "dist", "share", `${view}.html`), html);
 }
-console.log(`OK  ${Object.keys(VIEWS).length} páginas de compartilhamento → dist/share/`);
+
+for (const [path, v] of Object.entries(PATH_VIEWS)) {
+  const output = join(ROOT, "dist", v.file);
+  mkdirSync(dirname(output), { recursive: true });
+  writeFileSync(output, renderSharePage(v, SITE + path));
+}
+
+console.log(`OK  ${Object.keys(VIEWS).length + Object.keys(PATH_VIEWS).length} páginas de compartilhamento → dist/share/ e rotas dedicadas`);

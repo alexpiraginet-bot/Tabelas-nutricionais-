@@ -104,6 +104,22 @@
       "destination": "/ui.html"
     },
     {
+      "source": "/movimento/parceiros",
+      "destination": "/movimento/parceiros/index.html"
+    },
+    {
+      "source": "/movimento/parceiros/",
+      "destination": "/movimento/parceiros/index.html"
+    },
+    {
+      "source": "/movimento",
+      "destination": "/movimento/index.html"
+    },
+    {
+      "source": "/movimento/",
+      "destination": "/movimento/index.html"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
