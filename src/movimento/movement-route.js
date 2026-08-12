@@ -20,3 +20,7 @@ export function getMovementExperience(mode) {
     showRsvp: mode === "invite",
   };
 }
+
+export function isPersonalMovementMode(mode) {
+  return mode === "invite";
+}

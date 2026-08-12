@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { getMovementExperience, parseMovementRoute } from "../src/movimento/movement-route.js";
+import { getMovementExperience, isPersonalMovementMode, parseMovementRoute } from "../src/movimento/movement-route.js";
 
 test("movement route distinguishes public, partner and invitation experiences", () => {
   assert.deepEqual(parseMovementRoute("/movimento"), { mode: "influencer", token: null });
@@ -28,6 +28,34 @@ test("personal invitation keeps the full influencer presentation before RSVP", (
     showPresentation: true,
     showRsvp: false,
   });
+});
+
+test("movement route preserves generic presentations and the legacy personal invitation path", () => {
+  assert.deepEqual(getMovementExperience("influencer"), {
+    story: "influencer",
+    showPresentation: true,
+    showRsvp: false,
+  });
+  assert.deepEqual(parseMovementRoute("/movimento/convite/invite_abcdefghijklmnopqrstuvwxyz_2026"), {
+    mode: "invite",
+    token: "invite_abcdefghijklmnopqrstuvwxyz_2026",
+  });
+  assert.equal(isPersonalMovementMode("invite"), true);
+  assert.equal(isPersonalMovementMode("influencer"), false);
+  assert.equal(isPersonalMovementMode("partner"), false);
+});
+
+test("movement site resolves each personal invitation before choosing its story", async () => {
+  const site = await readFile(new URL("../src/movimento/MovementSite.jsx", import.meta.url), "utf8");
+  const loader = await readFile(new URL("../src/movimento/useMovementInvite.js", import.meta.url), "utf8");
+
+  assert.match(site, /useMovementInvite\(token\)/);
+  assert.match(site, /state === "loading"/);
+  assert.match(site, /invite\?\.audienceType/);
+  assert.match(site, /currentRsvp=\{currentRsvp\}/);
+  assert.match(site, /currentPartnerLead=\{currentPartnerLead\}/);
+  assert.match(loader, /fetch\(`\/api\/movimento-rsvp\?token=\$\{encodeURIComponent\(token\)\}`/);
+  assert.match(loader, /const inviteRequests = new Map\(\)/);
 });
 
 test("movement entry does not eagerly load the full public site bundle", async () => {
