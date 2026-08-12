@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { Check, ChevronRight, LoaderCircle, ShieldCheck } from "lucide-react";
+import Check from "lucide-react/dist/esm/icons/check.js";
+import ChevronRight from "lucide-react/dist/esm/icons/chevron-right.js";
+import LoaderCircle from "lucide-react/dist/esm/icons/loader-circle.js";
+import ShieldCheck from "lucide-react/dist/esm/icons/shield-check.js";
 
 const TIERS = [
   { value: "founding", label: "Cota Fundadora", includes: ["Marca em destaque no painel coletivo e na camiseta oficial", "Presença na abertura do projeto", "Prioridade na construção de um capítulo do ciclo anual", "Possibilidade de integração à experiência, ao kit e ao conteúdo"] },

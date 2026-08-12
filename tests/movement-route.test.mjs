@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { getMovementExperience, parseMovementRoute } from "../src/movimento/movement-route.js";
 
 test("movement route distinguishes public, partner and invitation experiences", () => {
@@ -27,4 +28,21 @@ test("personal invitation keeps the full influencer presentation before RSVP", (
     showPresentation: true,
     showRsvp: false,
   });
+});
+
+test("movement entry does not eagerly load the full public site bundle", async () => {
+  const source = await readFile(new URL("../src/main.jsx", import.meta.url), "utf8");
+
+  assert.doesNotMatch(source, /import App from ["']\.\/App\.jsx["']/);
+  assert.match(source, /lazy\(\(\) => import\(["']\.\/App\.jsx["']\)\)/);
+  assert.match(source, /lazy\(\(\) => import\(["']\.\/movimento\/MovementSite\.jsx["']\)\)/);
+});
+
+test("movement presentation imports icons directly instead of loading the full barrel", async () => {
+  const files = ["MovementSite.jsx", "RsvpFlow.jsx", "PartnerInterestFlow.jsx"];
+
+  for (const file of files) {
+    const source = await readFile(new URL(`../src/movimento/${file}`, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /from ["']lucide-react["']/);
+  }
 });

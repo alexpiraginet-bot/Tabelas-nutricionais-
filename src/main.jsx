@@ -1,15 +1,18 @@
-import React from 'react'
+import React, { lazy, Suspense } from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import MovementSite from './movimento/MovementSite.jsx'
 import { parseMovementRoute } from './movimento/movement-route.js'
 import './index.css'
+
+const App = lazy(() => import('./App.jsx'))
+const MovementSite = lazy(() => import('./movimento/MovementSite.jsx'))
 
 const movementRoute = parseMovementRoute(window.location.pathname)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {movementRoute ? <MovementSite {...movementRoute} /> : <App />}
+    <Suspense fallback={null}>
+      {movementRoute ? <MovementSite {...movementRoute} /> : <App />}
+    </Suspense>
   </React.StrictMode>,
 )
 

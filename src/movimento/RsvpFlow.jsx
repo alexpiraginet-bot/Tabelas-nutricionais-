@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ChevronRight, LoaderCircle, ShieldCheck } from "lucide-react";
+import ArrowLeft from "lucide-react/dist/esm/icons/arrow-left.js";
+import Check from "lucide-react/dist/esm/icons/check.js";
+import ChevronRight from "lucide-react/dist/esm/icons/chevron-right.js";
+import LoaderCircle from "lucide-react/dist/esm/icons/loader-circle.js";
+import ShieldCheck from "lucide-react/dist/esm/icons/shield-check.js";
 import { EVENT } from "./movement-content.js";
 
 const SIZES = ["PP", "P", "M", "G", "GG", "XGG"];
@@ -153,7 +157,7 @@ export default function RsvpFlow({ token, embedded = false }) {
           <label className={!form.adultCompanionType ? "is-selected" : ""}><input type="radio" name="adultCompanionType" value="" checked={!form.adultCompanionType} onChange={() => setForm({ ...form, adultCompanionType: "" })}/><span><strong>Sem acompanhante adulto</strong><small>Vou sozinha ou somente com a criança, se escolhi a oficina.</small></span></label>
           <label className={form.adultCompanionType === "husband" ? "is-selected" : ""}><input type="radio" name="adultCompanionType" value="husband" checked={form.adultCompanionType === "husband"} onChange={(e) => setForm({ ...form, adultCompanionType: e.target.value })}/><span><strong>Meu marido</strong><small>Ele permanece no lounge e no cerimonial durante o aulão.</small></span></label>
           <label className={form.adultCompanionType === "mother" ? "is-selected" : ""}><input type="radio" name="adultCompanionType" value="mother" checked={form.adultCompanionType === "mother"} onChange={(e) => setForm({ ...form, adultCompanionType: e.target.value })}/><span><strong>Minha mãe</strong><small>Ela permanece no lounge e no cerimonial durante o aulão.</small></span></label>
-        </div>{form.participationMode === "family" && <div className="mv-child-plan"><span className="mv-kicker">1 criança · qualquer idade</span><h3>Oficina de picolés e decoração</h3><p>A criança permanece acompanhada pelo responsável no mesmo cerimonial.</p><label className="mv-text-field"><span>Tamanho aproximado da criança</span><input value={form.childKitSize} onChange={(e) => setForm({ ...form, childKitSize: e.target.value })} maxLength="40" placeholder="Ex.: 12 meses, 6 infantil" aria-describedby="mv-child-kit-note"/></label><p id="mv-child-kit-note" className="mv-field-note">Possibilidade de kit infantil Magia do Mar em confirmação. O tamanho serve apenas para planejamento e não garante produto ou modelo.</p></div>}</fieldset>}
+        </div>{form.participationMode === "family" && <div className="mv-child-plan"><span className="mv-kicker">1 criança · qualquer idade</span><h3>Oficina de picolés e decoração</h3><p>A criança permanece acompanhada pelo responsável no mesmo cerimonial.</p><label className="mv-text-field"><span>Tamanho aproximado da criança</span><input value={form.childKitSize} onChange={(e) => setForm({ ...form, childKitSize: e.target.value })} maxLength="40" placeholder="Ex.: 12 meses, 6 infantil" aria-describedby="mv-child-kit-note"/></label><p id="mv-child-kit-note" className="mv-field-note">Possibilidade de item infantil em confirmação. O tamanho serve apenas para planejamento e não garante produto ou modelo.</p></div>}</fieldset>}
         <fieldset className="mv-consents">
           <label><input type="checkbox" checked={form.privacyAccepted} onChange={(e) => setForm({ ...form, privacyAccepted: e.target.checked })}/><span>Li e compreendi a <a href="/?privacidade" target="_blank" rel="noreferrer">Política de Privacidade</a>.</span></label>
           <label><input type="checkbox" checked={form.imageConsent} onChange={(e) => setForm({ ...form, imageConsent: e.target.checked })}/><span>Autorizo o uso da minha imagem em registros e conteúdos deste projeto. <small>Opcional — sua escolha não altera a presença.</small></span></label>
