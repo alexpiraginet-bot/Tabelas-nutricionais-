@@ -292,3 +292,9 @@ Cada família tem crops próprios 9:16/4:5 para mobile e 16:9/16:10 para desktop
 11. A apresentação da influenciadora não contém linguagem ou marcação de patrocinador.
 12. Rotas pessoais não vazam token ou PII em OG, logs próprios ou referer.
 13. Testes, lint, build, auditoria visual, performance e fluxo real passam antes da publicação.
+
+## 16. Atualização canônica - narrativa macro e prova social
+
+A especificação `docs/superpowers/specs/2026-08-12-bento-movimento-macro-storytelling-design.md` substitui a apresentação pública sequencial de 14/16 telas integrais por cinco territórios macro com aprofundamento opcional, preservando as 32 famílias e todos os campos do CMS.
+
+Ela também define Jonatas Correa como personal do aulão, reserva o território de chegada/mobilidade para a proposta automotiva e acrescenta somente à rota de parceiros uma seleção editorial de convidadas derivada do PDF aprovado por Alex. Essa prova social usa `convidadas selecionadas`, nunca expõe dados de convite/RSVP e não afirma presença confirmada sem evidência corrente.
