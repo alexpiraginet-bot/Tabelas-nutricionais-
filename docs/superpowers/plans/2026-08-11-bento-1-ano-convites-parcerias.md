@@ -34,10 +34,12 @@
 - Modify: `lib/movement-partner.mjs`
 - Modify: `tests/movement-rsvp.test.mjs`
 - Modify: `tests/movement-partner.test.mjs`
+- Modify: `tests/movement-partner-api.test.mjs`
+- Modify: `tests/movement-api.test.mjs`
 - Modify: `tests/movement-migrations.test.mjs`
 
 **Interfaces:**
-- Produces `validateAudienceType(value)`, `validatePartnerLead(payload, options)`, RSVP fields `childAge` and `transportInterest`, and four public tier values `select|experience|signature|founding_circle`.
+- Produces `validateAudienceType(value)`, `validatePartnerLead(payload, options)`, RSVP fields `childAge` and `transportInterest`, four public tier values `select|experience|signature|founding_circle`, and a separate legacy-tier export for persistence/admin compatibility only.
 - Migration keeps legacy tier values readable and writable.
 
 - [ ] **Step 1: Write failing domain tests.** Assert that confirmed RSVP requires the two influencer sizes, accepts `childAge` only with one child, accepts `transportInterest` boolean, and never asks for an address. Assert exactly four public partner tiers and rejection of six legacy values at the public validator.
@@ -46,8 +48,9 @@
 - [ ] **Step 4: Write the migration test first.** Assert new columns, nullable unique partner FK, additive indexes, expanded tier check including all legacy values, RLS and grants.
 - [ ] **Step 5: Run migration RED.** Run `node --test tests/movement-migrations.test.mjs`; expected failure is the missing `20260811235900` file.
 - [ ] **Step 6: Add the immutable migration.** Drop/recreate only named check constraints, add columns with `if not exists`, add FK `not valid` then validate it, add indexes with `if not exists`, and never mutate/delete existing rows.
-- [ ] **Step 7: Run GREEN.** Run the three targeted files and then `npm test`; expected all tests pass.
-- [ ] **Step 8: Commit.** `git add lib/movement-rsvp.mjs lib/movement-partner.mjs tests/movement-rsvp.test.mjs tests/movement-partner.test.mjs tests/movement-migrations.test.mjs supabase/migrations/20260811235900_bento_movement_personalized_invites.sql && git commit -m "feat(movimento): add personalized invitation contracts"`.
+- [ ] **Step 7: Keep API fixtures on the new contract.** Change the existing public partner API fixture from `founding` to `founding_circle` and add a literal child age to the existing confirmed RSVP-with-child fixture; do not change API implementation or persistence expectations in this task.
+- [ ] **Step 8: Run GREEN.** Run the four targeted files and then `npm test`; expected all tests pass.
+- [ ] **Step 9: Commit.** `git add lib/movement-rsvp.mjs lib/movement-partner.mjs tests/movement-rsvp.test.mjs tests/movement-partner.test.mjs tests/movement-partner-api.test.mjs tests/movement-api.test.mjs tests/movement-migrations.test.mjs supabase/migrations/20260811235900_bento_movement_personalized_invites.sql && git commit -m "feat(movimento): add personalized invitation contracts"`.
 
 ### Task 2: Convite unificado, APIs idempotentes e estados
 
