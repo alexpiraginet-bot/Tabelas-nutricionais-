@@ -1,4 +1,5 @@
 import { partnerLeadKey, validatePartnerLead } from "../lib/movement-partner.mjs";
+import { readMovementJsonBody, resolveMovementInvite, updateMovementInviteStatus } from "../lib/movement-invite.mjs";
 import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
 
 const ALLOWED_HOSTS = ["bentogelateria.com", "localhost", "127.0.0.1"];
@@ -12,21 +13,6 @@ function originOk(req) {
   } catch {
     return false;
   }
-}
-
-async function readBody(req) {
-  if (req.body !== undefined && req.body !== null) {
-    if (typeof req.body === "string") {
-      try { return JSON.parse(req.body); } catch { return {}; }
-    }
-    return req.body;
-  }
-  return new Promise((resolve) => {
-    let data = "";
-    req.on("data", (chunk) => { if (data.length < 32768) data += chunk; });
-    req.on("end", () => { try { resolve(JSON.parse(data || "{}")); } catch { resolve({}); } });
-    req.on("error", () => resolve({}));
-  });
 }
 
 function config(env) {
@@ -50,15 +36,31 @@ export function createPartnerLeadHandler({ fetchImpl = fetch, env = process.env,
     const cfg = config(env);
     if (!cfg.url || !cfg.key) { res.status(503).json({ ok: false, error: "Formulário temporariamente indisponível." }); return; }
 
-    const body = await readBody(req);
+    const bodyResult = await readMovementJsonBody(req);
+    if (!bodyResult.ok) { res.status(413).json({ ok: false, error: "Envio muito grande." }); return; }
+    const body = bodyResult.value;
     const valid = validatePartnerLead(body);
     if (!valid.ok) { res.status(400).json({ ok: false, error: "Revise os campos indicados.", fields: valid.errors }); return; }
 
     try {
-      const timestamp = now().toISOString();
+      const timestampDate = now();
+      const timestamp = timestampDate.toISOString();
       const value = valid.value;
+      const hasPersonalToken = typeof body.token === "string" && body.token.trim() !== "";
+      let invite = hasPersonalToken
+        ? await resolveMovementInvite({ fetchImpl, cfg, token: body.token, now: timestampDate, markOpened: false })
+        : null;
+      if (hasPersonalToken && (!invite || invite.audienceType !== "partner")) {
+        res.status(409).json({ ok: false, error: "Não foi possível registrar este convite." });
+        return;
+      }
+      if (invite) {
+        invite = await resolveMovementInvite({ fetchImpl, cfg, token: body.token, now: timestampDate, markOpened: true });
+        if (!invite) { res.status(409).json({ ok: false, error: "Não foi possível registrar este convite." }); return; }
+      }
       const row = {
         lead_key: partnerLeadKey(value.email, value.companyName),
+        ...(invite ? { invite_id: invite.id } : {}),
         company_name: value.companyName,
         contact_name: value.contactName,
         email: value.email,
@@ -71,14 +73,19 @@ export function createPartnerLeadHandler({ fetchImpl = fetch, env = process.env,
         submitted_at: timestamp,
         updated_at: timestamp,
       };
-      const response = await fetchImpl(`${cfg.url}/rest/v1/movement_partner_leads?on_conflict=lead_key`, {
+      const response = await fetchImpl(`${cfg.url}/rest/v1/movement_partner_leads?on_conflict=${invite ? "invite_id" : "lead_key"}`, {
         method: "POST",
         headers: headers(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
         body: JSON.stringify(row),
       });
+      if (!response.ok && invite && response.status === 409) {
+        res.status(409).json({ ok: false, error: "Não foi possível registrar este convite." });
+        return;
+      }
       if (!response.ok) throw new Error(`Supabase ${response.status}`);
       const rows = await response.json();
       const id = Array.isArray(rows) ? rows[0]?.id : null;
+      if (invite) await updateMovementInviteStatus({ fetchImpl, cfg, inviteId: invite.id, status: "responded", now: timestampDate });
       res.status(200).json({ ok: true, reference: id ? id.slice(0, 8).toUpperCase() : "RECEBIDO", updatedAt: timestamp });
     } catch {
       res.status(502).json({ ok: false, error: "Não foi possível registrar agora. Tente novamente." });

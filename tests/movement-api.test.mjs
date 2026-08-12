@@ -4,7 +4,7 @@ import { createMovementHandler } from "../api/movimento-rsvp.js";
 
 const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
 const ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" };
-const INVITE = { id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18", display_name: "Convidada", audience_type: "influencer", status: "sent", expires_at: "2026-09-01T12:00:00.000Z" };
+const INVITE = { id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18", display_name: "Convidada", recipient_name: "Ana", company_name: null, audience_type: "influencer", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 
 function response(data, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => data };
@@ -61,21 +61,33 @@ test("movement API returns a public invitation without private fields", async ()
   const calls = [];
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
+    if (url.includes("movement_invites") && options?.method === "PATCH") return response([]);
     return response(url.includes("movement_invites") ? [INVITE] : []);
   };
   const out = res();
   await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
   assert.equal(out.statusCode, 200);
   assert.equal(out.payload.invite.displayName, "Convidada");
+  assert.deepEqual(Object.keys(out.payload.invite).sort(), ["audienceType", "companyName", "displayName", "expiresAt", "id", "recipientName", "status"]);
   assert.equal("contact" in out.payload.invite, false);
   assert.match(calls[0].url, /^https:\/\/project\.supabase\.co\/rest\/v1\/movement_invites\?/);
   assert.doesNotMatch(calls[0].url, /\/rest\/v1\/rest\/v1\//);
   assert.match(calls[0].url, /movement_invites\?token_hash=eq\.[a-f0-9]{64}/);
   assert.equal(calls[0].options.headers.apikey, "test-service-key");
+  const opening = calls.find((call) => call.options?.method === "PATCH");
+  assert.match(opening.url, /movement_invites\?id=eq\.84ccf9b6-b170-4212-9f3d-1ce53901ca18&opened_at=is\.null&status=eq\.sent$/);
+  assert.deepEqual(JSON.parse(opening.options.body), { opened_at: "2026-08-11T12:00:00.000Z", status: "opened", updated_at: "2026-08-11T12:00:00.000Z" });
 });
 
-test("movement API uses the same neutral message for missing and expired invitations", async () => {
-  for (const rows of [[], [{ ...INVITE, expires_at: "2026-08-01T12:00:00.000Z" }]]) {
+test("movement API uses the same neutral message for missing, inactive, expired, and mismatched invitations", async () => {
+  for (const rows of [
+    [],
+    [{ ...INVITE, status: "draft" }],
+    [{ ...INVITE, status: "revoked" }],
+    [{ ...INVITE, status: "expired" }],
+    [{ ...INVITE, expires_at: "2026-08-01T12:00:00.000Z" }],
+    [{ ...INVITE, audience_type: "partner" }],
+  ]) {
     const out = res();
     await createMovementHandler({ fetchImpl: async () => response(rows), env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
     assert.equal(out.statusCode, 404);
@@ -83,15 +95,55 @@ test("movement API uses the same neutral message for missing and expired invitat
   }
 });
 
+test("movement API does not open a valid invitation for the wrong audience", async () => {
+  const calls = [];
+  const out = res();
+  await createMovementHandler({
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      return response([{ ...INVITE, audience_type: "partner" }]);
+    },
+    env: ENV,
+    now: () => new Date("2026-08-11T12:00:00.000Z"),
+  })(req("GET", { query: { token: VALID_TOKEN } }), out);
+  assert.equal(out.statusCode, 404);
+  assert.equal(calls.some((call) => call.options?.method === "PATCH"), false);
+});
+
+test("movement API opens an invitation once and preserves responded status", async () => {
+  for (const invite of [
+    { ...INVITE, status: "opened", opened_at: "2026-08-11T11:00:00.000Z" },
+    { ...INVITE, status: "responded", opened_at: null },
+  ]) {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push({ url, options });
+      if (url.includes("movement_invites") && options?.method !== "PATCH") return response([invite]);
+      return response([]);
+    };
+    const out = res();
+    await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
+    assert.equal(out.statusCode, 200);
+    const patches = calls.filter((call) => call.options?.method === "PATCH");
+    if (invite.opened_at) {
+      assert.equal(patches.length, 0);
+    } else {
+      assert.equal(patches.length, 1);
+      assert.equal("status" in JSON.parse(patches[0].options.body), false);
+      assert.equal(out.payload.invite.status, "responded");
+    }
+  }
+});
+
 test("movement API upserts one RSVP by invite id", async () => {
   const calls = [];
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
-    if (url.includes("movement_invites")) return response([INVITE]);
+    if (url.includes("movement_invites") && options?.method !== "PATCH") return response([INVITE]);
     return response([{ id: "5d49b0db-bde0-4e09-9c91-c2231c186a1e" }], 201);
   };
   const out = res();
-  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", shirtSize: "M", trainingOutfitSize: "G", adultCompanionType: "husband", companionCount: 2, childCount: 1, childAge: 8, childKitSize: "8 infantil", privacyAccepted: true, imageConsent: false } }), out);
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", shirtSize: "M", trainingOutfitSize: "G", adultCompanionType: "husband", companionCount: 2, childCount: 1, childAge: 8, childKitSize: "8 infantil", transportInterest: true, privacyAccepted: true, imageConsent: false } }), out);
   assert.equal(out.statusCode, 200);
   assert.equal(out.payload.ok, true);
   assert.equal(out.payload.reference, "84CCF9B6");
@@ -106,6 +158,21 @@ test("movement API upserts one RSVP by invite id", async () => {
   assert.equal(persisted.adult_companion_type, "husband");
   assert.equal(persisted.companion_count, 2);
   assert.equal(persisted.child_count, 1);
+  assert.equal(persisted.child_age, 8);
   assert.equal(persisted.child_kit_size, "8 infantil");
+  assert.equal(persisted.transport_interest, true);
   assert.equal(persisted.image_consent, false);
+  const inviteUpdate = calls.find((call) => call.url.includes("movement_invites") && call.options?.method === "PATCH");
+  assert.match(inviteUpdate.url, /id=eq\.84ccf9b6-b170-4212-9f3d-1ce53901ca18&status=in\.\(sent,opened,responded\)&revoked_at=is\.null$/);
+  assert.deepEqual(JSON.parse(inviteUpdate.options.body), { status: "responded", updated_at: "2026-08-11T12:00:00.000Z" });
+});
+
+test("movement API rejects parsed bodies above 32 KiB before resolving a token", async () => {
+  let called = false;
+  const out = res();
+  await createMovementHandler({ fetchImpl: async () => { called = true; return response([]); }, env: ENV })(req("POST", {
+    body: JSON.stringify({ token: VALID_TOKEN, note: "x".repeat(33 * 1024) }),
+  }), out);
+  assert.equal(out.statusCode, 413);
+  assert.equal(called, false);
 });

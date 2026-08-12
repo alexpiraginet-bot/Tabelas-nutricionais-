@@ -1,4 +1,5 @@
-import { hashInviteToken, publicInvite, validateRsvpPayload, validateToken } from "../lib/movement-rsvp.mjs";
+import { readMovementJsonBody, resolveMovementInvite, updateMovementInviteStatus } from "../lib/movement-invite.mjs";
+import { validateRsvpPayload } from "../lib/movement-rsvp.mjs";
 import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
 
 const ALLOWED_HOSTS = ["bentogelateria.com", "localhost", "127.0.0.1"];
@@ -12,21 +13,6 @@ function originOk(req) {
   } catch {
     return false;
   }
-}
-
-async function readBody(req) {
-  if (req.body !== undefined && req.body !== null) {
-    if (typeof req.body === "string") {
-      try { return JSON.parse(req.body); } catch { return {}; }
-    }
-    return req.body;
-  }
-  return new Promise((resolve) => {
-    let data = "";
-    req.on("data", (chunk) => { if (data.length < 32768) data += chunk; });
-    req.on("end", () => { try { resolve(JSON.parse(data || "{}")); } catch { resolve({}); } });
-    req.on("error", () => resolve({}));
-  });
 }
 
 function config(env) {
@@ -48,42 +34,12 @@ function safeSupabaseInfo(url, key) {
   }
 }
 
-function cleanDiagnostic(value) {
-  return String(value || "").replace(/[^\x20-\x7EÀ-ÿ]/g, " ").replace(/\s+/g, " ").trim().slice(0, 180);
-}
-
-async function supabaseFailure(response) {
-  const body = await response.json().catch(() => ({}));
-  const code = cleanDiagnostic(body?.code);
-  const message = cleanDiagnostic(body?.message || body?.error);
-  return new Error([`Supabase ${response.status}`, code, message].filter(Boolean).join(" · "));
-}
-
 function headers(key, extra = {}) {
   return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", ...extra };
 }
 
-function invitationIsActive(invite, now) {
-  if (!invite || invite.status === "revoked" || invite.status === "expired") return false;
-  const expires = Date.parse(invite.expires_at || "");
-  return Number.isFinite(expires) && expires > now.getTime();
-}
-
-async function fetchInvite({ fetchImpl, cfg, token, now }) {
-  const tokenCheck = validateToken(token);
-  if (!tokenCheck.ok) return null;
-  const tokenHash = hashInviteToken(tokenCheck.value);
-  const select = "id,display_name,audience_type,status,expires_at";
-  const url = `${cfg.url}/rest/v1/movement_invites?token_hash=eq.${tokenHash}&select=${select}&limit=1`;
-  const response = await fetchImpl(url, { headers: headers(cfg.key) });
-  if (!response.ok) throw await supabaseFailure(response);
-  const rows = await response.json();
-  const invite = Array.isArray(rows) ? rows[0] : null;
-  return invitationIsActive(invite, now) ? invite : null;
-}
-
 async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
-  const select = "response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_kit_size,image_consent,privacy_version,updated_at";
+  const select = "response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_age,child_kit_size,transport_interest,image_consent,privacy_version,updated_at";
   const url = `${cfg.url}/rest/v1/movement_rsvps?invite_id=eq.${encodeURIComponent(inviteId)}&select=${select}&limit=1`;
   const response = await fetchImpl(url, { headers: headers(cfg.key) });
   if (!response.ok) return null;
@@ -98,7 +54,9 @@ async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
     adultCompanionType: row.adult_companion_type,
     companionCount: row.companion_count || 0,
     childCount: row.child_count || 0,
+    childAge: row.child_age ?? null,
     childKitSize: row.child_kit_size,
+    transportInterest: row.transport_interest === true,
     imageConsent: row.image_consent === true,
     privacyVersion: row.privacy_version,
     updatedAt: row.updated_at,
@@ -117,21 +75,27 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
 
     try {
       if (req.method === "GET") {
-        const invite = await fetchInvite({ fetchImpl, cfg, token: req.query?.token, now: now() });
+        const timestampDate = now();
+        let invite = await resolveMovementInvite({ fetchImpl, cfg, token: req.query?.token, now: timestampDate, markOpened: false });
+        if (!invite || invite.audienceType !== "influencer") { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
+        invite = await resolveMovementInvite({ fetchImpl, cfg, token: req.query?.token, now: timestampDate, markOpened: true });
         if (!invite) { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
         const currentRsvp = await fetchCurrentRsvp({ fetchImpl, cfg, inviteId: invite.id });
-        res.status(200).json({ ok: true, invite: publicInvite(invite), currentRsvp });
+        res.status(200).json({ ok: true, invite, currentRsvp });
         return;
       }
 
-      const body = await readBody(req);
+      const bodyResult = await readMovementJsonBody(req);
+      if (!bodyResult.ok) { res.status(413).json({ ok: false, error: "Envio muito grande." }); return; }
+      const body = bodyResult.value;
       if (body.siteUrl) { res.status(400).json({ ok: false, error: "Não foi possível registrar a resposta." }); return; }
-      const invite = await fetchInvite({ fetchImpl, cfg, token: body.token, now: now() });
-      if (!invite) { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
+      const timestampDate = now();
+      const invite = await resolveMovementInvite({ fetchImpl, cfg, token: body.token, now: timestampDate, markOpened: false });
+      if (!invite || invite.audienceType !== "influencer") { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
       const valid = validateRsvpPayload(body);
       if (!valid.ok) { res.status(400).json({ ok: false, error: "Revise os campos indicados.", fields: valid.errors }); return; }
 
-      const timestamp = now().toISOString();
+      const timestamp = timestampDate.toISOString();
       const row = {
         invite_id: invite.id,
         response: valid.value.response,
@@ -141,7 +105,9 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
         adult_companion_type: valid.value.adultCompanionType,
         companion_count: valid.value.companionCount,
         child_count: valid.value.childCount,
+        child_age: valid.value.childAge,
         child_kit_size: valid.value.childKitSize,
+        transport_interest: valid.value.transportInterest,
         privacy_version: valid.value.privacyVersion,
         image_consent: valid.value.imageConsent,
         responded_at: timestamp,
@@ -154,6 +120,7 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
         body: JSON.stringify(row),
       });
       if (!persisted.ok) throw new Error(`Supabase ${persisted.status}`);
+      await updateMovementInviteStatus({ fetchImpl, cfg, inviteId: invite.id, status: "responded", now: timestampDate });
       res.status(200).json({ ok: true, reference: invite.id.slice(0, 8).toUpperCase(), response: valid.value.response, updatedAt: timestamp });
     } catch (error) {
       console.error("[movement-rsvp] upstream failure", {
