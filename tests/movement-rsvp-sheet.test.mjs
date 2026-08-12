@@ -22,6 +22,11 @@ test("personal influencer invitation opens one persistent RSVP sheet without loa
   assert.match(site, /const showHeroCta = !\(personal && audience === "influencer"\);/);
   assert.match(site, /\{showHeroCta && <a className="mv-hero-cta"/);
   assert.match(css, /\.mv-rsvp-persistent-cta\{position:fixed;/);
+  assert.match(site, /const hasPersistentRsvpCta = personal && audience === "influencer";/);
+  assert.match(site, /className=\{`mv-root\$\{hasPersistentRsvpCta \? " has-rsvp-cta" : ""\}`\}/);
+  assert.match(site, /\{hasPersistentRsvpCta && <RsvpFlow/);
+  assert.match(css, /\.mv-root\.has-rsvp-cta\{[^}]*padding-bottom:\s*calc\(52px \+ 32px \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(site, /<footer className="mv-footer">.*<a href="\/\?privacidade">Privacidade<\/a><\/footer>/);
   assert.match(flow, /role="dialog" aria-modal="true"/);
   assert.match(flow, /mv-rsvp-sheet/);
   assert.match(flow, /Escape/);
