@@ -8,6 +8,7 @@ import Sparkles from "lucide-react/dist/esm/icons/sparkles.js";
 import Users from "lucide-react/dist/esm/icons/users.js";
 import { getMovementExperience, isPersonalMovementMode } from "./movement-route.js";
 import { useMovementInvite } from "./useMovementInvite.js";
+import RsvpFlow from "./RsvpFlow.jsx";
 import {
   EVENT,
   HERO_COPY,
@@ -116,6 +117,7 @@ function PartnerTiers() {
 }
 
 function InvitationSheetHandoff({ audience, token, invite, currentRsvp, currentPartnerLead }) {
+  if (audience === "influencer") return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua confirmação começa aqui.</h2><p>Você pode revisar, enviar e editar sua resposta nesta mesma superfície.</p><RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/></section>;
   return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>{audience === "partner" ? "Sua seleção será aberta aqui." : "Sua confirmação será aberta aqui."}</h2><p>{audience === "partner" ? "A identidade e a seleção já resolvidas serão entregues na mesma superfície." : "Sua identidade e resposta existente já resolvidas serão entregues na mesma superfície."}</p><span hidden>{currentRsvp ? "rsvp-resolvido" : currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
 }
 
