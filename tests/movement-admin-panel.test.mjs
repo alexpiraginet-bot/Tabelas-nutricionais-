@@ -111,6 +111,11 @@ test("Movement admin form exposes audience-specific fields and retains the immed
   assert.match(panel, /\.mov-invite-grid \[hidden\]\{display:none!important\}/);
 });
 
+test("Panel login gate keeps password and submit controls touch-ready on iPhone", () => {
+  assert.match(panel, /\.gate input\{[^}]*min-height:44px[^}]*font-size:16px[^}]*\}/);
+  assert.match(panel, /\.gate button\{[^}]*min-height:44px[^}]*\}/);
+});
+
 test("Movement admin create handler sends exactly the audience-specific create-invite payload", () => {
   const createHandler = functionBody(panel, "createMovementInvite", '$("#movInviteExpires").min=');
 
