@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex, nofollow" />
 <title>Bentô · Painel de acessos</title>
+<link rel="stylesheet" href="/painel-movimento-editor.css" />
 <style>
   :root{
     --bg:#0c0f0a; --panel:#141a10; --panel2:#1b2215; --line:#2b3522;
@@ -140,6 +141,10 @@
   .mov-invite-result[hidden]{display:none}
   .mov-invite-result a{justify-content:flex-start;background:transparent;color:var(--pist);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mov-invite-result button{background:var(--gold);border-color:var(--gold)}
+  .mov-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .mov-action{min-height:44px;padding:9px 12px;border:1px solid var(--pist);border-radius:8px;background:transparent;color:var(--pist);font:inherit;font-size:12px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+  .mov-action.primary{background:var(--pist);color:#0c0f0a}
+  .mov-action:disabled{opacity:.55;cursor:not-allowed}
   .mov-revoke{min-height:44px;padding:9px 12px;border:1px solid var(--red);border-radius:8px;background:transparent;color:var(--red);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
   .mov-revoke:disabled{opacity:.55;cursor:not-allowed}
   @media(max-width:820px){.mov-invite-grid,.mov-invite-result{grid-template-columns:1fr}.mov-invite-result a{white-space:normal;overflow-wrap:anywhere}}
@@ -218,16 +223,21 @@
       </h3>
       <div style="font-size:13px;color:var(--gold);font-weight:800;letter-spacing:.05em;margin-bottom:5px">12 DE SETEMBRO DE 2026 · LE BUFFET LOUNGE · VITÓRIA</div>
       <div style="font-size:12px;color:var(--soft);line-height:1.55;margin-bottom:12px">Aulão funcional com personal renomado — nome em confirmação. A página de parceiros é acessível apenas pelo endereço direto e não aparece na navegação do site principal.</div>
+      <div class="mov-admin-tabs" id="movAdminTabs" role="tablist" aria-label="Bentô em Movimento">
+        <button id="movInvitesTab" type="button" class="on" role="tab" aria-selected="true" aria-controls="movInvitesPane" tabindex="0" data-mov-admin-tab="invites">Convites</button>
+        <button id="movContentTab" type="button" role="tab" aria-selected="false" aria-controls="movContentPane" tabindex="-1" data-mov-admin-tab="content">Conteúdo da apresentação</button>
+      </div>
+      <div id="movInvitesPane" role="tabpanel" aria-labelledby="movInvitesTab">
       <form id="movInviteForm" class="mov-invite-form">
         <h3>Gerar convite pessoal</h3>
         <div class="mov-invite-grid">
           <label>Público
             <select id="movInviteAudience" aria-label="Público do convite">
-              <option value="influencer">Influenciadora</option>
+              <option value="influencer">Convidada</option>
               <option value="partner">Parceiro</option>
             </select>
           </label>
-          <label id="movInviteInfluencerField">Nome da influenciadora<input id="movInviteName" maxlength="120" autocomplete="name" required /></label>
+          <label id="movInviteInfluencerField">Nome da convidada<input id="movInviteName" maxlength="120" autocomplete="name" required /></label>
           <label id="movInviteCompanyField" hidden>Empresa parceira<input id="movInviteCompany" maxlength="120" autocomplete="organization" /></label>
           <label id="movInviteRecipientField" hidden>Responsável pela empresa<input id="movInviteRecipient" maxlength="120" autocomplete="name" /></label>
           <label>Contato interno<input id="movInviteContact" maxlength="160" placeholder="WhatsApp ou e-mail" /></label>
@@ -240,7 +250,7 @@
           <button id="movInviteCopy" type="button">Copiar link</button>
           <button id="movInviteNew" type="button">Novo convite</button>
         </div>
-        <div style="font-size:11px;color:var(--soft);line-height:1.45;margin-top:9px">O link só aparece neste momento. Para emitir outro, gere um novo convite; o token anterior não pode ser recuperado.</div>
+        <div style="font-size:11px;color:var(--soft);line-height:1.45;margin-top:9px">O link fica salvo no histórico para abrir, copiar e reenviar depois. Convites antigos podem ativar o reenvio sem perder respostas ou dados já registrados.</div>
       </form>
       <div class="kpis" style="margin-bottom:0">
         <div class="card kpi"><div class="lab">Convidadas</div><div class="val" id="movInvited">—</div><div class="hint">convites cadastrados</div></div>
@@ -262,6 +272,8 @@
         <div class="empty" id="movPartnerEmpty" style="display:none">Nenhuma marca escolheu uma cota ainda.</div>
       </div>
     </div>
+    </div>
+    <div id="movContentPane" role="tabpanel" aria-labelledby="movContentTab" hidden></div>
   </div>
 
   <!-- ================= ABA SITE: conteúdo editável sem código ================= -->
@@ -744,7 +756,7 @@ function stackWhen(ts){ return new Date(ts||Date.now()).toLocaleString("pt-BR",{
 const MOVEMENT_MODE_LABELS = { training:"Aulão", lounge:"Presença sem aulão", family:"Oficina infantil" };
 const MOVEMENT_ADULT_LABELS = { husband:"Marido", mother:"Mãe" };
 const MOVEMENT_STATUS_LABELS = { draft:"Gerado", generated:"Gerado", sent:"Enviado", opened:"Aberto", responded:"Enviado", revoked:"Revogado", expired:"Expirado" };
-const MOVEMENT_AUDIENCE_LABELS = { influencer:"Influenciadora", partner:"Parceiro" };
+const MOVEMENT_AUDIENCE_LABELS = { influencer:"Convidada", partner:"Parceiro" };
 const MOVEMENT_TIER_LABELS = { select:"Select", experience:"Experience", signature:"Signature", founding_circle:"Founding Circle", founding:"Cota Fundadora", kit:"Cota Kit", mobility:"Cota Mobilidade Premium", support:"Cota Apoio", custom:"Cota Sob Medida" };
 const MOVEMENT_CONTRIBUTION_LABELS = { financial:"Investimento financeiro", product:"Produtos", service:"Serviços", mixed:"Combinação", other:"Outra proposta" };
 async function loadMovimento(){
@@ -771,10 +783,7 @@ async function createMovementInvite(event){
     var response=await fetch("/api/movimento-admin",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"create-invite",audienceType:audienceType,displayName:audienceType==="influencer"?displayName:undefined,companyName:audienceType==="partner"?companyName:undefined,recipientName:audienceType==="partner"?recipientName:undefined,contact:contact,expiresAt:expiry.toISOString()})});
     var data=await response.json().catch(function(){return {};});
     if(!response.ok) throw new Error((data&&data.error)||("HTTP "+response.status));
-    var url=new URL(data.invitePath,window.location.origin).href;
-    var link=$("#movInviteLink"); link.href=url; link.textContent=url;
-    $("#movInviteCopy").onclick=function(){ copyLink(url,this); };
-    result.hidden=false;
+    showMovementInviteResult(data.invitePath);
     loadMovimento().catch(function(e){ $("#movError").textContent=e.message; });
   }catch(e){ error.textContent=(e&&e.message)||"Não foi possível gerar o convite."; }
   finally{ button.disabled=false; button.textContent=old; }
@@ -819,6 +828,54 @@ function movementInviteStatus(invite){
 function movementInviteTarget(invite){
   return invite.audienceType==="partner" ? (invite.companyName||invite.displayName||"empresa parceira") : (invite.displayName||"convidada");
 }
+function movementInviteUrl(invite){
+  try{ return invite&&invite.invitePath ? new URL(invite.invitePath,window.location.origin).href : ""; }
+  catch(e){ return ""; }
+}
+async function shareMovementInvite(invite, button){
+  var url=movementInviteUrl(invite), target=movementInviteTarget(invite);
+  if(!url) return;
+  if(navigator.share){
+    try{
+      await navigator.share({title:"Convite pessoal — 1º aniversário Bentô Gelatos",text:"Convite pessoal para "+target,url:url});
+      return;
+    }catch(e){ if(e&&e.name==="AbortError") return; }
+  }
+  copyLink(url,button);
+}
+function showMovementInviteResult(invitePath){
+  var url=new URL(invitePath,window.location.origin).href;
+  var link=$("#movInviteLink"); link.href=url; link.textContent=url;
+  $("#movInviteCopy").onclick=function(){ copyLink(url,this); };
+  $("#movInviteResult").hidden=false;
+  return url;
+}
+async function reissueMovementInvite(invite, button){
+  var target=movementInviteTarget(invite);
+  if(!window.confirm("Ativar reenvio para "+target+"? O endereço anterior deixará de funcionar, mas respostas e histórico serão preservados.")) return;
+  button.disabled=true; var old=button.textContent; button.textContent="Ativando…";
+  try{
+    var key=localStorage.getItem(KEYSTORE)||"";
+    var response=await fetch("/api/movimento-admin",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"reissue-invite",inviteId:invite.id})});
+    var data=await response.json().catch(function(){return {};});
+    if(!response.ok) throw new Error((data&&data.error)||("HTTP "+response.status));
+    invite.invitePath=data.invitePath;
+    var url=showMovementInviteResult(data.invitePath);
+    copyLink(url,button);
+    try{
+      await loadMovimento();
+      $("#movError").textContent="Reenvio ativado e novo link copiado.";
+    }catch(e){ $("#movError").textContent="Reenvio ativado e link copiado; atualização pendente."; }
+  }catch(e){
+    button.disabled=false; button.textContent=old;
+    $("#movError").textContent=(e&&e.message)||"Não foi possível ativar o reenvio.";
+  }
+}
+function movementGuestSize(r){
+  var shirt=String((r&&r.shirtSize)||"").trim(), outfit=String((r&&r.trainingOutfitSize)||"").trim();
+  if(shirt&&outfit&&shirt!==outfit) return "Resposta antiga: camiseta "+shirt+" · roupa "+outfit;
+  return shirt||outfit||"—";
+}
 async function revokeMovementInvite(invite, button){
   var target=movementInviteTarget(invite);
   if(!window.confirm("Revogar o convite de "+target+"? O histórico será mantido e o link deixará de funcionar.")) return;
@@ -862,8 +919,7 @@ function renderMovimento(d){
     det.appendChild(movementDetail("Válido até", stackWhen(invite.expiresAt)));
     if(r&&r.response==="confirmed"){
       det.appendChild(movementDetail("Experiência", MOVEMENT_MODE_LABELS[r.participationMode]||r.participationMode));
-      det.appendChild(movementDetail("Camiseta da influenciadora", r.shirtSize));
-      det.appendChild(movementDetail("Roupa de treino da influenciadora", r.trainingOutfitSize));
+      det.appendChild(movementDetail("Tamanho da convidada", movementGuestSize(r)));
       det.appendChild(movementDetail("Acompanhante adulto", MOVEMENT_ADULT_LABELS[r.adultCompanionType]||"Nenhum"));
       det.appendChild(movementDetail("Criança", r.childCount===1?("1 · tamanho "+(r.childKitSize||"não informado")):"Nenhuma"));
       if(r.childCount) det.appendChild(movementDetail("Idade da criança", r.childAge==null?"Não informada":r.childAge+" ano(s)"));
@@ -872,11 +928,25 @@ function renderMovimento(d){
       det.appendChild(movementDetail("Uso de imagem", r.imageConsent?"Autorizado":"Não autorizado"));
     }
     if(partner) det.appendChild(movementDetail("Participação escolhida", MOVEMENT_TIER_LABELS[partner.tierInterest]||partner.tierInterest));
-    if(status!=="Revogado"){
-      var revokeRow=document.createElement("div"); revokeRow.className="qrow";
+    if(status!=="Revogado"&&status!=="Expirado"){
+      var actionRow=document.createElement("div"); actionRow.className="qrow";
+      var actions=document.createElement("div"); actions.className="mov-actions";
+      var inviteUrl=movementInviteUrl(invite);
+      if(inviteUrl){
+        var shareButton=document.createElement("button"); shareButton.type="button"; shareButton.className="mov-action primary"; shareButton.textContent="Reenviar convite";
+        shareButton.addEventListener("click",function(){ shareMovementInvite(invite,shareButton); });
+        var copyButton=document.createElement("button"); copyButton.type="button"; copyButton.className="mov-action"; copyButton.textContent="Copiar link";
+        copyButton.addEventListener("click",function(){ copyLink(inviteUrl,copyButton); });
+        var openLink=document.createElement("a"); openLink.className="mov-action"; openLink.textContent="Abrir convite"; openLink.href=inviteUrl; openLink.target="_blank"; openLink.rel="noopener";
+        actions.appendChild(shareButton); actions.appendChild(copyButton); actions.appendChild(openLink);
+      }else{
+        var reissueButton=document.createElement("button"); reissueButton.type="button"; reissueButton.className="mov-action primary"; reissueButton.textContent="Ativar reenvio";
+        reissueButton.addEventListener("click",function(){ reissueMovementInvite(invite,reissueButton); });
+        actions.appendChild(reissueButton);
+      }
       var revokeButton=document.createElement("button"); revokeButton.type="button"; revokeButton.className="mov-revoke"; revokeButton.textContent="Revogar convite";
       revokeButton.addEventListener("click",function(){ revokeMovementInvite(invite,revokeButton); });
-      revokeRow.appendChild(revokeButton); det.appendChild(revokeRow);
+      actions.appendChild(revokeButton); actionRow.appendChild(actions); det.appendChild(actionRow);
     }else det.appendChild(movementDetail("Novo convite", "Gere um novo link pelo formulário acima."));
     inviteBox.appendChild(det);
   });
@@ -2491,5 +2561,6 @@ else openGate("");
 setInterval(()=>{ if(document.hidden) return;
                   if($("#app").style.display!=="none") refresh(true); }, 60000);
 </script>
+<script src="/painel-movimento-editor.js"></script>
 </body>
 </html>

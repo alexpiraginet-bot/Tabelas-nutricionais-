@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ArrowDown from "lucide-react/dist/esm/icons/arrow-down.js";
 import ArrowRight from "lucide-react/dist/esm/icons/arrow-right.js";
 import CalendarDays from "lucide-react/dist/esm/icons/calendar-days.js";
@@ -8,6 +8,7 @@ import Sparkles from "lucide-react/dist/esm/icons/sparkles.js";
 import Users from "lucide-react/dist/esm/icons/users.js";
 import { getMovementExperience, isPersonalMovementMode } from "./movement-route.js";
 import { useMovementInvite } from "./useMovementInvite.js";
+import { resolveMovementMediaOverride, useMovementContent } from "./useMovementContent.js";
 import PartnerInterestFlow from "./PartnerInterestFlow.jsx";
 import RsvpFlow from "./RsvpFlow.jsx";
 import {
@@ -34,8 +35,14 @@ function renditionSrcSet(renditions) {
 function ScenePicture({ asset, priority = false, className = "" }) {
   const pictureRef = useRef(null);
   const [mediaReady, setMediaReady] = useState(priority);
+  const [customMediaFailed, setCustomMediaFailed] = useState(false);
   const displaySizes = priority ? "100vw" : "(max-width: 1600px) 60vw, 960px";
   const desktopFallback = asset.desktop.sources.jpg.at(-1);
+  const customMedia = resolveMovementMediaOverride(asset.override, customMediaFailed);
+  const customDesktop = customMedia.desktop;
+  const customMobile = customMedia.mobile;
+  const customMediaActive = customMedia.active;
+  useEffect(() => setCustomMediaFailed(false), [asset.override?.imageUrl, asset.override?.mobileImageUrl]);
   useEffect(() => {
     if (mediaReady || priority) return undefined;
     if (!("IntersectionObserver" in window)) {
@@ -52,14 +59,16 @@ function ScenePicture({ asset, priority = false, className = "" }) {
     return () => observer.disconnect();
   }, [mediaReady, priority]);
 
-  return <picture ref={pictureRef} className={`mv-scene-picture ${className}`.trim()} style={{ "--mv-lqip": `url(${asset.lqip.src})` }} role={mediaReady ? undefined : "img"} aria-label={mediaReady ? undefined : asset.alt}>
+  return <picture ref={pictureRef} className={`mv-scene-picture ${className}`.trim()} style={{ "--mv-lqip": `url(${asset.lqip.src})`, "--mv-image-opacity": asset.override?.imageOpacity ?? 1 }} role={mediaReady ? undefined : "img"} aria-label={mediaReady ? undefined : asset.alt}>
     {mediaReady && <>
+      {customMobile && <source media="(max-width: 900px)" srcSet={customMobile}/>}
       <source media="(max-width: 900px)" type="image/avif" srcSet={renditionSrcSet(asset.mobile.sources.avif)} sizes="100vw"/>
       <source media="(max-width: 900px)" type="image/webp" srcSet={renditionSrcSet(asset.mobile.sources.webp)} sizes="100vw"/>
       <source media="(max-width: 900px)" type="image/jpeg" srcSet={renditionSrcSet(asset.mobile.sources.jpg)} sizes="100vw"/>
+      {customDesktop && <source media="(min-width: 901px)" srcSet={customDesktop}/>}
       <source type="image/avif" srcSet={renditionSrcSet(asset.desktop.sources.avif)} sizes={displaySizes}/>
       <source type="image/webp" srcSet={renditionSrcSet(asset.desktop.sources.webp)} sizes={displaySizes}/>
-      <img src={desktopFallback.src} srcSet={renditionSrcSet(asset.desktop.sources.jpg)} sizes={`(max-width: 900px) 100vw, ${displaySizes}`} alt={asset.alt} width={desktopFallback.width} height={desktopFallback.height} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"/>
+      <img src={customDesktop || desktopFallback.src} srcSet={customDesktop ? undefined : renditionSrcSet(asset.desktop.sources.jpg)} sizes={`(max-width: 900px) 100vw, ${displaySizes}`} alt={asset.alt} width={desktopFallback.width} height={desktopFallback.height} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" onError={customMediaActive ? () => setCustomMediaFailed(true) : undefined}/>
     </>}
   </picture>;
 }
@@ -92,18 +101,17 @@ function replaceTemplate(template, replacements) {
   return Object.entries(replacements).reduce((copy, [key, value]) => copy.replace(`{${key}}`, value), template);
 }
 
-function Hero({ audience, invite, personal }) {
-  const copy = HERO_COPY[audience];
-  const heroAsset = MOVEMENT_HERO_ASSETS[audience];
-  const influencerName = invite?.recipientName || invite?.displayName || "";
+function Hero({ audience, invite, personal, content }) {
+  const copy = content;
+  const fixedCopy = HERO_COPY[audience];
+  const heroAsset = content.asset;
+  const guestName = invite?.recipientName || invite?.displayName || "Convidada";
   const companyName = invite?.companyName || invite?.displayName || "";
   const responsible = invite?.recipientName || "";
-  const title = personal
-    ? replaceTemplate(copy.title, audience === "partner" ? { Empresa: companyName, Responsável: responsible } : { Nome: influencerName })
-    : copy.fallbackTitle;
-  const kicker = personal
-    ? replaceTemplate(copy.kicker, audience === "partner" ? { Empresa: companyName, Responsável: responsible } : { Nome: influencerName })
-    : audience === "partner" ? "Primeiro aniversário Bentô Gelatos" : "1º aniversário Bentô Gelatos";
+  const identity = audience === "partner" ? companyName || "Sua marca" : guestName;
+  const kicker = personal && audience === "partner"
+    ? responsible ? replaceTemplate(fixedCopy.responsibleLine, { Responsável: responsible }) : "Uma proposta pessoal."
+    : copy.kicker;
   const ctaTarget = personal ? "#responder" : "#como-responder";
   const showHeroCta = !(personal && audience === "influencer");
   const partnerPersonal = personal && audience === "partner";
@@ -113,9 +121,9 @@ function Hero({ audience, invite, personal }) {
     <div className="mv-hero-wash"/>
     <div className="mv-hero-copy">
       <span className="mv-kicker">{kicker}</span>
-      <h1>{title}</h1>
+      {personal ? <><h1 className="mv-hero-identity">{identity}</h1><p className="mv-hero-personal-message">{fixedCopy.personalizedMessage}</p></> : <h1 className="mv-hero-generic-title">{copy.fallbackTitle}</h1>}
       <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p className="mv-hero-factual"><MapPin size={18}/>{copy.factualLine}</p></div>
-      <p>{copy.text}</p>
+      <p className="mv-hero-support">{copy.text}</p>
       {showHeroCta && <a className="mv-hero-cta" href={ctaTarget} hidden={partnerPersonal} aria-hidden={partnerPersonal} tabIndex={partnerPersonal ? -1 : undefined}>{copy.cta}<ArrowDown size={18}/></a>}
     </div>
     <span className="mv-ai-disclosure">{heroAsset.disclosure}</span>
@@ -134,16 +142,12 @@ function EventFacts({ partner = false }) {
   return <div className="mv-event-facts-v2"><article><CalendarDays/><span>Quando</span><strong>{EVENT.dayLabel}<br/>{EVENT.dateLong}</strong></article><article><MapPin/><span>Onde</span><strong>{EVENT.location}</strong></article><article><Users/><span>Escala</span><strong>{EVENT.expectedGuests}</strong></article><article><Sparkles/><span>Experiência</span><strong>{EVENT.training}</strong></article><p>{partner ? "A participação começa por uma conversa de escopo." : "Nome, horário e operação final permanecem em confirmação."}</p></div>;
 }
 
-function ShirtSponsorCallout({ companyName }) {
-  return <aside className="mv-shirt-sponsor-callout" aria-label={SHIRT_CONCEPT.sponsorArea}><span>{companyName || "Composição coletiva"}</span><small>Região lombar · aplicação definida no mockup</small></aside>;
-}
-
-function SceneSection({ scene, index, audience, companyName = "" }) {
+function SceneSection({ scene, index, audience }) {
   const shirt = scene.assetId === "INF-06" || scene.assetId === "PAR-07";
   const product = scene.assetId === "PAR-08";
-  const backdrop = scene.assetId === "PAR-09";
   const partner = audience === "partner";
-  return <section className={`mv-scene ${index % 2 ? "is-reverse" : ""} ${shirt ? "is-shirt" : ""} ${product ? "is-product" : ""}`} data-asset-id={scene.assetId}><figure className="mv-scene-media"><ScenePicture asset={scene.asset}/>{shirt && partner && <ShirtSponsorCallout companyName={companyName}/>} {backdrop && partner && <div className="mv-brand-composition"><span>{companyName || "Composição coletiva"}</span><small>Aplicação definida após conversa de escopo</small></div>}</figure><div className="mv-scene-copy"><span className="mv-scene-number">{String(index + 1).padStart(2, "0")}</span><span className="mv-kicker">{scene.eyebrow}</span><h2>{scene.title}</h2><p>{scene.text}</p>{shirt && partner && <div className="mv-shirt-spec"><span>{SHIRT_CONCEPT.front}</span><span>{SHIRT_CONCEPT.back}</span><span>{SHIRT_CONCEPT.sponsorArea}</span></div>}<small className="mv-scene-disclosure">{scene.disclosure}{!shirt && !product ? "; operação em confirmação." : ""}</small></div></section>;
+  const asset = { ...scene.asset, override: scene.override };
+  return <section className={`mv-scene ${index % 2 ? "is-reverse" : ""} ${shirt ? "is-shirt" : ""} ${product ? "is-product" : ""}`} data-asset-id={scene.assetId}><figure className="mv-scene-media"><ScenePicture asset={asset}/></figure><div className="mv-scene-copy"><span className="mv-scene-number">{String(index + 1).padStart(2, "0")}</span><span className="mv-kicker">{scene.eyebrow}</span><h2>{scene.title}</h2><p>{scene.text}</p>{shirt && partner && <div className="mv-shirt-spec"><span>{SHIRT_CONCEPT.front}</span><span>{SHIRT_CONCEPT.back}</span><span>{SHIRT_CONCEPT.sponsorArea}</span></div>}<small className="mv-scene-disclosure">{scene.disclosure}{!shirt && !product ? "; operação em confirmação." : ""}</small></div></section>;
 }
 
 function Intro({ partner = false }) {
@@ -163,12 +167,24 @@ function InvitationSheetHandoff({ audience, token, currentPartnerLead }) {
   return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua seleção será aberta aqui.</h2><p>A identidade e a seleção já resolvidas serão entregues na mesma superfície.</p><span hidden>{currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
 }
 
-function InfluencerStory({ personal, token }) {
-  return <><Intro/><div id="jornada" className="mv-scene-reel">{INFLUENCER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="influencer"/>)}</div><InfluencerChapters/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
+function InfluencerStory({ personal, token, scenes }) {
+  return <><Intro/><div id="jornada" className="mv-scene-reel">{scenes.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="influencer"/>)}</div><InfluencerChapters/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
 }
 
-function PartnerStory({ personal, token, currentPartnerLead, companyName }) {
-  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{PARTNER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner" companyName={companyName}/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+function PartnerStory({ personal, token, currentPartnerLead, scenes }) {
+  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{scenes.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner"/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+}
+
+function MovementPresentation({ audience, personal, token, invite, currentRsvp, currentPartnerLead }) {
+  const defaults = useMemo(() => ({
+    hero: { ...HERO_COPY[audience], asset: MOVEMENT_HERO_ASSETS[audience] },
+    scenes: audience === "partner" ? PARTNER_SCENES : INFLUENCER_SCENES,
+  }), [audience]);
+  const content = useMovementContent(audience, defaults);
+  const hasPersistentRsvpCta = personal && audience === "influencer";
+  const hasPersistentPartnerCta = personal && audience === "partner";
+  const heroContent = { ...content.hero, asset: { ...content.hero.asset, override: content.hero.override } };
+  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal} content={heroContent}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead} scenes={content.scenes}/> : <InfluencerStory personal={personal} token={token} scenes={content.scenes}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
 }
 
 export default function MovementSite({ mode = "influencer", token = null }) {
@@ -180,8 +196,5 @@ export default function MovementSite({ mode = "influencer", token = null }) {
   if (personal && state === "error") return <InvalidInvitation error={error}/>;
   const audience = personal ? invite?.audienceType : generic.story;
   if (!audience) return <InvalidInvitation error="Convite inválido ou expirado."/>;
-  const hasPersistentRsvpCta = personal && audience === "influencer";
-  const hasPersistentPartnerCta = personal && audience === "partner";
-  const companyName = audience === "partner" ? invite?.companyName || invite?.displayName || "" : "";
-  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead} companyName={companyName}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
+  return <MovementPresentation audience={audience} personal={personal} token={token} invite={invite} currentRsvp={currentRsvp} currentPartnerLead={currentPartnerLead}/>;
 }

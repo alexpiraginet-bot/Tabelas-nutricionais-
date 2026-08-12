@@ -48,14 +48,22 @@ test("RSVP dialog traps forward and reverse keyboard focus", async () => {
   assert.match(flow, /lastFocusable\.focus\(\)/);
 });
 
+test("RSVP moves focus to the heading whenever the sheet changes step", async () => {
+  const { flow } = await readRsvpSurface();
+
+  assert.match(flow, /const stepHeadingRef = useRef\(null\)/);
+  assert.match(flow, /stepHeadingRef\.current\?\.focus\(\)/);
+  assert.match(flow, /\[open, step\]/);
+  assert.equal(flow.match(/ref=\{stepHeadingRef\} tabIndex="-1"/g)?.length, 3);
+});
+
 test("influencer RSVP keeps every decision in the same sheet with the approved boundaries", async () => {
   const { flow } = await readRsvpSurface();
 
   for (const text of [
     "Estarei presente",
     "Desta vez, acompanho de longe",
-    "Camiseta da influenciadora",
-    "Roupa de treino da influenciadora",
+    "Qual tamanho você usa?",
     "Meu marido",
     "Minha mãe",
     "Uma criança",
@@ -66,6 +74,12 @@ test("influencer RSVP keeps every decision in the same sheet with the approved b
     "Li e compreendi a",
     "Autorizo o uso da minha imagem",
   ]) assert.match(flow, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+
+  assert.equal(flow.match(/<legend>Qual tamanho você usa\?<\/legend>/g)?.length, 1);
+  assert.doesNotMatch(flow, /Usaremos este tamanho como referência/);
+  assert.doesNotMatch(flow, /influenciadora/i);
+  assert.doesNotMatch(flow, /name="shirtSize"|name="trainingOutfitSize"/);
+  assert.match(flow, /name="outfitSize"/);
 
   assert.match(flow, /childAge/);
   assert.match(flow, /maxLength="40"/);
@@ -93,6 +107,8 @@ test("RSVP sheet supports review, success and editing while meeting mobile dialo
   assert.match(css, /:focus-visible/);
   assert.match(css, /\.mv-rsvp-size-options label:focus-within\{[^}]*outline:/);
   assert.match(review, /Acompanhante adulto/);
+  assert.match(review, /<dt>Tamanho<\/dt><dd>\{form\.outfitSize\}<\/dd>/);
+  assert.doesNotMatch(review, /<dt>Camiseta<\/dt>|<dt>Roupa de treino<\/dt>/);
   assert.match(review, /ADULT_COMPANION_LABELS\[form\.adultCompanionType\]/);
   assert.match(review, /form\.childCount === 1/);
   assert.match(review, /Idade da criança/);

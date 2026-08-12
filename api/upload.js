@@ -3,12 +3,21 @@
 // DIRETO ao Supabase — sem limite de payload da Vercel e sem expor a service key.
 // Env necessárias no projeto: SUPABASE_URL e SUPABASE_SERVICE_KEY.
 import crypto from "node:crypto";
+import { supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 const PANEL_KEY = process.env.PANEL_KEY;
 const FICHAS_KEY = process.env.FICHAS_KEY; // nutricionista pode anexar fichas de insumos
 const SB_URL = (process.env.SUPABASE_URL || "").replace(/\/+$/, "");
 const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const BUCKET = process.env.SUPABASE_BUCKET || "artes";
+const MOVEMENT_IMAGE_TYPE_BY_EXTENSION = Object.freeze({
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  avif: "image/avif",
+});
+const MOVEMENT_IMAGE_MAX_BYTES = 12 * 1024 * 1024;
 
 function getKey(req) {
   const h = req.headers.authorization || "";
@@ -42,7 +51,10 @@ function slugName(name) {
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   if (!PANEL_KEY) { res.status(503).json({ ok: false, error: "PANEL_KEY não configurada." }); return; }
-  if (!eq(getKey(req), PANEL_KEY) && !(FICHAS_KEY && eq(getKey(req), FICHAS_KEY))) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
+  const requestKey = getKey(req);
+  const panelAuthorized = eq(requestKey, PANEL_KEY);
+  const fichasAuthorized = FICHAS_KEY && eq(requestKey, FICHAS_KEY);
+  if (!panelAuthorized && !fichasAuthorized) { res.status(401).json({ ok: false, error: "Senha incorreta." }); return; }
 
   // GET: o painel checa se o Supabase está configurado (sem expor chaves)
   if (req.method === "GET") {
@@ -59,11 +71,25 @@ export default async function handler(req, res) {
   if (body.action === "sign") {
     const name = slugName(body.name);
     const stamp = new Date().toISOString().slice(0, 10);
-    const path = `${stamp}/${name}`;
+    const movementUpload = body.purpose === "movimento";
+    if (movementUpload) {
+      const type = String(body.type || "").trim().toLowerCase();
+      const size = Number(body.size);
+      const extension = name.split(".").at(-1);
+      if (!panelAuthorized) {
+        res.status(401).json({ ok: false, error: "Senha incorreta." });
+        return;
+      }
+      if (MOVEMENT_IMAGE_TYPE_BY_EXTENSION[extension] !== type || !Number.isInteger(size) || size < 1 || size > MOVEMENT_IMAGE_MAX_BYTES) {
+        res.status(400).json({ ok: false, error: "Envie uma imagem JPEG, PNG, WebP ou AVIF de até 12 MB." });
+        return;
+      }
+    }
+    const path = movementUpload ? `movimento/${stamp}/${crypto.randomUUID()}-${name}` : `${stamp}/${name}`;
     try {
       const r = await fetch(`${SB_URL}/storage/v1/object/upload/sign/${BUCKET}/${path}`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${SB_KEY}`, "Content-Type": "application/json" },
+        headers: supabaseServiceHeaders(SB_KEY),
         body: JSON.stringify({}),
       });
       const j = await r.json().catch(() => ({}));

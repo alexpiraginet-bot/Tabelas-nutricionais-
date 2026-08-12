@@ -13,13 +13,13 @@ const masterDir = path.join(repoRoot, "assets/movimento-v2/masters");
 const disclosure = "Visualização conceitual gerada por IA";
 
 const expectedRoutes = {
-  influencer: ["INF-HERO", "INF-01", "INF-02", "INF-03", "INF-04", "INF-05", "INF-06", "INF-07"],
-  partner: ["PAR-HERO", "PAR-01", "PAR-02", "PAR-03", "PAR-04", "PAR-05", "PAR-06", "PAR-07", "PAR-08", "PAR-09", "PAR-10"],
+  influencer: ["INF-HERO", ...Array.from({ length: 14 }, (_, index) => `INF-${String(index + 1).padStart(2, "0")}`)],
+  partner: ["PAR-HERO", ...Array.from({ length: 16 }, (_, index) => `PAR-${String(index + 1).padStart(2, "0")}`)],
 };
 
 const routeBudgets = {
-  influencer: 1_490 * 1024,
-  partner: 1_850 * 1024,
+  influencer: 2_450 * 1024,
+  partner: 2_850 * 1024,
 };
 
 async function readManifest() {
@@ -30,17 +30,17 @@ async function sha256(filePath) {
   return createHash("sha256").update(await readFile(filePath)).digest("hex");
 }
 
-test("V2 manifest contains the 19 exclusive scene families in route order", async () => {
+test("V2 manifest contains the 32 editorial scene families in route order", async () => {
   const manifest = await readManifest();
 
   assert.equal(manifest.version, 2);
   assert.deepEqual(manifest.routes.influencer, expectedRoutes.influencer);
   assert.deepEqual(manifest.routes.partner, expectedRoutes.partner);
-  assert.equal(Object.keys(manifest.assets).length, 19);
+  assert.equal(Object.keys(manifest.assets).length, 32);
   assert.deepEqual(new Set([...manifest.routes.influencer, ...manifest.routes.partner]), new Set(Object.keys(manifest.assets)));
 
   const sourceHashes = Object.values(manifest.assets).map(({ sourceSha256 }) => sourceSha256);
-  assert.equal(new Set(sourceHashes).size, 19, "every chapter needs a unique source family");
+  assert.equal(new Set(sourceHashes).size, 32, "every chapter needs a unique source family");
   assert.ok(sourceHashes.every((hash) => /^[a-f0-9]{64}$/.test(hash)));
 
   const largestJpegHashes = Object.values(manifest.assets).flatMap((asset) => [
@@ -81,9 +81,10 @@ test("every scene has meaningful accessibility copy and an explicit provenance d
   }
 
   for (const id of ["INF-06", "PAR-07"]) assert.match(manifest.assets[id].disclosure, /referência oficial de camiseta Bentô composta sem redesenho/i);
-  for (const id of ["INF-04", "PAR-06"]) assert.match(manifest.assets[id].disclosure, /picolé do acervo real Bentô composto sem redesenho/i);
   assert.match(manifest.assets["PAR-08"].disclosure, /produto e embalagem do acervo real Bentô compostos sem redesenho/i);
-  for (const id of ["INF-HERO", "INF-03", "PAR-04"]) assert.match(manifest.assets[id].disclosure, /wordmark oficial Bentô composto sem redesenho/i);
+  assert.match(manifest.assets["PAR-09"].disclosure, /wordmark oficial Bentô composto sem redesenho/i);
+  for (const id of ["INF-10", "PAR-12"]) assert.match(manifest.assets[id].disclosure, /carrinho real Bentô preservado/i);
+  for (const id of ["INF-05", "PAR-05", "PAR-06", "PAR-15"]) assert.doesNotMatch(manifest.assets[id].disclosure, /wordmark oficial Bentô composto sem redesenho/i);
 });
 
 test("responsive derivatives are valid, dimensioned, hashed and never upscale their master", async () => {
@@ -195,45 +196,43 @@ test("manifest is portable and contains no nondeterministic build metadata", asy
   assert.doesNotMatch(source, /20\d{2}-\d{2}-\d{2}T\d{2}:/);
 });
 
-test("pipeline composes the approved shirt and real Bentô product instead of generated substitutes", async () => {
+test("pipeline composes approved identity assets without flattening products over workshop photography", async () => {
   const pipeline = await readFile(path.join(repoRoot, "scripts/build-movement-assets.mjs"), "utf8");
 
   assert.match(pipeline, /public\/movimento\/camiseta-referencia\.jpg/);
   assert.match(pipeline, /public\/movimento\/picoles-lineup-real\.jpg/);
-  assert.match(pipeline, /public\/treats\/picole-pistache\.webp/);
-  assert.match(pipeline, /public\/movimento\/bento-wordmark-gold\.png/);
   assert.match(pipeline, /"INF-06": \{ kind: "shirt"/);
   assert.match(pipeline, /"PAR-07": \{ kind: "shirt"/);
-  for (const id of ["INF-04", "PAR-06", "PAR-08"]) assert.match(pipeline, new RegExp(`"${id}": \\{[\\s\\S]*?kind: "product"`));
+  assert.match(pipeline, /"PAR-08": \{ kind: "product"/);
+  for (const id of ["INF-04", "PAR-06"]) assert.doesNotMatch(pipeline, new RegExp(`"${id}": \\{[\\s\\S]*?kind: "product"`));
   assert.match(pipeline, /sharp\(master\.buffer/);
   assert.match(pipeline, /\.composite\(\[\{ input: inset/);
-  assert.match(pipeline, /async function composeWorkshopProducts/);
+  assert.doesNotMatch(pipeline, /composeWorkshopProducts|productIsolated/);
   assert.match(pipeline, /async function createEditorialBoard/);
   for (const id of ["INF-06", "PAR-07", "PAR-08"]) assert.match(pipeline, new RegExp(`"${id}": \\{ kind: "(?:shirt|product)", mode: "editorial-board"`));
   assert.match(pipeline, /const maxInsetHeight = Math\.round\(master\.height \* placement\.maxHeight\);/);
   assert.match(pipeline, /\.resize\(\{ width: insetWidth, height: maxInsetHeight, fit: "inside", withoutEnlargement: true \}\)/);
-  assert.match(pipeline, /const WORDMARK_COMPOSITIONS =/);
-  for (const id of ["INF-HERO", "INF-03", "PAR-04"]) assert.match(pipeline, new RegExp(`"${id}":`));
+  assert.doesNotMatch(pipeline, /BRAND_APPLICATIONS|composeBrandApplications|tintOfficialWordmark/);
+  assert.match(pipeline, /const CART_SOURCE_IDS = new Set\(\["INF-10", "PAR-12"\]\)/);
+  assert.match(pipeline, /carrinho real Bentô preservado/);
+  assert.match(pipeline, /function cropPosition/);
+  assert.doesNotMatch(pipeline, /if \(id === "PAR-05"\) return "right"/, "partner recovery must keep the operational center in the mobile crop");
   assert.match(pipeline, /const stem = isHero\(id\) \? `\$\{id\}-\$\{direction\}` : id;/);
   assert.match(pipeline, /for \(const extension of \["jpg", "jpeg", "png"\]\)/);
 });
 
-test("partner shirt personalization stays in a readable external callout and absent from influencer chapters", async () => {
+test("presentation keeps all brand applications inside the audited image assets", async () => {
   const [site, content] = await Promise.all([
     readFile(path.join(repoRoot, "src/movimento/MovementSite.jsx"), "utf8"),
     import(new URL(`../src/movimento/movement-content.js?asset-test=${Date.now()}`, import.meta.url)),
   ]);
-  const calloutStart = site.indexOf("function ShirtSponsorCallout");
-  const calloutEnd = site.indexOf("function SceneSection", calloutStart);
-  const callout = site.slice(calloutStart, calloutEnd);
-
-  assert.ok(calloutStart >= 0, "partner shirt callout is missing");
-  assert.match(callout, /companyName/);
-  assert.match(callout, /Composição coletiva/);
-  assert.match(callout, /Região lombar/);
-  assert.doesNotMatch(callout, /Sua marca aqui/i);
+  assert.doesNotMatch(site, /function ShirtSponsorCallout/);
+  assert.doesNotMatch(site, /mv-shirt-sponsor-callout/);
+  assert.doesNotMatch(site, /mv-brand-composition/);
   assert.doesNotMatch(site, /mv-shirt-sponsor-zone/);
   assert.doesNotMatch(JSON.stringify(content.INFLUENCER_SCENES), /Sua marca aqui/i);
+  assert.doesNotMatch(site, /PartnerBackdropWall|PartnerCartPlacement/);
+  assert.doesNotMatch(site, /1 ANO BENTÔ|SUA MARCA AQUI/);
 });
 
 test("pipeline builds in staging, promotes the directory and can be invoked from any working directory", async () => {
@@ -301,8 +300,12 @@ test("scene disclosures meet AA contrast on both presentation surfaces", async (
   assert.match(css, /\.mv-scene-disclosure\{[^}]*color:#5f5a50/);
 });
 
-test("partner backdrop explanation remains readable on an iPhone", async () => {
-  const css = await readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8");
+test("partner scenes do not fake brand applications with floating HTML cards", async () => {
+  const [site, css] = await Promise.all([
+    readFile(path.join(repoRoot, "src/movimento/MovementSite.jsx"), "utf8"),
+    readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8"),
+  ]);
 
-  assert.match(css, /\.mv-brand-composition small\{[^}]*font-size:11px[^}]*line-height:1\.35[^}]*letter-spacing:\.06em/);
+  assert.doesNotMatch(site, /PartnerBackdropWall|PartnerCartPlacement/);
+  assert.doesNotMatch(css, /\.mv-partner-brand-wall|\.mv-partner-cart-placement/);
 });

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   ADULT_COMPANION_TYPES,
+  OUTFIT_SIZES,
   SHIRT_SIZES,
   PARTICIPATION_MODES,
   hashInviteToken,
@@ -25,18 +26,30 @@ test("movement RSVP hashes the same token deterministically without returning it
   assert.equal(first.includes(token), false);
 });
 
-test("movement RSVP requires shirt and training outfit sizes only for the invited influencer", () => {
+test("movement RSVP requires one outfit size and mirrors it to legacy fields", () => {
   const missing = validateRsvpPayload({ response: "confirmed", privacyAccepted: true, imageConsent: false });
   assert.equal(missing.ok, false);
+  assert.equal(missing.errors.outfitSize, "Escolha o seu tamanho.");
+  assert.deepEqual(OUTFIT_SIZES, ["PP", "P", "M", "G", "GG", "XGG"]);
   assert.deepEqual(SHIRT_SIZES, ["PP", "P", "M", "G", "GG", "XGG"]);
 
-  const confirmed = validateRsvpPayload({ response: "confirmed", shirtSize: "m", trainingOutfitSize: "g", privacyAccepted: true, imageConsent: false });
+  const confirmed = validateRsvpPayload({ response: "confirmed", outfitSize: "m", privacyAccepted: true, imageConsent: false });
   assert.equal(confirmed.ok, true);
+  assert.equal(confirmed.value.outfitSize, "M");
   assert.equal(confirmed.value.shirtSize, "M");
-  assert.equal(confirmed.value.trainingOutfitSize, "G");
+  assert.equal(confirmed.value.trainingOutfitSize, "M");
 
-  const declined = validateRsvpPayload({ response: "declined", shirtSize: "XGG", trainingOutfitSize: "PP", privacyAccepted: true, imageConsent: false });
+  const legacyEqual = validateRsvpPayload({ response: "confirmed", shirtSize: "g", trainingOutfitSize: "g", privacyAccepted: true, imageConsent: false });
+  assert.equal(legacyEqual.ok, true);
+  assert.equal(legacyEqual.value.outfitSize, "G");
+
+  const legacyDivergent = validateRsvpPayload({ response: "confirmed", shirtSize: "M", trainingOutfitSize: "G", privacyAccepted: true, imageConsent: false });
+  assert.equal(legacyDivergent.ok, false);
+  assert.equal(legacyDivergent.errors.outfitSize, "Escolha o seu tamanho.");
+
+  const declined = validateRsvpPayload({ response: "declined", outfitSize: "XGG", privacyAccepted: true, imageConsent: false });
   assert.equal(declined.ok, true);
+  assert.equal(declined.value.outfitSize, null);
   assert.equal(declined.value.shirtSize, null);
   assert.equal(declined.value.trainingOutfitSize, null);
 });
@@ -45,7 +58,7 @@ test("movement RSVP limits the invitation to the influencer plus husband or moth
   assert.deepEqual(PARTICIPATION_MODES, ["training", "lounge", "family"]);
   assert.deepEqual(ADULT_COMPANION_TYPES, ["husband", "mother"]);
   const family = validateRsvpPayload({
-    response: "confirmed", shirtSize: "G", trainingOutfitSize: "M", adultCompanionType: "mother",
+    response: "confirmed", outfitSize: "G", adultCompanionType: "mother",
     companionCount: 2, childCount: 1, childAge: "6", childKitSize: "6 infantil",
     transportInterest: true, privacyAccepted: true, imageConsent: false,
   });
@@ -60,14 +73,14 @@ test("movement RSVP limits the invitation to the influencer plus husband or moth
   assert.equal("childName" in family.value, false);
 
   const tooMany = validateRsvpPayload({
-    response: "confirmed", shirtSize: "G", trainingOutfitSize: "G", adultCompanionType: "husband",
+    response: "confirmed", outfitSize: "G", adultCompanionType: "husband",
     companionCount: 3, childCount: 2, childAge: 8, childKitSize: "8 infantil",
     privacyAccepted: true, imageConsent: false,
   });
   assert.equal(tooMany.ok, false);
 
   const bothAdults = validateRsvpPayload({
-    response: "confirmed", shirtSize: "G", trainingOutfitSize: "G",
+    response: "confirmed", outfitSize: "G",
     adultCompanionType: "husband,mother", companionCount: 2, childCount: 0,
     privacyAccepted: true, imageConsent: false,
   });
@@ -76,14 +89,14 @@ test("movement RSVP limits the invitation to the influencer plus husband or moth
 
 test("movement RSVP accepts child age only for one child as an operational storage detail", () => {
   const missingSize = validateRsvpPayload({
-    response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", companionCount: 1,
+    response: "confirmed", outfitSize: "P", companionCount: 1,
     childCount: 1, childAge: 5, childKitSize: "", privacyAccepted: true, imageConsent: false,
   });
   assert.equal(missingSize.ok, false);
   assert.equal(missingSize.errors.childKitSize, "Informe um tamanho aproximado para a criança.");
 
   const anyAge = validateRsvpPayload({
-    response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", companionCount: 1,
+    response: "confirmed", outfitSize: "P", companionCount: 1,
     childCount: 1, childAge: 0, childKitSize: "12 meses", privacyAccepted: true, imageConsent: false,
   });
   assert.equal(anyAge.ok, true);
@@ -92,7 +105,7 @@ test("movement RSVP accepts child age only for one child as an operational stora
 
   for (const childAge of [-1, 121, 2.5]) {
     const invalidAge = validateRsvpPayload({
-      response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", companionCount: 1,
+      response: "confirmed", outfitSize: "P", companionCount: 1,
       childCount: 1, childAge, childKitSize: "12 meses", privacyAccepted: true, imageConsent: false,
     });
     assert.equal(invalidAge.ok, false);
@@ -101,7 +114,7 @@ test("movement RSVP accepts child age only for one child as an operational stora
 
   for (const childAge of [true, false, [6], { valueOf: () => 7 }]) {
     const invalidType = validateRsvpPayload({
-      response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", companionCount: 1,
+      response: "confirmed", outfitSize: "P", companionCount: 1,
       childCount: 1, childAge, childKitSize: "12 meses", privacyAccepted: true, imageConsent: false,
     });
     assert.equal(invalidType.ok, false);
@@ -109,7 +122,7 @@ test("movement RSVP accepts child age only for one child as an operational stora
   }
 
   const withoutChild = validateRsvpPayload({
-    response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", childAge: 6,
+    response: "confirmed", outfitSize: "P", childAge: 6,
     childKitSize: "6 infantil", privacyAccepted: true, imageConsent: false,
   });
   assert.equal(withoutChild.ok, false);
@@ -128,7 +141,7 @@ test("movement RSVP keeps image consent optional and separate from privacy ackno
 
 test("movement RSVP normalizes transport interest independently and never collects an address", () => {
   const accepted = validateRsvpPayload({
-    response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", transportInterest: true,
+    response: "confirmed", outfitSize: "P", transportInterest: true,
     address: "Rua que não deve ser solicitada", privacyAccepted: true, imageConsent: false,
   });
   assert.equal(accepted.ok, true);

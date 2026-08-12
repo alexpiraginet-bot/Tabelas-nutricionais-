@@ -45,6 +45,7 @@ async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
   return {
     response: row.response,
     participationMode: row.participation_mode,
+    outfitSize: row.shirt_size && row.shirt_size === row.training_outfit_size ? row.shirt_size : "",
     shirtSize: row.shirt_size,
     trainingOutfitSize: row.training_outfit_size,
     adultCompanionType: row.adult_companion_type,
@@ -120,8 +121,8 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
         invite_id: invite.id,
         response: valid.value.response,
         participation_mode: valid.value.participationMode,
-        shirt_size: valid.value.shirtSize,
-        training_outfit_size: valid.value.trainingOutfitSize,
+        shirt_size: valid.value.outfitSize,
+        training_outfit_size: valid.value.outfitSize,
         adult_companion_type: valid.value.adultCompanionType,
         companion_count: valid.value.companionCount,
         child_count: valid.value.childCount,

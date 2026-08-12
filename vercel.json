@@ -3,6 +3,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "functions": {
+    "api/movimento-preview.js": {
+      "includeFiles": "dist/movimento/convite/index.html"
+    }
+  },
   "crons": [
     {
       "path": "/api/daily-report",
@@ -105,11 +110,11 @@
     },
     {
       "source": "/movimento/convite/:token",
-      "destination": "/movimento/convite/index.html"
+      "destination": "/api/movimento-preview?token=:token"
     },
     {
       "source": "/movimento/convite/:token/",
-      "destination": "/movimento/convite/index.html"
+      "destination": "/api/movimento-preview?token=:token"
     },
     {
       "source": "/movimento/convite",

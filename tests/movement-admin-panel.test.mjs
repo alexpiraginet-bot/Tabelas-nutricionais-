@@ -5,6 +5,9 @@ import vm from "node:vm";
 
 const panelPath = new URL("../public/painel.html", import.meta.url);
 const panel = await readFile(panelPath, "utf8");
+const editorPath = new URL("../public/painel-movimento-editor.js", import.meta.url);
+const editor = await readFile(editorPath, "utf8");
+const editorCss = await readFile(new URL("../public/painel-movimento-editor.css", import.meta.url), "utf8");
 
 function section(source, start, end) {
   const from = source.indexOf(start);
@@ -58,7 +61,7 @@ function fixedDate(now) {
   };
 }
 
-function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = () => true, now = "2026-08-12T12:00:00.000Z" } = {}) {
+function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = () => true, copyLink = () => {}, now = "2026-08-12T12:00:00.000Z" } = {}) {
   const elements = new Map(Object.entries({
     "#movInviteAudience": element("influencer"),
     "#movInviteInfluencerField": element(),
@@ -88,7 +91,7 @@ function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = 
     window: { confirm, location: { origin: "https://bentogelateria.com" } },
     Date: fixedDate(now),
     URL,
-    copyLink() {},
+    copyLink,
     loadMovimento,
   };
   vm.createContext(context);
@@ -96,11 +99,11 @@ function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = 
   return { elements, context };
 }
 
-test("Movement admin form exposes audience-specific fields and retains the immediate-only link affordance", () => {
+test("Movement admin form exposes audience-specific fields and explains persistent resend history", () => {
   const form = section(panel, '<form id="movInviteForm"', "</form>");
 
   assert.match(form, /<select id="movInviteAudience"[^>]*>/);
-  assert.match(form, /<option value="influencer">Influenciadora<\/option>/);
+  assert.match(form, /<option value="influencer">Convidada<\/option>/);
   assert.match(form, /<option value="partner">Parceiro<\/option>/);
   assert.match(form, /id="movInviteName"/);
   assert.match(form, /id="movInviteCompany"/);
@@ -108,7 +111,44 @@ test("Movement admin form exposes audience-specific fields and retains the immed
   assert.match(form, /id="movInviteLink"/);
   assert.match(form, /id="movInviteCopy"/);
   assert.match(form, /id="movInviteNew"/);
+  assert.match(form, /salvo no histórico/i);
   assert.match(panel, /\.mov-invite-grid \[hidden\]\{display:none!important\}/);
+  assert.doesNotMatch(form, /só aparece neste momento/i);
+});
+
+test("Movement presentation editor is available as a mobile-safe second subtab", () => {
+  assert.match(panel, /id="movAdminTabs"/);
+  assert.match(panel, /data-mov-admin-tab="invites"/);
+  assert.match(panel, /data-mov-admin-tab="content"/);
+  assert.match(panel, /id="movContentPane"/);
+  assert.match(panel, /href="\/painel-movimento-editor\.css"/);
+  assert.match(panel, /src="\/painel-movimento-editor\.js"/);
+
+  for (const id of ["movEditorAudience", "movEditorSceneList", "movEditorPreview", "movEditorForm", "movEditorSave", "movEditorRestore"]) {
+    assert.match(editor, new RegExp(id));
+  }
+  for (const label of ["Convidada", "Parceiro", "Nome e empresa são definidos pelo link", "Foto principal", "Versão vertical para iPhone", "Intensidade da imagem", "Salvar alterações"]) {
+    assert.match(editor, new RegExp(label));
+  }
+  assert.match(editor, /beforeunload/);
+  assert.match(editor, /window\.confirm/);
+  assert.match(editor, /\/api\/movimento-content\?fresh=1/);
+  assert.match(editor, /\/api\/upload/);
+  assert.match(editor, /function optimizeImage\(/);
+  assert.match(editor, /id = "movImageCropDialog"/);
+  for (const label of ["Ajuste e otimize", "Enquadramento horizontal", "Enquadramento vertical", "Zoom", "Aplicar corte e enviar"]) assert.match(editor, new RegExp(label));
+  for (const ratio of ["Principal · 16:9", "Principal · 8:5", "Vertical · 9:16", "Vertical · 4:5"]) assert.match(editor, new RegExp(ratio));
+  assert.match(editor, /createImageBitmap/);
+  assert.match(editor, /var formats = \[\{ type: "image\/webp", extension: "webp" \}, \{ type: "image\/jpeg", extension: "jpg" \}\]/);
+  assert.match(editor, /var qualities = \[\.84, \.76, \.68, \.58\]/);
+  assert.match(editor, /canvas\.toBlob\(resolve, format\.type, quality\)/);
+  assert.match(editorCss, /\.mov-crop-dialog\{/);
+  assert.match(editorCss, /\.mov-crop-actions button\{[^}]*min-height:48px/);
+  for (const field of ["imageUrl", "mobileImageUrl", "imageOpacity", "eyebrow", "title", "body", "altText"]) {
+    assert.match(editor, new RegExp(field));
+  }
+  for (const sceneId of ["INF-08", "INF-14", "PAR-11", "PAR-16"]) assert.match(editor, new RegExp(`"${sceneId}"`));
+  assert.doesNotMatch(editor, /\.innerHTML\s*=/);
 });
 
 test("Panel login gate keeps password and submit controls touch-ready on iPhone", () => {
@@ -125,10 +165,10 @@ test("Movement admin create handler sends exactly the audience-specific create-i
   assert.match(createHandler, /companyName:audienceType==="partner"\?companyName:undefined/);
   assert.match(createHandler, /recipientName:audienceType==="partner"\?recipientName:undefined/);
   assert.match(createHandler, /data\.invitePath/);
-  assert.doesNotMatch(functionBody(panel, "renderMovimento", "function renderSejaBento"), /invitePath/);
+  assert.match(functionBody(panel, "renderMovimento", "function renderSejaBento"), /movementInviteUrl\(invite\)/);
 });
 
-test("Movement admin renders lifecycle, RSVP, and tier information while offering confirmed revocation", () => {
+test("Movement admin renders reusable invite actions, legacy reissue, lifecycle, RSVP, and confirmed revocation", () => {
   const renderHandler = functionBody(panel, "renderMovimento", "function renderSejaBento");
   const revokeHandler = functionBody(panel, "revokeMovementInvite", "function renderMovimento");
   const movementPresentation = section(panel, "const MOVEMENT_STATUS_LABELS", "function renderMovimento");
@@ -140,13 +180,22 @@ test("Movement admin renders lifecycle, RSVP, and tier information while offerin
     assert.match(movementPresentation, new RegExp(tier));
   }
   assert.match(renderHandler, /Idade da criança/);
+  assert.match(renderHandler, /Tamanho da convidada/);
+  assert.match(panel, /Resposta antiga: camiseta/);
   assert.match(renderHandler, /Interesse em transporte/);
+  assert.match(renderHandler, /Reenviar convite/);
+  assert.match(renderHandler, /Copiar link/);
+  assert.match(renderHandler, /Abrir convite/);
+  assert.match(renderHandler, /Ativar reenvio/);
+  assert.match(renderHandler, /movementInviteUrl\(invite\)/);
   assert.match(renderHandler, /Novo convite/);
   assert.match(renderHandler, /Revogar convite/);
   assert.match(revokeHandler, /window\.confirm\(/);
   assert.match(revokeHandler, /action:"revoke-invite"/);
   assert.match(revokeHandler, /inviteId:invite\.id/);
   assert.match(revokeHandler, /loadMovimento\(\)/);
+  assert.match(panel, /action:"reissue-invite"/);
+  assert.match(panel, /navigator\.share/);
 });
 
 test("Movement admin executes the partner switch and sends the partner create payload", async () => {
@@ -224,4 +273,31 @@ test("Movement admin keeps a successful revocation final when the following refr
   assert.equal(button.disabled, true);
   assert.equal(button.textContent, "Revogado");
   assert.equal(elements.get("#movError").textContent, "Convite revogado; atualização pendente.");
+});
+
+test("Movement admin activates resend on the same legacy invite and exposes the replacement link", async () => {
+  const requests = [];
+  const confirmations = [];
+  const copied = [];
+  const { elements, context } = movementHarness({
+    confirm: (message) => { confirmations.push(message); return true; },
+    copyLink: (url) => copied.push(url),
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, json: async () => ({ invitePath: "/movimento/convite/reissued-opaque-token-abcdefghijklmnopqrstuvwxyz" }) };
+    },
+  });
+  const invite = { id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18", audienceType: "influencer", displayName: "Ana", status: "responded", invitePath: null };
+  const button = element();
+
+  await context.reissueMovementInvite(invite, button);
+
+  assert.equal(confirmations.length, 1);
+  assert.match(confirmations[0], /endereço anterior deixará de funcionar/i);
+  assert.deepEqual(JSON.parse(requests[0].options.body), { action: "reissue-invite", inviteId: invite.id });
+  assert.equal(invite.status, "responded");
+  assert.equal(invite.invitePath, "/movimento/convite/reissued-opaque-token-abcdefghijklmnopqrstuvwxyz");
+  assert.equal(elements.get("#movInviteResult").hidden, false);
+  assert.equal(elements.get("#movInviteLink").href, "https://bentogelateria.com/movimento/convite/reissued-opaque-token-abcdefghijklmnopqrstuvwxyz");
+  assert.deepEqual(copied, ["https://bentogelateria.com/movimento/convite/reissued-opaque-token-abcdefghijklmnopqrstuvwxyz"]);
 });

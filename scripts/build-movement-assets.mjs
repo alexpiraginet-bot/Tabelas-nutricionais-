@@ -14,8 +14,6 @@ const OUTPUT_DIR = STAGING_DIR;
 const EXACT_ASSETS = {
   shirt: path.join(ROOT_DIR, "public/movimento/camiseta-referencia.jpg"),
   product: path.join(ROOT_DIR, "public/movimento/picoles-lineup-real.jpg"),
-  productIsolated: path.join(ROOT_DIR, "public/treats/picole-pistache.webp"),
-  wordmark: path.join(ROOT_DIR, "public/movimento/bento-wordmark-gold.png"),
 };
 const DISCLOSURE = "Visualização conceitual gerada por IA";
 const COMPOSED_DISCLOSURES = {
@@ -23,30 +21,37 @@ const COMPOSED_DISCLOSURES = {
   "editorial-board:shirt": "referência oficial de camiseta Bentô composta sem redesenho",
   shirt: "referência oficial de camiseta Bentô composta sem redesenho",
   product: "produto e embalagem do acervo real Bentô compostos sem redesenho",
-  workshop: "picolé do acervo real Bentô composto sem redesenho",
   wordmark: "wordmark oficial Bentô composto sem redesenho",
+  cart: "carrinho real Bentô preservado sem substituição da marca existente",
 };
-const PIPELINE_VERSION = "movement-v2-4";
-const MANAGED_OUTPUT_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|10)-(?:mobile|desktop)-\d+\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|10)-lqip\.jpg$|^manifest\.json$/;
-const GENERATED_OUTPUT_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|10)-(?:mobile|desktop)-\d+(?: 2)?\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|10)-lqip(?: 2)?\.jpg$|^manifest(?: 2)?\.json$/;
+const PIPELINE_VERSION = "movement-v2-7";
+const MANAGED_OUTPUT_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-(?:mobile|desktop)-\d+\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-lqip\.jpg$|^manifest\.json$/;
+const GENERATED_OUTPUT_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-(?:mobile|desktop)-\d+(?: 2)?\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-lqip(?: 2)?\.jpg$|^manifest(?: 2)?\.json$/;
 
 const ROUTES = {
-  influencer: ["INF-HERO", "INF-01", "INF-02", "INF-03", "INF-04", "INF-05", "INF-06", "INF-07"],
-  partner: ["PAR-HERO", "PAR-01", "PAR-02", "PAR-03", "PAR-04", "PAR-05", "PAR-06", "PAR-07", "PAR-08", "PAR-09", "PAR-10"],
+  influencer: ["INF-HERO", ...Array.from({ length: 14 }, (_, index) => `INF-${String(index + 1).padStart(2, "0")}`)],
+  partner: ["PAR-HERO", ...Array.from({ length: 16 }, (_, index) => `PAR-${String(index + 1).padStart(2, "0")}`)],
 };
 
 const ALT_TEXT = {
   "INF-HERO": "Grupo de convidadas chegando em roupa de treino ao lounge contemporâneo junto ao canal urbano de Vitória",
   "INF-01": "Deck contemporâneo do lounge junto ao canal e à marina urbana preparado para a manhã Bentô",
-  "INF-02": "Convidadas em roupa de treino sendo acolhidas com naturalidade na chegada ao lounge",
+  "INF-02": "Convidadas em roupa de treino chegando ao lounge em transporte executivo premium com motorista",
   "INF-03": "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas",
   "INF-04": "Crianças acompanhadas por adultos decorando picolés em oficina organizada dentro do cerimonial",
   "INF-05": "Convidada em roupa de treino recebendo cuidado em uma estação elegante de recovery",
-  "INF-06": "Composição editorial do kit e da camiseta de treino oficial reservados à influenciadora",
+  "INF-06": "Composição editorial do kit e da camiseta de treino oficial reservados à convidada",
   "INF-07": "Convidadas celebrando de forma espontânea o primeiro aniversário Bentô depois do treino",
+  "INF-08": "Dois profissionais preparando cafés especiais em V60 e máquina de espresso diante das convidadas",
+  "INF-09": "Convidadas reunidas diante de uma mesa elegante de café da manhã com frutas pães e louças claras",
+  "INF-10": "Carrinho de gelato Bentô em atendimento durante a celebração com convidadas ao redor",
+  "INF-11": "Kits de suplementação organizados sobre uma mesa de marca em uma apresentação elegante de bem-estar",
+  "INF-12": "Mulheres recebendo atendimento profissional de skincare e maquiagem em estações claras e organizadas",
+  "INF-13": "Convidadas de avental criando os próprios picolés com profissionais Bentô de jaleco branco",
+  "INF-14": "Crianças acompanhadas brincando com brinquedos minimalistas de madeira mesas baixas blocos e casinha",
   "PAR-HERO": "Estrutura branca e dourada pronta para receber marcas no lounge junto ao canal urbano",
-  "PAR-01": "Palco e backdrop modulares em branco e dourado preparados para aplicações coletivas de marcas",
-  "PAR-02": "Veículo premium elétrico estacionado no deck do lounge para visualizar uma chegada do evento",
+  "PAR-01": "Recepção de chegada com anfitriã entregando pulseira a convidadas junto a uma instalação arquitetônica dourada",
+  "PAR-02": "Transporte executivo premium com motorista recebendo convidadas na chegada ao lounge",
   "PAR-03": "Café da manhã editorial com áreas limpas para presença funcional de uma marca participante",
   "PAR-04": "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real",
   "PAR-05": "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca",
@@ -55,64 +60,23 @@ const ALT_TEXT = {
   "PAR-08": "Produtos reais Bentô compostos em um cenário editorial para estudo de cocriação responsável",
   "PAR-09": "Backdrop branco e dourado preparado como ponto de fotografia para o encontro Bentô",
   "PAR-10": "Mesa de curadoria com amostras de materiais e espaços limpos para propostas de participação",
+  "PAR-11": "Dois baristas preparando V60 e espresso em uma mesa de cafés especiais com áreas de presença de marca",
+  "PAR-12": "Carrinho oficial de gelato Bentô em atendimento com painel reservado para uma aplicação aprovada de parceiro",
+  "PAR-13": "Kits de suplementação organizados sobre mesa de marca com embalagens neutras e materiais de orientação",
+  "PAR-14": "Equipe profissional realizando skincare e maquiagem em mulheres diante de espelhos iluminados",
+  "PAR-15": "Adultas de avental fabricando picolés com profissionais de jaleco branco em uma bancada de alimentos",
+  "PAR-16": "Espaço infantil minimalista com brinquedos de madeira mesas baixas blocos e crianças acompanhadas",
 };
 
 const SCENE_IDS = [...ROUTES.influencer, ...ROUTES.partner];
+const EXPECTED_OUTPUT_COUNT = 1 + SCENE_IDS.reduce((total, id) => total + (isHero(id) ? 13 : 16), 0);
 const COMPOSITIONS = {
-  "INF-04": {
-    kind: "product",
-    mode: "workshop",
-    desktop: [{ left: 0.37, top: 0.72, width: 0.035, angle: 90 }, { left: 0.55, top: 0.72, width: 0.035, angle: 90 }],
-    mobile: [{ left: 0.37, top: 0.72, width: 0.035, angle: 90 }, { left: 0.55, top: 0.72, width: 0.035, angle: 90 }],
-  },
   "INF-06": { kind: "shirt", mode: "editorial-board" },
-  "PAR-06": {
-    kind: "product",
-    mode: "workshop",
-    desktop: [{ left: 0.15, top: 0.81, width: 0.035, angle: 90 }, { left: 0.45, top: 0.81, width: 0.035, angle: 90 }, { left: 0.75, top: 0.81, width: 0.035, angle: 90 }],
-    mobile: [{ left: 0.32, top: 0.81, width: 0.035, angle: 90 }, { left: 0.48, top: 0.81, width: 0.035, angle: 90 }, { left: 0.64, top: 0.81, width: 0.035, angle: 90 }],
-  },
   "PAR-07": { kind: "shirt", mode: "editorial-board" },
   "PAR-08": { kind: "product", mode: "editorial-board" },
 };
-const WORDMARK_COMPOSITIONS = {
-  "INF-HERO": {
-    mobile: [
-      { left: 0.135, top: 0.435, width: 0.075 },
-      { left: 0.285, top: 0.445, width: 0.07 },
-      { left: 0.8, top: 0.475, width: 0.07 },
-    ],
-    desktop: [{ left: 0.395, top: 0.505, width: 0.035 }],
-  },
-  "INF-03": {
-    mobile: [
-      { left: 0.066, top: 0.22, width: 0.044 },
-      { left: 0.176, top: 0.39, width: 0.05 },
-      { left: 0.692, top: 0.277, width: 0.046 },
-      { left: 0.681, top: 0.603, width: 0.047 },
-    ],
-    desktop: [
-      { left: 0.066, top: 0.22, width: 0.044 },
-      { left: 0.176, top: 0.39, width: 0.05 },
-      { left: 0.692, top: 0.277, width: 0.046 },
-      { left: 0.681, top: 0.603, width: 0.047 },
-    ],
-  },
-  "PAR-04": {
-    mobile: [
-      { left: 0.219, top: 0.327, width: 0.036 },
-      { left: 0.405, top: 0.241, width: 0.036 },
-      { left: 0.512, top: 0.43, width: 0.038 },
-      { left: 0.782, top: 0.429, width: 0.038 },
-    ],
-    desktop: [
-      { left: 0.219, top: 0.327, width: 0.036 },
-      { left: 0.405, top: 0.241, width: 0.036 },
-      { left: 0.512, top: 0.43, width: 0.038 },
-      { left: 0.782, top: 0.429, width: 0.038 },
-    ],
-  },
-};
+const OFFICIAL_WORDMARK_SOURCE_IDS = new Set(["PAR-09"]);
+const CART_SOURCE_IDS = new Set(["INF-10", "PAR-12"]);
 const FORMATS = {
   avif: { extension: "avif", encode: (image) => image.avif({ quality: 45, effort: 4 }) },
   webp: { extension: "webp", encode: (image) => image.webp({ quality: 72, effort: 6, smartSubsample: true }) },
@@ -131,6 +95,12 @@ function targetWidths(id, direction) {
 function targetHeight(id, direction, width) {
   if (direction === "mobile") return Math.round(width * (isHero(id) ? 16 / 9 : 5 / 4));
   return Math.round(width * (isHero(id) ? 9 / 16 : 10 / 16));
+}
+
+function cropPosition(id, direction) {
+  if (direction !== "mobile") return "centre";
+  if (id === "INF-05") return "left";
+  return "centre";
 }
 
 async function sourcePath(id, direction) {
@@ -182,14 +152,14 @@ function disclosureFor(id) {
     const composition = COMPOSITIONS[id];
     details.push(COMPOSED_DISCLOSURES[`${composition.mode}:${composition.kind}`] || COMPOSED_DISCLOSURES[composition.mode] || COMPOSED_DISCLOSURES[composition.kind]);
   }
-  if (WORDMARK_COMPOSITIONS[id]) details.push(COMPOSED_DISCLOSURES.wordmark);
+  if (OFFICIAL_WORDMARK_SOURCE_IDS.has(id)) details.push(COMPOSED_DISCLOSURES.wordmark);
+  if (CART_SOURCE_IDS.has(id)) details.push(COMPOSED_DISCLOSURES.cart);
   return details.length ? `${DISCLOSURE} · ${details.join(" · ")}.` : DISCLOSURE;
 }
 
 async function composeExactAsset(id, direction, master) {
   const composition = COMPOSITIONS[id];
   if (!composition) return master;
-  if (composition.mode === "workshop") return composeWorkshopProducts(master, composition[direction]);
   if (composition.mode === "editorial-board") return createEditorialBoard(id, master, EXACT_ASSETS[composition.kind], direction);
 
   const placement = composition[direction];
@@ -268,81 +238,8 @@ export async function createEditorialBoard(id, master, exactAssetPath, direction
   };
 }
 
-async function isolateProduct(exactBuffer, insetWidth, angle = 0) {
-  const resized = await sharp(exactBuffer, { failOn: "error" })
-    .rotate()
-    .resize({ width: insetWidth, withoutEnlargement: true })
-    .png({ compressionLevel: 9, adaptiveFiltering: false, palette: false })
-    .toBuffer();
-
-  return sharp(resized, { failOn: "error" })
-    .rotate(angle, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png({ compressionLevel: 9, adaptiveFiltering: false, palette: false })
-    .toBuffer();
-}
-
-async function composeWorkshopProducts(master, placements) {
-  const exactBuffer = await readFile(EXACT_ASSETS.productIsolated);
-  const overlays = [];
-
-  for (const placement of placements) {
-    const inset = await isolateProduct(exactBuffer, Math.round(master.width * placement.width), placement.angle);
-    const insetMetadata = await sharp(inset).metadata();
-    overlays.push({
-      input: inset,
-      left: Math.max(0, Math.min(Math.round(master.width * placement.left), master.width - insetMetadata.width)),
-      top: Math.max(0, Math.min(Math.round(master.height * placement.top), master.height - insetMetadata.height)),
-    });
-  }
-
-  const composedBuffer = await sharp(master.buffer, { failOn: "error", limitInputPixels: 80_000_000 })
-    .rotate()
-    .composite(overlays)
-    .png({ compressionLevel: 9, adaptiveFiltering: false, palette: false })
-    .toBuffer();
-
-  return {
-    ...master,
-    buffer: composedBuffer,
-    sha256: sha256([master.sha256, sha256(exactBuffer), JSON.stringify(placements)].join("\n")),
-  };
-}
-
-async function composeWordmarks(id, direction, master) {
-  const placements = WORDMARK_COMPOSITIONS[id]?.[direction] || [];
-  if (placements.length === 0) return master;
-
-  const wordmarkBuffer = await readFile(EXACT_ASSETS.wordmark);
-  const overlays = [];
-
-  for (const placement of placements) {
-    const overlay = await sharp(wordmarkBuffer, { failOn: "error" })
-      .resize({ width: Math.round(master.width * placement.width), withoutEnlargement: true })
-      .png({ compressionLevel: 9, adaptiveFiltering: false, palette: false })
-      .toBuffer();
-    const metadata = await sharp(overlay).metadata();
-    overlays.push({
-      input: overlay,
-      left: Math.max(0, Math.min(Math.round(master.width * placement.left), master.width - metadata.width)),
-      top: Math.max(0, Math.min(Math.round(master.height * placement.top), master.height - metadata.height)),
-    });
-  }
-
-  const composedBuffer = await sharp(master.buffer, { failOn: "error", limitInputPixels: 80_000_000 })
-    .rotate()
-    .composite(overlays)
-    .png({ compressionLevel: 9, adaptiveFiltering: false, palette: false })
-    .toBuffer();
-
-  return {
-    ...master,
-    buffer: composedBuffer,
-    sha256: sha256([master.sha256, sha256(wordmarkBuffer), JSON.stringify(placements)].join("\n")),
-  };
-}
-
 async function composeMaster(id, direction, master) {
-  return composeWordmarks(id, direction, await composeExactAsset(id, direction, master));
+  return composeExactAsset(id, direction, master);
 }
 
 function renditionName(id, direction, width, extension) {
@@ -355,7 +252,7 @@ async function encodeRendition({ id, direction, master, width, format }) {
   const outputPath = path.join(OUTPUT_DIR, filename);
   const base = sharp(master.buffer, { failOn: "error", limitInputPixels: 80_000_000 })
     .rotate()
-    .resize(width, height, { fit: "cover", position: "centre", withoutEnlargement: true })
+    .resize(width, height, { fit: "cover", position: cropPosition(id, direction), withoutEnlargement: true })
     .toColourspace("srgb");
   const output = await FORMATS[format].encode(base).toBuffer();
 
@@ -375,7 +272,7 @@ async function encodeLqip(id, master) {
   const filename = `${id}-lqip.jpg`;
   const output = await sharp(master.buffer, { failOn: "error", limitInputPixels: 80_000_000 })
     .rotate()
-    .resize(width, height, { fit: "cover", position: "centre", withoutEnlargement: true })
+    .resize(width, height, { fit: "cover", position: cropPosition(id, "mobile"), withoutEnlargement: true })
     .blur(0.6)
     .toColourspace("srgb")
     .jpeg({ quality: 24, progressive: true, mozjpeg: true, chromaSubsampling: "4:2:0" })
@@ -480,8 +377,8 @@ async function directoryExists(directory) {
 
 async function assertGeneratedDirectory(directory) {
   const filenames = await readdir(directory);
-  if (filenames.length !== 299 || filenames.some((filename) => !MANAGED_OUTPUT_PATTERN.test(filename))) {
-    throw new Error(`${directory} contains ${filenames.length} files; exactly 299 managed outputs are required`);
+  if (filenames.length !== EXPECTED_OUTPUT_COUNT || filenames.some((filename) => !MANAGED_OUTPUT_PATTERN.test(filename))) {
+    throw new Error(`${directory} contains ${filenames.length} files; exactly ${EXPECTED_OUTPUT_COUNT} managed outputs are required`);
   }
 
   const manifest = JSON.parse(await readFile(path.join(directory, "manifest.json"), "utf8"));
@@ -507,7 +404,7 @@ async function assertGeneratedDirectory(directory) {
     }
   }
 
-  if (expectedFiles.size !== 299 || filenames.some((filename) => !expectedFiles.has(filename))) {
+  if (expectedFiles.size !== EXPECTED_OUTPUT_COUNT || filenames.some((filename) => !expectedFiles.has(filename))) {
     throw new Error(`${directory} file set does not match its manifest`);
   }
   return manifest;
@@ -591,8 +488,8 @@ async function main() {
   await assertOutput(manifest);
   await writeFile(path.join(OUTPUT_DIR, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
   const stagedFiles = await readdir(STAGING_DIR);
-  if (stagedFiles.length !== 299 || stagedFiles.some((filename) => !MANAGED_OUTPUT_PATTERN.test(filename))) {
-    throw new Error(`Staging contains ${stagedFiles.length} files; exactly 299 managed outputs are required`);
+  if (stagedFiles.length !== EXPECTED_OUTPUT_COUNT || stagedFiles.some((filename) => !MANAGED_OUTPUT_PATTERN.test(filename))) {
+    throw new Error(`Staging contains ${stagedFiles.length} files; exactly ${EXPECTED_OUTPUT_COUNT} managed outputs are required`);
   }
   await promoteStaging();
   process.stdout.write(`Built ${SCENE_IDS.length} Movimento V2 scene families.\n`);

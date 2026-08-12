@@ -167,11 +167,12 @@ A aba existente será ampliada sem alterar o painel-host ou sua autenticação:
 - influenciadora: nome e contato interno;
 - parceiro: empresa, responsável e contato interno;
 - validade futura obrigatória;
-- gerar token opaco, guardar somente o hash e copiar o link no ato;
+- gerar token opaco, guardar o hash para resolução pública e uma cópia cifrada para reenvio exclusivo pelo painel autenticado;
 - listar audiência, nome/empresa, responsável, criação, validade e estado;
 - estados derivados: gerado, aberto, confirmado, recusado, selecionado, revogado e expirado;
 - revogar sem excluir histórico;
-- emitir novo link quando necessário; token antigo nunca pode ser reconstruído;
+- abrir, copiar e reenviar links ativos já emitidos pelo próprio histórico;
+- para registros legados sem cópia cifrada, oferecer `Ativar reenvio`: substituir o token no mesmo convite após confirmação explícita, preservar RSVP e histórico e invalidar o endereço anterior;
 - mostrar RSVP, acompanhantes, idade/tamanho infantil, tamanhos da influenciadora e interesse em transporte;
 - mostrar participação escolhida pelo parceiro;
 - manter labels legíveis para registros legados.
@@ -197,7 +198,7 @@ Regras:
 - abertura é registrada uma única vez;
 - revogação bloqueia novas aberturas e respostas sem apagar histórico;
 - corpo limitado, honeypot, origem validada e erros neutros;
-- token bruto nunca entra em banco, log ou resposta administrativa posterior à criação.
+- token bruto nunca entra em banco ou log; somente a cópia cifrada pode ser lida pela API administrativa autenticada e convertida em rota relativa para reenvio.
 
 ## 7. Sistema visual
 
@@ -220,7 +221,7 @@ Mulheres brasileiras adultas aparentando 23–38 anos, beleza sofisticada, corpo
 
 ### Camisa
 
-Somente as quatro referências fornecidas por Alex são válidas. O wordmark vem de `public/movimento/bento-wordmark-gold.png`. Qualquer letra, cor, posição ou proporção divergente reprova a imagem.
+Somente as quatro referências fornecidas por Alex são válidas. A geometria do wordmark vem sempre de `public/movimento/bento-wordmark-gold.png`; ela nunca é redesenhada. Em superfície escura, usa-se o dourado oficial. Em superfície clara, o mesmo alfa e a mesma proporção do master podem receber o verde-escuro Bentô para garantir contraste. A aplicação acompanha escala, posição, perspectiva, luz e oclusão da superfície: em camiseta ou jaleco fica pequena e alta no peito, conforme a referência oficial; em carrinho ou painel pode assumir assinatura maior. Qualquer letra, proporção, cor sem contraste ou posicionamento incompatível reprova a imagem.
 
 - influenciadora: nenhuma ocorrência de `sua marca aqui`;
 - parceiro: áreas de patrocinador apenas em HTML/CSS e somente na região lombar, abaixo da frase;
@@ -241,6 +242,21 @@ São 19 famílias exclusivas: 8 da influenciadora e 11 do parceiro, incluindo os
 ### Parceiro
 
 `PAR-HERO` chegada/estrutura; `PAR-01` palco; `PAR-02` mobilidade; `PAR-03` café; `PAR-04` movimento; `PAR-05` recovery; `PAR-06` oficina; `PAR-07` kit/camisa; `PAR-08` produto; `PAR-09` backdrop; `PAR-10` fechamento/curadoria.
+
+## 15. Atualização canônica — 12 de agosto de 2026
+
+Esta seção substitui qualquer regra anterior conflitante deste documento. O detalhamento técnico está em `docs/superpowers/specs/2026-08-12-bento-movimento-cms-design.md`.
+
+- No hero mobile pessoal, o nome da convidada ou da empresa é o destaque isolado. A mensagem nominal fica menor e organizada em um segundo elemento. A identidade continua fixa pelo link e fora do CMS.
+- Toda experiência e todo painel usam `convidada`; `influencer` permanece apenas como identificador interno de compatibilidade.
+- O RSVP faz uma única pergunta: `Qual tamanho você usa?`, com `PP`, `P`, `M`, `G`, `GG` e `XGG`. O valor é espelhado nos dois campos legados de persistência.
+- Idade e tamanho infantil aparecem somente depois de a convidada informar que levará uma criança.
+- A prévia compartilhada do link deve apresentar o primeiro nome da convidada ou o nome da empresa antes da abertura, sem mover a personalização para o CMS.
+- A narrativa passa a ter 32 famílias visuais: `INF-HERO` + `INF-01` a `INF-14`, e `PAR-HERO` + `PAR-01` a `PAR-16`.
+- As duas propostas passam a dar capítulos próprios a cafés especiais com dois profissionais e preparo em V60/espresso, café da manhã, carrinho Bentô, kits de suplementação, skincare/maquiagem profissionais, recovery com macas, oficina infantil, oficina adulta de picolés e entretenimento infantil minimalista.
+- O backdrop de parceiros mostra o wordmark master Bentô e `1 ANO BENTÔ` em destaque, acompanhado por áreas `SUA MARCA AQUI`. O wordmark oficial nunca é redesenhado.
+- Toda estampagem usa a geometria do wordmark master: dourado em superfícies escuras e verde-escuro Bentô em superfícies claras, com escala e posição coerentes com o objeto fotografado. Camisetas e jalecos seguem o mockup oficial, com assinatura pequena e alta no peito.
+- A foto-base deve ser gerada sem marca e cada aplicação é aprovada individualmente no master e nos crops. Overlays planos em lote são proibidos. Nos carrinhos, as fotografias reais e as marcas que já existem no equipamento são preservadas sem substituição; o backdrop `PAR-09` recebe o master oficial por composição controlada, nunca por cartão HTML flutuante.
 
 Cada família tem crops próprios 9:16/4:5 para mobile e 16:9/16:10 para desktop. OG é 1200 × 630 e não conta como capítulo.
 
@@ -270,7 +286,7 @@ Cada família tem crops próprios 9:16/4:5 para mobile e 16:9/16:10 para desktop
 5. RSVP salva, reabre e atualiza sem duplicar.
 6. Parceiro escolhe exatamente uma das quatro participações e o vínculo ao convite é inequívoco.
 7. Link geral continua acessível; link pessoal é privado e compatível com o formato anterior.
-8. Admin cria ambos os públicos, copia no ato, revoga e acompanha os estados.
+8. Admin cria ambos os públicos, mantém os links ativos no histórico, abre, copia, reenvia, ativa reenvio seguro para registros legados, revoga e acompanha os estados.
 9. Nenhuma cena ou asset é repetido entre capítulos.
 10. Nenhuma imagem contém local, pessoa, camisa, logo ou produto fora das regras.
 11. A apresentação da influenciadora não contém linguagem ou marcação de patrocinador.

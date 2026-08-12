@@ -9,7 +9,14 @@
       "INF-04",
       "INF-05",
       "INF-06",
-      "INF-07"
+      "INF-07",
+      "INF-08",
+      "INF-09",
+      "INF-10",
+      "INF-11",
+      "INF-12",
+      "INF-13",
+      "INF-14"
     ],
     "partner": [
       "PAR-HERO",
@@ -22,34 +29,40 @@
       "PAR-07",
       "PAR-08",
       "PAR-09",
-      "PAR-10"
+      "PAR-10",
+      "PAR-11",
+      "PAR-12",
+      "PAR-13",
+      "PAR-14",
+      "PAR-15",
+      "PAR-16"
     ]
   },
   "assets": {
     "INF-HERO": {
       "id": "INF-HERO",
       "generated": true,
-      "sourceSha256": "86d89b4407a3ce25047b025e494a622c21596e64de8075dea030b86934911b55",
+      "sourceSha256": "f88bf0d211a946e1c0b9e956b77fd5ac68dfaca1f2f20603d6c4ad1251daae50",
       "alt": "Grupo de convidadas chegando em roupa de treino ao lounge contemporâneo junto ao canal urbano de Vitória",
-      "disclosure": "Visualização conceitual gerada por IA · wordmark oficial Bentô composto sem redesenho.",
+      "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
           "width": 941,
           "height": 1672,
-          "sha256": "69db99c9786d365cd17078b1b3293266eca058cc7c328b67ab120c9c86df68fd"
+          "sha256": "b3ec921389559decbb42aa5b1c13d32af4f176ade864a7b20b9b5beb53909377"
         },
         "desktop": {
           "width": 1672,
           "height": 941,
-          "sha256": "543d1239336222d88cf214b1c4d3ceeb5265c3a2838e123a0905e3b212b448b0"
+          "sha256": "b6becafdee5b8654bd76fd8825e7b4a75c260a992fe75cf1754a0353dd6670a7"
         }
       },
       "lqip": {
         "src": "/movimento/v2/INF-HERO-lqip.jpg",
         "width": 24,
         "height": 43,
-        "bytes": 424,
-        "sha256": "67b72c0daa1f9a57d3dc518fa8766e3f81a6d35c7ae212ecbecaf740d918084e"
+        "bytes": 422,
+        "sha256": "87df6aa703d2f7996a2dc8f46f9d5d74ff0836b5008d330cc55004a68482a927"
       },
       "mobile": {
         "aspectRatio": 0.5625,
@@ -59,15 +72,15 @@
               "src": "/movimento/v2/INF-HERO-mobile-480.avif",
               "width": 480,
               "height": 853,
-              "bytes": 22690,
-              "sha256": "88981559d185034de565b77b9f75864e44e8eb02f6139f23d08dd21a10f0a365"
+              "bytes": 22272,
+              "sha256": "750b95915e9812c6e5dd36d5d79b83fffe1c28293570ef6d9dcb94fd8003aa51"
             },
             {
               "src": "/movimento/v2/INF-HERO-mobile-768.avif",
               "width": 768,
               "height": 1365,
-              "bytes": 39214,
-              "sha256": "4ae0ade6deb40f8f1385f538fc0c6150576e2446e015f90c9ed3bf808b34dada"
+              "bytes": 38632,
+              "sha256": "5eee2dafa30e672f4f1f593401185d2f4d1d1fdcddf81b8cdfe6c576d4469e8d"
             }
           ],
           "webp": [
@@ -75,15 +88,15 @@
               "src": "/movimento/v2/INF-HERO-mobile-480.webp",
               "width": 480,
               "height": 853,
-              "bytes": 37422,
-              "sha256": "c8295eb521ef0c645e83d9d799303b0dfdbd782243134fb6ca181537fe47a341"
+              "bytes": 37198,
+              "sha256": "03a62726d5c40842a031cfedbc9ef91c684abd6e261d0133484e3fa0d2855775"
             },
             {
               "src": "/movimento/v2/INF-HERO-mobile-768.webp",
               "width": 768,
               "height": 1365,
-              "bytes": 69506,
-              "sha256": "194cfab8c61de2b34b94421772cecbf59d44cfbd52b753ea44846323181d892e"
+              "bytes": 68784,
+              "sha256": "4a6f4d5248b13870a6ff8314a737bb7d8802e481cf135b98cf88c943f1656c41"
             }
           ],
           "jpg": [
@@ -91,15 +104,15 @@
               "src": "/movimento/v2/INF-HERO-mobile-480.jpg",
               "width": 480,
               "height": 853,
-              "bytes": 50491,
-              "sha256": "49762cb019b4a2f40c748c9ce12106445e6c3d3cb019b78c4bc0336440b78b76"
+              "bytes": 50275,
+              "sha256": "74810db15a248a170675d4c78a5e18882d2fd7c2896cdcc6b6a60d02df736bee"
             },
             {
               "src": "/movimento/v2/INF-HERO-mobile-768.jpg",
               "width": 768,
               "height": 1365,
-              "bytes": 103469,
-              "sha256": "e0f2eaeed3399991de370c8b4107b4766ec7e847304c25894927e5790250945a"
+              "bytes": 102906,
+              "sha256": "50ad013f8830d3eaa8d1e50a34f3a45e58e4d44963560594b5ea9ac790f5fb77"
             }
           ]
         }
@@ -112,15 +125,15 @@
               "src": "/movimento/v2/INF-HERO-desktop-1080.avif",
               "width": 1080,
               "height": 608,
-              "bytes": 31148,
-              "sha256": "6a807ded1181c9ac221bc6b9a8ee85d3d82909d9dda395378aa3a8e2e6d301e8"
+              "bytes": 30751,
+              "sha256": "b27980f91cdb86caa9c811499801a4a37ff603dd9e063b0c043a214cbb105c14"
             },
             {
               "src": "/movimento/v2/INF-HERO-desktop-1440.avif",
               "width": 1440,
               "height": 810,
-              "bytes": 43115,
-              "sha256": "a86c56b7e50233bb49ed186085f5b46261086621156dd8c833106c1f8d166715"
+              "bytes": 42744,
+              "sha256": "8f125c9cfd2a619a8fa45227b9fe7a03e6c9ed8ee6f82a615c25552737a19dfc"
             }
           ],
           "webp": [
@@ -128,15 +141,15 @@
               "src": "/movimento/v2/INF-HERO-desktop-1080.webp",
               "width": 1080,
               "height": 608,
-              "bytes": 54694,
-              "sha256": "3be9a8ed23853d1e54a558096f7dfd8af1875795857adf63e694d058841a3171"
+              "bytes": 54610,
+              "sha256": "1602a87a3d49eeb4c8485627a906f86de24410ac839c601dd301cf4bc31c5d09"
             },
             {
               "src": "/movimento/v2/INF-HERO-desktop-1440.webp",
               "width": 1440,
               "height": 810,
-              "bytes": 78372,
-              "sha256": "99b6f62f64181f9a65cf8156167e20a173439eb2329c50c91adb0a56a3eb71ef"
+              "bytes": 78044,
+              "sha256": "56a2db6945d2d23ee14d6a972cdaa7ceccde2237b399dd9592d0391bf3aa3ffb"
             }
           ],
           "jpg": [
@@ -144,15 +157,15 @@
               "src": "/movimento/v2/INF-HERO-desktop-1080.jpg",
               "width": 1080,
               "height": 608,
-              "bytes": 76148,
-              "sha256": "01c65a38c35e89a7951a27b0099a415f8406dcd2d19881b3e4e3c65385c9c93b"
+              "bytes": 76023,
+              "sha256": "a12687044f3b5b46de91ed8dbae462cc36d55ef067f0269dfd5b08c63a328eb1"
             },
             {
               "src": "/movimento/v2/INF-HERO-desktop-1440.jpg",
               "width": 1440,
               "height": 810,
-              "bytes": 117751,
-              "sha256": "20fc3386ca8b4e9188000358b8db7da70dd0669129c82fe96b7d1778d5127bdc"
+              "bytes": 117543,
+              "sha256": "1235ff2f6210da0f92a40828e3be256c13cd5e7c267aa3f013dcb9be66921cca"
             }
           ]
         }
@@ -161,7 +174,7 @@
     "INF-01": {
       "id": "INF-01",
       "generated": true,
-      "sourceSha256": "ba813a704c33999f1da06784704a0ce0a8b82687150c612822a61279c8ddbaf0",
+      "sourceSha256": "1066a54c210a40e46f6c4471205b9c76ed16d22260ae45e060ed2f1ccf9e5a26",
       "alt": "Deck contemporâneo do lounge junto ao canal e à marina urbana preparado para a manhã Bentô",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
@@ -314,27 +327,27 @@
     "INF-02": {
       "id": "INF-02",
       "generated": true,
-      "sourceSha256": "09942dcb5173edc1e8d06472e499166d6f4e54da9c790f76c6c19f63980463df",
-      "alt": "Convidadas em roupa de treino sendo acolhidas com naturalidade na chegada ao lounge",
+      "sourceSha256": "88b358544d860d871d6a3bd048d51c96fc9d37ea78a022b35758e3ce5ad9a78d",
+      "alt": "Convidadas em roupa de treino chegando ao lounge em transporte executivo premium com motorista",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "fc88fd9616ea5d717e8cd9096e793ef19c96106260000b1434fae1b5be010689"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "faf7f5d712612cf084c8fceac2565dd752c5744ade1b509e01752a4bff189ef5"
         },
         "desktop": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "fc88fd9616ea5d717e8cd9096e793ef19c96106260000b1434fae1b5be010689"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "faf7f5d712612cf084c8fceac2565dd752c5744ade1b509e01752a4bff189ef5"
         }
       },
       "lqip": {
         "src": "/movimento/v2/INF-02-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 417,
-        "sha256": "f9ea28996529ab05cc5a755697b3aca1b2e89c2d36cc8064674bd8c10d9d2dfd"
+        "bytes": 409,
+        "sha256": "308673aae759b71b1d0953ba66f4e2bdadb37200ac6fca0d02529e9771567d07"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -344,15 +357,15 @@
               "src": "/movimento/v2/INF-02-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 17714,
-              "sha256": "f8a464891d0c5afeda0958fc8882088d1a931fd115af447a2cf027d9d5662c39"
+              "bytes": 16765,
+              "sha256": "3763d08aedda841924879b001293e29e5ba01b43ad5c7581fec4788505e3ea42"
             },
             {
               "src": "/movimento/v2/INF-02-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 27939,
-              "sha256": "ceb44bcfb99fd4d403306174ab5103bc826383391eeec1a0388921d44dcd14a7"
+              "bytes": 29006,
+              "sha256": "8035de7c343a3aada2f6a1905695b3e78d67674e4b02ef7aade15ddeb8423f66"
             }
           ],
           "webp": [
@@ -360,15 +373,15 @@
               "src": "/movimento/v2/INF-02-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 28970,
-              "sha256": "02cc2bc9ab5af20ee623b0829f6ab4b949641040793017baeef0140f1a6628c0"
+              "bytes": 27716,
+              "sha256": "4cb679ea44a8691d6ee262132e2e3a3e46d8964cb00f30147c475ec31b129a2f"
             },
             {
               "src": "/movimento/v2/INF-02-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 48442,
-              "sha256": "3690619ba1d70da8c968f9ba5ce725f1e8443ab52a37b7945c3e8af612427d50"
+              "bytes": 49348,
+              "sha256": "ec4758e3ecdd35a7945ad259afa40118bd61d7062507eb73d210e0e5ec562843"
             }
           ],
           "jpg": [
@@ -376,15 +389,15 @@
               "src": "/movimento/v2/INF-02-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 39156,
-              "sha256": "ecbbe551913a443fea590b52f971adc608db1f6168576a440ce59d2935efc031"
+              "bytes": 37309,
+              "sha256": "c916d575d0bd399b8008c2754f0d78452a5d9bc94a5c504cf6727be74ea1e044"
             },
             {
               "src": "/movimento/v2/INF-02-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 75039,
-              "sha256": "dd270f0a09931386e24790f7d9aba42222ead8765f28e7d322935bff6a2eca71"
+              "bytes": 74832,
+              "sha256": "0d04361d69adb262164d2475b3d0ab34a84ed9736adca30320616977ddc800cb"
             }
           ]
         }
@@ -397,22 +410,22 @@
               "src": "/movimento/v2/INF-02-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 26656,
-              "sha256": "2fb6fcfb4c9baa95affcc68247c69781b745880fb8b88d7ff817f1a60b9b4f14"
+              "bytes": 23003,
+              "sha256": "84a3accaefcad8f4e271cd8b16cdd92a9e502544bd6d703d97ea1254cc56d3cd"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 39695,
-              "sha256": "949eafda8819f1ef29dbe5913047e668ffdd2dc7f59e53c7af5c578dde42265a"
+              "bytes": 36374,
+              "sha256": "aa3b36b1eb016b3c3ff43f68d16c88583c6e4980b4c7e4e21ca524947ac2bb02"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 52469,
-              "sha256": "877814dddc266007eee464c16f549f29e1b6cc33aa94604b0e4c476b13586bbc"
+              "bytes": 50170,
+              "sha256": "7fe974ca455621e5c090b18011341c5bfba94bcf49e5e3752c8ece87aefcd558"
             }
           ],
           "webp": [
@@ -420,22 +433,22 @@
               "src": "/movimento/v2/INF-02-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 42264,
-              "sha256": "4b8f7f5cc1e352cb04675a77ca7b83478e1a7d67f896296fd9c6e68cf9c1cabb"
+              "bytes": 37502,
+              "sha256": "c6479f34f7825b2dd2c92e3728c94cea79c3c70360d8560400967549c925d32e"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 66094,
-              "sha256": "a3a2b45f6ab3ce2aaea47d5ba9b3f5a0c0c5bc4b899d82d15b0e2296eca8c403"
+              "bytes": 60928,
+              "sha256": "e9f5368183db473dba6a9ae9fa7352e4753e1eda94373b733942f9c0219488d3"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 91596,
-              "sha256": "864ca9d8e39350ca215f307650e7d1ca02a408c51a7584116fb06c8df7c944eb"
+              "bytes": 87912,
+              "sha256": "f8ded1527ae300c397ffc2a01915e132d53ccd09fce1496379cb55a165e1ac82"
             }
           ],
           "jpg": [
@@ -443,22 +456,22 @@
               "src": "/movimento/v2/INF-02-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 54339,
-              "sha256": "539e8be1d3b6920f263a48e91398f30e2502f7256ec6b8c51f30a477d4e52ea6"
+              "bytes": 49353,
+              "sha256": "44a498fa42a587c95d953db91b28b050462715b750c3ef8f6ac3f9b2b6e4ec8b"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 91920,
-              "sha256": "eed2e36ace3c1f9ed3f21b2891248da02324f8b1debec0ca9c81ae6000adba16"
+              "bytes": 85314,
+              "sha256": "9dfbe45ed3d1dc61d443cef62d62d608bc1f8aedc54963e7980b4dce73932e2d"
             },
             {
               "src": "/movimento/v2/INF-02-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 138234,
-              "sha256": "b8ce12bd7a60cfc112b23e5d095cd679b2dbda47a38c2ae24c8273a8149dafc7"
+              "bytes": 132206,
+              "sha256": "d078d35429edda8eed0b1656efb26b9983382c9bd1ecf5150b23c6a65b69ae60"
             }
           ]
         }
@@ -467,27 +480,27 @@
     "INF-03": {
       "id": "INF-03",
       "generated": true,
-      "sourceSha256": "a8705ea7bc73a1f56a4ccd5d5c9c952250a00b25f1a88b8c7ac4fcaf068dea3b",
+      "sourceSha256": "0a37540299c1e8c698553bc05fc97310503d0cb4c15d011e6f257e3f3ac16e12",
       "alt": "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas",
-      "disclosure": "Visualização conceitual gerada por IA · wordmark oficial Bentô composto sem redesenho.",
+      "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "dafda6a8aea15b2cca54e2d5c61c9cfcb46740df41b027527b4032b2bb12eb82"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "6509c0dd59f076d952162e65ac646daa309df6962d8284cbb0384a89cff596ee"
         },
         "desktop": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "dafda6a8aea15b2cca54e2d5c61c9cfcb46740df41b027527b4032b2bb12eb82"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "6509c0dd59f076d952162e65ac646daa309df6962d8284cbb0384a89cff596ee"
         }
       },
       "lqip": {
         "src": "/movimento/v2/INF-03-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 434,
-        "sha256": "07fd740bfb2d421459a2eada23bbc4b64891b089f9eed1003c420a6a59306df0"
+        "bytes": 420,
+        "sha256": "a7574624770d4d290707cc2f378af13dc7f8eab5abf2be91b7ce51c57f5a691c"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -497,15 +510,15 @@
               "src": "/movimento/v2/INF-03-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 21997,
-              "sha256": "3f37f14bb86462ea038d406f68889873d4c020bf086b1399aa61d0b9587a6fd5"
+              "bytes": 12334,
+              "sha256": "d785b54ca0e8085b2208fbcb7833c931cfd4df914ac80e5f09d59766d5f8acfb"
             },
             {
               "src": "/movimento/v2/INF-03-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 37479,
-              "sha256": "268d6e51e82b3ef8f6deb5ff426317847ce4187bfc584e165fc828c02e704d35"
+              "bytes": 19516,
+              "sha256": "9f79afc70236756a5ac258a10f0c1db2470472defa19d7c1066cbd242e9ab837"
             }
           ],
           "webp": [
@@ -513,15 +526,15 @@
               "src": "/movimento/v2/INF-03-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 35278,
-              "sha256": "a9c56f343d930c76b09268fa7f5a76ff5ac46ff44397abdc14df0c8f300b8638"
+              "bytes": 20656,
+              "sha256": "74c692b98cd733b7cee0cb143bd9a84d9a3a82888abbff6ee272857e3c6d73ad"
             },
             {
               "src": "/movimento/v2/INF-03-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 64398,
-              "sha256": "a68c2d39989a4b656dc3343f04e7bb6f3949070f4810d0ea5cd422e703dcfcf3"
+              "bytes": 35060,
+              "sha256": "7d5372b2238660f882985ab6924599728cf5bf70986609111dc2cc8956f50c74"
             }
           ],
           "jpg": [
@@ -529,15 +542,15 @@
               "src": "/movimento/v2/INF-03-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 43879,
-              "sha256": "da138d9abbaeb8767f80b42d5d60dbba6c7acdf20dad7cfa4e66e2ff1e02530d"
+              "bytes": 31538,
+              "sha256": "7e1cebe8ea2d0599b8926dccb735c5fc215c658ff82f9cd458e9cfb9d42e8fd3"
             },
             {
               "src": "/movimento/v2/INF-03-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 89207,
-              "sha256": "f161d1cfeb98cf32912878cdf0c0cb839aa6e824c145e81ee2a8231a94e06501"
+              "bytes": 59299,
+              "sha256": "51b5c49e8f2e085e9639257805f8e41a52aaa822072bb18de1539ab8e593f1ee"
             }
           ]
         }
@@ -550,22 +563,22 @@
               "src": "/movimento/v2/INF-03-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 31036,
-              "sha256": "ac9bc4e26dd49a5a08aa22be2b79adb4c0c3aca2281034513c597d22642c7fd1"
+              "bytes": 18704,
+              "sha256": "e32a3c4d84b33997de0d4b0c2d9dc76f1fcb9b70e16be73334324ae1692b02b6"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 49047,
-              "sha256": "586d2ecb0ee781166ac581160eee3ec1471a2c715ecb06f0fae765355701a744"
+              "bytes": 26727,
+              "sha256": "5c93ba34272dae68c936cfbd98c2f3e1b75271f928877afc617a75cf309a1aed"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 68005,
-              "sha256": "7c8632bd6f7ad04ead83b8e644f84ff29780df572e39e816a01a2cb538421009"
+              "bytes": 34924,
+              "sha256": "3efb7e51871334980bbc52f4b6e98147b4be24cd32eb90a0abd4dff2aad001ae"
             }
           ],
           "webp": [
@@ -573,22 +586,22 @@
               "src": "/movimento/v2/INF-03-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 48826,
-              "sha256": "328970de92be1b1d90b816209f49b0b794836c871b5dafb671a7e5dcf53109fd"
+              "bytes": 30326,
+              "sha256": "07c2b812814c92e2b0137074e69f194294cd42575e3f279ee7d990ce052ce464"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 80918,
-              "sha256": "56802f0d9b6b059bfb09690f229bf52b5f0a436dd4c4aea3a8c5d8e3efde963b"
+              "bytes": 45396,
+              "sha256": "973cc15a21e5e04ad87e6d9d4ee6fabd008543768f32c46ab8d7427a111634d8"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 116886,
-              "sha256": "b03615bf1e732d4a06e98fccadc42df68d8e2ee845bb8087c4f8e48c99a86816"
+              "bytes": 64240,
+              "sha256": "a7370b26f439ed96121c1ea33cac8a250aec7fba76f4a18d0468306a2fcc0861"
             }
           ],
           "jpg": [
@@ -596,22 +609,22 @@
               "src": "/movimento/v2/INF-03-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 60195,
-              "sha256": "183a860314ecf15c17c117340888058fd5efcd783803604423c7a4cbef276775"
+              "bytes": 45081,
+              "sha256": "73af604881fa6e05e0e30174f9c79ecb5ef9b7f3445c7d7593cd557be347d8e2"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 104557,
-              "sha256": "d44d83cf6c69255ed276a9ffd59b2607bae7995f74e25142cabd8619c332e319"
+              "bytes": 73056,
+              "sha256": "5cf30fa7c7ee55c00128d89c4591ac80d0ccde7cbe2ad9eeb0f461857e2c71ec"
             },
             {
               "src": "/movimento/v2/INF-03-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 163766,
-              "sha256": "11ebd748d796fc534e51a45676f216c81a31af3826287b0e03b6b0ef026f3aaa"
+              "bytes": 108683,
+              "sha256": "80a462ad921fe954a4501743bdb157b892a39efc0b5da708268fa211d45e2ca5"
             }
           ]
         }
@@ -620,27 +633,27 @@
     "INF-04": {
       "id": "INF-04",
       "generated": true,
-      "sourceSha256": "e1cd66106fd744f0d198977b5489a54ac51fc7b68317393d8e2160feefb52d56",
+      "sourceSha256": "7252c295594b69877dd874e05881a64fc5a1396f3a9801e82528f91373017632",
       "alt": "Crianças acompanhadas por adultos decorando picolés em oficina organizada dentro do cerimonial",
-      "disclosure": "Visualização conceitual gerada por IA · picolé do acervo real Bentô composto sem redesenho.",
+      "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "c6560a94e836a4537c1a7d464af69b930d1060e30345adaccb419155d36c1b87"
+          "width": 1535,
+          "height": 1024,
+          "sha256": "2aae91073d6b2e8743d6c824bfd98bd3664f647ec6545ccc8a36e7d71c38320a"
         },
         "desktop": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "c6560a94e836a4537c1a7d464af69b930d1060e30345adaccb419155d36c1b87"
+          "width": 1535,
+          "height": 1024,
+          "sha256": "2aae91073d6b2e8743d6c824bfd98bd3664f647ec6545ccc8a36e7d71c38320a"
         }
       },
       "lqip": {
         "src": "/movimento/v2/INF-04-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 410,
-        "sha256": "2537d2143abc02b08ab275eec7165a022c64f18f95ae37d1400a6d493ddb2c3f"
+        "bytes": 415,
+        "sha256": "65efbeb10c6761d279ac45ef488bd608564e92d79ca1e0a5392f39877e62e39f"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -650,15 +663,15 @@
               "src": "/movimento/v2/INF-04-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 16420,
-              "sha256": "e72b12922fd584e7d44de6d0ce0e502bccc76f45c3d66d2e6ec64af0f45d9592"
+              "bytes": 15383,
+              "sha256": "5e0f1ab5a088930653c7730c3ef0cca8a267e5137dff773235a190bd3294b5f9"
             },
             {
               "src": "/movimento/v2/INF-04-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 26164,
-              "sha256": "5d5f6803ba1a8b8caa0b6f6427c3465802f9d547cd6bcf4f16fb1a89df76b27f"
+              "bytes": 24659,
+              "sha256": "ca30dec7539f823f7185272af7185c04a94ff84a11fc5c764f300d54795cded2"
             }
           ],
           "webp": [
@@ -666,15 +679,15 @@
               "src": "/movimento/v2/INF-04-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 25460,
-              "sha256": "bbc82da3c1a1f896e8942a6d7094e9e9b245aeb733a8b7fddf6248f1b2df3089"
+              "bytes": 24214,
+              "sha256": "ebf9607bbd66fe73f280343eb06f0497ada783fe3ebdfcb75f10829abb94a046"
             },
             {
               "src": "/movimento/v2/INF-04-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 43082,
-              "sha256": "d69a273b34b005a45353a086db510368f2ee547cde829ea4d2454b856ec85b0f"
+              "bytes": 41784,
+              "sha256": "c4113d685bb558f0092e6b0bea7d24601d3cb556a20aaacf77fb04d467a8363f"
             }
           ],
           "jpg": [
@@ -682,15 +695,15 @@
               "src": "/movimento/v2/INF-04-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 36892,
-              "sha256": "91f4b485a65c16863e66f6b574ce5fb015bf9325b671b3f77f5a18fa09566b5f"
+              "bytes": 34292,
+              "sha256": "27fd97ccaa10ed494c5dd0e24d20da2f1cff1a4368ac9d6d9aeb9015922b284d"
             },
             {
               "src": "/movimento/v2/INF-04-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 70989,
-              "sha256": "29d0bc2e8c0cd5982138412216ef6e4820f5f36fda66c4304f84f91800bab3be"
+              "bytes": 65451,
+              "sha256": "7efb87b366e7cbae4002123a1320ed241f1c40c1375bae51987a50b9e7435d3e"
             }
           ]
         }
@@ -703,22 +716,22 @@
               "src": "/movimento/v2/INF-04-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 26804,
-              "sha256": "5807a55b895c470c33f731738777316a1a2c4a5b18ce2b07113436bf145a1bef"
+              "bytes": 21341,
+              "sha256": "bdeca5d83236eef399cf91c96d8baf26c7a8a9c3f6bc3f1a04baae5f9245072c"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 39812,
-              "sha256": "31c1221fd74f8238a7cfc330f2ad08399abcfedc0913a0114c2f9ca8792e125a"
+              "bytes": 31303,
+              "sha256": "eb0c15d4dec726b1056dfad6201c8e86319ef8a9ca3584befabfcb93ec00ce21"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 53625,
-              "sha256": "cbe08944382e7101268e86b26d45660dc5e0a3e77dabc704b64132c13cc423ee"
+              "bytes": 41671,
+              "sha256": "8abeb740ae75db72e5cbe9bd308417e20826f9c8557f9ef73749c207dd5e75e4"
             }
           ],
           "webp": [
@@ -726,22 +739,22 @@
               "src": "/movimento/v2/INF-04-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 40302,
-              "sha256": "527e37684f1f06d0eb3a34c5216e710131b0b40d3e14780820435cf685c535c3"
+              "bytes": 32512,
+              "sha256": "80b23e8402f0d856067b3f6618aa7354173d83b38d024106179330a41d38be12"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 63148,
-              "sha256": "4c6e3cecab327b97e3a8c114c0c08bcb4ab1f5ab90de4a6d942694f484a02905"
+              "bytes": 50930,
+              "sha256": "827bd770222ed1cf026a0df10bee9ddd6e6765458b360e3af18c18992a18da3f"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 89784,
-              "sha256": "3c88db6f1c9a00d69df457754e062938a4e3b136eb044898a0a008486554621e"
+              "bytes": 71130,
+              "sha256": "c60912aaf6649b175cafab6599928dd3225261f018138bba317d7cef05c8bb6a"
             }
           ],
           "jpg": [
@@ -749,22 +762,22 @@
               "src": "/movimento/v2/INF-04-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 54614,
-              "sha256": "57b4bf56fc247f964302048078a468015bb93c7f7e50d79de65a35317f2c7efb"
+              "bytes": 46299,
+              "sha256": "a5686f4f81c428c8a984e607aee6ec80dae1b0332801a2412e28c73e556c0a74"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 92966,
-              "sha256": "6d7508dd3219b2eebf0514afac178f154082b241a72ec530831f289e320f219d"
+              "bytes": 76957,
+              "sha256": "81d59091922d2db66a15caa71ed4836a984d1213fb52f7d4766c3e7f7bf1f233"
             },
             {
               "src": "/movimento/v2/INF-04-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 142253,
-              "sha256": "8eb799ce18ff631888992a244de5f116afbcea91bf33b7f29cb796b443539a64"
+              "bytes": 115478,
+              "sha256": "f1db5450c46e15ad09e1e0af9cfed8046cdc57743883d25339854af1ccd99371"
             }
           ]
         }
@@ -773,27 +786,27 @@
     "INF-05": {
       "id": "INF-05",
       "generated": true,
-      "sourceSha256": "72f708dd24788c2ec07cdae390b760fb3df728f37072f0e1db727f89abc50f83",
+      "sourceSha256": "be29da8f5a30161ac9bf8af4106ec2229ab230e6b6d12955ede292f0e0e8d781",
       "alt": "Convidada em roupa de treino recebendo cuidado em uma estação elegante de recovery",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1586,
-          "height": 992,
-          "sha256": "9d226ab63f0a05e5945f667df88e895388f34f5a4af809169fdac9a446c16c1b"
+          "width": 1672,
+          "height": 941,
+          "sha256": "fdb79deb6a94d29551b6375d1b454f98c5733f1b8dc080bc53fb3acfbdf708fc"
         },
         "desktop": {
-          "width": 1586,
-          "height": 992,
-          "sha256": "9d226ab63f0a05e5945f667df88e895388f34f5a4af809169fdac9a446c16c1b"
+          "width": 1672,
+          "height": 941,
+          "sha256": "fdb79deb6a94d29551b6375d1b454f98c5733f1b8dc080bc53fb3acfbdf708fc"
         }
       },
       "lqip": {
         "src": "/movimento/v2/INF-05-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 416,
-        "sha256": "9675ce8103f376253f97f82610c012dfe22b49727e36d3764d9f8f7800f6765d"
+        "bytes": 409,
+        "sha256": "e0f27c9ac1a251f5c48618a45609c3f7b8a62f7c1532f02c6764fe5a8bb6a438"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -803,15 +816,15 @@
               "src": "/movimento/v2/INF-05-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 16158,
-              "sha256": "169e00f5443164f0b0602e3b2af1cf891789461ca61a82ab58b040c3c64a84bd"
+              "bytes": 12813,
+              "sha256": "8a1d58073bb3d15c98aa9534ad5a24f33dd41e8b07b6ba52e7f0bd1d734a07a9"
             },
             {
               "src": "/movimento/v2/INF-05-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 25563,
-              "sha256": "05fbf73a55dcee57e7bff2e74802ed5ba8636d0ea137ffd1200e4bd48491a966"
+              "bytes": 20547,
+              "sha256": "47115f5733afbef63072bc10c39495557fccd54753544dcd4ec750f6f098ac94"
             }
           ],
           "webp": [
@@ -819,15 +832,15 @@
               "src": "/movimento/v2/INF-05-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 27412,
-              "sha256": "bb48cda72e596b02f170db2bb0b70ec019ac1f7306d112cd593765a2ccce4bbd"
+              "bytes": 21806,
+              "sha256": "63314e754824e26ef1ad2557be154f6d11965073110146b5f269e8bee735063a"
             },
             {
               "src": "/movimento/v2/INF-05-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 45872,
-              "sha256": "90aa0489b741ed64b841179b0163b3d154af5156b4c8ca8d6e161c41e6e79153"
+              "bytes": 36872,
+              "sha256": "eb765e49589cb0d12f6320b04e7e05d87181dc9435e048cf96d6ce9f97766728"
             }
           ],
           "jpg": [
@@ -835,15 +848,15 @@
               "src": "/movimento/v2/INF-05-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 38530,
-              "sha256": "49e988f612e98e6d8c79eefb436df43544c337d52c67498dfa5fade6e7b5577c"
+              "bytes": 33568,
+              "sha256": "3e6fb5818b6861b1c9647c95de6bdc364f20cd3c90e31590de99ece955929676"
             },
             {
               "src": "/movimento/v2/INF-05-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 72696,
-              "sha256": "f6587ea2c835560a95ea8e9d885c14a1bda9e163d25d5b59f1633897151868e7"
+              "bytes": 65334,
+              "sha256": "d266e69a762c878bfb197d0d60d0e664966b0e07b5e01044664749790c54d16b"
             }
           ]
         }
@@ -856,22 +869,22 @@
               "src": "/movimento/v2/INF-05-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 23061,
-              "sha256": "69e915a0741e092e9bed846d64ec3a3dc4c7b2e106033c95eab0882c94587c7e"
+              "bytes": 23109,
+              "sha256": "2e59af9a810cd415c1ec31164ca8d6f98cd4c6c4aadec4114e7213a4a804aead"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 33561,
-              "sha256": "5d267d18653a39443adf8167ed0ce8ff94bc612e0203c9ef7d46e7cb8381094b"
+              "bytes": 33400,
+              "sha256": "30d789ca3d11b8ff49a9dda07c4fb3ee098fa94ccb8b8e6a578caeff5d967cd9"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 45074,
-              "sha256": "f6f3ae19d99ae70bc541bf89200ba14c1a5d322a2c82b38cfda737c3bbe00fdc"
+              "bytes": 44130,
+              "sha256": "0efe8c83298ba80f2524e18fc4eba40d4fd06f482fb313fdd740fd24306afa67"
             }
           ],
           "webp": [
@@ -879,22 +892,22 @@
               "src": "/movimento/v2/INF-05-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 37858,
-              "sha256": "f8dadf87b9d33ed2faf0b693e742e8b56e3f99987bbad35b18789974f3324f90"
+              "bytes": 37648,
+              "sha256": "52a4c2f8c4ceee0c0ba49b06e66bb9bcdbf558a305eefa9d2f17c2f0ff6688b4"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 58448,
-              "sha256": "9ebd8ed3a6591139d9274106ff0237eb178a98a4114eb63d7be09c50bc0e218a"
+              "bytes": 57412,
+              "sha256": "9b5275771109a712cf5cf1cc4c6f03c7075b31c2e1444e8f7fe60050b3d6ef31"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 81516,
-              "sha256": "f104029c41c0e54d43c5d17a9b00de970e74539c1faa44feb9cd546d21b3d766"
+              "bytes": 79910,
+              "sha256": "06e7b0185b1ded76053200437db8545eb57df2b5501b7c68232f1b8af28d88f5"
             }
           ],
           "jpg": [
@@ -902,22 +915,22 @@
               "src": "/movimento/v2/INF-05-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 51851,
-              "sha256": "883eeb5d19d6f04836ca93c19eef758fdc1d3467972d23a5b90d35a48d3fcfcf"
+              "bytes": 52124,
+              "sha256": "cbb780d8c98a2821f9e566d9fbf084eaede5f36f046a670194e189b3a997cf12"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 86679,
-              "sha256": "b83f447db5d58c48e968a602d04dae9a9c261a6c58ed4f3835e621cf35ca2ef0"
+              "bytes": 87237,
+              "sha256": "757cdd16bde35cfad1b4a2c2ec0067c1504719cc4942245cc44b18f2bca35664"
             },
             {
               "src": "/movimento/v2/INF-05-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 130295,
-              "sha256": "8143cad0a72c78fe3996a8beb21ce50db5a7f985c0c6ef3383ce39efec82929d"
+              "bytes": 131672,
+              "sha256": "4440c74418ef943d5c8877d13b6b315aa88628bbd8ca5476cc5306c50b4b2e09"
             }
           ]
         }
@@ -926,8 +939,8 @@
     "INF-06": {
       "id": "INF-06",
       "generated": true,
-      "sourceSha256": "56320457a272590a7065ed6f63dab718682c579747ff2b01273d35cc4d5bd4de",
-      "alt": "Composição editorial do kit e da camiseta de treino oficial reservados à influenciadora",
+      "sourceSha256": "dbdf9f5c92662695fc3f48992001dbce66a42e060083060c7505a28b062ba17b",
+      "alt": "Composição editorial do kit e da camiseta de treino oficial reservados à convidada",
       "disclosure": "Visualização conceitual gerada por IA · referência oficial de camiseta Bentô composta sem redesenho.",
       "master": {
         "mobile": {
@@ -1079,7 +1092,7 @@
     "INF-07": {
       "id": "INF-07",
       "generated": true,
-      "sourceSha256": "bc309a6b2f277fac85d91f00ce6c126a68ca5e5c3da573b9ca1ed26177b08d51",
+      "sourceSha256": "f44f5b92938086c2aa695fe2db88de796d6ba1258185f94398a33be2aa89eaf3",
       "alt": "Convidadas celebrando de forma espontânea o primeiro aniversário Bentô depois do treino",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
@@ -1229,10 +1242,1081 @@
         }
       }
     },
+    "INF-08": {
+      "id": "INF-08",
+      "generated": true,
+      "sourceSha256": "c7fd53f6e1e78bad24eacc8a52cae6529134b0f13d17c3c1f6e5f1a1673e3d40",
+      "alt": "Dois profissionais preparando cafés especiais em V60 e máquina de espresso diante das convidadas",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "e0b182a39cca3de09d3a2ea13551986aa4604f4b666d5d4a3b51b098c7201eb0"
+        },
+        "desktop": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "e0b182a39cca3de09d3a2ea13551986aa4604f4b666d5d4a3b51b098c7201eb0"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-08-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 404,
+        "sha256": "e441cc606a1ddaa1e166005271efbdaff8f0ef7918cdde4e27dd7250a1602e8e"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-08-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 12271,
+              "sha256": "5986615e584730cdd299de94c03fe29c8d74be0b04fd61b0fa4566c22b5f673b"
+            },
+            {
+              "src": "/movimento/v2/INF-08-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 19551,
+              "sha256": "8756470320b7ec840f91a76016fcea3ee250a53d6cdd33428078fe399e0de32a"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-08-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 19540,
+              "sha256": "39f8dd77cb64bc3fdbaf0544aac619407efd1877021ffea53c92220bd56b107d"
+            },
+            {
+              "src": "/movimento/v2/INF-08-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 34014,
+              "sha256": "6af9bd56b776fa9c7a6911317650812b8218cc1139adafef59d108d0b4f84f70"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-08-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 30728,
+              "sha256": "7533fae81da8bed37c22493a103bb399cd15d0031fb8e6b5b66a712c92e56946"
+            },
+            {
+              "src": "/movimento/v2/INF-08-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 59143,
+              "sha256": "6d68be9153e7ee529fd58532171bb250cb37b3c9f2e94678a62c4565ec87932f"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-08-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 22838,
+              "sha256": "d043ef88201b7e71ae8e147867904cfcc3fde5c91a7c2c38544173bc6ed51acf"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 34581,
+              "sha256": "08c62b51994ef0cbbd5b34cb9cc95a46fd538abc362347cd3b4a8bcd81d7fd5d"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 46850,
+              "sha256": "3f2fc53cbfa4f7f615a95aa9c90e92b35584c28b21bf1f17597f63ff65d2d7a5"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-08-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 35054,
+              "sha256": "795588c69da34a21cbf7d7f7e240976741a336a4d8dba2c09e721e14b0edbecf"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 55692,
+              "sha256": "ab60575452af07ea57469192a04244bf0fe5698e2351c5e55f74547ad8101233"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 80146,
+              "sha256": "3cf9676847e8174628e2e5a46f145a62427a274c04c5b59569bcb8c38cee8cd2"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-08-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 48347,
+              "sha256": "c48c6f0eb3bf7f13178fec1791c29bc3bce441ae5fe69b643db201e343a998a1"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 82009,
+              "sha256": "669c838def3844d4a7b3a20df50932b3203bfc5eda2e5fcbdceba6ecd568de67"
+            },
+            {
+              "src": "/movimento/v2/INF-08-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 125367,
+              "sha256": "9d0e85d6fb7a39d1a42709012384306f982c0e53db7577bcfbae80cbf6387af9"
+            }
+          ]
+        }
+      }
+    },
+    "INF-09": {
+      "id": "INF-09",
+      "generated": true,
+      "sourceSha256": "ca243502a5e3fc8ece1a6865238b2ff9f5e90a7dc5175499ed88656d918ac792",
+      "alt": "Convidadas reunidas diante de uma mesa elegante de café da manhã com frutas pães e louças claras",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "398fc8a47efa6e6ffc6b9932e883f457e80bd542cb38db1f8ebbdcf939de3b2b"
+        },
+        "desktop": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "398fc8a47efa6e6ffc6b9932e883f457e80bd542cb38db1f8ebbdcf939de3b2b"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-09-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 404,
+        "sha256": "6f229c8dec77b55955d42c0ec62761195b02fb35807c8acd0d907d5f2ec2d599"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-09-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 21700,
+              "sha256": "f4f6ba313d47ababd1000d5684867d1640f38bea7472bc2b743f12f8cc120395"
+            },
+            {
+              "src": "/movimento/v2/INF-09-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 35380,
+              "sha256": "dbf4c4b547316a025f6f18493e211d2bce33f3040bfeefe7b9ee2f02f5d8f36b"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-09-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 32076,
+              "sha256": "df4c508bb05d78bd3f030664afe2cd24981205869a85e3e04e0a181081228bd0"
+            },
+            {
+              "src": "/movimento/v2/INF-09-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 55930,
+              "sha256": "ed0e607deb10dbcad626ecc36e3b98f68cade7e0dbb77247f57b9b66f21524da"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-09-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 40725,
+              "sha256": "7f9c47da12b0b4720bfe10a8f929b20ff6e3444416f0b6da7f339a2371f1d980"
+            },
+            {
+              "src": "/movimento/v2/INF-09-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 80547,
+              "sha256": "45c2d0362082439d6a7e17adc4d83dc237d200479e004b74c106f1152aaefda7"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-09-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 27896,
+              "sha256": "665187bdaef5e87464089290e3c47e08b07cb7f1df4fbecc6125308f57a063a3"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 42287,
+              "sha256": "ee895916f5fce827c494e3b868cb67b832709331e3cbff654880cecb8cbd19c4"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 57190,
+              "sha256": "d4ceb4d8c5e00c179e554c1a7fbb0e1de62e104af92146e1507bae27846462ac"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-09-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 42302,
+              "sha256": "4a885a5a87f42a98abf05e346c8eea0b693f40731c8193ab687a926cf176d881"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 66878,
+              "sha256": "ee85e84445a7fbce2943bab841bc07ed133bc74ab7620eadf7e20ffa52bc27a5"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 94256,
+              "sha256": "129583c079807bd654f7c6a5ebd0ea4fcc8b08b4779413e9a02f60865b2bcff9"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-09-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 53051,
+              "sha256": "ffb11dbfebfeece20cb3d1bc57ab39ae5b1a184ee391e09df51818105643b358"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 90795,
+              "sha256": "73d3818cf0a3d486be7327c0713e2494aef5c75b1388e7724349044bcb2ed5ee"
+            },
+            {
+              "src": "/movimento/v2/INF-09-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 138346,
+              "sha256": "25e315af5e1376e5f216c19482d8135681d1324ce41f6f60a39bc77b253a390f"
+            }
+          ]
+        }
+      }
+    },
+    "INF-10": {
+      "id": "INF-10",
+      "generated": true,
+      "sourceSha256": "14cc47d4e204dc77be1c1868a3816beac4bbc13d8dbbce203d6d16266e36a5a8",
+      "alt": "Carrinho de gelato Bentô em atendimento durante a celebração com convidadas ao redor",
+      "disclosure": "Visualização conceitual gerada por IA · carrinho real Bentô preservado sem substituição da marca existente.",
+      "master": {
+        "mobile": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "75bcd94a085cca7e83032c5c954765812849a1a3aaeb6d03b117db6123a01ce8"
+        },
+        "desktop": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "75bcd94a085cca7e83032c5c954765812849a1a3aaeb6d03b117db6123a01ce8"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-10-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 415,
+        "sha256": "eb5b031f15ac09a2ecdd87b825a0708b942b33fa57be77ca275888db9fd7bf2e"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-10-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 22140,
+              "sha256": "34fee87f49db2527115698847c93673f3cc989943900937990db8ee6be86dfe2"
+            },
+            {
+              "src": "/movimento/v2/INF-10-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 40046,
+              "sha256": "918359891dc0cce0821a06138db51a88c856e7f4225bd4196f9ee7ed94cf230c"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-10-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 35498,
+              "sha256": "0421a4e9607379a67a6fba6dbfce48b17aefaf6c0413d1824bb076c26ba8f7e8"
+            },
+            {
+              "src": "/movimento/v2/INF-10-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 67242,
+              "sha256": "e83b329f7f0de00e942cae9c2716839c6cf3aac7fbed32717dd9f0788a58716d"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-10-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 43154,
+              "sha256": "5cef7afe0f6c4378dbd27333b82df88e8ad3fb22db1ddfc2237de57ae4162e20"
+            },
+            {
+              "src": "/movimento/v2/INF-10-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 92649,
+              "sha256": "97b2ba35dc2a5059792e884db52e41ebdb095df8a9ec1756c7f10b650ca36083"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-10-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 29937,
+              "sha256": "a4dec75da1557eec03d40ae274e2739168111e93263a996234872486b254be05"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 51950,
+              "sha256": "7c8a1c9f38e8aee54ba2bd7a4d78e1241ec52ffcb22b43ff272956197dd73cf8"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 74398,
+              "sha256": "8761b44f2e33006789b596153cfef6a87f42ee60ffa5e96306b5620a7becdf48"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-10-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 48200,
+              "sha256": "1ebb4a0bca134120337db3539e88fa1d18040966988fde5a2ffda3192e74c03b"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 86036,
+              "sha256": "dce275066dece2e850181567c004972b6f7164dc60a37cd73650e005e6492266"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 128970,
+              "sha256": "4eb5c6bbf5046a02e270d2c52d5fff86da8d961860698d606256fd8e1aac11c6"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-10-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 56528,
+              "sha256": "970675b2adb5f1d3f61129db321f6b536319c86d2aca4b3f1d0da246aa4e8186"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 106108,
+              "sha256": "7bce8ff07eb652d89ae58b3a1053ab8fe71aeb5cfde5d7385c26b55a8742791c"
+            },
+            {
+              "src": "/movimento/v2/INF-10-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 173536,
+              "sha256": "081491ba4ecded47864595e3a396091d6259336e471dca759616315b21c229c8"
+            }
+          ]
+        }
+      }
+    },
+    "INF-11": {
+      "id": "INF-11",
+      "generated": true,
+      "sourceSha256": "c598991d7a279dea90d7df434bec4de2301080c05a9881df199ce43d7158e2ae",
+      "alt": "Kits de suplementação organizados sobre uma mesa de marca em uma apresentação elegante de bem-estar",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "d1c80326aab588af9ecb9f9ad5bfc8c45d0896ab6e216a1236a9a5ba3b39359c"
+        },
+        "desktop": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "d1c80326aab588af9ecb9f9ad5bfc8c45d0896ab6e216a1236a9a5ba3b39359c"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-11-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 419,
+        "sha256": "cc3bb59d3e45c297667d00b5ed3d141fae5aa2a50cd26ece584d6bffe3a3285a"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-11-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 14456,
+              "sha256": "d56d8e19ae40b53bec80f44a33d324399620ad6feb45873b21b9279375144e3f"
+            },
+            {
+              "src": "/movimento/v2/INF-11-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 22806,
+              "sha256": "925978fbc98cdbc8a41ef05ba4c5434e1668174230f4b4b6baa9aa147b41106b"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-11-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 24260,
+              "sha256": "2cddaedc13391216cd34b76a740705f7ffec5ae8b62b936a492232abd3eb3c11"
+            },
+            {
+              "src": "/movimento/v2/INF-11-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 40952,
+              "sha256": "54c58d593d3b94052c58d33adbb4d5be75e8b897b9776dd7aabfb4082ddeb08a"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-11-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 35088,
+              "sha256": "23f573e9918b0fdba2ddcb77bd3f82a7acf917a11593218e4ebf3f37347609b5"
+            },
+            {
+              "src": "/movimento/v2/INF-11-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 66295,
+              "sha256": "f341b9ea44638f787da5d239009219219719eda651dcd804215ea6ef14ccfc6b"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-11-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 18814,
+              "sha256": "f62f54765d047c0095a378d4bc1a835f247f5c6508f6aa0fcb12490409dcea45"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 26835,
+              "sha256": "12c302b2d5e2dfa17fd99a384eb5bd69e8215fc6e0e8172710224bec5db1ea1c"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 35710,
+              "sha256": "d2f17d07ef2244f17fa821dbb7de4472d5db372c7c8cdcd26f7852efe09552fa"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-11-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 31670,
+              "sha256": "4bdaed362a36d7a8821888639c34ecaa446285bcc9da5ab307d5c93266da8f45"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 47946,
+              "sha256": "29c85d713f3231cf1efc2e6651f2f805c92d4e3b27f316997179853529ec2482"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 67068,
+              "sha256": "a14bf52652740812008f7ae98872559d32f2a83abc802d4fba1eefdaa0a9af49"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-11-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 45077,
+              "sha256": "f100522e67dd7de1e3b69c5c8a500d5bc0f480b73b6439325ebc94c59d744d4a"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 74261,
+              "sha256": "dac72f2c38337a4bd87ee0e0b8ec1c2e9bcfa78013429fdaaaa36e7a5d2e62a4"
+            },
+            {
+              "src": "/movimento/v2/INF-11-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 111078,
+              "sha256": "c154b3338bdef72a8df300e004a34e3b8ce2366781a9629b20faa3aade7a5426"
+            }
+          ]
+        }
+      }
+    },
+    "INF-12": {
+      "id": "INF-12",
+      "generated": true,
+      "sourceSha256": "f6bbecdb4aab1769a21d6b63120e74517e51cd3793161e616266dc681c9dc5c8",
+      "alt": "Mulheres recebendo atendimento profissional de skincare e maquiagem em estações claras e organizadas",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "a6d0105dcdb7ef738c2ffe93389d650ad72955f77b7a90c090ec980dcae334be"
+        },
+        "desktop": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "a6d0105dcdb7ef738c2ffe93389d650ad72955f77b7a90c090ec980dcae334be"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-12-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 407,
+        "sha256": "50c01203f47c154a482e2e9677022bf075064a981d19113fa92c223cab690d52"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-12-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 10360,
+              "sha256": "0f75cb22d35d54220a31172e844ef6ec3b8c304013124d96e4587c4c642e62fd"
+            },
+            {
+              "src": "/movimento/v2/INF-12-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 16058,
+              "sha256": "ab83b9980837e48425ef9f0e734567c19ed2ba77fdc74888f1ad0e1fdf69146d"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-12-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 17128,
+              "sha256": "0769e340ff4ed461d5ec3c2f09fa697ecec98e64130f37c41461ab2089f30614"
+            },
+            {
+              "src": "/movimento/v2/INF-12-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 28908,
+              "sha256": "727fea37db1268898853e70b051a6e70bf11285cc8dc7a64ff49ec22c0f7a3df"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-12-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 27819,
+              "sha256": "2e5c82604b62be5d2e6410a55e5e9d3a527ba7c145c1df9d590ae6021b893348"
+            },
+            {
+              "src": "/movimento/v2/INF-12-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 52475,
+              "sha256": "fc03348a5d5c8c394e5e75dccd269279d7c205130d85a1c9edcb607e08c4bfb4"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-12-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 17363,
+              "sha256": "94de2d62287d454ef04aa0ba7ed7cf38a1090b0bb3549c64b786a23d9f7330c2"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 24651,
+              "sha256": "e9d0d1477f575c53ba9e413871706657475d95c2a0a3dc6495987791ac66d3c7"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 32749,
+              "sha256": "1e0474859c38a459d44ebc64779b5fb95fd3947a6babb2d39d053a5d6548a52f"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-12-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 28330,
+              "sha256": "0fb44826ec1c8ce87b2f105149f668512cb925fdda0ac91b238e74e6aa0ecba4"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 43578,
+              "sha256": "b295f4a3b0abe7b53f75c53bf49d058955fac122112dbe16323f00d5028001b3"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 60138,
+              "sha256": "e98250f24401c10a4e7dcae8a47e78ce333f68723eda393c656259a80222c6b9"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-12-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 42441,
+              "sha256": "21ef86b6c5d2d9e1f2867974540ccde39f29d16ecc055f87cded7475304a0235"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 69835,
+              "sha256": "e1d86165e173ce6d2d91aec1da67aed3b35a186777099e3d9f6fdbd72cee71d0"
+            },
+            {
+              "src": "/movimento/v2/INF-12-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 104703,
+              "sha256": "fae93b3a99f332d691808b9854716a93d9f6647122efc250183a40ea9aadb465"
+            }
+          ]
+        }
+      }
+    },
+    "INF-13": {
+      "id": "INF-13",
+      "generated": true,
+      "sourceSha256": "806620e3e70831ed677dcef270f7d3e8c370e0ee82b0e2ec95c7c2a0c61144ae",
+      "alt": "Convidadas de avental criando os próprios picolés com profissionais Bentô de jaleco branco",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "07ad83da6ca46d69f4579f34a5318887768ab3f46f846f37400086114058e1a9"
+        },
+        "desktop": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "07ad83da6ca46d69f4579f34a5318887768ab3f46f846f37400086114058e1a9"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-13-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 412,
+        "sha256": "dae9d00466c91dff74f43bc5ac65df19e9826e30a0f3f8089aeeb52488a13641"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-13-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 21465,
+              "sha256": "6a1946c546e790136ca0586cbba9618e929c827c1e87bcb654fbedbcada76e24"
+            },
+            {
+              "src": "/movimento/v2/INF-13-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 34841,
+              "sha256": "4e0bccc58df64e0807ad228554b99c8a69976e170a6fa28180e81cdcc18335db"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-13-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 33022,
+              "sha256": "3ef4f8272b0cbc0101ecc39811bc9cc103aad2a51cf41a72ea819b9d6d6384c8"
+            },
+            {
+              "src": "/movimento/v2/INF-13-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 57730,
+              "sha256": "47d16b7db7d51114838c2026109ddcd3644dd48c9c0d9fe19219c3a7c7fa73fc"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-13-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 42456,
+              "sha256": "3a170428d25f1ecf2ef95b9ca0b19cfb5009a1db63f7963c5e2c00528cb91959"
+            },
+            {
+              "src": "/movimento/v2/INF-13-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 83213,
+              "sha256": "419bf54ce7491a2e64734e2c06cdda81b78937420c90a2de62b4f3f261db6a14"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-13-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 27264,
+              "sha256": "d4ef11ed49ddda78aee074c0245e04feebcf9e56ca5c27c1a24dcbb56c1cded4"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 40876,
+              "sha256": "06b8b86f61985c3ea65d7d3bb41355fe57171958b82055628a3322547ecf4772"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 55080,
+              "sha256": "fdb65d50c89e776d201dbb605a8005e82868a091f73b32568ebf529d981957b5"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-13-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 41872,
+              "sha256": "ecce80c0b0c0946aca9475aee05eed688b85d8bd0cb8a17af2b15147c44d0c87"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 66860,
+              "sha256": "6df12a2f673cd9c27220a8b28c5d8d12c7e6db0f10d074103395fb0a30e9f7c9"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 94520,
+              "sha256": "927894f0d7e573e04f7d04aae14c0bb75ea8938120b5e3f45c75bb756fafba4b"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-13-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 54594,
+              "sha256": "0781b68dde839e335e14ee3fde1c0466dbd5c01bc239929adddc71be8c18c456"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 92862,
+              "sha256": "cad4a48726d704129fe1198c683154d69343ae892485a999b85ebd5927f654cd"
+            },
+            {
+              "src": "/movimento/v2/INF-13-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 141422,
+              "sha256": "65d294aca1b6ef95f57edde2ea0bba0625474835c82ae6bf042767b988c038b0"
+            }
+          ]
+        }
+      }
+    },
+    "INF-14": {
+      "id": "INF-14",
+      "generated": true,
+      "sourceSha256": "7cfd42d6474f82871bf11b1850ed440ea098a3e924f42fa0d44ce72e8241142b",
+      "alt": "Crianças acompanhadas brincando com brinquedos minimalistas de madeira mesas baixas blocos e casinha",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "cbc99dfdb52bef6ceee1aafb41a7122d6b5b186e344eeba685662e9efb26f4cf"
+        },
+        "desktop": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "cbc99dfdb52bef6ceee1aafb41a7122d6b5b186e344eeba685662e9efb26f4cf"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/INF-14-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 405,
+        "sha256": "a8a033be24d28c60225ebcd502d58f40883c8f31d8f463be0499e5fec94dbcb6"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-14-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 16399,
+              "sha256": "ac32c0ba62756f5004bb922c86930cc61ffc97c6cd5d39e915315fa6811fff8d"
+            },
+            {
+              "src": "/movimento/v2/INF-14-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 30304,
+              "sha256": "1fee3a02b84705272dc417bd69875ebd488bf2c47faa10b16709f00501a39da0"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-14-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 27016,
+              "sha256": "67d4ed28a0ca1936c8319c9ca5925349c173bf1f118e838ca6d4d9f3a1535fc0"
+            },
+            {
+              "src": "/movimento/v2/INF-14-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 51640,
+              "sha256": "7baa6a2c722284024c390f9b70f942ba0db49544ae6fba4b2199bbc0f2a45525"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-14-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 38073,
+              "sha256": "4bb86274430f7029c5fc2fa9e9b8d91d48b0234b0d8561cda2f5270f1f01045a"
+            },
+            {
+              "src": "/movimento/v2/INF-14-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 78591,
+              "sha256": "ccbfd9e89e5833bcb5b85b72b79386c7b2c0f565c86716df4244798ba44af7d0"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/INF-14-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 22140,
+              "sha256": "042e8516e446de2dc82657c54abe71e672ac444fc3b3af5ac76cbf72ff46f6f3"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 34816,
+              "sha256": "72eca206c1fe23b3d5ccc46f8ebf1291ffaf35645ae5931a8271c813354b9d87"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 50440,
+              "sha256": "86484773657dbf782a4ddd5a415cae781bf5074533711024f8f3efe61ae4a0bb"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/INF-14-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 36350,
+              "sha256": "f789eec786760dd4c2078b87508831ddc43e7de49d6d24f0cf81042e0edff855"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 59990,
+              "sha256": "57cc74ec94f6c083520f3806b20ee7305d6cdfce3a5ecbbea2c0a4b9276a3b5a"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 88162,
+              "sha256": "6723fa293a16d6ffc24f93f5944ebea9aeb18757bb82c1605537054f3b4403a1"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/INF-14-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 50045,
+              "sha256": "db531c3b4c2b57174217e0dee274cfe637f326aa7e746a74bf0a65959f0fbc89"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 86471,
+              "sha256": "1705d11f0dbd272dcdb2ae196f5963058e56a948b19772893425900fca8084e0"
+            },
+            {
+              "src": "/movimento/v2/INF-14-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 135814,
+              "sha256": "6b49397b687f58054f08eddc04bea9329eba87594efe621e37c0fa6053ba6ec3"
+            }
+          ]
+        }
+      }
+    },
     "PAR-HERO": {
       "id": "PAR-HERO",
       "generated": true,
-      "sourceSha256": "ee24512dcb13fdd75f7bc0ce1af71a2443718465b4afcb28825f0a8d1c500466",
+      "sourceSha256": "e37da75616174529762c42024a2d860ac659d22e60b9fb2fa72ea61018e250d0",
       "alt": "Estrutura branca e dourada pronta para receber marcas no lounge junto ao canal urbano",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
@@ -1364,27 +2448,27 @@
     "PAR-01": {
       "id": "PAR-01",
       "generated": true,
-      "sourceSha256": "6e41d3d8802b99b791d6f3626ebbb407119ffd04bffb0000dfc812ff5b5da98c",
-      "alt": "Palco e backdrop modulares em branco e dourado preparados para aplicações coletivas de marcas",
+      "sourceSha256": "43aa31c478f6a034762c52f451559026b0011f944d09ead25127dece8dd5fd89",
+      "alt": "Recepção de chegada com anfitriã entregando pulseira a convidadas junto a uma instalação arquitetônica dourada",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
           "width": 1672,
           "height": 941,
-          "sha256": "955bf12475056752b3b4924687c2b649f49777cc59ccad78d2c354e8451369a0"
+          "sha256": "098d4e3eff4bcba72a146ffe4a73919f26668ec508d8eb53a5a8bea19e84e2b4"
         },
         "desktop": {
           "width": 1672,
           "height": 941,
-          "sha256": "955bf12475056752b3b4924687c2b649f49777cc59ccad78d2c354e8451369a0"
+          "sha256": "098d4e3eff4bcba72a146ffe4a73919f26668ec508d8eb53a5a8bea19e84e2b4"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-01-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 369,
-        "sha256": "d0fa5a58c2824f657192b6d0f2b22fb627ea3d11f5c9d8ad7e7b2dbd4c6f7891"
+        "bytes": 420,
+        "sha256": "77bb6f8d0c73c0ec003848dc3682d4732deb946faff15af99ffaf995b35aa2bf"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -1394,15 +2478,15 @@
               "src": "/movimento/v2/PAR-01-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 3909,
-              "sha256": "a2940d78c1df15c545193fbd25050f868a1affc594ebfc88d3538c933356f8fe"
+              "bytes": 13179,
+              "sha256": "92a929d4a1df89acff2293b837c3ef9f13438fdb1c3d8b438345ba51a7a9823d"
             },
             {
               "src": "/movimento/v2/PAR-01-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 7356,
-              "sha256": "46da633c91afc35e9986d5bb6110e2c39434c99764053129dc166599ce940fab"
+              "bytes": 21192,
+              "sha256": "129cbee03c0ad73e8cabbd8e46e2d59cacbc738b9818c7f1a497f8923967a1f5"
             }
           ],
           "webp": [
@@ -1410,15 +2494,15 @@
               "src": "/movimento/v2/PAR-01-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 8710,
-              "sha256": "0b45d6be88727ab1ab1a6cf54ee1fd3c872d87281a58613d0fbdfb57c999a9b8"
+              "bytes": 21768,
+              "sha256": "bc520871fe64b10981c4353f10ab84eb44da30fbff8068c225949fab11b06131"
             },
             {
               "src": "/movimento/v2/PAR-01-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 15996,
-              "sha256": "1e48c16b3251409cb269c2e5b45617e4d7e932784ae9335012dac2bd70e8555a"
+              "bytes": 37606,
+              "sha256": "fca409328e331c033d53e4716ae10ecbda3e62b3901e4f67331a85ae1a931043"
             }
           ],
           "jpg": [
@@ -1426,15 +2510,15 @@
               "src": "/movimento/v2/PAR-01-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 15157,
-              "sha256": "f24c017efd5123cc8222fafab95f84b3dfb328e6239995060f8c2138ac53be8b"
+              "bytes": 32892,
+              "sha256": "e60da249e3e6b41b2fb22e5e0a4d111799006605647deb30afbe68b234b39e86"
             },
             {
               "src": "/movimento/v2/PAR-01-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 30235,
-              "sha256": "5c6657b1b3fb105070be15a4ee3823d41d6fd5a0d34db6814886e7b753f30f6e"
+              "bytes": 62699,
+              "sha256": "4489b77c93ee354dda5af50a6b01342105e2c189dbf30e516b000c0fd345799a"
             }
           ]
         }
@@ -1447,22 +2531,22 @@
               "src": "/movimento/v2/PAR-01-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 10197,
-              "sha256": "88821449c1a53089aa9a6cf54c23b21297a9f64cdc16cc4b91006c3fb80d8c8d"
+              "bytes": 20310,
+              "sha256": "623cd98561755d5e6fb3bfc5feb24ffc060ec7afe2397dd6b1a1c26eaed9f773"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 16569,
-              "sha256": "d568b5e2a39e4d310f88880dd3d935e96059b266be384ccd0c90378c1f06c621"
+              "bytes": 30071,
+              "sha256": "a685c65c599a5a0c4799c1cf016ae2173afaf92bb62710fe89a118a8a5485eb6"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 23280,
-              "sha256": "f2ada7e383fa0f740f0a1d38b0437392dc74cdb5faf548aa8ec0b27228b11006"
+              "bytes": 40043,
+              "sha256": "b245241710d4ab4e962157662336b6dcaedd9fcf396b98915500b9adf1b5c2d7"
             }
           ],
           "webp": [
@@ -1470,22 +2554,22 @@
               "src": "/movimento/v2/PAR-01-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 19122,
-              "sha256": "989ca8bc360c8b458954ea00520b0a723cd3e71894065d232fac66ed947acc28"
+              "bytes": 32454,
+              "sha256": "630de9f9772bb461747278de5da91b7c4d830d45ef3b326df887d0ad904c5b63"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 31806,
-              "sha256": "b884e63487be21bd0ad0bffaa220cf7a55fbf04b0ba979646423b9ab8da35eec"
+              "bytes": 50684,
+              "sha256": "7adfe8fcfd814e57577673a63249f25a69e413def59e14931d41db825bbab8b5"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 46316,
-              "sha256": "a23b7b99a6237b6edd964c5fcff706cf80159ecf4071462358d14ebaa4cf5a47"
+              "bytes": 70692,
+              "sha256": "48f258f6629ac551a45e2dbb537cad8014eb1b54ccaaf23f7f79d8e4292de801"
             }
           ],
           "jpg": [
@@ -1493,22 +2577,22 @@
               "src": "/movimento/v2/PAR-01-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 30802,
-              "sha256": "353d851add3cc1c42e16d9a54428f9ea83b54f03e80f2f48b1fe3ec6a5db0515"
+              "bytes": 46031,
+              "sha256": "aa82ce5dadb1a2df597cbf160a77f77e89d04c56ab72522b2fae72b40e94a05c"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 53470,
-              "sha256": "ffb9a22380fe427addc3d50f94bf5e5805eaa6ddd414de0ae52299dc83a801f9"
+              "bytes": 77112,
+              "sha256": "8d706f7568a6479a0a81d0b1244ad61df1ab881c1ebc203af88a3b4e3392e5a2"
             },
             {
               "src": "/movimento/v2/PAR-01-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 81206,
-              "sha256": "88241edc79c83f42ab88e9e6f41ab37e365c8c65d65787ec4910b6e284bea02d"
+              "bytes": 116869,
+              "sha256": "8ffe4b6d46aa62463c5cc139212438464479ef3db4a178eb665c09f2693ac06c"
             }
           ]
         }
@@ -1517,27 +2601,27 @@
     "PAR-02": {
       "id": "PAR-02",
       "generated": true,
-      "sourceSha256": "70ab0e8b0cd6c37f0f303d5715a36ba941737b48186aa72f5cb2d853af99a6e9",
-      "alt": "Veículo premium elétrico estacionado no deck do lounge para visualizar uma chegada do evento",
+      "sourceSha256": "262c7e680a194259a378e4a5aa51a9bb9aac9d049cda3ec3345e46e5035c8cea",
+      "alt": "Transporte executivo premium com motorista recebendo convidadas na chegada ao lounge",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "14e102c7cf07acbdc9b57eb08db55e3800464effc6e21235f6f83e73e3bee64c"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "5ec121ec3a261175250cde929fbc5abd077111810024fa01180048c6499a4766"
         },
         "desktop": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "14e102c7cf07acbdc9b57eb08db55e3800464effc6e21235f6f83e73e3bee64c"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "5ec121ec3a261175250cde929fbc5abd077111810024fa01180048c6499a4766"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-02-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 417,
-        "sha256": "ba7a1d272f851269de0759f31551e14479c08404ff0f17ce50fc035dda3b61b3"
+        "bytes": 412,
+        "sha256": "c4283155866dbd44d17b7608fb6f72f7850e1bd4cd357e64f488f4c421367dee"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -1547,15 +2631,15 @@
               "src": "/movimento/v2/PAR-02-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 10246,
-              "sha256": "36f9f9b5c1d7d6bdd12aada12b92b40e8bdcfd38022a44f1014258254b743da9"
+              "bytes": 21260,
+              "sha256": "ae607beaa16ad711d107212aa03a4291c77457481a0cd6b78e0eaec233312a46"
             },
             {
               "src": "/movimento/v2/PAR-02-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 18051,
-              "sha256": "d449e656fc4c69e3994d2b7a51906ab499d0193b971aeaba54b55dd9d31741ef"
+              "bytes": 39984,
+              "sha256": "6a2825598591e6190165e53247bd3bd466fdf66a3696a7d5a7c43e47b3fd1e1c"
             }
           ],
           "webp": [
@@ -1563,15 +2647,15 @@
               "src": "/movimento/v2/PAR-02-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 18704,
-              "sha256": "5891b1b351962ae430d6787bdced93e9cbcdf802c06234801693edaa060b02f8"
+              "bytes": 34912,
+              "sha256": "1db0f21303f00280f09a3abe079f33fac5a13a37dcf0b660bee012dcd6874895"
             },
             {
               "src": "/movimento/v2/PAR-02-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 35354,
-              "sha256": "f44ba37d53864789c3c6545024dce8f168c02ebb9e7230411d39c68b31a2348b"
+              "bytes": 68240,
+              "sha256": "f81bfa16dfd30e11c3b755671de49c164f52590f106031561f535551ac8d07f6"
             }
           ],
           "jpg": [
@@ -1579,15 +2663,15 @@
               "src": "/movimento/v2/PAR-02-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 28195,
-              "sha256": "d54e4a2f54e3a536d577fa8960df6289585a2556191135963dd5ab80ca043eae"
+              "bytes": 41521,
+              "sha256": "cd1f768bd9e4a56909da8adc7144f431bf4483dfee6cef241e5178e555ac6b34"
             },
             {
               "src": "/movimento/v2/PAR-02-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 58251,
-              "sha256": "a202297c7dff75f6fde3ccbe7d6fea610569ce3df5cdf87a6c69e743dd395dc3"
+              "bytes": 88987,
+              "sha256": "95ff0a3e03c363f27c6a9cbf15b4d2fed85e96d57a388d3aca47714075eb622e"
             }
           ]
         }
@@ -1600,22 +2684,22 @@
               "src": "/movimento/v2/PAR-02-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 15878,
-              "sha256": "8f6742da701d1ee43ec68b3cfa930351c828ed737c60de0972fb32662555a524"
+              "bytes": 28946,
+              "sha256": "ecbc88b3de35a58d206057270fb1c628a7cfc13ff33444e07eec80e9d7540cb9"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 28520,
-              "sha256": "63f1fc35790260b92139048f6d2d81234327912d04480e7bfbf28261f2ddf6ce"
+              "bytes": 47765,
+              "sha256": "49baddd715cf534a523fc915715f0fbff015951666d497a05d95b99f419a3368"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 41140,
-              "sha256": "8c361059062f2880273e3e008f5f2e15b79c2c1a76792aaf09beef7722938144"
+              "bytes": 68941,
+              "sha256": "b625bc45d48cc6dc6bc1e37024995b53d04683ce6e73a68795e91f73add87273"
             }
           ],
           "webp": [
@@ -1623,22 +2707,22 @@
               "src": "/movimento/v2/PAR-02-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 29686,
-              "sha256": "c958346a58c296ea2834dfd4a58e0e15a503e1af9a2853323e29383dfd6fc826"
+              "bytes": 46606,
+              "sha256": "75095003019b0f9b1017b76c97281271a4d915643d131ebebbe66ab60eb3eef9"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 54322,
-              "sha256": "e1d99fffdb5a88cd46d9d25522f0b6042b7caa3a539ccf4f8d2c00b758a4e8e2"
+              "bytes": 78066,
+              "sha256": "4c291b6e8dbcbdfebc314e0cf6f15ee6810acc66d8bb7aa40b963390a326ca85"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 81952,
-              "sha256": "a7860e940d86247566c6448254f23e3bca0aece49ee668795a90e176061bebbd"
+              "bytes": 117398,
+              "sha256": "ba9ff1704f6bda8f01f21300775a96c1774043ab556ae74b13627fe7b9452bf3"
             }
           ],
           "jpg": [
@@ -1646,22 +2730,22 @@
               "src": "/movimento/v2/PAR-02-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 39197,
-              "sha256": "89f856f9f38303d009b9fdbc3689ca1483c1d11a18e412aa05717b5edbdd87c6"
+              "bytes": 54700,
+              "sha256": "7b7b7b60146333a0d211a8c6a7407d2732cf1e66378503fe222f62da87d98e47"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 73397,
-              "sha256": "3cab1aafe29e67af57ed16cfa8b74cc9b5673e5b7f507b2ca7a268a8f7f4b992"
+              "bytes": 97998,
+              "sha256": "c64ff70d00b009f08fb7273ea8887523e966c389a3597fe8f93647d7c4241e04"
             },
             {
               "src": "/movimento/v2/PAR-02-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 118615,
-              "sha256": "e4d1357ccd9b5e24d62640849d03d89e3e48b87d54d04d038ae35e037a3a6ca9"
+              "bytes": 157290,
+              "sha256": "84ecb5e535da9a60da358b447def715cbeffcfaae8744aa192950bd97664fa10"
             }
           ]
         }
@@ -1670,7 +2754,7 @@
     "PAR-03": {
       "id": "PAR-03",
       "generated": true,
-      "sourceSha256": "1e82a0452c38f629796d49e915fb8198a79f547eff9428a317566e8b9aa41313",
+      "sourceSha256": "a454ec7ca1d60fffdbb30e2172d4871d1b1f5d0a82c4e3aa91a20c8e702554f7",
       "alt": "Café da manhã editorial com áreas limpas para presença funcional de uma marca participante",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
@@ -1823,27 +2907,27 @@
     "PAR-04": {
       "id": "PAR-04",
       "generated": true,
-      "sourceSha256": "cc38d664348f3a19fb6c9f04aac1ece8cbd360feebd52e981c86bbf7ddca79ce",
+      "sourceSha256": "b3e51285c8d67b539b0e39c875f8fc6e12a861f53266555c067f50c77e09bd17",
       "alt": "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real",
-      "disclosure": "Visualização conceitual gerada por IA · wordmark oficial Bentô composto sem redesenho.",
+      "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 940,
-          "sha256": "445817b85e4bd04cce31de9155a29807c5374206940c5f95b6885da46ccfa5eb"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "8e5563de28c805a4ddd83cd60ea80da9b14e7db275ecd85c3509312cdac4eced"
         },
         "desktop": {
-          "width": 1672,
-          "height": 940,
-          "sha256": "445817b85e4bd04cce31de9155a29807c5374206940c5f95b6885da46ccfa5eb"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "8e5563de28c805a4ddd83cd60ea80da9b14e7db275ecd85c3509312cdac4eced"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-04-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 406,
-        "sha256": "685080429b310d81fe0a4dfc51c8152dc52e6a49c5fda8e970c8f02cd5f4fef4"
+        "bytes": 416,
+        "sha256": "fc45636f2f22c4fda2e2ca3ffa540a8ff72316f6891be7286b424caef02f62f9"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -1853,15 +2937,15 @@
               "src": "/movimento/v2/PAR-04-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 23046,
-              "sha256": "76a1c4695201ab3911d835d46e41ae876357add2a61ff7f46ee894044d79fc8f"
+              "bytes": 11744,
+              "sha256": "bb7cb779980515b5415f684a31f97f7901f340c0d636fc16d51c164dd28a6ceb"
             },
             {
               "src": "/movimento/v2/PAR-04-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 38490,
-              "sha256": "1265db3cc1ead3f9bc05811f6130aefec997b65e19c2e4877f7027b1f0856ae5"
+              "bytes": 18430,
+              "sha256": "62265baabb6f0d6869e3509bff115c8395bea6fadd78c13395ccc48f41e6d73e"
             }
           ],
           "webp": [
@@ -1869,15 +2953,15 @@
               "src": "/movimento/v2/PAR-04-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 35978,
-              "sha256": "fb95eae4aa3ba6728eb229990008f97bb23c72a66eb57092b4735ed2a56f2699"
+              "bytes": 19644,
+              "sha256": "a5db2655ca957559246f3ade248265f473b7cf71597f40e09e2ee86ad1685380"
             },
             {
               "src": "/movimento/v2/PAR-04-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 64268,
-              "sha256": "00b003c902d77ddf0c07ad5f4ac8dec9fdd53a7899a318b1119e3c066fa32d3a"
+              "bytes": 32762,
+              "sha256": "4812647694dd7843271b13d43a8a06fd17257000ff1938e88269a737bbe89595"
             }
           ],
           "jpg": [
@@ -1885,15 +2969,15 @@
               "src": "/movimento/v2/PAR-04-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 45207,
-              "sha256": "bf514f422b98083c4735e7738f0e6b9a1f6067d8b04199ead975598440c3cb16"
+              "bytes": 30717,
+              "sha256": "6073a68dbc24de5ae71c964cb8a6ce90394a0d794ebb60767f02136a90877d9a"
             },
             {
               "src": "/movimento/v2/PAR-04-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 89892,
-              "sha256": "105e844238b697f3efe93949c87b0f0f55f7a4ade8c50b6d4258b6e48b50ea82"
+              "bytes": 57478,
+              "sha256": "f286923711163ba855344d6b70818c959b07dd9128bce2f6a585c97a483f59d7"
             }
           ]
         }
@@ -1906,22 +2990,22 @@
               "src": "/movimento/v2/PAR-04-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 30415,
-              "sha256": "25f09d4ecd20c96bfe22ae110288f561ef69683c38981e435388845d9bb10fa8"
+              "bytes": 18515,
+              "sha256": "178cd48f98619b79baf974553778ac6330346def9d8fc496efa3728dd6c58896"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 47288,
-              "sha256": "6a275a3c543fd59bf02c65074ee219ce879f3a9bb98a9e2b500a88af7cdc5742"
+              "bytes": 26125,
+              "sha256": "7f1184fd0f4c796a1e8ae45fe3bedbf6eef9e4e4660ff79922778dc55e788588"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 64654,
-              "sha256": "7c37d1f9695922fff616d1992a4d68e1ceb6ed2ca2a4baee56f33f926d25db02"
+              "bytes": 34591,
+              "sha256": "70a89c572e5ba2df6908d7d42478d3c02360508e936e50e380ae4b0d61c288ca"
             }
           ],
           "webp": [
@@ -1929,22 +3013,22 @@
               "src": "/movimento/v2/PAR-04-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 46784,
-              "sha256": "812ff48f7d4ae48210d5248e0f514906d6bc2786d561fb89a69fa01dd6cc8458"
+              "bytes": 29996,
+              "sha256": "8eed98445267fdaeae958f62d2ee8676609189668b90bc13b62e062937033ef7"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 76080,
-              "sha256": "4b2ef74a1a289fdafef0693ae9a1b882dd3be4ad5c95d7f1bae16f14017a7a63"
+              "bytes": 45126,
+              "sha256": "4619f70372d9861f2b4a55a619c10a9104f593e17163fbac4b569f309629f77a"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 108184,
-              "sha256": "3952292c1fb4ad6c7be3b84b5d159c6ec66216c63ecb5488463bc801ca74032c"
+              "bytes": 64126,
+              "sha256": "8375e6d8440222b1d5a4dbdd16a6069ea4363d30ace7d2d99cc370f65457ea39"
             }
           ],
           "jpg": [
@@ -1952,22 +3036,22 @@
               "src": "/movimento/v2/PAR-04-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 58258,
-              "sha256": "8d4475e6fe1534bc5928fdd41f6169382cc347d71d566eadd0e8c3791dc8a6c9"
+              "bytes": 44427,
+              "sha256": "725665e05914c55c03937a419d5285af227765a7dd000b366dcbf7a84ab47f81"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 101838,
-              "sha256": "eabbda8757933f00b3bd3b9755e730da992bd4cd6486cc29b48b8d8c617927b3"
+              "bytes": 72428,
+              "sha256": "e4a884b02fcf9999a3974aa44229d9e96bc6302e5460d141d44d36edd390faf9"
             },
             {
               "src": "/movimento/v2/PAR-04-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 157445,
-              "sha256": "c582665c73ddef2db5052027362f56da42d89f8d6afbc4b0310f8899437d7924"
+              "bytes": 108220,
+              "sha256": "47bfbe058cae2d51096b5af31be9aae7350abd8497b08ad25a091340af52abec"
             }
           ]
         }
@@ -1976,27 +3060,27 @@
     "PAR-05": {
       "id": "PAR-05",
       "generated": true,
-      "sourceSha256": "0db47d57f8cafc5aa1743ee62709472ce96d1b13d069f178218dbad59eadd248",
+      "sourceSha256": "0b2e4a779b8adfc32c9710b4f64741a22f2ff8b9dd2dfa09741d5c94d8f28b9b",
       "alt": "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
           "width": 1672,
           "height": 941,
-          "sha256": "94fccf9fad3eb32190c4d93d31a94852f110c3dc753256cf5d9be09b330f4b7d"
+          "sha256": "0109eef977ce97a1afefd82a1eb535b5767d7b2b742f6c0886b155fc7e01a2e3"
         },
         "desktop": {
           "width": 1672,
           "height": 941,
-          "sha256": "94fccf9fad3eb32190c4d93d31a94852f110c3dc753256cf5d9be09b330f4b7d"
+          "sha256": "0109eef977ce97a1afefd82a1eb535b5767d7b2b742f6c0886b155fc7e01a2e3"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-05-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 428,
-        "sha256": "02194ca7fa62a0a26d35804174b7b60bb172f4c5ec9e5ec89516afc1de719415"
+        "bytes": 418,
+        "sha256": "df5d059a4e31cf701edf25ad482ecd0a4e8d1882dc71283305d50e75faf4f711"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -2006,15 +3090,15 @@
               "src": "/movimento/v2/PAR-05-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 17763,
-              "sha256": "04a51ebc4c30d5395e167c416b432485dc8abef2cd1f3e771396c9a8d7737878"
+              "bytes": 16267,
+              "sha256": "de61ec14240bee19ad17a007fda9b4ed794febaac16a79e0622a84ca13d08ac5"
             },
             {
               "src": "/movimento/v2/PAR-05-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 29398,
-              "sha256": "57920ef672e6f42648ad385ee69eb1b07ad1ec6443d2e71c9593c1551bb6074b"
+              "bytes": 26132,
+              "sha256": "bfb628c35b462c083fc8bf10c33866d57efa5f00710c99e5a39768de57e431d8"
             }
           ],
           "webp": [
@@ -2022,15 +3106,15 @@
               "src": "/movimento/v2/PAR-05-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 28892,
-              "sha256": "85b7c7c6b78264aadd14c4bbafb3c42c8622c92948dc127874785acbe6bb85bc"
+              "bytes": 25752,
+              "sha256": "723355cdc7332430a096790e144aeb934a1a611a344a9afab026a735a0900472"
             },
             {
               "src": "/movimento/v2/PAR-05-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 49290,
-              "sha256": "b15965dce7b4798f3fb74819961ec5ca043062a19ad149b73c537cabbde3459d"
+              "bytes": 44036,
+              "sha256": "b87261fb09663795aab1e591e189224972153a009dab1636a2b97c419b651608"
             }
           ],
           "jpg": [
@@ -2038,15 +3122,15 @@
               "src": "/movimento/v2/PAR-05-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 39829,
-              "sha256": "68c0324d066deeb7779355410653296fcd5b000ea0fc763e08e12ec04ebac1e3"
+              "bytes": 36761,
+              "sha256": "ccbc96834618b207b63cadbeb87b1782a53be896db95508652b7a1667a860851"
             },
             {
               "src": "/movimento/v2/PAR-05-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 78020,
-              "sha256": "3f0006b05fb6d12707c9c27d4768c490dd6875c71ac21327c988fd61c2954491"
+              "bytes": 70944,
+              "sha256": "feef6835f4028c7bab33e2a5a179278ada053b769ca6131dcf1ab1d45a4c373b"
             }
           ]
         }
@@ -2059,22 +3143,22 @@
               "src": "/movimento/v2/PAR-05-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 24043,
-              "sha256": "9b5d7c6f735664f565ac67c15b989a31806e3d63d333c7bb2e1b99a81b82c3d4"
+              "bytes": 23520,
+              "sha256": "3210d3f45fa148794ac343a33b5717ace50ca672cedce01aaef0064e149dd5f7"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 36875,
-              "sha256": "ac99d5252fafce35002cd069d6c27bf700c1c03c4266b5b9f5a533d07f44f7fa"
+              "bytes": 34867,
+              "sha256": "febb9565e477eb3856c1b44604cbe16109b929ea350dc3a00aaca72dfc18954b"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 49987,
-              "sha256": "c63746e2f8dad00c2d70759db3f16805db954fb10e79f2d54f67f7aba3acdf26"
+              "bytes": 46741,
+              "sha256": "39f08af1d9e7c9b1c4c8f88311f5a22b19ba0de6898388f269d561675e712ac6"
             }
           ],
           "webp": [
@@ -2082,22 +3166,22 @@
               "src": "/movimento/v2/PAR-05-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 38204,
-              "sha256": "15dac0784d12abdd278231f94cb4df0dfe09267d217d782e73d6da6fc3812c5b"
+              "bytes": 36992,
+              "sha256": "6e5599c4850bd6839f602906fdb132ad4307ff8ad18c984d175daed766bbe767"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 60150,
-              "sha256": "cc6fd5e7ee2482cfc74a872bcb338f5890a1450203cbc3156aa718784b3e2962"
+              "bytes": 57198,
+              "sha256": "9c357706154ba9218f88f6d5b0e38abc996b3954cc0dd050df6b7045b17cb1b0"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 84752,
-              "sha256": "cc3d048c0218d4d8553f6a66a05c4cb865f038c6568a950cae248eb9dac8f65a"
+              "bytes": 79892,
+              "sha256": "61981959137a017906b763c37f8ea5f3407635a5d05659333f084c93ce66b0b0"
             }
           ],
           "jpg": [
@@ -2105,22 +3189,22 @@
               "src": "/movimento/v2/PAR-05-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 51124,
-              "sha256": "5678a481bb1d16296db96da01445dddb81366ca1b56d0e075b40bdfb98ccda8d"
+              "bytes": 49336,
+              "sha256": "f0b0f07aa94890e1dda102ae9a1c7ae9a240e24134cc9b84a411df8f3c0b330c"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 87516,
-              "sha256": "3af6cff326b4d030d824ac7fdbf3ce02d318a23d11c3794210901b1e0a0adfa1"
+              "bytes": 83246,
+              "sha256": "5c3c5a48fcb00c5188fc8d69e6eea44091276ff0157a2b8369d513ca5f8b064d"
             },
             {
               "src": "/movimento/v2/PAR-05-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 134830,
-              "sha256": "ee97bbe50d6e0f11baf72efd2b7286e9e3e15606042fa616a4767fc68d664a9f"
+              "bytes": 126675,
+              "sha256": "0b7db27b3e0ead6b35d382b0ad86f1d6ccf32d5ff92b3eb85a2455d9c8b6de1a"
             }
           ]
         }
@@ -2129,27 +3213,27 @@
     "PAR-06": {
       "id": "PAR-06",
       "generated": true,
-      "sourceSha256": "07c66ba047606f08979c1025440a9423d61bd7ba94a427ac4f8263e28b29e568",
+      "sourceSha256": "9bd63679454e65293825c6ed03e37a4ef9eb020d4ba3326e13489fee6deb04e4",
       "alt": "Oficina infantil de decoração de picolés com espaço organizado para uma participação de marca",
-      "disclosure": "Visualização conceitual gerada por IA · picolé do acervo real Bentô composto sem redesenho.",
+      "disclosure": "Visualização conceitual gerada por IA",
       "master": {
         "mobile": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "0ff971a6a04374b745a5ddd17a0760001f8bb074b21b49ca8ed2f9466bbf680c"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "4604eed0ae49a1159e97e929847765710660ad9129970d30688bea19588ae84d"
         },
         "desktop": {
-          "width": 1672,
-          "height": 941,
-          "sha256": "84952b9a898806ad9a8ea5d32a1c209eab9c7804d59778cc08ca41d96d21ed7d"
+          "width": 1536,
+          "height": 1024,
+          "sha256": "4604eed0ae49a1159e97e929847765710660ad9129970d30688bea19588ae84d"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-06-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 414,
-        "sha256": "1973c09e0aacf9c1d02fd82266660b6239f45d20b33c8f70c87e78790ceea654"
+        "bytes": 404,
+        "sha256": "185bda3491bbc1d76fe2745ddfa4f054293bde34939aba736f447d6080d04525"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -2159,15 +3243,15 @@
               "src": "/movimento/v2/PAR-06-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 12540,
-              "sha256": "c36c0fd4891a8564666c8d195692a42871fa9a9cb38c2164d1d097ce19cdfc16"
+              "bytes": 15234,
+              "sha256": "671df3227ebcce57bdd9b1da2b99f74029006ad6bc3f3d0bf8b590fb9d54fa10"
             },
             {
               "src": "/movimento/v2/PAR-06-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 20427,
-              "sha256": "041543d0084d5d64d4602684f3e48ee9037c83e66edb36f974c2305b987cb1a5"
+              "bytes": 27151,
+              "sha256": "fa486a321a7082e84599015f870e8600bca378dd3080cf73812e0ba14d9da5b3"
             }
           ],
           "webp": [
@@ -2175,15 +3259,15 @@
               "src": "/movimento/v2/PAR-06-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 20172,
-              "sha256": "33a4ff34723179afd0067d44972b727b23a717f39462068495cf5f83f922d48d"
+              "bytes": 23834,
+              "sha256": "752f181a2e8183f67daa6e828b7ab049759d50a6456b48a2773871d8bb370b3c"
             },
             {
               "src": "/movimento/v2/PAR-06-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 35920,
-              "sha256": "5106b3cd9e1fae3c8d38d077c3214fe0ca79495af8663287a51fd788085dba30"
+              "bytes": 44370,
+              "sha256": "3ac124a8739441c5fa3193bb6d05edfec46d6aa3a3b64be8b2795021ac87d889"
             }
           ],
           "jpg": [
@@ -2191,15 +3275,15 @@
               "src": "/movimento/v2/PAR-06-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 29558,
-              "sha256": "cfe26aa86795293a3a768bac21eda33880271e30b1bb331080ec3ea19b67241b"
+              "bytes": 32335,
+              "sha256": "eafb925da00d079743441b555a0633ca2204df096fa3117d6343219d500595b1"
             },
             {
               "src": "/movimento/v2/PAR-06-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 58415,
-              "sha256": "58b3f59e631b38bea84e8354039a0a6ec68ca349a98ec74fa909ed46aadbf38b"
+              "bytes": 66085,
+              "sha256": "2b2ec9845922ef5685f7de513b6501855adee89b19821057264e15d8f44f29b3"
             }
           ]
         }
@@ -2212,22 +3296,22 @@
               "src": "/movimento/v2/PAR-06-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 19559,
-              "sha256": "0c57332aa3fcccf7fcb11d4cd8e8d4872b1a1c9ede395d658da6009d79aa9425"
+              "bytes": 23376,
+              "sha256": "40cbc06c4644bd1b3bee4c965f0f2af4f100b9c504ac48d0087051f471f36aba"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 29274,
-              "sha256": "47aeac5a22805691177401d8e2b370788d7f92b066a11afcb6731b920ed61532"
+              "bytes": 36619,
+              "sha256": "4ac2ade75d105862a0fadc1f4e1f94458138a25a150b8507d39133444137c62f"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 40231,
-              "sha256": "73931f32c39c5c3b7fb4c5a9c5c008084763b00d0f915ae4e2f72cae416a0ace"
+              "bytes": 51103,
+              "sha256": "d6622b880f009c1636723097b34aa03e135ad506f8cefb448605afb4ff46b6c8"
             }
           ],
           "webp": [
@@ -2235,22 +3319,22 @@
               "src": "/movimento/v2/PAR-06-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 31250,
-              "sha256": "29ae550dad40eda561d9fef4489217bb7e4d2ffcc2b0eeb2e5c45f39dc1559fb"
+              "bytes": 35468,
+              "sha256": "e70d91305b7db1b5df63816fac019b71d6f23781e2170f09d26f7ff4231b9ad4"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 49172,
-              "sha256": "c6aef45ea99c3e740ce07df4693da2fd99f061380a1001faa9c194cff5782cc6"
+              "bytes": 58912,
+              "sha256": "9982f875db870424536e7ec21aa3b5e175f507a46752ed25c016a94dc3a71875"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 70700,
-              "sha256": "38c3a7208062875ebf9247b3918e66c9c78b67c18fb12f6519da9bde00bacb9f"
+              "bytes": 85306,
+              "sha256": "3b6c5a8e4278a4883ff067ef324ce2dad481fd9553834d572c89c94feae3c129"
             }
           ],
           "jpg": [
@@ -2258,22 +3342,22 @@
               "src": "/movimento/v2/PAR-06-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 44426,
-              "sha256": "ae27ea3cc43f778df75a092389cf000623256709dc0a98bcb4502bee1dbcab4b"
+              "bytes": 47839,
+              "sha256": "543283e0526b56a218b5b6287e3cbfb02fef447e4d97394e92aab524ce2c5f56"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 75397,
-              "sha256": "c8128a12848603e1e15646d0e30a10ab37c654e59911f92dd0b1113c1e66b4ba"
+              "bytes": 82743,
+              "sha256": "96ac0831ee7a96485c36dc5a4c3b468d3a727d58e5e812b1463d0cf99905a617"
             },
             {
               "src": "/movimento/v2/PAR-06-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 116473,
-              "sha256": "18a19986f9f1f7488e7cfb6fd72cfc87ab392b4523ed3ada0efe55e4b5a227ba"
+              "bytes": 128586,
+              "sha256": "933b61e25f0bbdf36876c26d847ea819e1a6521b3b754ff94d64272b796f50d0"
             }
           ]
         }
@@ -2282,7 +3366,7 @@
     "PAR-07": {
       "id": "PAR-07",
       "generated": true,
-      "sourceSha256": "1d23dee074b2245048794934f7a1fb417079910a8cf490aa61a8108c0e8c54d4",
+      "sourceSha256": "74664c452fadeef22313645fd0e80e58357f681adbf23a553fb029fe7ea5d63c",
       "alt": "Kit editorial e camiseta oficial com área de composição coletiva abaixo da frase nas costas",
       "disclosure": "Visualização conceitual gerada por IA · referência oficial de camiseta Bentô composta sem redesenho.",
       "master": {
@@ -2435,7 +3519,7 @@
     "PAR-08": {
       "id": "PAR-08",
       "generated": true,
-      "sourceSha256": "d9c8b63da418b10227497d4b937a0472beef8124f2b5db13b84bd87401cd8911",
+      "sourceSha256": "13369c917284d38412a0b9a1bcfa55fca31665efa76d79b0f82f2860dfc787d8",
       "alt": "Produtos reais Bentô compostos em um cenário editorial para estudo de cocriação responsável",
       "disclosure": "Visualização conceitual gerada por IA · produto e embalagem do acervo real Bentô compostos sem redesenho.",
       "master": {
@@ -2588,27 +3672,27 @@
     "PAR-09": {
       "id": "PAR-09",
       "generated": true,
-      "sourceSha256": "c7561c71c317899ce9fbc5b9cab49cdd10a02f0002ea3279b0090e6883ea2284",
+      "sourceSha256": "3659454ddc2edc593c2e275eafcb6cbc046f8b14e62665d23e7927a18a4b48d7",
       "alt": "Backdrop branco e dourado preparado como ponto de fotografia para o encontro Bentô",
-      "disclosure": "Visualização conceitual gerada por IA",
+      "disclosure": "Visualização conceitual gerada por IA · wordmark oficial Bentô composto sem redesenho.",
       "master": {
         "mobile": {
           "width": 1672,
           "height": 941,
-          "sha256": "bf6a718d892d460782664b1848f0417033a1bed508a1ed0919996f384935bf9c"
+          "sha256": "6ba900716269abb9337f19fc6410b493ff05a11c2d8ce124dafede5409811c1d"
         },
         "desktop": {
           "width": 1672,
           "height": 941,
-          "sha256": "bf6a718d892d460782664b1848f0417033a1bed508a1ed0919996f384935bf9c"
+          "sha256": "6ba900716269abb9337f19fc6410b493ff05a11c2d8ce124dafede5409811c1d"
         }
       },
       "lqip": {
         "src": "/movimento/v2/PAR-09-lqip.jpg",
         "width": 24,
         "height": 30,
-        "bytes": 409,
-        "sha256": "dc1269a8b6725c79f481586e119e927059275981f49ed7e6032863a99d9225ec"
+        "bytes": 408,
+        "sha256": "fc127855f66da02e5f9a8178f6ce6b2af6bed8d337597a23b448374c0e7486df"
       },
       "mobile": {
         "aspectRatio": 0.8,
@@ -2618,15 +3702,15 @@
               "src": "/movimento/v2/PAR-09-mobile-480.avif",
               "width": 480,
               "height": 600,
-              "bytes": 10569,
-              "sha256": "dbdda96e692b3e5742c75d550e65a3e5c94759d7b9c261bfc8f7d3b9a463c855"
+              "bytes": 13796,
+              "sha256": "95eebd9c98aee5c611c588494864c5ea6d6838d22633103c70125ef2c5fbe696"
             },
             {
               "src": "/movimento/v2/PAR-09-mobile-752.avif",
               "width": 752,
               "height": 940,
-              "bytes": 22630,
-              "sha256": "841a379d514707f653febea3c899e146ee437d3028fdbb94b3e3cd2ff7bc13a4"
+              "bytes": 27241,
+              "sha256": "f2712a12edccb0b277f1f6b9546f8f7d3232b8bf758c18ee9a035614695e10f4"
             }
           ],
           "webp": [
@@ -2634,15 +3718,15 @@
               "src": "/movimento/v2/PAR-09-mobile-480.webp",
               "width": 480,
               "height": 600,
-              "bytes": 19238,
-              "sha256": "d5ad5ad2df51118cd65087fc65b3c52841d632993d17e30c83917466e8c47707"
+              "bytes": 22692,
+              "sha256": "b8d140efb278353da3d34ddea102bfb038a52dbc56819dfa59a2527fb0d3dd48"
             },
             {
               "src": "/movimento/v2/PAR-09-mobile-752.webp",
               "width": 752,
               "height": 940,
-              "bytes": 40338,
-              "sha256": "5d2bdb194b34c25761c2ffc12b20e469cf1ad833409c9bd41892140fe58d2f3a"
+              "bytes": 46466,
+              "sha256": "ff21bb2557bf5d7c2a81d56fc20c6d3d2a195749dfeaa19e2238681e6b733711"
             }
           ],
           "jpg": [
@@ -2650,15 +3734,15 @@
               "src": "/movimento/v2/PAR-09-mobile-480.jpg",
               "width": 480,
               "height": 600,
-              "bytes": 26335,
-              "sha256": "ff98284c0eec447011e4073bc1c231a28a67849ae4a114cefde332c203c23fef"
+              "bytes": 30213,
+              "sha256": "c323da5f1d32a9f950c0eddb52f9d84f6c9169d45159a2834b3f2b46442f4091"
             },
             {
               "src": "/movimento/v2/PAR-09-mobile-752.jpg",
               "width": 752,
               "height": 940,
-              "bytes": 60537,
-              "sha256": "c4e9f535dd3a832447ef19f9c5f7d698ee8caa657ec55c14378b701260999648"
+              "bytes": 67239,
+              "sha256": "f0d27da8c38969a214fb0e338e6fac3b8ceda530f77f6e9b887a8aa85d75ef13"
             }
           ]
         }
@@ -2671,22 +3755,22 @@
               "src": "/movimento/v2/PAR-09-desktop-768.avif",
               "width": 768,
               "height": 480,
-              "bytes": 26366,
-              "sha256": "50e77bf013f3cb3081e8eac7d16d2885aad0c7f2adb3d58c80f14259ba5c0570"
+              "bytes": 31167,
+              "sha256": "4a5f614dbeef9d0199a2ebf52fd9d25c3b2a5e1a6ce16072d2e84b63c5a04bfc"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1080.avif",
               "width": 1080,
               "height": 675,
-              "bytes": 50606,
-              "sha256": "a46114466d9306e8122fb0ddd625aa40fcbdffba1e6b8b23f1bfec2704f4fbd3"
+              "bytes": 56049,
+              "sha256": "2e9047da3f2558c56e9da6debbb5046c4d88ace8da2fe135cd83603ce293e3ac"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1440.avif",
               "width": 1440,
               "height": 900,
-              "bytes": 74278,
-              "sha256": "f3303daa20fe9a33eb5d35e45df74921cd29f9ddf7e4999b309f3a61cf122e14"
+              "bytes": 80456,
+              "sha256": "b020ca9fe259279986b37f051781cdf607b6f31818a148f5d362a9f816490b74"
             }
           ],
           "webp": [
@@ -2694,22 +3778,22 @@
               "src": "/movimento/v2/PAR-09-desktop-768.webp",
               "width": 768,
               "height": 480,
-              "bytes": 42708,
-              "sha256": "ddf2a05df4e9d2fb1d0bb3cc26473432fc2445cd173cf640e834a6c3d5cbf874"
+              "bytes": 46884,
+              "sha256": "61364c67ff1cc7de3cd6957e06189a4fe763f2383afab49d5bd4d2ef17614496"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1080.webp",
               "width": 1080,
               "height": 675,
-              "bytes": 81626,
-              "sha256": "aef29cd638498f676f0421154f7c7cc431f408a90241990a267838832555c957"
+              "bytes": 85032,
+              "sha256": "c4c6e45da7a0d3d7bd1094e8b7968e15cf82a8daa493d7e48168835655b4b3bc"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1440.webp",
               "width": 1440,
               "height": 900,
-              "bytes": 126514,
-              "sha256": "62258d722f521453ffe08b485e19d5fd6c40f1ab1530e6a1c83674ee5d7ffd9c"
+              "bytes": 129144,
+              "sha256": "8d2ddd47ff9c55fd6b6d2ce840417867d2d596ae981f0553b4991bb5508f228f"
             }
           ],
           "jpg": [
@@ -2717,22 +3801,22 @@
               "src": "/movimento/v2/PAR-09-desktop-768.jpg",
               "width": 768,
               "height": 480,
-              "bytes": 50877,
-              "sha256": "e235ead87e0832c4e79284781f02d304d5a282be4fa81cdce040f8b5c59297ea"
+              "bytes": 55225,
+              "sha256": "3c9bdec974dff8854b6462d105824f411212a674b8e9148c1b33028ba1ec6e72"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1080.jpg",
               "width": 1080,
               "height": 675,
-              "bytes": 99953,
-              "sha256": "567fed08b4b501d2aa7494ebb59b8d738e19cf0f0191e46183eb98ff36057032"
+              "bytes": 105212,
+              "sha256": "1e5fb4c62594a212675d916ef0eb66f83e632393b5238cb73fab6d26269ec8a6"
             },
             {
               "src": "/movimento/v2/PAR-09-desktop-1440.jpg",
               "width": 1440,
               "height": 900,
-              "bytes": 167055,
-              "sha256": "e492b3d09c968c01942c92b68c47cbac3b85199dd83069cc3e29351f75cecb96"
+              "bytes": 172425,
+              "sha256": "2d68a91fdbd8c80ca62b02ca494e7600bfe41ced9288a1abe9efb3a5afa03c50"
             }
           ]
         }
@@ -2741,7 +3825,7 @@
     "PAR-10": {
       "id": "PAR-10",
       "generated": true,
-      "sourceSha256": "b1500142b9a9fe4cebbacd554d494c90d0aac016c9a1d78665f3dabeded05326",
+      "sourceSha256": "b70adf9fb612a7c1f221d381f3849074d6efb8783e1662fe7648866db9d06581",
       "alt": "Mesa de curadoria com amostras de materiais e espaços limpos para propostas de participação",
       "disclosure": "Visualização conceitual gerada por IA",
       "master": {
@@ -2886,6 +3970,924 @@
               "height": 900,
               "bytes": 117436,
               "sha256": "1eae65332af2695acfcee572a87e8fa0c53f23b8b6154e436519cf1f8adc3cd8"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-11": {
+      "id": "PAR-11",
+      "generated": true,
+      "sourceSha256": "c54030f3c8d6862c983f399487b1518fc5ef350ab87bb8de8e2c53869a03e4c8",
+      "alt": "Dois baristas preparando V60 e espresso em uma mesa de cafés especiais com áreas de presença de marca",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "7ed49bd4ef28c35408234b5e3b6658fa789910bdd4522a0a8eb89f5a069d704f"
+        },
+        "desktop": {
+          "width": 1586,
+          "height": 992,
+          "sha256": "7ed49bd4ef28c35408234b5e3b6658fa789910bdd4522a0a8eb89f5a069d704f"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-11-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 424,
+        "sha256": "1024973c421ec91723ef4e98fac346f5544e7b0f2ba20f9c1a11a7aa59b0ab7c"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-11-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 16470,
+              "sha256": "7e9404c43a4d5798f998c035825683d5eea5837937ddd2dae80279e2a47481cc"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 27711,
+              "sha256": "189bfc060750cd5b2950fe92932a72d26b9dfae2b2cb4760336c8aae609f0f77"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-11-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 26814,
+              "sha256": "e33ad64b8906188a0fb9aec196d4d491c0c9846765e2d17a8178cd76734ba828"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 48008,
+              "sha256": "7ffb91c94c7b5435b922513a94792de3561c9d8c1eeffd940cfe2d9e325a479c"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-11-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 37569,
+              "sha256": "ad2ae0c5eac0cfdecd2c947ec808b1bd11aec20da9310cc15ea71e435c94706a"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 75223,
+              "sha256": "77ce1e0b61e2364674d2edac5bb5a5c9c5daca49a2cac23a55e4e4a388645abe"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-11-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 23248,
+              "sha256": "4c32f821b9767e163c50c2458707fe9381b96b77504fd9ef2c75a6d9a0464c94"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 35140,
+              "sha256": "7050b11cbe3e38ace418585f6faedeb8e2701ee6d2cbaba3e5ad3a8a4f9e847f"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 48142,
+              "sha256": "58132ff3dc84b93a5b3fbc74e5a745ec6ff3497e650d03b894f2688b2d83e007"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-11-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 37578,
+              "sha256": "fc6bc1be26121f0bc09b16dd356766d69494f6318c8e0415729c924702e85e98"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 59814,
+              "sha256": "11b9aab10cbf164b954ac64ae9766d08f46c2d395773acaae577b9e21f8f6b33"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 84994,
+              "sha256": "d95da947c7954fd0cd4b487ee5910ab8e364c0a2a11ae546b6f7b7a8e222d222"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-11-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 51749,
+              "sha256": "3f93905b217b38f4d9927a120813633c7df7ac3f5d90c0b1ba5d924fcaa3e71b"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 88732,
+              "sha256": "ae298950e8f33d70dd227791ce2c177939c46bac26f1e0390348aea9b4e4f1d4"
+            },
+            {
+              "src": "/movimento/v2/PAR-11-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 136550,
+              "sha256": "bec3e075855764554c25664ef99f26fc1e79a0d6f656429600ac69a1a17c1b7c"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-12": {
+      "id": "PAR-12",
+      "generated": true,
+      "sourceSha256": "0e88bf78a7d06bf3685efe57b33cadaffaa6e9f5ee67d3f60442a6c927f9e467",
+      "alt": "Carrinho oficial de gelato Bentô em atendimento com painel reservado para uma aplicação aprovada de parceiro",
+      "disclosure": "Visualização conceitual gerada por IA · carrinho real Bentô preservado sem substituição da marca existente.",
+      "master": {
+        "mobile": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "6893493d07fb35ce66778f85d124babc4bfeaa09c58ceeec0967ddcf6128e3f8"
+        },
+        "desktop": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "6893493d07fb35ce66778f85d124babc4bfeaa09c58ceeec0967ddcf6128e3f8"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-12-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 405,
+        "sha256": "bc4c66159e2ef27cf67ceb66dac8230c0221cbb91c35c8e25f05fb4073c3c6ec"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-12-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 21846,
+              "sha256": "971f67a6ba532ab2a0044e345be0f4ffcec8cb0f1b0db7198d22b83b99b77a07"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 36293,
+              "sha256": "3453539f142d0aab562f0dd544309446ce33a18f76a9131337cf42e0fe0cbfaa"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-12-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 33678,
+              "sha256": "f4ceccdc58af5e57b8fdf9ed1221f447aa0d0725130df891585062ff5387d040"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 59560,
+              "sha256": "116d8387fb7ce6882561039fbd32bae38c637178bca4286c9ec46005c57afed0"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-12-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 42700,
+              "sha256": "6f0c387c2709b0f735b7a2d93a0eb850bfab77765a8f720759b18e80e9163cb0"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 85077,
+              "sha256": "cd81195ce232ed8a7773640ac5085e3b2ea79b6ae0b9336c6300ac8a7d0ae35a"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-12-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 30982,
+              "sha256": "cd77bd9418fe87faf3269e765862e8a5a4aa48a8e70bbefe732d14cb795bf7be"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 47887,
+              "sha256": "d5dfc06e1b320917c641286542814910278d0baea47d009778081d558d18e02d"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 64488,
+              "sha256": "e219829545b801359210e94ff0acc9cc3ebc4e4fd6dc0a0ef2fede252a0288e9"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-12-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 46966,
+              "sha256": "323427b500e4961e63149dca936ceb93939200d5ad90ceb972ac1b1959570f73"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 76336,
+              "sha256": "b1bfb6e2111be014669be79a11b5d7365405c2ba13ca99eaab6d0779041f224e"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 109532,
+              "sha256": "4fceeb61036a6c51aaa69dc765f226e6be5768b771f76f315ed187bd347e0055"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-12-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 57795,
+              "sha256": "e742c4cc51ce8c6e60bf6b7ecfb998158ed0c4ce5a921d7d4fd767813328ef02"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 100588,
+              "sha256": "dda04d85fec4516bbb6071cb1061e3b35fb8d8c2c83a887694885aed3c400a24"
+            },
+            {
+              "src": "/movimento/v2/PAR-12-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 154835,
+              "sha256": "f0f9bf2e6ecc913ed86c4b08f67366de0ef1ae3329dd4971bd7a4a8befb238d4"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-13": {
+      "id": "PAR-13",
+      "generated": true,
+      "sourceSha256": "573fae6cdc2f22884cb922ac82e2931274954d5ef5e2c23b11fd04d26117c6f4",
+      "alt": "Kits de suplementação organizados sobre mesa de marca com embalagens neutras e materiais de orientação",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "54d561f66332d5235eeb64eea66b6c1133d1615e6b7540221741f33caf8c09cf"
+        },
+        "desktop": {
+          "width": 1672,
+          "height": 941,
+          "sha256": "54d561f66332d5235eeb64eea66b6c1133d1615e6b7540221741f33caf8c09cf"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-13-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 423,
+        "sha256": "2ca2a3ff7546260d9c0709e75b1f9f225f530799119b05852039af85fbf62064"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-13-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 16474,
+              "sha256": "7f5d47572381988313849571e16915dc75c4818c866e0d28aa14a356598dba8e"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 25933,
+              "sha256": "41c68d98d8a96fda608e15468394ecf4e8adb33bd83b2570c21fec0fc3f1f47a"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-13-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 27176,
+              "sha256": "f3de0bd160cd46aa1a5ff8f367a7815caedb8e38882ff2e9a1cf4d1f3820ab16"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 45898,
+              "sha256": "e733d80b7cace172f6cc0c505160743fbc3ba413644409ac271c00a604a01d43"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-13-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 37520,
+              "sha256": "a1012eacb24518daa7ce3a18ff55fa53b61396de13741c571364d8c911bb4eec"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 70422,
+              "sha256": "cdfc281ee24c0ecec2d1be1dd054249e4b6b78f38e05d1fe1aac4336db935a6b"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-13-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 22042,
+              "sha256": "730613f7bd7b841b37a8efc18f436b6f64849a41f580870217e6313a534b004a"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 31894,
+              "sha256": "a04914fe9b5b9e8c24c4cc11a67b679272137dbe008fbcf361f4d4c9188a9258"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 42081,
+              "sha256": "9f085ce9be88433eef579fdcee788d28a190594b91c2f55dbdb0f9f8ee54a0cb"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-13-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 36028,
+              "sha256": "1e933403db10d6b3a5a4e3943a23ea448cf2a05ba37a3c19d57a2e272f50c1f0"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 54996,
+              "sha256": "3a2713247b8e2652f1677ddeea515134bea26354c38c012cf8c8d1f4ee8263e4"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 77146,
+              "sha256": "bcdb8161abd3ae1715c2ce0063d06a280c899af237015089bf4effdedb70844c"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-13-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 48945,
+              "sha256": "78deac7b7736e4a76980f42018623f37acab91aeedcbbf19c53f8539f56e642e"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 80224,
+              "sha256": "f256db2d6ed5b0055a07e503257c5ac2a7a023225d834e0b3ea8c3b7ec6ed0bd"
+            },
+            {
+              "src": "/movimento/v2/PAR-13-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 119855,
+              "sha256": "d77d2aac135a1993150c374243d39740dacbd9d8cc272d1957c60fb5c32250cd"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-14": {
+      "id": "PAR-14",
+      "generated": true,
+      "sourceSha256": "d2da1bfbbed948e3274a6569303837e35178a965349f83a1a6d0f32420f67bb7",
+      "alt": "Equipe profissional realizando skincare e maquiagem em mulheres diante de espelhos iluminados",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "ddeb365b97ef851476d7dc31c4f49a62a62d0139abe9fca98ec9097baabd0c45"
+        },
+        "desktop": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "ddeb365b97ef851476d7dc31c4f49a62a62d0139abe9fca98ec9097baabd0c45"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-14-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 416,
+        "sha256": "0f819fa74ba16efddb81ad8d1c70b7cf1bf6358472aaec68a5e7ee8385b4a3e6"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-14-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 8958,
+              "sha256": "28c5ad39599e6e2e44d14abd3ded60adf72f05c4be8cebf5d30aceae07839482"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 14620,
+              "sha256": "5a758665484fba173d318d7e18bec281309b0e459b4bca7248b4e94b387503e5"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-14-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 15800,
+              "sha256": "e12147c67b253ec999340132fdc544cfccc47b59c8aa7cd910b5458884253adf"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 27126,
+              "sha256": "e6d1042040a71d72efe31b7d33039751e6f2cde637725ec179013fe18f14c91e"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-14-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 25694,
+              "sha256": "02015c18701101450650cb3e361c4aeabb7ada881c76e0d26b4cb88cd00f6e5c"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 49365,
+              "sha256": "29a3e0625688f084c2f4af795b71c1ac6789203f2760c8ae64d5043f0166409b"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-14-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 19952,
+              "sha256": "20751a9f7fdb3125bb489a64880438184d89fa91da34d9c27d274ec36c3de519"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 29091,
+              "sha256": "ddfeb5d7fce09b8e35ad232367d75076b9bf01b57ade8de018c2bf390268e90b"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 39660,
+              "sha256": "f84755a4b0f23e21336a4b9fcbfcdc08b64c9618da05d164bec789250f181aba"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-14-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 31874,
+              "sha256": "1a4bad61cfea0438b6a9fd8cc3c71634c51fc5ff9d45df05ab7fc3437d0d437f"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 50110,
+              "sha256": "792c0b271209bcc8755278b22614c4b28ffaeecb9727e4551a564e44d91a7686"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 70438,
+              "sha256": "f64906db26fc4fe72da44a5dc3e4ca6e63c25b8bb148816fe82750aee3cdcc7f"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-14-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 45244,
+              "sha256": "2882b156839dea5bfab9500e5b79822efd4f73d77aa903b21fc98b2748bd502e"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 75878,
+              "sha256": "5006691a30d047f9e36010cfd19c575af33a21332bcbc2a30c470a6723a289d4"
+            },
+            {
+              "src": "/movimento/v2/PAR-14-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 115718,
+              "sha256": "181167b07169668fe6d1662a2aeb822d06de0afaa2fef4dcc799597a6f121e49"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-15": {
+      "id": "PAR-15",
+      "generated": true,
+      "sourceSha256": "bf486060d4b54af3390c135bc7c570d2f10a71a2c0db2674e4a0de5be532adb1",
+      "alt": "Adultas de avental fabricando picolés com profissionais de jaleco branco em uma bancada de alimentos",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "f3ee9c8c45e11fb658d9747d8a52fe05be2560de39f2a5729f3b39585c446657"
+        },
+        "desktop": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "f3ee9c8c45e11fb658d9747d8a52fe05be2560de39f2a5729f3b39585c446657"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-15-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 407,
+        "sha256": "a03bc17343a5a10abff41a758d420082494714a61049e958eb9efc2777d26c5a"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-15-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 18880,
+              "sha256": "34328102940c77c72b1b312a4e3430b9985112bf53e8ab6c2a2565ad9be41267"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 32182,
+              "sha256": "f42498e6d1ca2e3186dc3bab5c59d365cca26fdd436d1faea0fd877042f5f447"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-15-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 29114,
+              "sha256": "27742adc4188e0892858a53793a96fb3f5449e9dec32374fde4e26fcefa1c966"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 52974,
+              "sha256": "c88156d48469b719a7cc4b94f8e0071a7e28f1b14383455227d84b7d76741c03"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-15-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 38007,
+              "sha256": "2a98375afc7c6bd430c21fca4442e8dd2785d51c77366863fa42d4d7385bfebd"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 75986,
+              "sha256": "87b6ded2eb64345ffaafacb936054842068e04e42e2c8d9766eff616cee00225"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-15-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 27646,
+              "sha256": "db5ac440c7069f95174f6d028feff56a9e39007a39da01aeece2b6659f05e0a9"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 43056,
+              "sha256": "f47affb9227ba231771198d9958231d7292f8bed26342fdc29b4a57e1de3b4d6"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 58931,
+              "sha256": "c5c4ae4256db7162918e713c9a6dfb435c4708be3d41b7e3c8f0b632b899e6c8"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-15-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 41592,
+              "sha256": "be23370c10522ccbb6fd57739e76228dc56d77965ed67ca1faf287717262405e"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 67750,
+              "sha256": "84801961453d5063dafa120b7a689142113e6b5dfb6edcf7de539fda6fe9764c"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 99124,
+              "sha256": "9d501faf05ae6ef41c02320863800019ef6896e35f46c624fa32f59bcef90a02"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-15-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 52769,
+              "sha256": "6373799bfff66fca110adc66aef20f43a34c6aa9e166afe324945a946fa270ef"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 91300,
+              "sha256": "cad893ba90eec41bdfca5a3e43c74e39ec7052abc3477e511a5b229f63501482"
+            },
+            {
+              "src": "/movimento/v2/PAR-15-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 140634,
+              "sha256": "e684e6ee998e5d89a199d430cf6ad98377471b70fe728a46ba5cc60f30185b56"
+            }
+          ]
+        }
+      }
+    },
+    "PAR-16": {
+      "id": "PAR-16",
+      "generated": true,
+      "sourceSha256": "bed50b9220c06ad2cffd3c7b3f49a02ca06ad18e014e51f9db6d6e39a5c6f61a",
+      "alt": "Espaço infantil minimalista com brinquedos de madeira mesas baixas blocos e crianças acompanhadas",
+      "disclosure": "Visualização conceitual gerada por IA",
+      "master": {
+        "mobile": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "d6e6497535e0e4b0e4a0cae5cccc4d8b2041b0ebbcd0a42512e760b82021f05b"
+        },
+        "desktop": {
+          "width": 1536,
+          "height": 1024,
+          "sha256": "d6e6497535e0e4b0e4a0cae5cccc4d8b2041b0ebbcd0a42512e760b82021f05b"
+        }
+      },
+      "lqip": {
+        "src": "/movimento/v2/PAR-16-lqip.jpg",
+        "width": 24,
+        "height": 30,
+        "bytes": 410,
+        "sha256": "49b3eefa49f8fa147154c7d826a42b217d22573c38a368bd4c86ae673e1b3356"
+      },
+      "mobile": {
+        "aspectRatio": 0.8,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-16-mobile-480.avif",
+              "width": 480,
+              "height": 600,
+              "bytes": 14581,
+              "sha256": "0f94e0d9130319eff8eb0665754a8e61264a6831cbc582f9e7d6912bb1b74b18"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-mobile-752.avif",
+              "width": 752,
+              "height": 940,
+              "bytes": 23231,
+              "sha256": "2eb32810d3b572764c83d16dce6275cc37c4784da3ca66b6b90a23ea82d9cb76"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-16-mobile-480.webp",
+              "width": 480,
+              "height": 600,
+              "bytes": 22970,
+              "sha256": "807b02637ff4c258b9f2c30c509b8d10214b1decba975e1c2c06984b0fcad78e"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-mobile-752.webp",
+              "width": 752,
+              "height": 940,
+              "bytes": 40028,
+              "sha256": "8191533c02fb947178d88c7294e9d64a0653d031b3b754860bf23c78e4ee72fb"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-16-mobile-480.jpg",
+              "width": 480,
+              "height": 600,
+              "bytes": 33665,
+              "sha256": "550c94f47207b238978ee6deb79fd3826685a07bc15cfd775879d3c9400f19ca"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-mobile-752.jpg",
+              "width": 752,
+              "height": 940,
+              "bytes": 65140,
+              "sha256": "bd7303e739e1533d9daa32e79baa6e4ca4ee9eeb4283b7e096742bd70cd48388"
+            }
+          ]
+        }
+      },
+      "desktop": {
+        "aspectRatio": 1.6,
+        "sources": {
+          "avif": [
+            {
+              "src": "/movimento/v2/PAR-16-desktop-768.avif",
+              "width": 768,
+              "height": 480,
+              "bytes": 21814,
+              "sha256": "e5246fba43b703aa2bd6c162661d8c339ae9cc244713252b5e8ebc263380e4c6"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1080.avif",
+              "width": 1080,
+              "height": 675,
+              "bytes": 31858,
+              "sha256": "066bdc1d457e642678a755538dc639815c6e30bbb26cb1dd87e53d7c8c81135c"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1440.avif",
+              "width": 1440,
+              "height": 900,
+              "bytes": 43063,
+              "sha256": "3135b3ceed9766dbb0ef27daac7c416f2cd9f16e7ad45b5690f6737f78a1c243"
+            }
+          ],
+          "webp": [
+            {
+              "src": "/movimento/v2/PAR-16-desktop-768.webp",
+              "width": 768,
+              "height": 480,
+              "bytes": 34632,
+              "sha256": "b6fa281126857c02f76e763dae9921e9fb49d1101f3f0752ac5120544e53fe17"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1080.webp",
+              "width": 1080,
+              "height": 675,
+              "bytes": 53506,
+              "sha256": "e7832e6eaa06e012f0628237761eadfe20c9337ebd0b0f57d9f8c8ed597edbfa"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1440.webp",
+              "width": 1440,
+              "height": 900,
+              "bytes": 76246,
+              "sha256": "bfac1ecbb5919e82edae08433dc6c4227d66e17ec845d309c8b550a145dbf081"
+            }
+          ],
+          "jpg": [
+            {
+              "src": "/movimento/v2/PAR-16-desktop-768.jpg",
+              "width": 768,
+              "height": 480,
+              "bytes": 47638,
+              "sha256": "9a1e72a2f5aa93b47a0cbcbebf1da9e95180e66d7a6a5854511a772e827e8508"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1080.jpg",
+              "width": 1080,
+              "height": 675,
+              "bytes": 80906,
+              "sha256": "d11850507973e2637aeaba2d132a7e868b54062bf4e7679d559c70c8123dfd11"
+            },
+            {
+              "src": "/movimento/v2/PAR-16-desktop-1440.jpg",
+              "width": 1440,
+              "height": 900,
+              "bytes": 123522,
+              "sha256": "d1833383f7fcc633cc465d89b74ef94fa86599ae333de4ebe21e0ff3b88487a5"
             }
           ]
         }

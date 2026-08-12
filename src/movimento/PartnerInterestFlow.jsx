@@ -41,6 +41,7 @@ export default function PartnerInterestFlow({ token, invite, currentPartnerLead 
   const [message, setMessage] = useState("");
   const [reference, setReference] = useState("");
   const dialogRef = useRef(null);
+  const stepHeadingRef = useRef(null);
   const triggerRef = useRef(null);
   const initializedLead = useRef(currentPartnerLead);
   const stateRef = useRef(state);
@@ -89,6 +90,11 @@ export default function PartnerInterestFlow({ token, invite, currentPartnerLead 
       triggerRef.current?.focus();
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    stepHeadingRef.current?.focus();
+  }, [open, step]);
 
   const error = (() => {
     if (form.companyName.trim().length < 2 || form.contactName.trim().length < 2) return "A identidade deste convite não está disponível.";
@@ -148,7 +154,7 @@ export default function PartnerInterestFlow({ token, invite, currentPartnerLead 
       <section id="mv-partner-sheet" ref={dialogRef} className="mv-partner-sheet" role="dialog" aria-modal="true" aria-labelledby="mv-partner-sheet-title" tabIndex="-1">
         <div className="mv-partner-sheet-header"><span className="mv-kicker">Proposta pessoal</span><button type="button" className="mv-partner-sheet-close" aria-label="Fechar seleção" onClick={() => setOpen(false)} disabled={state === "submitting"}><X aria-hidden="true"/></button></div>
         {step === "form" && <form className="mv-partner-sheet-form" onSubmit={review} noValidate>
-          <h2 id="mv-partner-sheet-title">{form.companyName}, escolha sua participação.</h2>
+          <h2 id="mv-partner-sheet-title" ref={stepHeadingRef} tabIndex="-1">{form.companyName}, escolha sua participação.</h2>
           <p className="mv-partner-sheet-lead">{EVENT.dateLong} · {EVENT.location}. A escolha registra interesse e não constitui reserva, exclusividade ou contrato.</p>
           <fieldset><legend>Participação</legend><div className="mv-partner-participation-options">{PARTICIPATIONS.map(({ value, label, includes }) => <label key={value} className={form.tier === value ? "is-selected" : ""}><input type="radio" name="tier" value={value} checked={form.tier === value} onChange={(event) => change("tier", event.target.value)}/><span><strong>{label}</strong><small>Inclui</small><ul>{includes.map((item) => <li key={item}>{item}</li>)}</ul></span></label>)}</div></fieldset>
           <p className="mv-field-note">Nenhuma opção promete preço, exclusividade, alcance, publicação, categoria protegida ou continuidade anual.</p>
@@ -158,8 +164,8 @@ export default function PartnerInterestFlow({ token, invite, currentPartnerLead 
           {message && <p className="mv-form-error" role="alert">{message}</p>}
           <button className="mv-primary" type="submit">Revisar seleção<ChevronRight size={18}/></button><p className="mv-security"><ShieldCheck size={16}/>Os dados são usados apenas para avaliar e responder à proposta de parceria.</p>
         </form>}
-        {step === "review" && <div className="mv-partner-sheet-review"><span className="mv-kicker">Revise sua seleção</span><h2 id="mv-partner-sheet-title">Está tudo certo?</h2><dl className="mv-review"><div><dt>Marca</dt><dd>{form.companyName}</dd></div><div><dt>Responsável</dt><dd>{form.contactName}</dd></div><div><dt>Participação</dt><dd>{participationLabel}</dd></div><div><dt>Contribuição</dt><dd>{contributionLabel}</dd></div><div><dt>Contato</dt><dd>{form.email}{form.phone ? ` · ${form.phone}` : ""}</dd></div></dl><p className="mv-field-note">A seleção registra interesse e não constitui reserva, exclusividade ou contrato. O escopo será conversado separadamente.</p>{message && <p className="mv-form-error" role="alert">{message}</p>}<div className="mv-form-actions"><button type="button" className="mv-link-button" onClick={() => setStep("form")} disabled={state === "submitting"}>Voltar</button><button type="button" className="mv-primary" onClick={submit} disabled={state === "submitting"}>{state === "submitting" ? <><LoaderCircle className="mv-spin"/>Registrando…</> : <>Enviar seleção<ChevronRight size={18}/></>}</button></div></div>}
-        {step === "success" && <div className="mv-partner-sheet-success"><div className="mv-success-mark"><Check aria-hidden="true"/></div><span className="mv-kicker">Interesse registrado</span><h2 id="mv-partner-sheet-title">Agora desenhamos o encaixe.</h2><p>Recebemos a preferência da {form.companyName}. A escolha permanece não vinculante até uma conversa de escopo e uma proposta aprovada.</p>{reference && <div className="mv-reference">Referência · {reference}</div>}<button type="button" className="mv-link-button" onClick={() => setStep("form")}>Editar seleção</button></div>}
+        {step === "review" && <div className="mv-partner-sheet-review"><span className="mv-kicker">Revise sua seleção</span><h2 id="mv-partner-sheet-title" ref={stepHeadingRef} tabIndex="-1">Está tudo certo?</h2><dl className="mv-review"><div><dt>Marca</dt><dd>{form.companyName}</dd></div><div><dt>Responsável</dt><dd>{form.contactName}</dd></div><div><dt>Participação</dt><dd>{participationLabel}</dd></div><div><dt>Contribuição</dt><dd>{contributionLabel}</dd></div><div><dt>Contato</dt><dd>{form.email}{form.phone ? ` · ${form.phone}` : ""}</dd></div></dl><p className="mv-field-note">A seleção registra interesse e não constitui reserva, exclusividade ou contrato. O escopo será conversado separadamente.</p>{message && <p className="mv-form-error" role="alert">{message}</p>}<div className="mv-form-actions"><button type="button" className="mv-link-button" onClick={() => setStep("form")} disabled={state === "submitting"}>Voltar</button><button type="button" className="mv-primary" onClick={submit} disabled={state === "submitting"}>{state === "submitting" ? <><LoaderCircle className="mv-spin"/>Registrando…</> : <>Enviar seleção<ChevronRight size={18}/></>}</button></div></div>}
+        {step === "success" && <div className="mv-partner-sheet-success"><div className="mv-success-mark"><Check aria-hidden="true"/></div><span className="mv-kicker">Interesse registrado</span><h2 id="mv-partner-sheet-title" ref={stepHeadingRef} tabIndex="-1">Agora desenhamos o encaixe.</h2><p>Recebemos a preferência da {form.companyName}. A escolha permanece não vinculante até uma conversa de escopo e uma proposta aprovada.</p>{reference && <div className="mv-reference">Referência · {reference}</div>}<button type="button" className="mv-link-button" onClick={() => setStep("form")}>Editar seleção</button></div>}
       </section>
     </div>}
   </>;

@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { join } from "node:path";
 import sharp from "sharp";
+import { createMovementPreviewHandler } from "../api/movimento-preview.js";
 
 const ROOT = new URL("../", import.meta.url);
 const BASE_HTML = `<!doctype html><html><head>
@@ -24,6 +25,25 @@ const BASE_HTML = `<!doctype html><html><head>
 <link rel="preload" as="image" href="/bento-logo.webp" fetchpriority="high">
 <script>try { localStorage.getItem("bento:destaque"); } catch (error) {}</script>
 </head><body><div id="root"></div></body></html>`;
+
+const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
+const PREVIEW_ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" };
+
+function response(data, status = 200) {
+  return { ok: status >= 200 && status < 300, status, json: async () => data };
+}
+
+function previewResponse() {
+  return {
+    statusCode: 200,
+    headers: {},
+    body: "",
+    setHeader(name, value) { this.headers[name] = value; },
+    status(code) { this.statusCode = code; return this; },
+    send(value) { this.body = value; return this; },
+    end(value = "") { this.body = value; return this; },
+  };
+}
 
 function generateFixture(baseHtml = BASE_HTML) {
   const fixture = mkdtempSync(join(tmpdir(), "bento-movement-preview-"));
@@ -100,6 +120,73 @@ test("personal invitation shell is privacy-safe and never guesses the audience h
   }
 });
 
+test("personal preview uses the guest first name without marking the invitation as opened", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    return response([{
+      id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18",
+      display_name: "Raíssa Nunes",
+      recipient_name: "Raíssa Nunes",
+      company_name: null,
+      audience_type: "influencer",
+      status: "sent",
+      opened_at: null,
+      expires_at: "2026-09-20T12:00:00.000Z",
+    }]);
+  };
+  const out = previewResponse();
+  await createMovementPreviewHandler({
+    env: PREVIEW_ENV,
+    fetchImpl,
+    now: () => new Date("2026-08-12T12:00:00.000Z"),
+    readShell: async () => BASE_HTML,
+  })({ method: "GET", query: { token: VALID_TOKEN } }, out);
+
+  assert.equal(out.statusCode, 200);
+  assert.match(out.headers["Content-Type"], /text\/html/);
+  assert.equal(out.headers["Cache-Control"], "private, no-store, max-age=0");
+  assert.equal(out.headers["X-Robots-Tag"], "noindex, nofollow");
+  assert.equal(out.headers["Referrer-Policy"], "no-referrer");
+  assert.match(out.body, /og:title" content="Raíssa, este convite é seu — Bentô Gelatos"/);
+  assert.match(out.body, /twitter:title" content="Raíssa, este convite é seu — Bentô Gelatos"/);
+  assert.match(out.body, /og:image" content="https:\/\/bentogelateria\.com\/movimento\/og-influenciadoras\.jpg"/);
+  assert.match(out.body, /og:url" content="https:\/\/bentogelateria\.com\/movimento"/);
+  assert.doesNotMatch(out.body, new RegExp(VALID_TOKEN));
+  assert.equal(calls.some(({ options }) => options.method === "PATCH"), false);
+});
+
+test("personal preview uses the full partner company and falls back safely for an invalid invite", async () => {
+  const partner = previewResponse();
+  await createMovementPreviewHandler({
+    env: PREVIEW_ENV,
+    fetchImpl: async () => response([{
+      id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684",
+      display_name: "Studio Aurora",
+      recipient_name: "Bia",
+      company_name: "Studio Aurora",
+      audience_type: "partner",
+      status: "sent",
+      opened_at: null,
+      expires_at: "2026-09-20T12:00:00.000Z",
+    }]),
+    now: () => new Date("2026-08-12T12:00:00.000Z"),
+    readShell: async () => BASE_HTML,
+  })({ method: "GET", query: { token: VALID_TOKEN } }, partner);
+  assert.match(partner.body, /og:title" content="Studio Aurora, esta proposta é para vocês — Bentô Gelatos"/);
+  assert.match(partner.body, /og:image" content="https:\/\/bentogelateria\.com\/movimento\/og-parceiros\.jpg"/);
+
+  const invalid = previewResponse();
+  await createMovementPreviewHandler({
+    env: PREVIEW_ENV,
+    fetchImpl: async () => response([]),
+    now: () => new Date("2026-08-12T12:00:00.000Z"),
+    readShell: async () => BASE_HTML,
+  })({ method: "GET", query: { token: VALID_TOKEN } }, invalid);
+  assert.equal(invalid.body, BASE_HTML);
+  assert.doesNotMatch(invalid.body, /Studio Aurora|Raíssa/);
+});
+
 test("Vercel resolves personal invitations before generic Movement routes with private headers", () => {
   const config = JSON.parse(readFileSync(new URL("../vercel.json", import.meta.url), "utf8"));
   const rewrites = config.rewrites ?? [];
@@ -110,12 +197,13 @@ test("Vercel resolves personal invitations before generic Movement routes with p
 
   assert.ok(personalIndex >= 0, "missing personal invitation rewrite");
   assert.ok(personalBaseIndex >= 0, "missing tokenless invitation rewrite");
-  assert.equal(rewrites[personalIndex].destination, "/movimento/convite/index.html");
+  assert.equal(rewrites[personalIndex].destination, "/api/movimento-preview?token=:token");
   assert.equal(rewrites[personalBaseIndex].destination, "/movimento/convite/index.html");
   assert.ok(personalIndex < partnerIndex && personalIndex < influencerIndex, "personal rewrite must precede generic Movement rewrites");
   assert.ok(personalBaseIndex < partnerIndex && personalBaseIndex < influencerIndex, "tokenless rewrite must precede generic Movement rewrites");
   assert.equal(rewrites.find(({ source }) => source === "/movimento/parceiros")?.destination, "/movimento/parceiros/index.html");
   assert.equal(rewrites.find(({ source }) => source === "/movimento")?.destination, "/movimento/index.html");
+  assert.equal(config.functions?.["api/movimento-preview.js"]?.includeFiles, "dist/movimento/convite/index.html");
 
   const personalHeaders = (config.headers ?? []).find(({ source }) => source === "/movimento/convite(.*)")?.headers ?? [];
   const headerValue = (key) => personalHeaders.find((header) => header.key.toLowerCase() === key.toLowerCase())?.value;

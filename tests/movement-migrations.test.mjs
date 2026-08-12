@@ -13,6 +13,9 @@ test("movement migrations have unique ordered versions and extend personalized i
     "20260811193855_bento_movement_rsvp.sql",
     "20260811195316_bento_movement_mobility_tier.sql",
     "20260812072808_bento_movement_personalized_invites.sql",
+    "20260812130452_bento_movement_content.sql",
+    "20260812131439_bento_movement_content_function_search_path.sql",
+    "20260812151801_bento_movement_invite_resend.sql",
   ]);
 
   const versions = files.map((file) => file.split("_")[0]);
@@ -25,6 +28,8 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(sql[1], /'mobility'/i);
 
   const personalized = sql[2];
+  const content = sql[3];
+  const resend = sql[5];
   assert.match(personalized, /add column if not exists recipient_name text/i);
   assert.match(personalized, /add column if not exists company_name text/i);
   assert.match(personalized, /add column if not exists opened_at timestamptz/i);
@@ -62,4 +67,26 @@ test("movement migrations have unique ordered versions and extend personalized i
     assert.notEqual(drop, -1, `${constraint} must be dropped before it is recreated`);
     assert.ok(add > drop, `${constraint} must be recreated after its drop guard`);
   }
+
+  assert.match(content, /create table if not exists public\.movement_presentation_content/i);
+  assert.match(content, /primary key \(audience_type, scene_id\)/i);
+  assert.match(content, /audience_type in \('influencer', 'partner'\)/i);
+  for (const sceneId of ["INF-HERO", "INF-14", "PAR-HERO", "PAR-16"]) assert.match(content, new RegExp(`'${sceneId}'`));
+  assert.match(content, /image_opacity is null or image_opacity between 0 and 1/i);
+  assert.match(content, /char_length\(alt_text\) between 24 and 240/i);
+  assert.match(content, /\(image_url is null and mobile_image_url is null\)[\s\S]*or \(alt_text is not null and char_length\(alt_text\) between 24 and 240\)/i);
+  assert.match(content, /revision >= 1/i);
+  assert.match(content, /enable row level security/i);
+  assert.match(content, /revoke all on public\.movement_presentation_content from anon, authenticated/i);
+  assert.match(content, /grant select, insert, update, delete on public\.movement_presentation_content to service_role/i);
+  assert.match(content, /revoke all on function public\.set_movement_presentation_content_updated_at\(\) from public, anon, authenticated/i);
+  assert.match(content, /grant execute on function public\.set_movement_presentation_content_updated_at\(\) to service_role/i);
+
+  assert.match(resend, /alter table public\.movement_invites/i);
+  assert.match(resend, /add column if not exists resend_token_ciphertext text/i);
+  assert.match(resend, /check \(resend_token_ciphertext is null or char_length\(resend_token_ciphertext\) between 40 and 1024\)/i);
+  assert.match(resend, /comment on column public\.movement_invites\.resend_token_ciphertext/i);
+  assert.match(resend, /alter table public\.movement_invites enable row level security/i);
+  assert.match(resend, /revoke all on public\.movement_invites from anon, authenticated/i);
+  assert.match(resend, /grant select, insert, update on public\.movement_invites to service_role/i);
 });

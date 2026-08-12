@@ -82,6 +82,35 @@ test("movement API returns a public invitation without private fields", async ()
   assert.deepEqual(JSON.parse(opening.options.body), { opened_at: "2026-08-11T12:00:00.000Z", status: "opened", updated_at: "2026-08-11T12:00:00.000Z" });
 });
 
+test("movement API derives one current outfit size only when legacy columns agree", async () => {
+  for (const [shirtSize, trainingOutfitSize, expected] of [["M", "M", "M"], ["M", "G", ""]]) {
+    const fetchImpl = async (url, options = {}) => {
+      if (url.includes("movement_invites") && options.method === "PATCH") return response([{ id: INVITE.id }]);
+      if (url.includes("movement_invites")) return response([INVITE]);
+      if (url.includes("movement_rsvps")) return response([{
+        response: "confirmed",
+        participation_mode: null,
+        shirt_size: shirtSize,
+        training_outfit_size: trainingOutfitSize,
+        adult_companion_type: null,
+        companion_count: 0,
+        child_count: 0,
+        child_age: null,
+        child_kit_size: null,
+        transport_interest: false,
+        image_consent: false,
+        privacy_version: "2026-08-11",
+        updated_at: "2026-08-11T12:00:00.000Z",
+      }]);
+      return response([]);
+    };
+    const out = res();
+    await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
+    assert.equal(out.statusCode, 200);
+    assert.equal(out.payload.currentRsvp.outfitSize, expected);
+  }
+});
+
 test("movement API sends a modern Supabase secret only as apikey", async () => {
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
@@ -214,7 +243,7 @@ test("movement API opens an invitation once and preserves responded status", asy
   }
 });
 
-test("movement API upserts one RSVP by invite id", async () => {
+test("movement API upserts one RSVP size into both legacy columns", async () => {
   const calls = [];
   const fetchImpl = async (url, options) => {
     calls.push({ url, options });
@@ -222,7 +251,7 @@ test("movement API upserts one RSVP by invite id", async () => {
     return response([{ id: "5d49b0db-bde0-4e09-9c91-c2231c186a1e" }], 201);
   };
   const out = res();
-  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", shirtSize: "M", trainingOutfitSize: "G", adultCompanionType: "husband", companionCount: 2, childCount: 1, childAge: 8, childKitSize: "8 infantil", transportInterest: true, privacyAccepted: true, imageConsent: false } }), out);
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", outfitSize: "M", adultCompanionType: "husband", companionCount: 2, childCount: 1, childAge: 8, childKitSize: "8 infantil", transportInterest: true, privacyAccepted: true, imageConsent: false } }), out);
   assert.equal(out.statusCode, 200);
   assert.equal(out.payload.ok, true);
   assert.equal(out.payload.reference, "84CCF9B6");
@@ -232,7 +261,7 @@ test("movement API upserts one RSVP by invite id", async () => {
   const persisted = JSON.parse(upsert.options.body);
   assert.equal(persisted.invite_id, INVITE.id);
   assert.equal(persisted.shirt_size, "M");
-  assert.equal(persisted.training_outfit_size, "G");
+  assert.equal(persisted.training_outfit_size, "M");
   assert.equal(persisted.participation_mode, "family");
   assert.equal(persisted.adult_companion_type, "husband");
   assert.equal(persisted.companion_count, 2);
@@ -257,7 +286,7 @@ test("movement API aborts before RSVP persistence when the responded claim affec
     return response([{ id: "must-not-persist" }], 201);
   };
   const out = res();
-  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "training", shirtSize: "M", trainingOutfitSize: "G", companionCount: 0, childCount: 0, privacyAccepted: true } }), out);
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "training", outfitSize: "M", companionCount: 0, childCount: 0, privacyAccepted: true } }), out);
   assert.equal(out.statusCode, 404);
   assert.equal(out.payload.error, "Convite inválido ou expirado.");
   assert.equal(calls.some((call) => call.url.includes("movement_rsvps") && call.options.method === "POST"), false);
@@ -278,7 +307,7 @@ test("movement API retries persistence after a claimed response write fails", as
     return persistenceAttempts === 1 ? response({}, 500) : response([{ id: "5d49b0db-bde0-4e09-9c91-c2231c186a1e" }], 201);
   };
   const handler = createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") });
-  const request = () => req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "training", shirtSize: "M", trainingOutfitSize: "G", companionCount: 0, childCount: 0, privacyAccepted: true } });
+  const request = () => req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "training", outfitSize: "M", companionCount: 0, childCount: 0, privacyAccepted: true } });
   const originalError = console.error;
   console.error = () => {};
   try {

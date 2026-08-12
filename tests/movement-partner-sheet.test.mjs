@@ -78,6 +78,15 @@ test("partner sheet locks invited identity, preserves editable contact and keeps
   assert.match(css, /\.mv-partner-sheet [^{]*button[^}]*min-height:\s*44px/);
 });
 
+test("partner sheet moves focus to its heading after each step transition", async () => {
+  const { flow } = await readPartnerSurface();
+
+  assert.match(flow, /const stepHeadingRef = useRef\(null\)/);
+  assert.match(flow, /stepHeadingRef\.current\?\.focus\(\)/);
+  assert.match(flow, /\[open, step\]/);
+  assert.equal(flow.match(/ref=\{stepHeadingRef\} tabIndex="-1"/g)?.length, 3);
+});
+
 test("partner participation and contribution choices are touch-ready selectable cards", async () => {
   const { css } = await readPartnerSurface();
   const optionCards = css.match(/\.mv-partner-participation-options>label,\.mv-partner-contribution-options>label\{([^}]*)\}/);

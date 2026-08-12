@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { readMovementJsonBody } from "../lib/movement-invite.mjs";
-import { hashInviteToken, validateAudienceType } from "../lib/movement-rsvp.mjs";
+import { hashInviteToken, validateAudienceType, validateToken } from "../lib/movement-rsvp.mjs";
 import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 function panelAuthorized(req, env) {
@@ -22,6 +22,51 @@ function config(env) {
 
 function cleanText(value, maxLength) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
+}
+
+function inviteId(value) {
+  const normalized = cleanText(value, 64);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(normalized) ? normalized : "";
+}
+
+function resendEncryptionKey(keyMaterial) {
+  return crypto.createHmac("sha256", String(keyMaterial)).update("bento-movement-invite-resend:v1", "utf8").digest();
+}
+
+function encryptResendToken(token, keyMaterial) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", resendEncryptionKey(keyMaterial), iv);
+  const ciphertext = Buffer.concat([cipher.update(token, "utf8"), cipher.final()]);
+  return ["v1", iv.toString("base64url"), cipher.getAuthTag().toString("base64url"), ciphertext.toString("base64url")].join(".");
+}
+
+function decryptResendToken(value, keyMaterial) {
+  try {
+    const [version, encodedIv, encodedTag, encodedCiphertext, extra] = String(value || "").split(".");
+    if (version !== "v1" || extra !== undefined) return null;
+    const iv = Buffer.from(encodedIv || "", "base64url");
+    const tag = Buffer.from(encodedTag || "", "base64url");
+    const ciphertext = Buffer.from(encodedCiphertext || "", "base64url");
+    if (iv.length !== 12 || tag.length !== 16 || ciphertext.length === 0) return null;
+    const decipher = crypto.createDecipheriv("aes-256-gcm", resendEncryptionKey(keyMaterial), iv);
+    decipher.setAuthTag(tag);
+    const token = Buffer.concat([decipher.update(ciphertext), decipher.final()]).toString("utf8");
+    const checked = validateToken(token);
+    return checked.ok ? checked.value : null;
+  } catch {
+    return null;
+  }
+}
+
+function invitePathFromRow(row, keyMaterial, currentTime) {
+  const expiresAtMs = Date.parse(row?.expires_at || "");
+  const active = (row?.status === "sent" || row?.status === "opened" || row?.status === "responded")
+    && row?.revoked_at == null
+    && Number.isFinite(expiresAtMs)
+    && expiresAtMs > currentTime.getTime();
+  if (!active) return null;
+  const token = decryptResendToken(row?.resend_token_ciphertext, keyMaterial);
+  return token ? `/movimento/convite/${token}` : null;
 }
 
 async function fetchRows(fetchImpl, url, key) {
@@ -66,14 +111,43 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         if (!bodyResult.ok) { res.status(413).json({ ok: false, error: "Envio muito grande." }); return; }
         const body = bodyResult.value;
 
+        if (body.action === "reissue-invite") {
+          const id = inviteId(body.inviteId);
+          if (!id) {
+            res.status(400).json({ ok: false, error: "Identificador de convite inválido." });
+            return;
+          }
+          const token = createToken();
+          const timestamp = now().toISOString();
+          const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites?id=eq.${encodeURIComponent(id)}&status=in.(sent,opened,responded)&revoked_at=is.null&expires_at=gt.${encodeURIComponent(timestamp)}`, {
+            method: "PATCH",
+            headers: supabaseServiceHeaders(cfg.key, { Prefer: "return=representation" }),
+            body: JSON.stringify({
+              token_hash: hashInviteToken(token),
+              resend_token_ciphertext: encryptResendToken(token, cfg.key),
+              updated_at: timestamp,
+            }),
+          });
+          if (!response.ok) throw new Error(`Supabase ${response.status}`);
+          const rows = await response.json();
+          const invite = Array.isArray(rows) ? rows[0] : null;
+          if (!invite?.id) { res.status(409).json({ ok: false, error: "Este convite não está ativo para reemissão." }); return; }
+          res.status(200).json({
+            ok: true,
+            invitePath: `/movimento/convite/${token}`,
+            invite: { id: invite.id, status: invite.status, expiresAt: invite.expires_at },
+          });
+          return;
+        }
+
         if (body.action === "revoke-invite") {
-          const inviteId = cleanText(body.inviteId, 64);
-          if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(inviteId)) {
+          const id = inviteId(body.inviteId);
+          if (!id) {
             res.status(400).json({ ok: false, error: "Identificador de convite inválido." });
             return;
           }
           const timestamp = now().toISOString();
-          const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites?id=eq.${encodeURIComponent(inviteId)}`, {
+          const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites?id=eq.${encodeURIComponent(id)}`, {
             method: "PATCH",
             headers: supabaseServiceHeaders(cfg.key, { Prefer: "return=representation" }),
             body: JSON.stringify({ status: "revoked", revoked_at: timestamp, updated_at: timestamp }),
@@ -103,6 +177,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         const token = createToken();
         const row = {
           token_hash: hashInviteToken(token),
+          resend_token_ciphertext: encryptResendToken(token, cfg.key),
           audience_type: audience.value,
           display_name: displayName,
           recipient_name: recipientName,
@@ -138,7 +213,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         return;
       }
 
-      const inviteSelect = "id,display_name,recipient_name,company_name,contact,audience_type,status,opened_at,revoked_at,expires_at,created_at";
+      const inviteSelect = "id,display_name,recipient_name,company_name,contact,audience_type,status,opened_at,revoked_at,expires_at,created_at,resend_token_ciphertext";
       const rsvpSelect = "invite_id,response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_age,child_kit_size,transport_interest,image_consent,responded_at,updated_at";
       const partnerSelect = "id,invite_id,company_name,contact_name,email,phone,tier_interest,contribution_type,contribution_details,submitted_at,updated_at";
       const [inviteRows, rsvpRows, partnerRows] = await Promise.all([
@@ -148,6 +223,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
       ]);
       const rsvpByInvite = new Map(rsvpRows.map((row) => [row.invite_id, row]));
       const partnerByInvite = new Map(partnerRows.filter((row) => row.invite_id).map((row) => [row.invite_id, row]));
+      const summaryNow = now();
       const invites = inviteRows.map((row) => ({
         id: row.id,
         displayName: row.display_name,
@@ -160,6 +236,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         revokedAt: row.revoked_at,
         expiresAt: row.expires_at,
         createdAt: row.created_at,
+        invitePath: invitePathFromRow(row, cfg.key, summaryNow),
         rsvp: publicRsvp(rsvpByInvite.get(row.id)),
         partnerLead: partnerByInvite.has(row.id) ? { id: partnerByInvite.get(row.id).id, updatedAt: partnerByInvite.get(row.id).updated_at } : null,
       }));
@@ -176,7 +253,6 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         submittedAt: row.submitted_at,
         updatedAt: row.updated_at,
       }));
-      const summaryNow = now();
       const summary = {
         invited: invites.length,
         confirmed: invites.filter((invite) => invite.rsvp?.response === "confirmed").length,

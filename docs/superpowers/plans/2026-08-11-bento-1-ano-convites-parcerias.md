@@ -15,7 +15,7 @@
 - Não usar a narrativa “projeto de um ano” ou prometer continuidade anual.
 - Influenciadora: máximo de um adulto — marido ou mãe — e uma criança; camiseta e roupa de treino somente para ela; transporte sem endereço nesta etapa.
 - Parceiro: exatamente `Select`, `Experience`, `Signature` e `Founding Circle`; sem preços ou promessas de alcance/exclusividade.
-- Tokens opacos armazenados somente como SHA-256; service role somente no servidor; RLS e revogações preservadas.
+- Tokens opacos resolvidos publicamente somente por SHA-256; cópia cifrada opcional restrita à API administrativa para reenvio; service role somente no servidor; RLS e revogações preservadas.
 - Visual: ivory/branco/dourado, verde apenas como acento; sem coqueiros, palmeiras, praia, mar aberto, ilhas, montanhas ou morros.
 - Mulheres em roupa de treino, 23–38 aparentes, atléticas magras/definidas, anatomia natural, sem bodybuilding ou sexualização.
 - Camisa fiel a uma das quatro referências; produto e wordmark sempre compostos de assets reais; nenhuma marca prospectada no raster.
@@ -65,13 +65,13 @@
 
 **Interfaces:**
 - `resolveMovementInvite({ fetchImpl, cfg, token, now, markOpened }) -> invite|null` returns only `id`, `displayName`, `audienceType`, `recipientName`, `companyName`, `status`, `expiresAt`.
-- Admin actions: `create-invite` and `revoke-invite`.
+- Admin actions: `create-invite`, `reissue-invite` e `revoke-invite`.
 - Public invite response never contains hash, contact or raw token.
 
 - [ ] **Step 1: Write failing API tests.** Cover creation for both audiences, required partner company/responsible, exact returned route, single `opened_at`, neutral revoked/expired/missing response, audience mismatch, revocation, and admin summaries.
 - [ ] **Step 2: Run RED.** Run `node --test tests/movement-admin-api.test.mjs tests/movement-api.test.mjs tests/movement-partner-api.test.mjs`; expected failures show unsupported partner audience/revocation and missing invite association.
 - [ ] **Step 3: Extract invitation resolution.** Centralize token validation/hash/select/activity/audience and safe opening update. Accept only `sent|opened|responded`; `draft|revoked|expired` are inactive.
-- [ ] **Step 4: Extend admin minimally.** Validate `audienceType`, persist `display_name`, `recipient_name`, `company_name`, status `sent`; return raw token only once in `invitePath`; revoke by validated UUID with `revoked_at` and status `revoked`.
+- [ ] **Step 4: Extend admin minimally.** Validate `audienceType`, persist `display_name`, `recipient_name`, `company_name`, status `sent`; persist the resend token encrypted, return only `invitePath`, reissue legacy links on the same active invite after confirmation, and revoke by validated UUID with `revoked_at` and status `revoked`.
 - [ ] **Step 5: Extend RSVP.** Require influencer audience, persist child age and transport interest, upsert by invite ID, and update invite status to `responded` after success.
 - [ ] **Step 6: Extend partner API.** Optional token resolves partner audience; personal lead upserts by `invite_id`; generic lead remains by `lead_key`; mismatched or conflicting association returns neutral `409` without reassignment.
 - [ ] **Step 7: Enforce request boundaries.** Keep honeypot and origin checks, reject bodies exceeding 32 KiB with `413`, never log token/PII, and return the same public message for invalid/expired/revoked.
@@ -90,8 +90,8 @@
 
 - [ ] **Step 1: Write a failing static integration test.** Assert audience selector, conditional influencer/partner fields, `create-invite`, `revoke-invite`, link-copy affordance, status labels and display of new RSVP fields/four tiers.
 - [ ] **Step 2: Run RED.** Run `node --test tests/movement-admin-panel.test.mjs`; expected failure is absence of audience/revocation controls.
-- [ ] **Step 3: Implement conditional creation.** Keep existing `PANEL_KEY` flow; send influencer `displayName` or partner `companyName`+`recipientName`; copy returned link only at creation.
-- [ ] **Step 4: Implement state lists.** Render audience, opened/confirmed/declined/selected/revoked/expired, child age, transport interest and legacy tier labels. Do not offer token recovery; offer revoke and new invitation.
+- [ ] **Step 3: Implement conditional creation.** Keep existing `PANEL_KEY` flow; send influencer `displayName` or partner `companyName`+`recipientName`; copy the returned link and keep it available in the authenticated history.
+- [ ] **Step 4: Implement state lists.** Render audience, opened/confirmed/declined/selected/revoked/expired, child age, transport interest and legacy tier labels. Offer open, copy and native share for reusable links; for legacy hashes, offer confirmed reissue on the same record without deleting RSVP/history.
 - [ ] **Step 5: Add safe revocation UI.** Confirm exact person/company, POST UUID action, reload state, and never delete rows.
 - [ ] **Step 6: Run GREEN.** Run the new test and `npm test`.
 - [ ] **Step 7: Commit.** `git add public/painel.html tests/movement-admin-panel.test.mjs && git commit -m "feat(painel): manage personalized Movimento invitations"`.
@@ -176,7 +176,7 @@
 - [ ] **Step 1: Write failing asset tests.** Assert all 19 IDs, unique source hashes, valid formats/dimensions, per-route byte budgets, no rejected old asset references, one priority image per route, and disclosure/alt for each scene.
 - [ ] **Step 2: Run RED.** Run `node --test tests/movement-assets.test.mjs`; expected failure is missing V2 manifest/assets.
 - [ ] **Step 3: Generate masters from approved prompts.** Use the complete scene matrix and negatives in the design spec; reject any palm/beach/mountain, fake product/wordmark, inaccurate shirt, duplicate face/anatomy or sponsor text.
-- [ ] **Step 4: Compose exact brand assets.** Overlay the official wordmark, shirt reference and real Bentô products without redrawing; sponsor regions remain clean raster surfaces with HTML/CSS overlays only in partner scenes.
+- [ ] **Step 4: Compose exact brand assets.** Apply the official wordmark geometry without redrawing: official gold on dark surfaces, dark Bentô green on light surfaces, small and high on shirt/coat chests per the approved mockup, larger only on cart and panel fronts. Match surface position, perspective, light and occlusion; sponsor regions remain clean raster surfaces with HTML/CSS overlays only in partner scenes.
 - [ ] **Step 5: Produce responsive derivatives.** Sharp outputs AVIF/WebP/JPEG, strips metadata, normalizes sRGB/orientation, generates LQIPs and a deterministic manifest. OG stays separate.
 - [ ] **Step 6: Implement `<picture>`.** Art direction for portrait/landscape, correct `srcset`/`sizes`, dimensions/aspect ratio, hero `fetchPriority=high`, all later scenes lazy/async.
 - [ ] **Step 7: Run visual asset gate.** Side-by-side inspect every master at original resolution; record accepted/rejected reason in `docs/movimento-v2-asset-qa.md`.
@@ -222,3 +222,7 @@
 - [ ] **Step 6: Promote the verified build.** Capture production deployment confirmation and open the exact public and private-route bases.
 - [ ] **Step 7: Live readback.** Confirm `/movimento`, `/movimento/parceiros`, the personal preview shell and the panel tab; record literal failure as `NÃO_PUBLICADO` if Vercel does not confirm production.
 - [ ] **Step 8: WhatsApp proof.** Verify both generic cards and the privacy-safe personal card; cache refresh is evidence-based, not inferred.
+
+## Revisão aprovada em 12 de agosto de 2026
+
+O plano complementar canônico é `docs/superpowers/plans/2026-08-12-bento-movimento-cms.md`. Ele amplia o inventário de 19 para 32 famílias, adiciona CMS editorial, tamanho único no RSVP, linguagem de convidada, hero nominal em hierarquia separada e prévia compartilhada por primeiro nome/empresa. Em caso de conflito, essa revisão mais recente prevalece.

@@ -10,10 +10,10 @@ const MANIFEST_PATH = path.join(ROOT, "public/movimento/v2/manifest.json");
 const PUBLIC_DIR = path.join(ROOT, "public");
 
 const EXPECTED_ROUTES = {
-  influencer: ["INF-HERO", "INF-01", "INF-02", "INF-03", "INF-04", "INF-05", "INF-06", "INF-07"],
-  partner: ["PAR-HERO", "PAR-01", "PAR-02", "PAR-03", "PAR-04", "PAR-05", "PAR-06", "PAR-07", "PAR-08", "PAR-09", "PAR-10"],
+  influencer: ["INF-HERO", ...Array.from({ length: 14 }, (_, index) => `INF-${String(index + 1).padStart(2, "0")}`)],
+  partner: ["PAR-HERO", ...Array.from({ length: 16 }, (_, index) => `PAR-${String(index + 1).padStart(2, "0")}`)],
 };
-const COMPLETE_BUDGETS = { influencer: 1_490 * 1024, partner: 1_850 * 1024 };
+const COMPLETE_BUDGETS = { influencer: 2_450 * 1024, partner: 2_850 * 1024 };
 const INITIAL_BUDGET = 690 * 1024;
 const OLD_ASSETS = [
   "experience-training.jpg",
@@ -27,7 +27,7 @@ const OLD_ASSETS = [
 ];
 const FORBIDDEN_COPY = /projeto de 12 meses|projeto de um ano|plataforma anual|ciclo anual|jornada anual|programa anual/i;
 const PROSPECT_BRANDS = /Grand Cave|Fiore|Magia do Mar|True Suplementos|Viva Tru|Academia Lifft|Café Pocar|Luciana Melo|Lexus|Denza/i;
-const GENERATED_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|10)-(?:mobile|desktop)-\d+\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|10)-lqip\.jpg$|^manifest\.json$/;
+const GENERATED_PATTERN = /^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-(?:mobile|desktop)-\d+\.(?:avif|webp|jpg)$|^(?:INF|PAR)-(?:HERO|0[1-9]|1[0-6])-lqip\.jpg$|^manifest\.json$/;
 const PERSONAL_IDENTITY_PATTERNS = /Ana Exemplo|Empresa Exemplo|Responsável Exemplo|TOKEN-SEGREDO/i;
 
 function invariant(condition, message) {
@@ -46,8 +46,8 @@ async function assertGeneratedMedia(manifest) {
   invariant(manifest.version === 2, "manifest version must be 2");
   invariant(JSON.stringify(manifest.routes) === JSON.stringify(EXPECTED_ROUTES), "route families or ordering changed");
   const ids = [...EXPECTED_ROUTES.influencer, ...EXPECTED_ROUTES.partner];
-  invariant(Object.keys(manifest.assets).length === 19, "manifest must contain exactly 19 families");
-  invariant(new Set(Object.values(manifest.assets).map(({ sourceSha256 }) => sourceSha256)).size === 19, "source family hashes must be unique");
+  invariant(Object.keys(manifest.assets).length === 32, "manifest must contain exactly 32 families");
+  invariant(new Set(Object.values(manifest.assets).map(({ sourceSha256 }) => sourceSha256)).size === 32, "source family hashes must be unique");
 
   const declaredFiles = new Set(["manifest.json"]);
   const renditionHashes = new Map();
@@ -168,4 +168,4 @@ const manifest = JSON.parse(await readFile(MANIFEST_PATH, "utf8"));
 await assertGeneratedMedia(manifest);
 await assertRoutingAndShareShells();
 await assertSourceAndBuild();
-console.log("OK  Movimento V2: 19 famílias, privacidade, rotas, mídia e budgets auditados");
+console.log("OK  Movimento V2: 32 famílias, privacidade, rotas, mídia e budgets auditados");

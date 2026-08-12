@@ -12,15 +12,16 @@ export const EVENT = {
 export const HERO_COPY = {
   influencer: {
     kicker: "Convite pessoal · 1º aniversário Bentô Gelatos",
-    title: "{Nome}, esta celebração tem um lugar que só você pode ocupar.",
+    personalizedMessage: "Esta celebração tem um lugar que só você pode ocupar.",
     fallbackTitle: "Esta celebração tem um lugar que só você pode ocupar.",
     text: "No sábado, 12 de setembro, reuniremos 40–50 pessoas no Le Buffet Lounge para uma manhã de movimento, cuidado e encontros. Sua presença é parte essencial da memória que queremos criar.",
     factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
     cta: "Confirmar meu lugar",
   },
   partner: {
-    kicker: "Uma proposta para {Responsável} · {Empresa}",
-    title: "{Empresa}, seu lugar nesta celebração pode ter forma, função e assinatura.",
+    kicker: "Primeiro aniversário Bentô Gelatos",
+    responsibleLine: "Uma proposta para {Responsável}.",
+    personalizedMessage: "Seu lugar nesta celebração pode ter forma, função e assinatura.",
     fallbackTitle: "Sua marca pode ter forma, função e assinatura nesta celebração.",
     text: "No primeiro aniversário da Bentô Gelatos, 40–50 pessoas viverão uma manhã de movimento e hospitalidade no Le Buffet Lounge. Esta proposta apresenta maneiras de a marca participar de forma natural, útil e memorável.",
     factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
@@ -32,10 +33,11 @@ export const MOVEMENT_AI_DISCLOSURE = "Visualização conceitual gerada por IA";
 const MOVEMENT_COMPOSED_DISCLOSURES = {
   shirt: "referência oficial de camiseta Bentô composta sem redesenho",
   product: "produto e embalagem do acervo real Bentô compostos sem redesenho",
-  workshop: "picolé do acervo real Bentô composto sem redesenho",
   wordmark: "wordmark oficial Bentô composto sem redesenho",
+  cart: "carrinho real Bentô preservado sem substituição da marca existente",
 };
-const MOVEMENT_WORDMARK_ASSET_IDS = new Set(["INF-HERO", "INF-03", "PAR-04"]);
+const MOVEMENT_WORDMARK_ASSET_IDS = new Set(["PAR-09"]);
+const MOVEMENT_CART_ASSET_IDS = new Set(["INF-10", "PAR-12"]);
 
 function mediaHeight(assetId, direction, width) {
   const hero = assetId.endsWith("HERO");
@@ -56,10 +58,11 @@ function mediaSources(assetId, direction, widths) {
 
 function movementAsset(assetId, alt) {
   const hero = assetId.endsWith("HERO");
-  const composition = ["INF-06", "PAR-07"].includes(assetId) ? "shirt" : ["INF-04", "PAR-06"].includes(assetId) ? "workshop" : assetId === "PAR-08" ? "product" : null;
+  const composition = ["INF-06", "PAR-07"].includes(assetId) ? "shirt" : assetId === "PAR-08" ? "product" : null;
   const disclosureDetails = [];
   if (composition) disclosureDetails.push(MOVEMENT_COMPOSED_DISCLOSURES[composition]);
   if (MOVEMENT_WORDMARK_ASSET_IDS.has(assetId)) disclosureDetails.push(MOVEMENT_COMPOSED_DISCLOSURES.wordmark);
+  if (MOVEMENT_CART_ASSET_IDS.has(assetId)) disclosureDetails.push(MOVEMENT_COMPOSED_DISCLOSURES.cart);
   return {
     id: assetId,
     alt,
@@ -91,13 +94,13 @@ export const INFLUENCER_CHAPTERS = [
   { number: "02", title: "Primeiro aniversário", text: "Um ano merece ser sentido. A Bentô reúne pessoas que fizeram parte dessa história e dão sentido ao que vem agora." },
   { number: "03", title: "A manhã", text: "Movimento para começar. Hospitalidade para ficar. Aulão funcional, café da manhã, sabores Bentô, cuidado e conexão; nome, horário e operação final permanecem em confirmação." },
   { number: "04", title: "Seu mundo também cabe aqui", text: "Você pode trazer quem faz parte da sua vida: um acompanhante adulto — marido ou mãe — e uma criança de qualquer idade, sempre acompanhada." },
-  { number: "05", title: "Feita para você", text: "Uma camiseta reservada ao seu lugar nesta manhã. Camiseta e roupa de treino são exclusivas da influenciadora; uma possível surpresa infantil não é prometida." },
+  { number: "05", title: "Feita para você", text: "Uma camiseta reservada ao seu lugar nesta manhã. Camiseta e roupa de treino são exclusivas da convidada; uma possível surpresa infantil não é prometida." },
   { number: "06", title: "12 de setembro", text: "Uma manhã íntima. Uma memória compartilhada. Movimento, gelato e boas conversas no Le Buffet Lounge." },
 ];
 
 export const KIT_ITEMS = [
-  "Camiseta de treino exclusiva para a influenciadora",
-  "Roupa de treino exclusiva para a influenciadora",
+  "Camiseta de treino exclusiva para a convidada",
+  "Roupa de treino exclusiva para a convidada",
   "Uma possível surpresa infantil permanece em confirmação",
 ];
 
@@ -109,17 +112,24 @@ export const EXPERIENCE_STEPS = [
 
 export const INFLUENCER_SCENES = [
   visualScene({ id: "scenario", assetId: "INF-01", eyebrow: "O cenário", title: "A cidade encontra a água — e a manhã ganha outra atmosfera.", text: "No Le Buffet Lounge, o canal, a marina e o skyline urbano desenham o cenário contemporâneo da celebração.", alt: "Deck contemporâneo do lounge junto ao canal e à marina urbana preparado para a manhã Bentô" }),
-  visualScene({ id: "welcome", assetId: "INF-02", eyebrow: "Por que você", title: "A manhã muda quando você chega.", text: "Você foi escolhida pelo que desperta nas pessoas e pela forma como transforma presença em conexão.", alt: "Convidadas em roupa de treino sendo acolhidas com naturalidade na chegada ao lounge" }),
+  visualScene({ id: "welcome", assetId: "INF-02", eyebrow: "Sua chegada", title: "A experiência pode começar antes mesmo da porta.", text: "Um transporte executivo premium, com motorista e embarque coordenado, poderá levar as convidadas ao lounge. A disponibilidade e a logística serão confirmadas mais perto do evento.", alt: "Convidadas em roupa de treino chegando ao lounge em transporte executivo premium com motorista" }),
   visualScene({ id: "training", assetId: "INF-03", eyebrow: "Movimento", title: "Energia para começar. Sem cobrança de performance.", text: "Um aulão funcional com personal renomado — nome em confirmação — em estações organizadas para uma experiência natural e compartilhada.", alt: "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas" }),
   visualScene({ id: "kids-workshop", assetId: "INF-04", eyebrow: "Seu mundo também cabe aqui", title: "Oficina de decoração de picolés para as crianças, dentro do cerimonial.", text: "Uma criança de qualquer idade pode participar sempre acompanhada por um adulto responsável, enquanto a experiência acontece no mesmo lugar.", alt: "Crianças acompanhadas por adultos decorando picolés em oficina organizada dentro do cerimonial" }),
   visualScene({ id: "recovery", assetId: "INF-05", eyebrow: "Cuidado", title: "Depois do movimento, tempo para recuperar e conversar.", text: "Uma estação de recovery amplia a sensação de cuidado sem transformar a manhã em uma sequência de obrigações.", alt: "Convidada em roupa de treino recebendo cuidado em uma estação elegante de recovery" }),
-  visualScene({ id: "shirt-kit", assetId: "INF-06", eyebrow: "Feita para você", title: "Uma camiseta reservada ao seu lugar nesta manhã.", text: "Camiseta e roupa de treino são exclusivas da influenciadora. Uma possível surpresa infantil não é prometida.", alt: "Composição editorial do kit e da camiseta de treino oficial reservados à influenciadora" }),
+  visualScene({ id: "shirt-kit", assetId: "INF-06", eyebrow: "Feita para você", title: "Uma camiseta reservada ao seu lugar nesta manhã.", text: "Camiseta e roupa de treino são exclusivas da convidada. Uma possível surpresa infantil não é prometida.", alt: "Composição editorial do kit e da camiseta de treino oficial reservados à convidada" }),
   visualScene({ id: "celebration", assetId: "INF-07", eyebrow: "Primeiro aniversário", title: "Um ano merece ser sentido.", text: "Movimento, sabores Bentô e boas conversas fecham uma manhã íntima que queremos guardar na memória.", alt: "Convidadas celebrando de forma espontânea o primeiro aniversário Bentô depois do treino" }),
+  visualScene({ id: "specialty-coffee", assetId: "INF-08", eyebrow: "Cafés especiais", title: "V60, espresso e café coado com tempo para perceber cada detalhe.", text: "Uma dupla de profissionais prepara os cafés ao vivo em uma mesa dedicada, aproximando aroma, técnica e conversa de quem chega.", alt: "Dois profissionais preparando cafés especiais em V60 e máquina de espresso diante das convidadas" }),
+  visualScene({ id: "breakfast-table", assetId: "INF-09", eyebrow: "Café da manhã", title: "Uma mesa generosa para chegar, respirar e ficar.", text: "Frutas, pães, acompanhamentos e sabores Bentô formam uma pausa de hospitalidade entre movimento, cuidado e encontros.", alt: "Convidadas reunidas diante de uma mesa elegante de café da manhã com frutas pães e louças claras" }),
+  visualScene({ id: "gelato-cart", assetId: "INF-10", eyebrow: "Bentô em movimento", title: "O carrinho leva o gelato até o centro da celebração.", text: "Serviço, sabores e conversa se encontram em torno do carrinho Bentô, como parte viva da manhã e não apenas como cenário.", alt: "Carrinho de gelato Bentô em atendimento durante a celebração com convidadas ao redor" }),
+  visualScene({ id: "supplement-kits", assetId: "INF-11", eyebrow: "Bem-estar", title: "Suplementação entra na experiência como cuidado útil.", text: "Kits organizados em uma mesa própria apresentam produtos e orientações de forma clara, sem promessas clínicas ou atalhos de performance.", alt: "Kits de suplementação organizados sobre uma mesa de marca em uma apresentação elegante de bem-estar" }),
+  visualScene({ id: "beauty-care", assetId: "INF-12", eyebrow: "Skincare e maquiagem", title: "Um tempo de cuidado com atendimento profissional.", text: "Uma equipe dedicada conduz momentos de skincare e maquiagem em estações confortáveis, com espelhos, luz adequada e atenção individual.", alt: "Mulheres recebendo atendimento profissional de skincare e maquiagem em estações claras e organizadas" }),
+  visualScene({ id: "adult-popsicle-workshop", assetId: "INF-13", eyebrow: "Oficina para adultas", title: "Você também poderá criar o seu próprio picolé.", text: "De avental, as convidadas experimentam coberturas e finalizações com o apoio das profissionais Bentô em jalecos brancos e uma bancada realmente preparada para alimentos.", alt: "Convidadas de avental criando os próprios picolés com profissionais Bentô de jaleco branco" }),
+  visualScene({ id: "kids-play", assetId: "INF-14", eyebrow: "Espaço infantil", title: "Brincar também encontra um lugar bonito dentro da manhã.", text: "Mesas baixas, madeira, blocos, casinha e atividades táteis formam um espaço infantil delimitado e acompanhado, sem transformar o cerimonial em um parque inflável.", alt: "Crianças acompanhadas brincando com brinquedos minimalistas de madeira mesas baixas blocos e casinha" }),
 ];
 
 export const PARTNER_SCENES = [
-  visualScene({ id: "stage", assetId: "PAR-01", eyebrow: "Assinatura de chegada", title: "A marca pode receber antes mesmo da primeira conversa.", text: "Palco, backdrop e sinalização formam uma composição coletiva cuja aplicação final passa por mockup e aprovação.", alt: "Palco e backdrop modulares em branco e dourado preparados para aplicações coletivas de marcas" }),
-  visualScene({ id: "mobility", assetId: "PAR-02", eyebrow: "Mobilidade premium", title: "A experiência pode começar no caminho.", text: "Uma marca automotiva pode transportar convidadas em uma imersão com o veículo; rota, frota e operação dependem de escopo.", alt: "Veículo premium elétrico estacionado no deck do lounge para visualizar uma chegada do evento" }),
+  visualScene({ id: "stage", assetId: "PAR-01", eyebrow: "Assinatura de chegada", title: "A marca pode receber antes mesmo da primeira conversa.", text: "Recepção, credenciamento e kit de boas-vindas formam um primeiro contato útil, elegante e integrado à experiência.", alt: "Recepção de chegada com anfitriã entregando pulseira a convidadas junto a uma instalação arquitetônica dourada" }),
+  visualScene({ id: "mobility", assetId: "PAR-02", eyebrow: "Mobilidade premium", title: "A experiência pode começar no caminho.", text: "Uma marca automotiva premium pode conduzir convidadas em transporte executivo com motorista; modelo, rota, frota e operação dependem do escopo aprovado.", alt: "Transporte executivo premium com motorista recebendo convidadas na chegada ao lounge" }),
   visualScene({ id: "breakfast", assetId: "PAR-03", eyebrow: "Hospitalidade", title: "O café da manhã pode carregar a assinatura de quem acolhe.", text: "Mesa, serviço, peças de apoio e conteúdo criam um território útil para uma participação de marca.", alt: "Café da manhã editorial com áreas limpas para presença funcional de uma marca participante" }),
   visualScene({ id: "movement", assetId: "PAR-04", eyebrow: "Movimento", title: "Garrafa, toalha e acessórios entram em uso real.", text: "A marca pode viver no treino por meio de pontos de contato funcionais, definidos depois da conversa de escopo.", alt: "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real" }),
   visualScene({ id: "recovery", assetId: "PAR-05", eyebrow: "Recovery", title: "Cuidado também pode ter forma e função.", text: "Equipamentos, profissionais e materiais de recovery criam uma integração natural depois do aulão.", alt: "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca" }),
@@ -128,6 +138,12 @@ export const PARTNER_SCENES = [
   visualScene({ id: "product", assetId: "PAR-08", eyebrow: "Cocriação", title: "Um produto pode nascer da conversa — se a técnica permitir.", text: "O estudo de picolé ou rótulo co-branded considera formulação, rotulagem, alergênicos, produção e aprovação.", alt: "Produtos reais Bentô compostos em um cenário editorial para estudo de cocriação responsável" }),
   visualScene({ id: "backdrop", assetId: "PAR-09", eyebrow: "Visibilidade contextual", title: "O destaque acontece onde a memória é registrada.", text: "O backdrop coletivo oferece presença no enquadramento sem transformar a celebração em uma feira de marcas.", alt: "Backdrop branco e dourado preparado como ponto de fotografia para o encontro Bentô" }),
   visualScene({ id: "curation", assetId: "PAR-10", eyebrow: "Curadoria", title: "A melhor presença é construída para caber na experiência.", text: "A seleção registra interesse e abre uma conversa de escopo; não constitui reserva, exclusividade ou contrato.", alt: "Mesa de curadoria com amostras de materiais e espaços limpos para propostas de participação" }),
+  visualScene({ id: "specialty-coffee", assetId: "PAR-11", eyebrow: "Cafés especiais", title: "Uma marca pode assinar uma mesa viva de preparo e conversa.", text: "Dois profissionais, V60, espresso e café coado criam um território próprio para produto, serviço, utensílios e conteúdo durante toda a manhã.", alt: "Dois baristas preparando V60 e espresso em uma mesa de cafés especiais com áreas de presença de marca" }),
+  visualScene({ id: "gelato-cart", assetId: "PAR-12", eyebrow: "Carrinho Bentô", title: "A marca pode acompanhar o gelato até onde as pessoas estão.", text: "Uma aplicação aprovada no carrinho, sem substituir o wordmark oficial Bentô, conecta a parceria ao serviço e ao momento de consumo.", alt: "Carrinho oficial de gelato Bentô em atendimento com painel reservado para uma aplicação aprovada de parceiro" }),
+  visualScene({ id: "supplement-kits", assetId: "PAR-13", eyebrow: "Suplementação", title: "Kits bem montados transformam produto em experiência útil.", text: "Uma mesa dedicada organiza produtos, orientações e entregas individuais com linguagem responsável e sem promessas clínicas ou de resultado.", alt: "Kits de suplementação organizados sobre mesa de marca com embalagens neutras e materiais de orientação" }),
+  visualScene({ id: "beauty-care", assetId: "PAR-14", eyebrow: "Beleza e cuidado", title: "Skincare e maquiagem ganham uma estação profissional.", text: "Equipe, espelhos, iluminação e produtos entram em uso real, criando um território de marca baseado em serviço e atenção individual.", alt: "Equipe profissional realizando skincare e maquiagem em mulheres diante de espelhos iluminados" }),
+  visualScene({ id: "adult-popsicle-workshop", assetId: "PAR-15", eyebrow: "Oficina adulta", title: "Criar o próprio picolé abre espaço para uma integração memorável.", text: "Aventais, bancada, ingredientes e profissionais Bentô de jaleco branco permitem que produto e marca participem de uma experiência conduzida.", alt: "Adultas de avental fabricando picolés com profissionais de jaleco branco em uma bancada de alimentos" }),
+  visualScene({ id: "kids-play", assetId: "PAR-16", eyebrow: "Entretenimento infantil", title: "O espaço das crianças também pode receber uma presença cuidadosa.", text: "Brinquedos minimalistas, mobiliário baixo e atividades táteis formam um ambiente delimitado cuja integração de marca deve respeitar o brincar.", alt: "Espaço infantil minimalista com brinquedos de madeira mesas baixas blocos e crianças acompanhadas" }),
 ];
 
 export const PARTNER_TIERS = [

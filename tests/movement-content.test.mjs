@@ -33,26 +33,33 @@ test("movement presentations turn the approved experiences into visual chapters"
   const influencerIds = INFLUENCER_SCENES.map(({ id }) => id);
   const partnerIds = PARTNER_SCENES.map(({ id }) => id);
 
-  assert.deepEqual(influencerIds, ["scenario", "welcome", "training", "kids-workshop", "recovery", "shirt-kit", "celebration"]);
-  assert.deepEqual(partnerIds, ["stage", "mobility", "breakfast", "movement", "recovery", "kids-workshop", "shirt-kit", "product", "backdrop", "curation"]);
+  assert.deepEqual(influencerIds, ["scenario", "welcome", "training", "kids-workshop", "recovery", "shirt-kit", "celebration", "specialty-coffee", "breakfast-table", "gelato-cart", "supplement-kits", "beauty-care", "adult-popsicle-workshop", "kids-play"]);
+  assert.deepEqual(partnerIds, ["stage", "mobility", "breakfast", "movement", "recovery", "kids-workshop", "shirt-kit", "product", "backdrop", "curation", "specialty-coffee", "gelato-cart", "supplement-kits", "beauty-care", "adult-popsicle-workshop", "kids-play"]);
   for (const scene of [...INFLUENCER_SCENES, ...PARTNER_SCENES]) {
-    assert.match(scene.assetId, /^(?:INF|PAR)-(?:0[1-9]|10)$/);
+    assert.match(scene.assetId, /^(?:INF|PAR)-(?:0[1-9]|1[0-6])$/);
     assert.ok(scene.alt.length >= 24);
     assert.ok(scene.disclosure.length >= 24);
   }
-  assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-02").alt, /estacionado/i);
+  assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-02").alt, /transporte executivo premium/i);
+  assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-01").alt, /recepção|chegada/i);
+  assert.doesNotMatch(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-01").alt, /palco|backdrop/i);
+  assert.match(INFLUENCER_SCENES.find(({ assetId }) => assetId === "INF-02").text, /transporte executivo premium/i);
   assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-09").alt, /preparado|vazio/i);
   assert.doesNotMatch(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-09").alt, /em uso/i);
   assert.match(content.MOVEMENT_HERO_ASSETS.influencer.alt, /grupo|convidadas/i);
   assert.match(INFLUENCER_SCENES.find(({ id }) => id === "kids-workshop").title, /oficina de decoração de picolés/i);
   assert.match(PARTNER_SCENES.find(({ id }) => id === "kids-workshop").title, /oficina de decoração de picolés/i);
-  for (const assetId of ["INF-03", "PAR-04"]) {
+  for (const assetId of ["PAR-09"]) {
     const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
     assert.match(scene.disclosure, /wordmark oficial Bentô composto sem redesenho/i);
   }
-  for (const assetId of ["INF-04", "PAR-06"]) {
+  for (const assetId of ["INF-10", "PAR-12"]) {
     const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
-    assert.match(scene.disclosure, /picolé do acervo real Bentô composto sem redesenho/i);
+    assert.match(scene.disclosure, /carrinho real Bentô preservado/i);
+  }
+  for (const assetId of ["INF-02", "INF-03", "INF-04", "INF-05", "INF-13", "PAR-04", "PAR-05", "PAR-06", "PAR-15"]) {
+    const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
+    assert.doesNotMatch(scene.disclosure, /wordmark oficial Bentô composto sem redesenho/i);
   }
 });
 
@@ -64,6 +71,7 @@ test("first anniversary copy contains no annual project narrative or influencer 
   }
   assert.doesNotMatch(publicCopy, /projeto de um ano|ciclo anual|jornada anual|programa anual/i);
   assert.doesNotMatch(influencerCopy, /patrocin|sua marca aqui|marca parceira/i);
+  assert.doesNotMatch(influencerCopy, /influenciadora/i);
 });
 
 test("privacy retention copy follows the single anniversary event instead of an annual program", async () => {
@@ -77,6 +85,8 @@ test("privacy retention copy follows the single anniversary event instead of an 
   assert.match(privacy, /detalhes opcionais da proposta/);
   assert.match(privacy, /identidade, público e validade do convite/);
   assert.match(privacy, /registramos a primeira abertura/);
+  assert.match(privacy, /tamanho usado como referência para camiseta e roupa de treino da convidada/);
+  assert.doesNotMatch(privacy, /tamanhos de camiseta e roupa de treino da influenciadora/i);
 });
 
 test("shirt concept reserves the lower back for approved sponsors", () => {
@@ -91,15 +101,16 @@ test("movement hero templates and partner participation use the approved first a
   assert.deepEqual(HERO_COPY, {
     influencer: {
       kicker: "Convite pessoal · 1º aniversário Bentô Gelatos",
-      title: "{Nome}, esta celebração tem um lugar que só você pode ocupar.",
+      personalizedMessage: "Esta celebração tem um lugar que só você pode ocupar.",
       fallbackTitle: "Esta celebração tem um lugar que só você pode ocupar.",
       text: "No sábado, 12 de setembro, reuniremos 40–50 pessoas no Le Buffet Lounge para uma manhã de movimento, cuidado e encontros. Sua presença é parte essencial da memória que queremos criar.",
       factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
       cta: "Confirmar meu lugar",
     },
     partner: {
-      kicker: "Uma proposta para {Responsável} · {Empresa}",
-      title: "{Empresa}, seu lugar nesta celebração pode ter forma, função e assinatura.",
+      kicker: "Primeiro aniversário Bentô Gelatos",
+      responsibleLine: "Uma proposta para {Responsável}.",
+      personalizedMessage: "Seu lugar nesta celebração pode ter forma, função e assinatura.",
       fallbackTitle: "Sua marca pode ter forma, função e assinatura nesta celebração.",
       text: "No primeiro aniversário da Bentô Gelatos, 40–50 pessoas viverão uma manhã de movimento e hospitalidade no Le Buffet Lounge. Esta proposta apresenta maneiras de a marca participar de forma natural, útil e memorável.",
       factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
