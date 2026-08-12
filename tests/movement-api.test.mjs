@@ -82,6 +82,26 @@ test("movement API returns a public invitation without private fields", async ()
   assert.deepEqual(JSON.parse(opening.options.body), { opened_at: "2026-08-11T12:00:00.000Z", status: "opened", updated_at: "2026-08-11T12:00:00.000Z" });
 });
 
+test("movement API resolves a resend alias while preserving the original invitation row", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invites?token_hash=")) return response([]);
+    if (url.includes("movement_invite_aliases?token_hash=")) return response([{ invite_id: INVITE.id }]);
+    if (url.includes(`movement_invites?id=eq.${INVITE.id}`) && options.method !== "PATCH") return response([INVITE]);
+    if (url.includes("movement_invites") && options.method === "PATCH") return response([{ id: INVITE.id }]);
+    return response([]);
+  };
+  const out = res();
+
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.payload.invite.id, INVITE.id);
+  assert.equal(calls.some((call) => call.url.includes("movement_invite_aliases?token_hash=")), true);
+  assert.equal(calls.some((call) => call.url.includes(`movement_invites?id=eq.${INVITE.id}`) && call.options.method !== "PATCH"), true);
+});
+
 test("movement API derives one current outfit size only when legacy columns agree", async () => {
   for (const [shirtSize, trainingOutfitSize, expected] of [["M", "M", "M"], ["M", "G", ""]]) {
     const fetchImpl = async (url, options = {}) => {

@@ -275,7 +275,7 @@ test("Movement admin keeps a successful revocation final when the following refr
   assert.equal(elements.get("#movError").textContent, "Convite revogado; atualização pendente.");
 });
 
-test("Movement admin activates resend on the same legacy invite and exposes the replacement link", async () => {
+test("Movement admin activates resend on the same legacy invite while preserving its previous link", async () => {
   const requests = [];
   const confirmations = [];
   const copied = [];
@@ -293,7 +293,7 @@ test("Movement admin activates resend on the same legacy invite and exposes the 
   await context.reissueMovementInvite(invite, button);
 
   assert.equal(confirmations.length, 1);
-  assert.match(confirmations[0], /endereço anterior deixará de funcionar/i);
+  assert.match(confirmations[0], /endereço anterior continuará funcionando/i);
   assert.deepEqual(JSON.parse(requests[0].options.body), { action: "reissue-invite", inviteId: invite.id });
   assert.equal(invite.status, "responded");
   assert.equal(invite.invitePath, "/movimento/convite/reissued-opaque-token-abcdefghijklmnopqrstuvwxyz");

@@ -16,6 +16,7 @@ test("movement migrations have unique ordered versions and extend personalized i
     "20260812130452_bento_movement_content.sql",
     "20260812131439_bento_movement_content_function_search_path.sql",
     "20260812151801_bento_movement_invite_resend.sql",
+    "20260812164902_bento_movement_invite_aliases.sql",
   ]);
 
   const versions = files.map((file) => file.split("_")[0]);
@@ -30,6 +31,7 @@ test("movement migrations have unique ordered versions and extend personalized i
   const personalized = sql[2];
   const content = sql[3];
   const resend = sql[5];
+  const aliases = sql[6];
   assert.match(personalized, /add column if not exists recipient_name text/i);
   assert.match(personalized, /add column if not exists company_name text/i);
   assert.match(personalized, /add column if not exists opened_at timestamptz/i);
@@ -89,4 +91,11 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(resend, /alter table public\.movement_invites enable row level security/i);
   assert.match(resend, /revoke all on public\.movement_invites from anon, authenticated/i);
   assert.match(resend, /grant select, insert, update on public\.movement_invites to service_role/i);
+  assert.match(aliases, /create table if not exists public\.movement_invite_aliases/i);
+  assert.match(aliases, /invite_id uuid not null unique references public\.movement_invites\(id\) on delete cascade/i);
+  assert.match(aliases, /token_hash text primary key/i);
+  assert.match(aliases, /resend_token_ciphertext text not null/i);
+  assert.match(aliases, /enable row level security/i);
+  assert.match(aliases, /revoke all on public\.movement_invite_aliases from anon, authenticated/i);
+  assert.match(aliases, /grant select, insert, update on public\.movement_invite_aliases to service_role/i);
 });

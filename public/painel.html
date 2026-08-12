@@ -852,7 +852,7 @@ function showMovementInviteResult(invitePath){
 }
 async function reissueMovementInvite(invite, button){
   var target=movementInviteTarget(invite);
-  if(!window.confirm("Ativar reenvio para "+target+"? O endereço anterior deixará de funcionar, mas respostas e histórico serão preservados.")) return;
+  if(!window.confirm("Ativar reenvio para "+target+"? O endereço anterior continuará funcionando, e respostas e histórico serão preservados.")) return;
   button.disabled=true; var old=button.textContent; button.textContent="Ativando…";
   try{
     var key=localStorage.getItem(KEYSTORE)||"";

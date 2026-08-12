@@ -100,7 +100,7 @@ test("movement admin API sends a modern Supabase secret only as apikey", async (
   })(req(), out);
 
   assert.equal(out.statusCode, 200);
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 4);
   assert.equal(calls.every((call) => call.options.headers.apikey === "sb_secret_test_key"), true);
   assert.equal(calls.every((call) => !("Authorization" in call.options.headers)), true);
 });
@@ -162,7 +162,7 @@ test("movement admin API creates an influencer link and stores an encrypted reus
   assert.equal(calls[0].options.headers.Prefer, "return=representation");
 });
 
-test("movement admin API returns reusable paths for encrypted links and marks legacy links as unavailable", async () => {
+test("movement admin API returns reusable paths for direct and aliased invitation tokens", async () => {
   const reusableId = "84ccf9b6-b170-4212-9f3d-1ce53901ca18";
   const legacyId = "fa4ce3a4-bdb7-4612-b9d8-4959099d2684";
   let persisted;
@@ -171,6 +171,9 @@ test("movement admin API returns reusable paths for encrypted links and marks le
       persisted = JSON.parse(options.body);
       return response([{ id: reusableId, display_name: "Ana", recipient_name: "Ana", company_name: null, audience_type: "influencer", contact: null, status: "sent", expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-12T12:00:00.000Z" }], 201);
     }
+    if (url.includes("movement_invite_aliases")) return response([
+      { invite_id: legacyId, resend_token_ciphertext: persisted.resend_token_ciphertext },
+    ]);
     if (url.includes("movement_invites")) return response([
       { id: reusableId, display_name: "Ana", recipient_name: "Ana", company_name: null, contact: null, audience_type: "influencer", status: "sent", opened_at: null, revoked_at: null, expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-12T12:00:00.000Z", resend_token_ciphertext: persisted.resend_token_ciphertext },
       { id: legacyId, display_name: "Marca", recipient_name: "Bia", company_name: "Marca", contact: null, audience_type: "partner", status: "sent", opened_at: null, revoked_at: null, expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-11T12:00:00.000Z", resend_token_ciphertext: null },
@@ -197,15 +200,46 @@ test("movement admin API returns reusable paths for encrypted links and marks le
   assert.equal(created.statusCode, 201);
   assert.equal(listed.statusCode, 200);
   assert.equal(listed.payload.invites[0].invitePath, "/movimento/convite/invite_abcdefghijklmnopqrstuvwxyz_2026");
-  assert.equal(listed.payload.invites[1].invitePath, null);
+  assert.equal(listed.payload.invites[1].invitePath, "/movimento/convite/invite_abcdefghijklmnopqrstuvwxyz_2026");
   assert.equal(JSON.stringify(listed.payload).includes("resend_token_ciphertext"), false);
 });
 
-test("movement admin API reissues a reusable link on the same active invitation", async () => {
+test("movement admin API automatically gives active legacy invitations a reusable alias", async () => {
+  const inviteId = "fa4ce3a4-bdb7-4612-b9d8-4959099d2684";
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invite_aliases") && options.method === "POST") {
+      return response([{ ...JSON.parse(options.body) }], 201);
+    }
+    if (url.includes("movement_invite_aliases")) return response([]);
+    if (url.includes("movement_invites")) return response([
+      { id: inviteId, display_name: "Marca", recipient_name: "Bia", company_name: "Marca", contact: null, audience_type: "partner", status: "sent", opened_at: null, revoked_at: null, expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-11T12:00:00.000Z", resend_token_ciphertext: null },
+    ]);
+    return response([]);
+  };
+  const out = res();
+  await createMovementAdminHandler({
+    fetchImpl,
+    env: ENV,
+    createLegacyToken: () => "invite_legacy_abcdefghijklmnopqrstuvwxyz",
+    now: () => new Date("2026-08-12T12:00:00.000Z"),
+  })(req(), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.payload.invites[0].invitePath, "/movimento/convite/invite_legacy_abcdefghijklmnopqrstuvwxyz");
+  const aliasWrite = calls.find((call) => call.url.includes("movement_invite_aliases?on_conflict=invite_id") && call.options.method === "POST");
+  assert.ok(aliasWrite);
+  assert.equal(JSON.parse(aliasWrite.options.body).invite_id, inviteId);
+  assert.equal(calls.some((call) => call.url.includes("movement_invites") && call.options.method === "PATCH"), false);
+});
+
+test("movement admin API creates a resend alias without invalidating the original invitation token", async () => {
   const inviteId = "84ccf9b6-b170-4212-9f3d-1ce53901ca18";
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
     calls.push({ url, options });
+    if (url.includes("/movement_invite_aliases?on_conflict=invite_id")) return response([{ invite_id: inviteId }], 201);
     return response([{ id: inviteId, display_name: "Ana", status: "opened", expires_at: "2026-12-31T23:59:00.000Z" }]);
   };
   const out = res();
@@ -219,14 +253,46 @@ test("movement admin API reissues a reusable link on the same active invitation"
   assert.equal(out.statusCode, 200);
   assert.equal(out.payload.invitePath, "/movimento/convite/invite_reissued_abcdefghijklmnopqrstuvwxyz");
   assert.equal(out.payload.invite.id, inviteId);
-  const persisted = JSON.parse(calls[0].options.body);
+  const aliasWrite = calls.find((call) => call.url.includes("/movement_invite_aliases?on_conflict=invite_id"));
+  const persisted = JSON.parse(aliasWrite.options.body);
   assert.equal(persisted.token_hash.length, 64);
   assert.match(persisted.resend_token_ciphertext, /^v1\./);
+  assert.equal(persisted.invite_id, inviteId);
   assert.equal(JSON.stringify(persisted).includes("invite_reissued_abcdefghijklmnopqrstuvwxyz"), false);
-  assert.equal("status" in persisted, false);
-  assert.match(calls[0].url, /status=in\.\(sent,opened,responded\)/);
-  assert.match(calls[0].url, /revoked_at=is\.null/);
-  assert.match(calls[0].url, /expires_at=gt\./);
+  const activeRead = calls.find((call) => call.url.includes("movement_invites?id=eq."));
+  assert.match(activeRead.url, /status=in\.\(sent,opened,responded\)/);
+  assert.match(activeRead.url, /revoked_at=is\.null/);
+  assert.match(activeRead.url, /expires_at=gt\./);
+  assert.equal(calls.some((call) => call.url.includes("movement_invites") && call.options.method === "PATCH"), false);
+  assert.match(aliasWrite.url, /on_conflict=invite_id/);
+});
+
+test("movement admin API reads the winning legacy alias after a concurrent creation", async () => {
+  const inviteId = "fa4ce3a4-bdb7-4612-b9d8-4959099d2684";
+  let winningCiphertext = "";
+  const bootstrap = createMovementAdminHandler({
+    fetchImpl: async (_url, options = {}) => {
+      winningCiphertext = JSON.parse(options.body).resend_token_ciphertext;
+      return response([{ id: inviteId, display_name: "Marca", recipient_name: "Bia", company_name: "Marca", audience_type: "partner", status: "sent", expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-11T12:00:00.000Z" }], 201);
+    },
+    env: ENV,
+    createToken: () => "invite_winning_abcdefghijklmnopqrstuvwxyz",
+    now: () => new Date("2026-08-12T12:00:00.000Z"),
+  });
+  await bootstrap(req("POST", "panel-test-key", { action: "create-invite", audienceType: "partner", companyName: "Marca", recipientName: "Bia", expiresAt: "2026-12-31T23:59:00.000Z" }), res());
+
+  const fetchImpl = async (url, options = {}) => {
+    if (url.includes("movement_invite_aliases?on_conflict=invite_id") && options.method === "POST") return response([], 201);
+    if (url.includes(`movement_invite_aliases?invite_id=eq.${inviteId}`)) return response([{ invite_id: inviteId, resend_token_ciphertext: winningCiphertext }]);
+    if (url.includes("movement_invite_aliases")) return response([]);
+    if (url.includes("movement_invites")) return response([{ id: inviteId, display_name: "Marca", recipient_name: "Bia", company_name: "Marca", contact: null, audience_type: "partner", status: "sent", opened_at: null, revoked_at: null, expires_at: "2026-12-31T23:59:00.000Z", created_at: "2026-08-11T12:00:00.000Z", resend_token_ciphertext: null }]);
+    return response([]);
+  };
+  const out = res();
+  await createMovementAdminHandler({ fetchImpl, env: ENV, createLegacyToken: () => "invite_losing_abcdefghijklmnopqrstuvwxyz", now: () => new Date("2026-08-12T12:00:00.000Z") })(req(), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.payload.invites[0].invitePath, "/movimento/convite/invite_winning_abcdefghijklmnopqrstuvwxyz");
 });
 
 test("movement admin API refuses to reissue an inactive invitation", async () => {

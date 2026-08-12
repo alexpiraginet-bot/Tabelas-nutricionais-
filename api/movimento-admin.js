@@ -58,13 +58,16 @@ function decryptResendToken(value, keyMaterial) {
   }
 }
 
-function invitePathFromRow(row, keyMaterial, currentTime) {
+function activeInviteRow(row, currentTime) {
   const expiresAtMs = Date.parse(row?.expires_at || "");
-  const active = (row?.status === "sent" || row?.status === "opened" || row?.status === "responded")
+  return (row?.status === "sent" || row?.status === "opened" || row?.status === "responded")
     && row?.revoked_at == null
     && Number.isFinite(expiresAtMs)
     && expiresAtMs > currentTime.getTime();
-  if (!active) return null;
+}
+
+function invitePathFromRow(row, keyMaterial, currentTime) {
+  if (!activeInviteRow(row, currentTime)) return null;
   const token = decryptResendToken(row?.resend_token_ciphertext, keyMaterial);
   return token ? `/movimento/convite/${token}` : null;
 }
@@ -95,7 +98,7 @@ function publicRsvp(row) {
   };
 }
 
-export function createMovementAdminHandler({ fetchImpl = fetch, env = process.env, createToken = () => `invite_${crypto.randomBytes(32).toString("base64url")}`, now = () => new Date() } = {}) {
+export function createMovementAdminHandler({ fetchImpl = fetch, env = process.env, createToken = () => `invite_${crypto.randomBytes(32).toString("base64url")}`, createLegacyToken = createToken, now = () => new Date() } = {}) {
   return async function movementAdminHandler(req, res) {
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
@@ -120,18 +123,25 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
           const token = createToken();
           const timestamp = now().toISOString();
           const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites?id=eq.${encodeURIComponent(id)}&status=in.(sent,opened,responded)&revoked_at=is.null&expires_at=gt.${encodeURIComponent(timestamp)}`, {
-            method: "PATCH",
-            headers: supabaseServiceHeaders(cfg.key, { Prefer: "return=representation" }),
-            body: JSON.stringify({
-              token_hash: hashInviteToken(token),
-              resend_token_ciphertext: encryptResendToken(token, cfg.key),
-              updated_at: timestamp,
-            }),
+            headers: supabaseServiceHeaders(cfg.key),
           });
           if (!response.ok) throw new Error(`Supabase ${response.status}`);
           const rows = await response.json();
           const invite = Array.isArray(rows) ? rows[0] : null;
           if (!invite?.id) { res.status(409).json({ ok: false, error: "Este convite não está ativo para reemissão." }); return; }
+          const aliasResponse = await fetchImpl(`${cfg.url}/rest/v1/movement_invite_aliases?on_conflict=invite_id`, {
+            method: "POST",
+            headers: supabaseServiceHeaders(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
+            body: JSON.stringify({
+              invite_id: invite.id,
+              token_hash: hashInviteToken(token),
+              resend_token_ciphertext: encryptResendToken(token, cfg.key),
+              updated_at: timestamp,
+            }),
+          });
+          if (!aliasResponse.ok) throw new Error(`Supabase ${aliasResponse.status}`);
+          const aliasRows = await aliasResponse.json();
+          if (!Array.isArray(aliasRows) || !aliasRows[0]?.invite_id) throw new Error("Supabase returned no invitation alias");
           res.status(200).json({
             ok: true,
             invitePath: `/movimento/convite/${token}`,
@@ -216,14 +226,38 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
       const inviteSelect = "id,display_name,recipient_name,company_name,contact,audience_type,status,opened_at,revoked_at,expires_at,created_at,resend_token_ciphertext";
       const rsvpSelect = "invite_id,response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_age,child_kit_size,transport_interest,image_consent,responded_at,updated_at";
       const partnerSelect = "id,invite_id,company_name,contact_name,email,phone,tier_interest,contribution_type,contribution_details,submitted_at,updated_at";
-      const [inviteRows, rsvpRows, partnerRows] = await Promise.all([
+      const [inviteRows, aliasRows, rsvpRows, partnerRows] = await Promise.all([
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_invites?select=${inviteSelect}&order=created_at.desc&limit=500`, cfg.key),
+        fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_invite_aliases?select=invite_id,resend_token_ciphertext&limit=500`, cfg.key),
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_rsvps?select=${rsvpSelect}&order=updated_at.desc&limit=500`, cfg.key),
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_partner_leads?select=${partnerSelect}&order=updated_at.desc&limit=500`, cfg.key),
       ]);
       const rsvpByInvite = new Map(rsvpRows.map((row) => [row.invite_id, row]));
+      const aliasByInvite = new Map(aliasRows.map((row) => [row.invite_id, row]));
       const partnerByInvite = new Map(partnerRows.filter((row) => row.invite_id).map((row) => [row.invite_id, row]));
       const summaryNow = now();
+      const legacyRows = inviteRows.filter((row) => !row.resend_token_ciphertext && !aliasByInvite.has(row.id) && activeInviteRow(row, summaryNow));
+      for (const row of legacyRows) {
+        const token = createLegacyToken();
+        const aliasResponse = await fetchImpl(`${cfg.url}/rest/v1/movement_invite_aliases?on_conflict=invite_id`, {
+          method: "POST",
+          headers: supabaseServiceHeaders(cfg.key, { Prefer: "resolution=ignore-duplicates,return=representation" }),
+          body: JSON.stringify({
+            invite_id: row.id,
+            token_hash: hashInviteToken(token),
+            resend_token_ciphertext: encryptResendToken(token, cfg.key),
+          }),
+        });
+        if (!aliasResponse.ok) throw new Error(`Supabase ${aliasResponse.status}`);
+        const createdAliases = await aliasResponse.json();
+        const createdAlias = Array.isArray(createdAliases) ? createdAliases[0] : null;
+        if (createdAlias?.invite_id) {
+          aliasByInvite.set(createdAlias.invite_id, createdAlias);
+        } else {
+          const winningAliases = await fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_invite_aliases?invite_id=eq.${encodeURIComponent(row.id)}&select=invite_id,resend_token_ciphertext&limit=1`, cfg.key);
+          if (winningAliases[0]?.invite_id) aliasByInvite.set(winningAliases[0].invite_id, winningAliases[0]);
+        }
+      }
       const invites = inviteRows.map((row) => ({
         id: row.id,
         displayName: row.display_name,
@@ -236,7 +270,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         revokedAt: row.revoked_at,
         expiresAt: row.expires_at,
         createdAt: row.created_at,
-        invitePath: invitePathFromRow(row, cfg.key, summaryNow),
+        invitePath: invitePathFromRow({ ...row, resend_token_ciphertext: row.resend_token_ciphertext || aliasByInvite.get(row.id)?.resend_token_ciphertext }, cfg.key, summaryNow),
         rsvp: publicRsvp(rsvpByInvite.get(row.id)),
         partnerLead: partnerByInvite.has(row.id) ? { id: partnerByInvite.get(row.id).id, updatedAt: partnerByInvite.get(row.id).updated_at } : null,
       }));
