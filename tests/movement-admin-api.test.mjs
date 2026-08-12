@@ -295,6 +295,41 @@ test("movement admin API reads the winning legacy alias after a concurrent creat
   assert.equal(out.payload.invites[0].invitePath, "/movimento/convite/invite_winning_abcdefghijklmnopqrstuvwxyz");
 });
 
+test("movement admin API paginates invitation history before creating legacy aliases", async () => {
+  const legacyId = "fa4ce3a4-bdb7-4612-b9d8-4959099d2684";
+  const directCiphertext = "v1.AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  const page = Array.from({ length: 500 }, (_, index) => ({
+    id: `00000000-0000-4000-8000-${String(index).padStart(12, "0")}`,
+    display_name: `Convidada ${index}`,
+    recipient_name: `Convidada ${index}`,
+    company_name: null,
+    contact: null,
+    audience_type: "influencer",
+    status: "sent",
+    opened_at: null,
+    revoked_at: null,
+    expires_at: "2026-12-31T23:59:00.000Z",
+    created_at: "2026-08-12T12:00:00.000Z",
+    resend_token_ciphertext: directCiphertext,
+  }));
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invites") && url.includes("offset=0")) return response(page);
+    if (url.includes("movement_invites") && url.includes("offset=500")) return response([{ ...page[0], id: legacyId, resend_token_ciphertext: null }]);
+    if (url.includes("movement_invite_aliases") && options.method === "POST") return response([{ ...JSON.parse(options.body) }], 201);
+    if (url.includes("movement_invite_aliases")) return response([]);
+    return response([]);
+  };
+  const out = res();
+  await createMovementAdminHandler({ fetchImpl, env: ENV, createLegacyToken: () => "invite_paginated_abcdefghijklmnopqrstuvwxyz", now: () => new Date("2026-08-12T12:00:00.000Z") })(req(), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.payload.invites.length, 501);
+  assert.equal(out.payload.invites.at(-1).invitePath, "/movimento/convite/invite_paginated_abcdefghijklmnopqrstuvwxyz");
+  assert.equal(calls.some((call) => call.url.includes("movement_invites") && call.url.includes("offset=500")), true);
+});
+
 test("movement admin API refuses to reissue an inactive invitation", async () => {
   const inviteId = "84ccf9b6-b170-4212-9f3d-1ce53901ca18";
   const out = res();

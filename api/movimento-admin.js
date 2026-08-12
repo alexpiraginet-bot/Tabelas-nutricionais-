@@ -79,6 +79,16 @@ async function fetchRows(fetchImpl, url, key) {
   return Array.isArray(rows) ? rows : [];
 }
 
+async function fetchAllRows(fetchImpl, url, key, pageSize = 500) {
+  const rows = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const separator = url.includes("?") ? "&" : "?";
+    const page = await fetchRows(fetchImpl, `${url}${separator}limit=${pageSize}&offset=${offset}`, key);
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
+}
+
 function publicRsvp(row) {
   if (!row) return null;
   return {
@@ -227,7 +237,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
       const rsvpSelect = "invite_id,response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_age,child_kit_size,transport_interest,image_consent,responded_at,updated_at";
       const partnerSelect = "id,invite_id,company_name,contact_name,email,phone,tier_interest,contribution_type,contribution_details,submitted_at,updated_at";
       const [inviteRows, aliasRows, rsvpRows, partnerRows] = await Promise.all([
-        fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_invites?select=${inviteSelect}&order=created_at.desc&limit=500`, cfg.key),
+        fetchAllRows(fetchImpl, `${cfg.url}/rest/v1/movement_invites?select=${inviteSelect}&order=created_at.desc`, cfg.key),
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_invite_aliases?select=invite_id,resend_token_ciphertext&limit=500`, cfg.key),
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_rsvps?select=${rsvpSelect}&order=updated_at.desc&limit=500`, cfg.key),
         fetchRows(fetchImpl, `${cfg.url}/rest/v1/movement_partner_leads?select=${partnerSelect}&order=updated_at.desc&limit=500`, cfg.key),
