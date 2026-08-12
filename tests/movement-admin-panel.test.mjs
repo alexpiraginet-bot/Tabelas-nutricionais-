@@ -136,7 +136,7 @@ test("Movement presentation editor is available as a mobile-safe second subtab",
   assert.match(editor, /\/api\/upload/);
   assert.match(editor, /function optimizeImage\(/);
   assert.match(editor, /id = "movImageCropDialog"/);
-  for (const label of ["Ajuste e otimize", "Enquadramento horizontal", "Enquadramento vertical", "Zoom", "Aplicar corte e enviar"]) assert.match(editor, new RegExp(label));
+  for (const label of ["Ajuste e otimize", "Enquadramento horizontal", "Enquadramento vertical", "Zoom", "Aplicar corte e publicar"]) assert.match(editor, new RegExp(label));
   for (const ratio of ["Principal · 16:9", "Principal · 8:5", "Vertical · 9:16", "Vertical · 4:5"]) assert.match(editor, new RegExp(ratio));
   assert.match(editor, /createImageBitmap/);
   assert.match(editor, /var formats = \[\{ type: "image\/webp", extension: "webp" \}, \{ type: "image\/jpeg", extension: "jpg" \}\]/);

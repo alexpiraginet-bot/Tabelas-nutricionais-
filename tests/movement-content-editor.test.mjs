@@ -382,6 +382,106 @@ test("selecting a photo opens a crop optimizer and applies focal position before
   assert.ok(signPayload.size < input.files[0].size);
 });
 
+test("applying a crop publishes the uploaded image without requiring a second save", async () => {
+  const calls = [];
+  const uploadUrl = "https://project.supabase.co/storage/v1/upload/signed";
+  const publicUrl = "https://project.supabase.co/storage/v1/object/public/artes/movimento/published.webp";
+  const harness = createHarness({ fetchImpl: async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items: [] });
+    if (url === "/api/upload") return jsonResponse({ ok: true, uploadUrl, publicUrl });
+    if (url === uploadUrl) return jsonResponse({}, 200);
+    if (url === "/api/movimento-content") {
+      const body = JSON.parse(options.body);
+      return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 1, override: body.override } });
+    }
+    throw new Error(`unexpected ${url}`);
+  } });
+  await openEditor(harness);
+  const input = harness.findByName("imageUrl");
+  input.files = [{ name: "hero.jpg", type: "image/jpeg", size: 4_000_000 }];
+  await input.dispatch("change");
+  await harness.findById("movCropApply").click();
+  await waitFor(() => calls.some(({ url }) => url === "/api/movimento-content"), "uploaded crop was not published");
+
+  const saveCall = calls.find(({ url }) => url === "/api/movimento-content");
+  const payload = JSON.parse(saveCall.options.body);
+  assert.equal(payload.sceneId, "INF-HERO");
+  assert.equal(payload.override.imageUrl, publicUrl);
+  assert.match(harness.findById("movEditorStatus").textContent, /salva e publicada/i);
+  assert.equal(harness.findById("movEditorSave").disabled, false);
+  const event = { prevented: false, preventDefault() { this.prevented = true; }, returnValue: undefined };
+  harness.browserEvents.get("beforeunload")(event);
+  assert.equal(event.prevented, false);
+});
+
+test("crop auto-publish waits for the public preview and does not publish unrelated text drafts", async () => {
+  const calls = [];
+  const uploadUrl = "https://project.supabase.co/storage/v1/upload/signed";
+  const publicUrl = "https://project.supabase.co/storage/v1/object/public/artes/movimento/previewed.webp";
+  const harness = createHarness({ previewImage: { mode: "manual", width: 752, height: 940 }, fetchImpl: async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items: [] });
+    if (url === "/api/upload") return jsonResponse({ ok: true, uploadUrl, publicUrl });
+    if (url === uploadUrl) return jsonResponse({}, 200);
+    if (url === "/api/movimento-content") {
+      const body = JSON.parse(options.body);
+      return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 1, override: body.override } });
+    }
+    throw new Error(`unexpected ${url}`);
+  } });
+  await openEditor(harness);
+  await harness.findById("movEditorPreview").children[0].dispatch("load");
+  const title = harness.findByName("title"); title.value = "Rascunho ainda não publicado"; await title.dispatch("input");
+  const input = harness.findByName("imageUrl"); input.files = [{ name: "hero.jpg", type: "image/jpeg", size: 4_000_000 }];
+  await input.dispatch("change");
+  const applying = harness.findById("movCropApply").click();
+  await waitFor(() => harness.findById("movEditorPreview").children[0].src === publicUrl, "public preview did not receive the uploaded URL");
+  assert.equal(calls.filter(({ url }) => url === "/api/movimento-content").length, 0);
+  await harness.findById("movEditorPreview").children[0].dispatch("load");
+  await applying;
+
+  const payload = JSON.parse(calls.find(({ url }) => url === "/api/movimento-content").options.body);
+  assert.equal(payload.override.imageUrl, publicUrl);
+  assert.equal(payload.override.altText, "Grupo de convidadas chegando em roupa de treino ao lounge contemporâneo junto ao canal urbano de Vitória");
+  assert.equal(Object.hasOwn(payload.override, "title"), false);
+  assert.equal(harness.findByName("title").value, "Rascunho ainda não publicado");
+  assert.match(harness.findById("movEditorStatus").textContent, /outras alterações continuam como rascunho/i);
+});
+
+test("desktop crop temporarily previews its own URL and keeps the target locked when a mobile override exists", async () => {
+  const calls = [];
+  const uploadUrl = "https://project.supabase.co/storage/v1/upload/signed";
+  const publicUrl = "https://project.supabase.co/storage/v1/object/public/artes/movimento/new-desktop.webp";
+  const previousMobile = "https://project.supabase.co/storage/v1/object/public/artes/movimento/previous-mobile.webp";
+  const items = [{ audience: "influencer", sceneId: "INF-HERO", revision: 2, override: { imageUrl: null, mobileImageUrl: previousMobile, altText: "Descrição acessível da capa já publicada" } }];
+  const harness = createHarness({ items, previewImage: { mode: "manual", width: 752, height: 940 }, fetchImpl: async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items });
+    if (url === "/api/upload") return jsonResponse({ ok: true, uploadUrl, publicUrl });
+    if (url === uploadUrl) return jsonResponse({}, 200);
+    if (url === "/api/movimento-content") {
+      const body = JSON.parse(options.body);
+      return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 3, override: { ...items[0].override, ...body.override } } });
+    }
+    throw new Error(`unexpected ${url}`);
+  } });
+  await openEditor(harness); await harness.findById("movEditorPreview").children[0].dispatch("load");
+  const input = harness.findByName("imageUrl"); input.files = [{ name: "desktop.jpg", type: "image/jpeg", size: 4_000_000 }];
+  await input.dispatch("change");
+  const applying = harness.findById("movCropApply").click();
+  await waitFor(() => harness.findById("movEditorPreview").children[0].src === publicUrl, "desktop upload did not become the temporary preview");
+  assert.equal(harness.findById("movEditorAudience").disabled, true);
+  assert.equal(harness.sceneButtons().every((button) => button.disabled), true);
+  assert.equal(harness.contentTab.disabled, true);
+  await harness.findById("movEditorPreview").children[0].dispatch("load");
+  await applying;
+  const payload = JSON.parse(calls.find(({ url }) => url === "/api/movimento-content").options.body);
+  assert.equal(payload.revision, 2);
+  assert.equal(payload.override.imageUrl, publicUrl);
+  assert.equal(Object.hasOwn(payload.override, "mobileImageUrl"), false);
+});
+
 test("upload optimizes deterministically before signing and retains its originating scene", async () => {
   const calls = [];
   const uploadUrl = "https://project.supabase.co/storage/v1/upload/signed";
@@ -588,10 +688,14 @@ test("save restores focus to the replacement action after asynchronous re-render
 
 test("crop workflow moves focus into the dialog and restores it to the replacement file control", async () => {
   const uploadUrl = "https://project.supabase.co/storage/v1/upload/signed";
-  const harness = createHarness({ fetchImpl: async (url) => {
+  const harness = createHarness({ fetchImpl: async (url, options = {}) => {
     if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items: [] });
     if (url === "/api/upload") return jsonResponse({ ok: true, uploadUrl, publicUrl: "https://project.supabase.co/storage/v1/object/public/artes/movimento/focus.webp" });
     if (url === uploadUrl) return jsonResponse({}, 200);
+    if (url === "/api/movimento-content") {
+      const body = JSON.parse(options.body);
+      return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 1, override: body.override } });
+    }
     throw new Error(`unexpected ${url}`);
   } });
   await openEditor(harness);

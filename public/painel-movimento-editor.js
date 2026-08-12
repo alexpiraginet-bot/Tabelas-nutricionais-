@@ -187,6 +187,18 @@
     image.src = source;
     updatePreviewState(source);
   }
+  function waitForPreview(source) {
+    var key = previewKey(source);
+    if (state.mediaStates[key] === "valid") return Promise.resolve();
+    if (state.mediaStates[key] === "error") return Promise.reject(new Error("Não foi possível carregar a imagem enviada."));
+    return new Promise(function (resolve, reject) {
+      var image = elements.previewImage;
+      function loaded() { if (image._movSource === source) resolve(); else reject(new Error("A prévia da imagem mudou durante o envio.")); }
+      function failed() { reject(new Error("Não foi possível carregar a imagem enviada.")); }
+      image.addEventListener("load", loaded, { once: true }); image.addEventListener("error", failed, { once: true });
+      if (image.complete) { if (image.naturalWidth > 0) loaded(); else failed(); }
+    });
+  }
   function textInput(label, field, multiline, maxLength) {
     var wrap = el("label");
     wrap.appendChild(document.createTextNode(label));
@@ -238,7 +250,7 @@
       var label = el("label"); var line = el("span", "mov-crop-control-label", definition[0]); var output = el("output", "", definition[2] + "%"); var input = document.createElement("input"); input.type = "range"; input.name = definition[1]; input.min = definition[1] === "cropZoom" ? "100" : "0"; input.max = definition[1] === "cropZoom" ? "200" : "100"; input.step = "1"; input.value = String(definition[2]); input.addEventListener("input", function () { output.textContent = input.value + "%"; if (state.crop) state.crop[definition[1]] = Number(input.value); renderCropPreview(); }); line.appendChild(output); label.append(line, input); elements.cropControls.appendChild(label);
     });
     cropPanel.appendChild(elements.cropControls);
-    var cropActions = el("div", "mov-crop-actions"); elements.cropCancel = el("button", "", "Cancelar"); elements.cropCancel.type = "button"; elements.cropCancel.id = "movCropCancel"; elements.cropCancel.addEventListener("click", cancelCrop); elements.cropApply = el("button", "primary", "Aplicar corte e enviar"); elements.cropApply.type = "button"; elements.cropApply.id = "movCropApply"; elements.cropApply.addEventListener("click", applyCrop); cropActions.append(elements.cropCancel, elements.cropApply); cropPanel.appendChild(cropActions); elements.cropDialog.appendChild(cropPanel); root.appendChild(elements.cropDialog);
+    var cropActions = el("div", "mov-crop-actions"); elements.cropCancel = el("button", "", "Cancelar"); elements.cropCancel.type = "button"; elements.cropCancel.id = "movCropCancel"; elements.cropCancel.addEventListener("click", cancelCrop); elements.cropApply = el("button", "primary", "Aplicar corte e publicar"); elements.cropApply.type = "button"; elements.cropApply.id = "movCropApply"; elements.cropApply.addEventListener("click", applyCrop); cropActions.append(elements.cropCancel, elements.cropApply); cropPanel.appendChild(cropActions); elements.cropDialog.appendChild(cropPanel); root.appendChild(elements.cropDialog);
     elements.host.replaceChildren(root);
   }
   function draftContent() {
@@ -377,7 +389,7 @@
     var extension = String(file.name || "").split(".").at(-1).toLowerCase(); var supported = /^image\/(jpeg|png|webp|avif|heic|heif)$/.test(String(file.type || "").toLowerCase()) || /^(jpe?g|png|webp|avif|heic|heif)$/.test(extension);
     if (!supported) { setStatus("Use JPEG, PNG, WebP, AVIF ou HEIC.", "error"); return; }
     if (!Number.isFinite(file.size) || file.size < 1 || file.size > 30 * 1024 * 1024) { setStatus("A foto original deve ter no máximo 30 MiB.", "error"); return; }
-    var target = { audienceType: state.audienceType, sceneId: state.sceneId, key: currentKey() };
+    var target = { audienceType: state.audienceType, sceneId: state.sceneId, key: currentKey(), hadDraft: state.dirty };
     if (state.dirty) rememberDraft(); state.uploading = true; render(); setStatus("Preparando o editor de corte…");
     try {
       var decoded = await decodeImage(file); state.uploading = false; state.crop = { file: file, field: field, target: target, decoded: decoded, cropX: 50, cropY: 50, cropZoom: 100 }; render(); setStatus("Ajuste o enquadramento e aplique o corte.");
@@ -395,10 +407,24 @@
       var data = await signed.json().catch(function () { return {}; }); if (!signed.ok || !data.uploadUrl || !data.publicUrl) throw new Error(data.error || "Não foi possível preparar o envio.");
       var put = await fetchWithTimeout(data.uploadUrl, { method: "PUT", headers: { "Content-Type": uploadFile.type }, body: uploadFile.blob }); if (!put.ok) throw new Error("Não foi possível enviar a foto.");
       var draft = contentFor(crop.target.audienceType, crop.target.sceneId); draft[crop.field] = data.publicUrl; state.drafts[crop.target.key] = draft;
-      if (crop.target.key === currentKey()) state.dirty = true;
-      render(); setStatus("Foto enviada. Salve as alterações para publicar.");
+      if (crop.target.key === currentKey()) {
+        state.dirty = true; render(); setPreviewSource(data.publicUrl);
+        await waitForPreview(data.publicUrl); setStatus("Publicando foto…");
+        var saved = overrideFor(crop.target.audienceType, crop.target.sceneId); var baseline = defaultContent(crop.target.sceneId, crop.target.audienceType); var override = {};
+        override[crop.field] = data.publicUrl; override.altText = draft.altText || baseline.altText;
+        var key = localStorage.getItem("bento:panelkey") || "";
+        var response = await fetchWithTimeout("/api/movimento-content", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + key }, body: JSON.stringify({ action: "save", audience: crop.target.audienceType, sceneId: crop.target.sceneId, revision: Number(saved.revision || 0), override: override }) });
+        var savedData = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(savedData.error || ("HTTP " + response.status));
+        var pendingDraft = state.drafts[crop.target.key] || draft; state.overrides[crop.target.key] = normalizeItem(savedData.item || savedData.override || {});
+        if (crop.target.hadDraft) { state.drafts[crop.target.key] = pendingDraft; state.dirty = true; }
+        else { delete state.drafts[crop.target.key]; state.dirty = false; }
+        render(); setStatus(crop.target.hadDraft ? "Foto publicada. Outras alterações continuam como rascunho." : "Foto ajustada, salva e publicada.", "saved");
+      }
     } catch (error) { setStatus((error && error.message) || "Não foi possível enviar a foto.", "error"); }
-    finally { crop.decoded.close(); state.uploading = false; state.focusTarget = { name: crop.field }; render(); }
+    finally {
+      crop.decoded.close(); state.uploading = false; state.focusTarget = null; render();
+      var liveInput = elements.form && elements.form.elements.namedItem(crop.field); if (liveInput && typeof liveInput.focus === "function") liveInput.focus();
+    }
   }
   async function saveScene() {
     if (busy()) return;
