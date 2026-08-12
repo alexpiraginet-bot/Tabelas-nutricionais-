@@ -71,6 +71,12 @@ test("privacy retention copy follows the single anniversary event instead of an 
 
   assert.match(privacy, /90 dias após o evento/);
   assert.doesNotMatch(privacy, /programa anual|projeto anual|ciclo anual|jornada anual/i);
+  assert.match(privacy, /idade e tamanho aproximado da criança/);
+  assert.doesNotMatch(privacy, /Não solicitamos[^<]*idade exata/i);
+  assert.match(privacy, /interesse em transporte/);
+  assert.match(privacy, /detalhes opcionais da proposta/);
+  assert.match(privacy, /identidade, público e validade do convite/);
+  assert.match(privacy, /registramos a primeira abertura/);
 });
 
 test("shirt concept reserves the lower back for approved sponsors", () => {
