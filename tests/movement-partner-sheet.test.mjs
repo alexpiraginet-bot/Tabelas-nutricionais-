@@ -77,3 +77,17 @@ test("partner sheet locks invited identity, preserves editable contact and keeps
   assert.match(css, /\.mv-partner-sheet input[^}]*font-size:\s*16px/);
   assert.match(css, /\.mv-partner-sheet [^{]*button[^}]*min-height:\s*44px/);
 });
+
+test("partner participation and contribution choices are touch-ready selectable cards", async () => {
+  const { css } = await readPartnerSurface();
+  const optionCards = css.match(/\.mv-partner-participation-options>label,\.mv-partner-contribution-options>label\{([^}]*)\}/);
+
+  assert.ok(optionCards, "both nested option groups must receive their own card rule");
+  assert.match(optionCards[1], /display:flex/);
+  assert.match(optionCards[1], /padding:\s*\d+px/);
+  assert.match(optionCards[1], /border:\s*1px solid/);
+  assert.match(optionCards[1], /cursor:pointer/);
+  assert.match(optionCards[1], /min-height:\s*(?:4[4-9]|[5-9]\d|\d{3,})px/);
+  assert.match(css, /\.mv-partner-participation-options>label\.is-selected,\.mv-partner-contribution-options>label\.is-selected\{[^}]*border-color:var\(--mv-gold\)[^}]*background:#fcf8ee/);
+  assert.match(css, /\.mv-partner-participation-options>label:has\(input:focus-visible\),\.mv-partner-contribution-options>label:has\(input:focus-visible\)\{[^}]*outline:\s*3px solid var\(--mv-gold\)[^}]*outline-offset:\s*2px/);
+});
