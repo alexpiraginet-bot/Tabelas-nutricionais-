@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import * as content from "../src/movimento/movement-content.js";
 
 const {
@@ -63,6 +64,13 @@ test("first anniversary copy contains no annual project narrative or influencer 
   }
   assert.doesNotMatch(publicCopy, /projeto de um ano|ciclo anual|jornada anual|programa anual/i);
   assert.doesNotMatch(influencerCopy, /patrocin|sua marca aqui|marca parceira/i);
+});
+
+test("privacy retention copy follows the single anniversary event instead of an annual program", async () => {
+  const privacy = await readFile(new URL("../src/PrivacidadePage.jsx", import.meta.url), "utf8");
+
+  assert.match(privacy, /90 dias após o evento/);
+  assert.doesNotMatch(privacy, /programa anual|projeto anual|ciclo anual|jornada anual/i);
 });
 
 test("shirt concept reserves the lower back for approved sponsors", () => {
