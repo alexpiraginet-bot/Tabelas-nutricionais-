@@ -63,6 +63,23 @@ async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
   };
 }
 
+async function fetchCurrentPartnerLead({ fetchImpl, cfg, inviteId }) {
+  const select = "tier_interest,contribution_type,contribution_details,email,phone";
+  const url = `${cfg.url}/rest/v1/movement_partner_leads?invite_id=eq.${encodeURIComponent(inviteId)}&select=${select}&limit=1`;
+  const response = await fetchImpl(url, { headers: headers(cfg.key) });
+  if (!response.ok) return null;
+  const rows = await response.json();
+  const row = Array.isArray(rows) ? rows[0] : null;
+  if (!row) return null;
+  return {
+    tier: row.tier_interest || "",
+    contributionType: row.contribution_type || "",
+    contributionDetails: row.contribution_details || "",
+    email: row.email || "",
+    phone: row.phone || "",
+  };
+}
+
 export function createMovementHandler({ fetchImpl = fetch, env = process.env, now = () => new Date() } = {}) {
   return async function movementHandler(req, res) {
     res.setHeader("Cache-Control", "no-store");
@@ -77,11 +94,16 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
       if (req.method === "GET") {
         const timestampDate = now();
         let invite = await resolveMovementInvite({ fetchImpl, cfg, token: req.query?.token, now: timestampDate, markOpened: false });
-        if (!invite || invite.audienceType !== "influencer") { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
+        if (!invite) { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
         invite = await resolveMovementInvite({ fetchImpl, cfg, token: req.query?.token, now: timestampDate, markOpened: true });
         if (!invite) { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
-        const currentRsvp = await fetchCurrentRsvp({ fetchImpl, cfg, inviteId: invite.id });
-        res.status(200).json({ ok: true, invite, currentRsvp });
+        if (invite.audienceType === "influencer") {
+          const currentRsvp = await fetchCurrentRsvp({ fetchImpl, cfg, inviteId: invite.id });
+          res.status(200).json({ ok: true, invite, currentRsvp });
+          return;
+        }
+        const currentPartnerLead = await fetchCurrentPartnerLead({ fetchImpl, cfg, inviteId: invite.id });
+        res.status(200).json({ ok: true, invite, currentPartnerLead });
         return;
       }
 

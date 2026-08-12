@@ -5,6 +5,7 @@ import { createMovementHandler } from "../api/movimento-rsvp.js";
 const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
 const ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" };
 const INVITE = { id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18", display_name: "Convidada", recipient_name: "Ana", company_name: null, audience_type: "influencer", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
+const PARTNER_INVITE = { id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684", display_name: "Marca Parceira", recipient_name: "Bia", company_name: "Marca Parceira", audience_type: "partner", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 
 function response(data, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => data };
@@ -80,6 +81,56 @@ test("movement API returns a public invitation without private fields", async ()
   assert.deepEqual(JSON.parse(opening.options.body), { opened_at: "2026-08-11T12:00:00.000Z", status: "opened", updated_at: "2026-08-11T12:00:00.000Z" });
 });
 
+test("movement API resolves a personal partner once with only editable lead data", async () => {
+  const calls = [];
+  const currentLead = {
+    tier_interest: "signature",
+    contribution_type: "service",
+    contribution_details: "Ativação de recovery.",
+    email: "bia@marca.com",
+    phone: "27999990000",
+    submitted_at: "2026-08-11T10:00:00.000Z",
+    updated_at: "2026-08-11T10:00:00.000Z",
+    lead_key: "internal-key",
+    privacy_version: "v1",
+    is_binding: false,
+  };
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invites") && options.method !== "PATCH") return response([PARTNER_INVITE]);
+    if (url.includes("movement_invites")) return response([{ id: PARTNER_INVITE.id }]);
+    if (url.includes("movement_partner_leads")) return response([currentLead]);
+    return response([]);
+  };
+  const out = res();
+
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.deepEqual(out.payload.invite, {
+    id: PARTNER_INVITE.id,
+    displayName: "Marca Parceira",
+    audienceType: "partner",
+    recipientName: "Bia",
+    companyName: "Marca Parceira",
+    status: "opened",
+    expiresAt: "2026-09-01T12:00:00.000Z",
+  });
+  assert.deepEqual(out.payload.currentPartnerLead, {
+    tier: "signature",
+    contributionType: "service",
+    contributionDetails: "Ativação de recovery.",
+    email: "bia@marca.com",
+    phone: "27999990000",
+  });
+  assert.equal("leadKey" in out.payload.currentPartnerLead, false);
+  assert.equal("privacyVersion" in out.payload.currentPartnerLead, false);
+  assert.equal("currentRsvp" in out.payload, false);
+  assert.equal(calls.filter((call) => call.url.includes("movement_invites") && !call.options.method).length, 2);
+  const leadCall = calls.find((call) => call.url.includes("movement_partner_leads"));
+  assert.match(leadCall.url, new RegExp(`invite_id=eq\\.${PARTNER_INVITE.id}`));
+});
+
 test("movement API treats a zero-row sent opening claim as an inactive invitation", async () => {
   const calls = [];
   const fetchImpl = async (url, options = {}) => {
@@ -94,14 +145,13 @@ test("movement API treats a zero-row sent opening claim as an inactive invitatio
   assert.equal(calls.some((call) => call.url.includes("movement_rsvps")), false);
 });
 
-test("movement API uses the same neutral message for missing, inactive, expired, and mismatched invitations", async () => {
+test("movement API uses the same neutral message for missing, inactive, and expired invitations", async () => {
   for (const rows of [
     [],
     [{ ...INVITE, status: "draft" }],
     [{ ...INVITE, status: "revoked" }],
     [{ ...INVITE, status: "expired" }],
     [{ ...INVITE, expires_at: "2026-08-01T12:00:00.000Z" }],
-    [{ ...INVITE, audience_type: "partner" }],
   ]) {
     const out = res();
     await createMovementHandler({ fetchImpl: async () => response(rows), env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
@@ -110,19 +160,15 @@ test("movement API uses the same neutral message for missing, inactive, expired,
   }
 });
 
-test("movement API does not open a valid invitation for the wrong audience", async () => {
-  const calls = [];
+test("movement API keeps POST exclusive to influencer invitations", async () => {
   const out = res();
   await createMovementHandler({
-    fetchImpl: async (url, options) => {
-      calls.push({ url, options });
-      return response([{ ...INVITE, audience_type: "partner" }]);
-    },
+    fetchImpl: async () => response([PARTNER_INVITE]),
     env: ENV,
     now: () => new Date("2026-08-11T12:00:00.000Z"),
-  })(req("GET", { query: { token: VALID_TOKEN } }), out);
+  })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", privacyAccepted: true } }), out);
   assert.equal(out.statusCode, 404);
-  assert.equal(calls.some((call) => call.options?.method === "PATCH"), false);
+  assert.equal(out.payload.error, "Convite inválido ou expirado.");
 });
 
 test("movement API opens an invitation once and preserves responded status", async () => {
