@@ -2,6 +2,7 @@ export function parseMovementRoute(pathname) {
   const path = String(pathname || "").replace(/\/+$/, "") || "/";
   if (path === "/movimento") return { mode: "influencer", token: null };
   if (path === "/movimento/parceiros") return { mode: "partner", token: null };
+  if (path === "/movimento/convite") return { mode: "invite", token: null };
   if (path.startsWith("/movimento/convite/")) {
     const encoded = path.slice("/movimento/convite/".length);
     try { return { mode: "invite", token: decodeURIComponent(encoded) || null }; }

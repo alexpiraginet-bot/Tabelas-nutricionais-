@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import ArrowDown from "lucide-react/dist/esm/icons/arrow-down.js";
 import ArrowRight from "lucide-react/dist/esm/icons/arrow-right.js";
 import CalendarDays from "lucide-react/dist/esm/icons/calendar-days.js";
@@ -32,15 +32,35 @@ function renditionSrcSet(renditions) {
 }
 
 function ScenePicture({ asset, priority = false, className = "" }) {
+  const pictureRef = useRef(null);
+  const [mediaReady, setMediaReady] = useState(priority);
   const displaySizes = priority ? "100vw" : "(max-width: 1600px) 60vw, 960px";
   const desktopFallback = asset.desktop.sources.jpg.at(-1);
-  return <picture className={`mv-scene-picture ${className}`.trim()} style={{ "--mv-lqip": `url(${asset.lqip.src})` }}>
-    <source media="(max-width: 900px)" type="image/avif" srcSet={renditionSrcSet(asset.mobile.sources.avif)} sizes="100vw"/>
-    <source media="(max-width: 900px)" type="image/webp" srcSet={renditionSrcSet(asset.mobile.sources.webp)} sizes="100vw"/>
-    <source media="(max-width: 900px)" type="image/jpeg" srcSet={renditionSrcSet(asset.mobile.sources.jpg)} sizes="100vw"/>
-    <source type="image/avif" srcSet={renditionSrcSet(asset.desktop.sources.avif)} sizes={displaySizes}/>
-    <source type="image/webp" srcSet={renditionSrcSet(asset.desktop.sources.webp)} sizes={displaySizes}/>
-    <img src={desktopFallback.src} srcSet={renditionSrcSet(asset.desktop.sources.jpg)} sizes={`(max-width: 900px) 100vw, ${displaySizes}`} alt={asset.alt} width={desktopFallback.width} height={desktopFallback.height} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"/>
+  useEffect(() => {
+    if (mediaReady || priority) return undefined;
+    if (!("IntersectionObserver" in window)) {
+      setMediaReady(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setMediaReady(true);
+      observer.disconnect();
+    }, { rootMargin: "320px 0px" });
+    if (pictureRef.current) observer.observe(pictureRef.current);
+    return () => observer.disconnect();
+  }, [mediaReady, priority]);
+
+  return <picture ref={pictureRef} className={`mv-scene-picture ${className}`.trim()} style={{ "--mv-lqip": `url(${asset.lqip.src})` }} role={mediaReady ? undefined : "img"} aria-label={mediaReady ? undefined : asset.alt}>
+    {mediaReady && <>
+      <source media="(max-width: 900px)" type="image/avif" srcSet={renditionSrcSet(asset.mobile.sources.avif)} sizes="100vw"/>
+      <source media="(max-width: 900px)" type="image/webp" srcSet={renditionSrcSet(asset.mobile.sources.webp)} sizes="100vw"/>
+      <source media="(max-width: 900px)" type="image/jpeg" srcSet={renditionSrcSet(asset.mobile.sources.jpg)} sizes="100vw"/>
+      <source type="image/avif" srcSet={renditionSrcSet(asset.desktop.sources.avif)} sizes={displaySizes}/>
+      <source type="image/webp" srcSet={renditionSrcSet(asset.desktop.sources.webp)} sizes={displaySizes}/>
+      <img src={desktopFallback.src} srcSet={renditionSrcSet(asset.desktop.sources.jpg)} sizes={`(max-width: 900px) 100vw, ${displaySizes}`} alt={asset.alt} width={desktopFallback.width} height={desktopFallback.height} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"/>
+    </>}
   </picture>;
 }
 
@@ -155,6 +175,7 @@ export default function MovementSite({ mode = "influencer", token = null }) {
   const { state, invite, currentRsvp, currentPartnerLead, error } = useMovementInvite(token);
   const generic = getMovementExperience(mode);
   const personal = isPersonalMovementMode(mode);
+  if (personal && !token) return <InvalidInvitation error="Convite inválido ou expirado."/>;
   if (personal && state === "loading") return <LoadingSkeleton/>;
   if (personal && state === "error") return <InvalidInvitation error={error}/>;
   const audience = personal ? invite?.audienceType : generic.story;

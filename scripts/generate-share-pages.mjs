@@ -62,15 +62,27 @@ const VIEWS = {
 const PATH_VIEWS = {
   "/movimento": {
     file: "movimento/index.html",
-    title: "Bentô em Movimento — Convite 2026",
-    desc: "Um projeto de 12 meses que começa em 12 de setembro no Le Buffet Lounge, em Vitória.",
+    title: "1º aniversário Bentô Gelatos — Convite",
+    desc: "No sábado, 12 de setembro de 2026, a Bentô celebra seu primeiro aniversário no Le Buffet Lounge, em Vitória.",
     image: "/movimento/og-influenciadoras.jpg",
+    hero: "INF-HERO",
   },
   "/movimento/parceiros": {
     file: "movimento/parceiros/index.html",
-    title: "Bentô em Movimento — Parcerias",
-    desc: "Uma plataforma anual de experiência, presença e relacionamento para marcas parceiras.",
+    title: "1º aniversário Bentô Gelatos — Parcerias",
+    desc: "Uma proposta de participação para o primeiro aniversário da Bentô, em 12 de setembro de 2026, no Le Buffet Lounge.",
     image: "/movimento/og-parceiros.jpg",
+    hero: "PAR-HERO",
+    robots: "noindex, nofollow",
+  },
+  "/movimento/convite": {
+    file: "movimento/convite/index.html",
+    title: "Convite pessoal — 1º aniversário Bentô Gelatos",
+    desc: "Um convite pessoal para celebrar o primeiro aniversário da Bentô Gelatos em 12 de setembro de 2026.",
+    image: "/movimento/og-influenciadoras.jpg",
+    publicUrl: "/movimento",
+    robots: "noindex, nofollow",
+    referrer: "no-referrer",
   },
 };
 
@@ -87,8 +99,27 @@ const mustReplace = (html, re, replacement, what) => {
 const setMeta = (html, attr, key, value) =>
   mustReplace(html, new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`), `$1${esc(value)}$2`, `meta ${key}`);
 
-const renderSharePage = (v, targetUrl) => {
-  let html = base;
+const insertIntoHead = (html, markup) =>
+  mustReplace(html, /<\/head>/, `${markup}\n</head>`, "closing head");
+
+const setOrInsertMeta = (html, attr, key, value) => {
+  const pattern = new RegExp(`(<meta ${attr}="${key}" content=")[^"]*(")`);
+  return pattern.test(html)
+    ? html.replace(pattern, `$1${esc(value)}$2`)
+    : insertIntoHead(html, `<meta ${attr}="${key}" content="${esc(value)}">`);
+};
+
+const stripHomeImagePreloads = (html) => html
+  .replace(/<link\b(?=[^>]*\brel="preload")(?=[^>]*\bas="image")[^>]*>\s*/gi, "")
+  .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, (block) => block.includes("bento:destaque") ? "" : block);
+
+const heroPreloads = (assetId) => [
+  `<link rel="preload" as="image" type="image/avif" href="/movimento/v2/${assetId}-mobile-480.avif" imagesrcset="/movimento/v2/${assetId}-mobile-480.avif 480w, /movimento/v2/${assetId}-mobile-768.avif 768w" imagesizes="100vw" media="(max-width: 900px)" fetchpriority="high">`,
+  `<link rel="preload" as="image" type="image/avif" href="/movimento/v2/${assetId}-desktop-1080.avif" imagesrcset="/movimento/v2/${assetId}-desktop-1080.avif 1080w, /movimento/v2/${assetId}-desktop-1440.avif 1440w" imagesizes="100vw" media="(min-width: 901px)" fetchpriority="high">`,
+].join("\n");
+
+const renderSharePage = (v, targetUrl, { movement = false } = {}) => {
+  let html = movement ? stripHomeImagePreloads(base) : base;
   html = mustReplace(html, /<title>[^<]*<\/title>/, `<title>${v.title.replace(/</g, "&lt;")}</title>`, "title");
   html = setMeta(html, "name", "description", v.desc);
   html = setMeta(html, "property", "og:title", v.title);
@@ -98,7 +129,11 @@ const renderSharePage = (v, targetUrl) => {
   html = setMeta(html, "name", "twitter:title", v.title);
   html = setMeta(html, "name", "twitter:description", v.desc);
   html = setMeta(html, "name", "twitter:image", SITE + v.image);
-  return mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${targetUrl}$2`, "link canonical");
+  html = mustReplace(html, /(<link rel="canonical" href=")[^"]*(")/, `$1${targetUrl}$2`, "link canonical");
+  if (v.robots) html = setOrInsertMeta(html, "name", "robots", v.robots);
+  if (v.referrer) html = setOrInsertMeta(html, "name", "referrer", v.referrer);
+  if (v.hero) html = insertIntoHead(html, heroPreloads(v.hero));
+  return html;
 };
 
 for (const [view, v] of Object.entries(VIEWS)) {
@@ -110,7 +145,8 @@ for (const [view, v] of Object.entries(VIEWS)) {
 for (const [path, v] of Object.entries(PATH_VIEWS)) {
   const output = join(ROOT, "dist", v.file);
   mkdirSync(dirname(output), { recursive: true });
-  writeFileSync(output, renderSharePage(v, SITE + path));
+  const targetUrl = SITE + (v.publicUrl || path);
+  writeFileSync(output, renderSharePage(v, targetUrl, { movement: true }));
 }
 
 console.log(`OK  ${Object.keys(VIEWS).length + Object.keys(PATH_VIEWS).length} páginas de compartilhamento → dist/share/ e rotas dedicadas`);

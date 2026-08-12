@@ -108,6 +108,7 @@ test("Movement admin form exposes audience-specific fields and retains the immed
   assert.match(form, /id="movInviteLink"/);
   assert.match(form, /id="movInviteCopy"/);
   assert.match(form, /id="movInviteNew"/);
+  assert.match(panel, /\.mov-invite-grid \[hidden\]\{display:none!important\}/);
 });
 
 test("Movement admin create handler sends exactly the audience-specific create-invite payload", () => {

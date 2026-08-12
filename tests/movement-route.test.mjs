@@ -7,6 +7,8 @@ test("movement route distinguishes public, partner and invitation experiences", 
   assert.deepEqual(parseMovementRoute("/movimento"), { mode: "influencer", token: null });
   assert.deepEqual(parseMovementRoute("/movimento/"), { mode: "influencer", token: null });
   assert.deepEqual(parseMovementRoute("/movimento/parceiros"), { mode: "partner", token: null });
+  assert.deepEqual(parseMovementRoute("/movimento/convite"), { mode: "invite", token: null });
+  assert.deepEqual(parseMovementRoute("/movimento/convite/"), { mode: "invite", token: null });
   assert.deepEqual(parseMovementRoute("/movimento/convite/invite_abcdefghijklmnopqrstuvwxyz_2026"), {
     mode: "invite", token: "invite_abcdefghijklmnopqrstuvwxyz_2026",
   });

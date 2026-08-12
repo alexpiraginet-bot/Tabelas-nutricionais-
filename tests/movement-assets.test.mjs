@@ -164,6 +164,11 @@ test("runtime uses art-directed picture sources with exactly one priority hero",
   assert.match(site, /loading=\{priority \? "eager" : "lazy"\}/);
   assert.match(site, /fetchPriority=\{priority \? "high" : "auto"\}/);
   assert.match(site, /decoding="async"/);
+  assert.match(site, /const \[mediaReady, setMediaReady\] = useState\(priority\);/);
+  assert.match(site, /new IntersectionObserver\(/);
+  assert.match(site, /rootMargin: "320px 0px"/);
+  assert.match(site, /\{mediaReady && <>/);
+  assert.match(site, /role=\{mediaReady \? undefined : "img"\}/);
   assert.equal(site.match(/<ScenePicture[^>]*\bpriority\b[^>]*\/>/g)?.length, 1);
   assert.doesNotMatch(site, /document\.createElement\("link"\)/, "a useEffect preload runs too late to improve the active hero request");
 
@@ -294,4 +299,10 @@ test("movement typography transfers no full TTF when a deterministic WOFF2 subse
 test("scene disclosures meet AA contrast on both presentation surfaces", async () => {
   const css = await readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8");
   assert.match(css, /\.mv-scene-disclosure\{[^}]*color:#5f5a50/);
+});
+
+test("partner backdrop explanation remains readable on an iPhone", async () => {
+  const css = await readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8");
+
+  assert.match(css, /\.mv-brand-composition small\{[^}]*font-size:11px[^}]*line-height:1\.35[^}]*letter-spacing:\.06em/);
 });

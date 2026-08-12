@@ -104,6 +104,22 @@
       "destination": "/ui.html"
     },
     {
+      "source": "/movimento/convite/:token",
+      "destination": "/movimento/convite/index.html"
+    },
+    {
+      "source": "/movimento/convite/:token/",
+      "destination": "/movimento/convite/index.html"
+    },
+    {
+      "source": "/movimento/convite",
+      "destination": "/movimento/convite/index.html"
+    },
+    {
+      "source": "/movimento/convite/",
+      "destination": "/movimento/convite/index.html"
+    },
+    {
       "source": "/movimento/parceiros",
       "destination": "/movimento/parceiros/index.html"
     },
@@ -195,7 +211,11 @@
         },
         {
           "key": "Cache-Control",
-          "value": "private, no-store"
+          "value": "private, no-store, max-age=0"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
         }
       ]
     },
