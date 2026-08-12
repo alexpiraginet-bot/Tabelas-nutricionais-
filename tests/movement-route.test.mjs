@@ -58,6 +58,18 @@ test("movement site resolves each personal invitation before choosing its story"
   assert.match(loader, /const inviteRequests = new Map\(\)/);
 });
 
+test("movement hero renders the approved factual line as visible content", async () => {
+  const source = await readFile(new URL("../src/movimento/MovementSite.jsx", import.meta.url), "utf8");
+
+  assert.match(source, /<p className="mv-hero-factual"><MapPin size=\{18\}\/>{copy\.factualLine}<\/p>/);
+});
+
+test("partner tier limits are rendered from the approved content contract", async () => {
+  const source = await readFile(new URL("../src/movimento/MovementSite.jsx", import.meta.url), "utf8");
+
+  assert.match(source, /<p className="mv-annual-note">{PARTNER_PARTICIPATION_NOTE}<\/p>/);
+});
+
 test("movement entry does not eagerly load the full public site bundle", async () => {
   const source = await readFile(new URL("../src/main.jsx", import.meta.url), "utf8");
 

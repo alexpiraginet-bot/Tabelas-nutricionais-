@@ -13,6 +13,7 @@ import {
   HERO_COPY,
   INFLUENCER_CHAPTERS,
   INFLUENCER_SCENES,
+  PARTNER_PARTICIPATION_NOTE,
   PARTNER_SCENES,
   PARTNER_TIERS,
   SHIRT_CONCEPT,
@@ -70,7 +71,7 @@ function Hero({ audience, invite, personal }) {
     <div className="mv-hero-copy">
       <span className="mv-kicker">{kicker}</span>
       <h1>{title}</h1>
-      <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p><MapPin size={18}/>{EVENT.location}</p></div>
+      <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p className="mv-hero-factual"><MapPin size={18}/>{copy.factualLine}</p></div>
       <p>{copy.text}</p>
       <a className="mv-hero-cta" href={ctaTarget}>{copy.cta}<ArrowDown size={18}/></a>
     </div>
@@ -111,7 +112,7 @@ function InfluencerChapters() {
 }
 
 function PartnerTiers() {
-  return <section id="participacoes" className="mv-partner-roles"><div className="mv-section-head"><span className="mv-kicker">Quatro participações</span><h2>Forma, função<br/><em>e assinatura.</em></h2></div><div className="mv-role-grid">{PARTNER_TIERS.map((tier, index) => <article key={tier.name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{tier.name}</h3><ul>{tier.includes.map((item) => <li key={item}>{item}</li>)}</ul></article>)}</div><p className="mv-annual-note">A escolha registra interesse e abre uma conversa de escopo. Não constitui reserva, exclusividade ou contrato.</p></section>;
+  return <section id="participacoes" className="mv-partner-roles"><div className="mv-section-head"><span className="mv-kicker">Quatro participações</span><h2>Forma, função<br/><em>e assinatura.</em></h2></div><div className="mv-role-grid">{PARTNER_TIERS.map((tier, index) => <article key={tier.name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{tier.name}</h3><ul>{tier.includes.map((item) => <li key={item}>{item}</li>)}</ul></article>)}</div><p className="mv-annual-note">{PARTNER_PARTICIPATION_NOTE}</p></section>;
 }
 
 function InvitationSheetHandoff({ audience, token, invite, currentRsvp, currentPartnerLead }) {

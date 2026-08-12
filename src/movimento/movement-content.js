@@ -82,3 +82,5 @@ export const PARTNER_TIERS = [
   { name: "Signature", includes: ["Tudo de Experience", "Assinatura de um território entre mobilidade premium, café da manhã, treino, recovery ou oficina infantil", "Presença ampliada nos materiais e na ambientação desse território", "Construção conjunta da narrativa e do plano de captação", "Estudo de viabilidade para picolé ou rótulo co-branded"] },
   { name: "Founding Circle", includes: ["Tudo de Signature", "Segundo ponto de contato em território complementar", "Maior hierarquia nas composições coletivas", "Identificação editorial Founding Circle nos materiais institucionais do evento", "Participação na curadoria criativa final", "Registro editorial personalizado da presença da marca"] },
 ];
+
+export const PARTNER_PARTICIPATION_NOTE = "Founding Circle refere-se exclusivamente à participação nesta celebração. Nenhuma opção promete preço, exclusividade, alcance, publicação, categoria protegida ou continuidade anual. A escolha registra interesse e não constitui reserva ou contrato.";

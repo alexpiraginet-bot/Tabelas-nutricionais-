@@ -8,6 +8,7 @@ const {
   HERO_COPY,
   INFLUENCER_SCENES,
   KIT_ITEMS,
+  PARTNER_PARTICIPATION_NOTE,
   PARTNER_SCENES,
   PARTNER_TIERS,
   SHIRT_CONCEPT,
@@ -79,4 +80,8 @@ test("movement hero templates and partner participation use the approved first a
   assert.deepEqual(PARTNER_TIERS.map(({ name }) => name), ["Select", "Experience", "Signature", "Founding Circle"]);
   assert.equal(PARTNER_TIERS.length, 4);
   assert.ok(PARTNER_TIERS.every(({ includes }) => includes.length >= 3));
+  assert.equal(
+    PARTNER_PARTICIPATION_NOTE,
+    "Founding Circle refere-se exclusivamente à participação nesta celebração. Nenhuma opção promete preço, exclusividade, alcance, publicação, categoria protegida ou continuidade anual. A escolha registra interesse e não constitui reserva ou contrato.",
+  );
 });
