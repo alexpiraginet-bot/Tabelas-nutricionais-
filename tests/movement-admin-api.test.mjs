@@ -82,6 +82,26 @@ test("movement admin API summarizes both invitation audiences without selecting 
   assert.equal(calls.every((call) => call.options.headers.apikey === "test-service-key"), true);
 });
 
+test("movement admin API excludes draft, revoked, and expired invitations from pending", async () => {
+  const activeId = "84ccf9b6-b170-4212-9f3d-1ce53901ca18";
+  const fetchImpl = async (url) => {
+    if (url.includes("movement_invites")) return response([
+      { id: activeId, display_name: "Ativo", audience_type: "influencer", status: "sent", expires_at: "2026-09-01T12:00:00.000Z" },
+      { id: "10000000-0000-4000-8000-000000000000", display_name: "Aberto", audience_type: "influencer", status: "opened", expires_at: "2026-09-01T12:00:00.000Z" },
+      { id: "10000000-0000-4000-8000-000000000001", display_name: "Draft", audience_type: "influencer", status: "draft", expires_at: "2026-09-01T12:00:00.000Z" },
+      { id: "10000000-0000-4000-8000-000000000002", display_name: "Revogado", audience_type: "partner", status: "revoked", expires_at: "2026-09-01T12:00:00.000Z" },
+      { id: "10000000-0000-4000-8000-000000000003", display_name: "Expirado", audience_type: "partner", status: "sent", expires_at: "2026-08-01T12:00:00.000Z" },
+      { id: "10000000-0000-4000-8000-000000000004", display_name: "Respondido", audience_type: "partner", status: "responded", expires_at: "2026-09-01T12:00:00.000Z" },
+    ]);
+    return response([]);
+  };
+  const out = res();
+  await createMovementAdminHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req(), out);
+  assert.equal(out.statusCode, 200);
+  assert.equal(out.payload.summary.invited, 6);
+  assert.equal(out.payload.summary.pending, 2);
+});
+
 test("movement admin API creates an influencer link while storing only its hash", async () => {
   const calls = [];
   const fetchImpl = async (url, options) => {

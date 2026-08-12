@@ -1,4 +1,4 @@
-import { readMovementJsonBody, resolveMovementInvite, updateMovementInviteStatus } from "../lib/movement-invite.mjs";
+import { claimMovementInviteResponse, readMovementJsonBody, resolveMovementInvite } from "../lib/movement-invite.mjs";
 import { validateRsvpPayload } from "../lib/movement-rsvp.mjs";
 import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
 
@@ -94,6 +94,8 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
       if (!invite || invite.audienceType !== "influencer") { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
       const valid = validateRsvpPayload(body);
       if (!valid.ok) { res.status(400).json({ ok: false, error: "Revise os campos indicados.", fields: valid.errors }); return; }
+      const claimed = await claimMovementInviteResponse({ fetchImpl, cfg, inviteId: invite.id, now: timestampDate });
+      if (!claimed) { res.status(404).json({ ok: false, error: "Convite inválido ou expirado." }); return; }
 
       const timestamp = timestampDate.toISOString();
       const row = {
@@ -120,7 +122,6 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
         body: JSON.stringify(row),
       });
       if (!persisted.ok) throw new Error(`Supabase ${persisted.status}`);
-      await updateMovementInviteStatus({ fetchImpl, cfg, inviteId: invite.id, status: "responded", now: timestampDate });
       res.status(200).json({ ok: true, reference: invite.id.slice(0, 8).toUpperCase(), response: valid.value.response, updatedAt: timestamp });
     } catch (error) {
       console.error("[movement-rsvp] upstream failure", {

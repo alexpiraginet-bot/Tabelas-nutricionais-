@@ -29,6 +29,8 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(personalized, /add column if not exists company_name text/i);
   assert.match(personalized, /add column if not exists opened_at timestamptz/i);
   assert.match(personalized, /add column if not exists revoked_at timestamptz/i);
+  assert.match(personalized, /drop constraint if exists movement_invites_status_check/i);
+  assert.match(personalized, /add constraint movement_invites_status_check\s+check \(status in \('draft', 'sent', 'opened', 'responded', 'revoked', 'expired'\)\)/i);
   assert.match(personalized, /add column if not exists child_age smallint/i);
   assert.match(personalized, /add column if not exists transport_interest boolean/i);
   assert.match(personalized, /add column if not exists invite_id uuid/i);
@@ -49,6 +51,7 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(personalized, /grant select, insert, update on public\.movement_invites, public\.movement_rsvps, public\.movement_partner_leads to service_role/i);
 
   for (const constraint of [
+    "movement_invites_status_check",
     "movement_rsvps_child_age_check",
     "movement_rsvps_child_details",
     "movement_partner_leads_invite_id_key",

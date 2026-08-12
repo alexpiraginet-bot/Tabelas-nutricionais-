@@ -180,14 +180,22 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         submittedAt: row.submitted_at,
         updatedAt: row.updated_at,
       }));
+      const summaryNow = now();
       const summary = {
         invited: invites.length,
         confirmed: invites.filter((invite) => invite.rsvp?.response === "confirmed").length,
         declined: invites.filter((invite) => invite.rsvp?.response === "declined").length,
-        pending: invites.filter((invite) => !invite.rsvp && !invite.partnerLead).length,
+        pending: invites.filter((invite) => {
+          const expiresAtMs = Date.parse(invite.expiresAt || "");
+          return (invite.status === "sent" || invite.status === "opened")
+            && Number.isFinite(expiresAtMs)
+            && expiresAtMs > summaryNow.getTime()
+            && !invite.rsvp
+            && !invite.partnerLead;
+        }).length,
         partnerLeads: partners.length,
       };
-      res.status(200).json({ ok: true, summary, invites, partners, updatedAt: new Date().toISOString() });
+      res.status(200).json({ ok: true, summary, invites, partners, updatedAt: summaryNow.toISOString() });
     } catch {
       res.status(502).json({ ok: false, error: "Não foi possível carregar o Movimento agora." });
     }

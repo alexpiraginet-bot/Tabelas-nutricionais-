@@ -6,6 +6,10 @@ const ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERV
 const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
 const PARTNER_INVITE = { id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684", display_name: "Marca Parceira", recipient_name: "Bia", company_name: "Marca Parceira", audience_type: "partner", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 
+function response(data, status = 200) {
+  return { ok: status >= 200 && status < 300, status, json: async () => data };
+}
+
 function req(method, body = {}, headers = {}) {
   return { method, body, headers: { origin: "https://bentogelateria.com", ...headers } };
 }
@@ -60,13 +64,13 @@ test("partner lead API associates a personal partner response idempotently by in
     calls.push({ url, options });
     if (url.includes("movement_invites") && options.method !== "PATCH") return { ok: true, status: 200, json: async () => [PARTNER_INVITE] };
     if (url.includes("movement_partner_leads")) return { ok: true, status: 201, json: async () => [{ id: "4c2a980d-e4a2-4591-bb74-b0bcc8372ff8" }] };
-    return { ok: true, status: 204, json: async () => [] };
+    return { ok: true, status: 200, json: async () => [{ id: PARTNER_INVITE.id }] };
   };
   const out = res();
   await createPartnerLeadHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T16:00:00.000Z") })(req("POST", {
     token: VALID_TOKEN,
-    companyName: "Marca Parceira",
-    contactName: "Bia",
+    companyName: "X",
+    contactName: "",
     email: "bia@marca.com",
     tier: "signature",
     contributionType: "service",
@@ -76,12 +80,35 @@ test("partner lead API associates a personal partner response idempotently by in
   assert.equal(out.statusCode, 200);
   const upsert = calls.find((call) => call.url.includes("movement_partner_leads"));
   assert.match(upsert.url, /on_conflict=invite_id/);
-  assert.equal(JSON.parse(upsert.options.body).invite_id, PARTNER_INVITE.id);
+  const persisted = JSON.parse(upsert.options.body);
+  assert.equal(persisted.invite_id, PARTNER_INVITE.id);
+  assert.equal(persisted.company_name, PARTNER_INVITE.company_name);
+  assert.equal(persisted.contact_name, PARTNER_INVITE.recipient_name);
   const opening = calls.find((call) => call.url.includes("opened_at=is.null"));
   assert.ok(opening);
   const responded = calls.find((call) => call.url.includes("movement_invites") && call.options.method === "PATCH" && !call.url.includes("opened_at=is.null"));
   assert.match(responded.url, /status=in\.\(sent,opened,responded\)&revoked_at=is\.null$/);
   assert.deepEqual(JSON.parse(responded.options.body), { status: "responded", updated_at: "2026-08-11T16:00:00.000Z" });
+  assert.equal(responded.options.headers.Prefer, "return=representation");
+  assert.ok(calls.indexOf(responded) < calls.indexOf(upsert));
+});
+
+test("partner lead API aborts before persistence when the responded claim affects zero rows", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invites") && options.method === "PATCH" && url.includes("opened_at=is.null")) return response([{ id: PARTNER_INVITE.id }]);
+    if (url.includes("movement_invites") && options.method === "PATCH") return response([]);
+    if (url.includes("movement_invites")) return response([PARTNER_INVITE]);
+    return response([{ id: "must-not-persist" }], 201);
+  };
+  const out = res();
+  await createPartnerLeadHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T16:00:00.000Z") })(req("POST", {
+    token: VALID_TOKEN, companyName: "Body", contactName: "Body", email: "bia@marca.com", tier: "select", contributionType: "service", privacyAccepted: true,
+  }), out);
+  assert.equal(out.statusCode, 409);
+  assert.deepEqual(out.payload, { ok: false, error: "Não foi possível registrar este convite." });
+  assert.equal(calls.some((call) => call.url.includes("movement_partner_leads") && call.options.method === "POST"), false);
 });
 
 test("partner lead API returns the same neutral conflict for inactive, missing, wrong-audience, and associated invitations", async () => {

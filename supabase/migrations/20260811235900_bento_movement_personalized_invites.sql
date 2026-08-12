@@ -4,6 +4,13 @@ alter table public.movement_invites
   add column if not exists opened_at timestamptz,
   add column if not exists revoked_at timestamptz;
 
+alter table public.movement_invites
+  drop constraint if exists movement_invites_status_check;
+
+alter table public.movement_invites
+  add constraint movement_invites_status_check
+  check (status in ('draft', 'sent', 'opened', 'responded', 'revoked', 'expired'));
+
 alter table public.movement_rsvps
   add column if not exists child_age smallint,
   add column if not exists transport_interest boolean not null default false;
