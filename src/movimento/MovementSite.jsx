@@ -127,7 +127,7 @@ function LoadingSkeleton() {
 }
 
 function InvalidInvitation({ error }) {
-  return <main className="mv-root"><MovementMeta audience="influencer" personal/><Topbar audience="influencer"/><section className="mv-final"><Wordmark/><span className="mv-kicker">Bentô Gelatos</span><h1>Este convite não pôde ser aberto.</h1><p>{error || "Convite inválido ou expirado."}</p><a className="mv-primary" href="/movimento">Conhecer a celebração<ArrowRight size={18}/></a></section></main>;
+  return <main className="mv-root"><MovementMeta audience="influencer" personal/><Topbar audience="influencer"/><section className="mv-final"><Wordmark/><span className="mv-kicker">Bentô Gelatos</span><h1>Este convite não pôde ser aberto.</h1><p>{error || "Convite inválido ou expirado."}</p><a className="mv-primary mv-final-cta" href="/movimento">Conhecer a celebração<ArrowRight size={18}/></a></section></main>;
 }
 
 function EventFacts({ partner = false }) {

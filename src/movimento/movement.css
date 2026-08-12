@@ -111,6 +111,7 @@ html{scroll-behavior:smooth}body:has(.mv-root){background:var(--mv-white)}
 .mv-final{background:#fffdf9;color:var(--mv-ink);border-top:1px solid var(--mv-line)}
 .mv-final p{color:var(--mv-soft)}
 .mv-final-lock{color:#705e38}
+.mv-final>a.mv-final-cta{color:var(--mv-green)}
 
 @media(max-width:900px){
   .mv-hero-v2{min-height:100svh;align-items:flex-end}

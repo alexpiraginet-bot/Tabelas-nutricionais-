@@ -66,6 +66,17 @@ test("movement hero renders the approved factual line as visible content", async
   assert.match(source, /<p className="mv-hero-factual"><MapPin size=\{18\}\/>{copy\.factualLine}<\/p>/);
 });
 
+test("invalid invitation CTA uses the accessible green-on-gold button treatment", async () => {
+  const [source, css] = await Promise.all([
+    readFile(new URL("../src/movimento/MovementSite.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/movimento/movement.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(source, /className="mv-primary mv-final-cta"[^>]*>Conhecer a celebração/);
+  assert.match(css, /\.mv-final-cta\{[^}]*background:var\(--mv-gold\)[^}]*color:var\(--mv-green\)/);
+  assert.match(css, /\.mv-final>a\.mv-final-cta\{color:var\(--mv-green\)\}/);
+});
+
 test("partner tier limits are rendered from the approved content contract", async () => {
   const source = await readFile(new URL("../src/movimento/MovementSite.jsx", import.meta.url), "utf8");
 
