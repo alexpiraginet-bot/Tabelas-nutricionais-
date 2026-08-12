@@ -8,6 +8,7 @@ import Sparkles from "lucide-react/dist/esm/icons/sparkles.js";
 import Users from "lucide-react/dist/esm/icons/users.js";
 import { getMovementExperience, isPersonalMovementMode } from "./movement-route.js";
 import { useMovementInvite } from "./useMovementInvite.js";
+import PartnerInterestFlow from "./PartnerInterestFlow.jsx";
 import RsvpFlow from "./RsvpFlow.jsx";
 import {
   EVENT,
@@ -66,6 +67,7 @@ function Hero({ audience, invite, personal }) {
     : audience === "partner" ? "Primeiro aniversário Bentô Gelatos" : "1º aniversário Bentô Gelatos";
   const ctaTarget = personal ? "#responder" : "#como-responder";
   const showHeroCta = !(personal && audience === "influencer");
+  const partnerPersonal = personal && audience === "partner";
 
   return <section className={`mv-hero mv-hero-v2 ${audience === "partner" ? "is-partner" : ""}`}>
     <img src="/movimento/experience-training.jpg" alt="Visualização conceitual de uma manhã de movimento no deck contemporâneo do Le Buffet Lounge" width="1920" height="1080" fetchPriority="high"/>
@@ -75,7 +77,7 @@ function Hero({ audience, invite, personal }) {
       <h1>{title}</h1>
       <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p className="mv-hero-factual"><MapPin size={18}/>{copy.factualLine}</p></div>
       <p>{copy.text}</p>
-      {showHeroCta && <a className="mv-hero-cta" href={ctaTarget}>{copy.cta}<ArrowDown size={18}/></a>}
+      {showHeroCta && <a className="mv-hero-cta" href={ctaTarget} hidden={partnerPersonal} aria-hidden={partnerPersonal} tabIndex={partnerPersonal ? -1 : undefined}>{copy.cta}<ArrowDown size={18}/></a>}
     </div>
     <span className="mv-ai-disclosure">Visualização conceitual gerada por IA</span>
   </section>;
@@ -139,5 +141,6 @@ export default function MovementSite({ mode = "influencer", token = null }) {
   const audience = personal ? invite?.audienceType : generic.story;
   if (!audience) return <InvalidInvitation error="Convite inválido ou expirado."/>;
   const hasPersistentRsvpCta = personal && audience === "influencer";
-  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
+  const hasPersistentPartnerCta = personal && audience === "partner";
+  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
 }

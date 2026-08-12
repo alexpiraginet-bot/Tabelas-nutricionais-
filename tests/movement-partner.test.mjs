@@ -5,6 +5,7 @@ import {
   PARTNER_TIER_OPTIONS,
   validatePartnerLead,
 } from "../lib/movement-partner.mjs";
+import { readFile } from "node:fs/promises";
 
 test("partner lead exposes exactly four approved public participation options", () => {
   assert.deepEqual(PARTNER_TIER_OPTIONS, ["select", "experience", "signature", "founding_circle"]);
@@ -82,4 +83,16 @@ test("partner lead rejects unsupported tiers, oversized content and honeypot sub
   assert.ok(invalid.errors.tier);
   assert.ok(invalid.errors.contributionDetails);
   assert.ok(invalid.errors.siteUrl);
+});
+
+test("public partner surface keeps legacy tiers out of the curated participation choices", async () => {
+  const flow = await readFile(new URL("../src/movimento/PartnerInterestFlow.jsx", import.meta.url), "utf8");
+
+  assert.match(flow, /const PARTICIPATIONS = \[/);
+  assert.match(flow, /value: "select", label: "Select"/);
+  assert.match(flow, /value: "experience", label: "Experience"/);
+  assert.match(flow, /value: "signature", label: "Signature"/);
+  assert.match(flow, /value: "founding_circle", label: "Founding Circle"/);
+  assert.doesNotMatch(flow, /value: "(?:kit|mobility|support|custom|founding)"/);
+  assert.doesNotMatch(flow, /Cota (?:Fundadora|Experiência|Kit|Mobilidade Premium|Apoio|Sob Medida)/);
 });
