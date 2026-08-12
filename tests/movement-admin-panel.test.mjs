@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import vm from "node:vm";
 
 const panelPath = new URL("../public/painel.html", import.meta.url);
 const panel = await readFile(panelPath, "utf8");
@@ -15,6 +16,74 @@ function section(source, start, end) {
 
 function functionBody(source, name, nextMarker) {
   return section(source, `function ${name}(`, nextMarker);
+}
+
+function sourceUntil(source, start, end) {
+  const from = source.indexOf(start);
+  assert.notEqual(from, -1, `missing ${start}`);
+  const to = source.indexOf(end, from);
+  assert.notEqual(to, -1, `missing ${end} after ${start}`);
+  return source.slice(from, to);
+}
+
+function movementHandlerSource() {
+  return [
+    sourceUntil(panel, "async function createMovementInvite(", "\nfunction syncMovementInviteAudience"),
+    sourceUntil(panel, "function syncMovementInviteAudience(", '\n$("#movInviteExpires").min='),
+    sourceUntil(panel, "function movementInviteTarget(", "\nasync function revokeMovementInvite"),
+    sourceUntil(panel, "async function revokeMovementInvite(", "\nfunction renderMovimento"),
+  ].join("\n");
+}
+
+function element(value = "") {
+  return {
+    value,
+    textContent: "",
+    hidden: false,
+    required: false,
+    disabled: false,
+    href: "",
+    onclick: null,
+    addEventListener() {},
+    focus() {},
+  };
+}
+
+function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = () => true } = {}) {
+  const elements = new Map(Object.entries({
+    "#movInviteAudience": element("influencer"),
+    "#movInviteInfluencerField": element(),
+    "#movInviteCompanyField": element(),
+    "#movInviteRecipientField": element(),
+    "#movInviteName": element("Ana"),
+    "#movInviteCompany": element("Marca Pátio"),
+    "#movInviteRecipient": element("Bia Silva"),
+    "#movInviteContact": element("bia@marca.test"),
+    "#movInviteExpires": element("2027-01-01T12:00"),
+    "#movInviteCreate": element(),
+    "#movInviteCreateError": element(),
+    "#movInviteResult": element(),
+    "#movInviteLink": element(),
+    "#movInviteCopy": element(),
+    "#movError": element(),
+  }));
+  const context = {
+    $: (selector) => {
+      const found = elements.get(selector);
+      assert.ok(found, `missing harness element ${selector}`);
+      return found;
+    },
+    fetch: fetchImpl,
+    localStorage: { getItem: () => "panel-key" },
+    KEYSTORE: "bento:panelkey",
+    window: { confirm, location: { origin: "https://bentogelateria.com" } },
+    URL,
+    copyLink() {},
+    loadMovimento,
+  };
+  vm.createContext(context);
+  vm.runInContext(movementHandlerSource(), context);
+  return { elements, context };
 }
 
 test("Movement admin form exposes audience-specific fields and retains the immediate-only link affordance", () => {
@@ -62,4 +131,65 @@ test("Movement admin renders lifecycle, RSVP, and tier information while offerin
   assert.match(revokeHandler, /action:"revoke-invite"/);
   assert.match(revokeHandler, /inviteId:invite\.id/);
   assert.match(revokeHandler, /loadMovimento\(\)/);
+});
+
+test("Movement admin executes the partner switch and sends the partner create payload", async () => {
+  const requests = [];
+  const { elements, context } = movementHarness({
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, json: async () => ({ invitePath: "/movimento/convite/opaque-token" }) };
+    },
+  });
+
+  elements.get("#movInviteAudience").value = "partner";
+  context.syncMovementInviteAudience();
+  assert.equal(elements.get("#movInviteInfluencerField").hidden, true);
+  assert.equal(elements.get("#movInviteCompanyField").hidden, false);
+  assert.equal(elements.get("#movInviteRecipientField").hidden, false);
+  assert.equal(elements.get("#movInviteName").required, false);
+  assert.equal(elements.get("#movInviteCompany").required, true);
+  assert.equal(elements.get("#movInviteRecipient").required, true);
+
+  let prevented = false;
+  await context.createMovementInvite({ preventDefault() { prevented = true; } });
+
+  assert.equal(prevented, true);
+  assert.equal(requests.length, 1);
+  assert.equal(requests[0].url, "/api/movimento-admin");
+  assert.deepEqual(JSON.parse(requests[0].options.body), {
+    action: "create-invite",
+    audienceType: "partner",
+    companyName: "Marca Pátio",
+    recipientName: "Bia Silva",
+    contact: "bia@marca.test",
+    expiresAt: new Date("2027-01-01T12:00").toISOString(),
+  });
+  assert.equal(elements.get("#movInviteResult").hidden, false);
+  assert.equal(elements.get("#movInviteLink").href, "https://bentogelateria.com/movimento/convite/opaque-token");
+});
+
+test("Movement admin keeps a successful revocation final when the following refresh fails", async () => {
+  const requests = [];
+  const confirmations = [];
+  const { elements, context } = movementHarness({
+    confirm: (message) => { confirmations.push(message); return true; },
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, json: async () => ({ ok: true }) };
+    },
+    loadMovimento: async () => { throw new Error("GET 502"); },
+  });
+  const invite = { id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684", audienceType: "partner", companyName: "Marca Pátio", status: "sent" };
+  const button = element();
+
+  await context.revokeMovementInvite(invite, button);
+
+  assert.equal(confirmations.length, 1);
+  assert.match(confirmations[0], /Marca Pátio/);
+  assert.deepEqual(JSON.parse(requests[0].options.body), { action: "revoke-invite", inviteId: invite.id });
+  assert.equal(invite.status, "revoked");
+  assert.equal(button.disabled, true);
+  assert.equal(button.textContent, "Revogado");
+  assert.equal(elements.get("#movError").textContent, "Convite revogado; atualização pendente.");
 });

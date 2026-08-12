@@ -827,9 +827,17 @@ async function revokeMovementInvite(invite, button){
     var response=await fetch("/api/movimento-admin",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+key},body:JSON.stringify({action:"revoke-invite",inviteId:invite.id})});
     var data=await response.json().catch(function(){return {};});
     if(!response.ok) throw new Error((data&&data.error)||("HTTP "+response.status));
-    await loadMovimento();
-  }catch(e){ $("#movError").textContent=(e&&e.message)||"Não foi possível revogar o convite."; }
-  finally{ button.disabled=false; button.textContent=old; }
+    invite.status="revoked";
+    invite.revokedAt=(data&&data.invite&&data.invite.revokedAt)||new Date().toISOString();
+    button.textContent="Revogado";
+    try{
+      await loadMovimento();
+      $("#movError").textContent="Convite revogado.";
+    }catch(e){ $("#movError").textContent="Convite revogado; atualização pendente."; }
+  }catch(e){
+    button.disabled=false; button.textContent=old;
+    $("#movError").textContent=(e&&e.message)||"Não foi possível revogar o convite.";
+  }
 }
 function renderMovimento(d){
   var summary=(d&&d.summary)||{}, invites=(d&&d.invites)||[], partners=(d&&d.partners)||[];
