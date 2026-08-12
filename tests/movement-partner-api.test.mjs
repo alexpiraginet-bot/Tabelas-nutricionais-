@@ -35,7 +35,7 @@ test("partner lead API persists one normalized quota interest without returning 
     companyName: "Marca Parceira",
     contactName: "Pessoa Responsável",
     email: "marketing@example.com",
-    tier: "founding",
+    tier: "founding_circle",
     contributionType: "mixed",
     contributionDetails: "Produto, serviço e investimento.",
     privacyAccepted: true,
@@ -44,7 +44,7 @@ test("partner lead API persists one normalized quota interest without returning 
   assert.equal(out.payload.ok, true);
   assert.equal("email" in out.payload, false);
   const persisted = JSON.parse(calls[0].options.body);
-  assert.equal(persisted.tier_interest, "founding");
+  assert.equal(persisted.tier_interest, "founding_circle");
   assert.equal(persisted.is_binding, false);
   assert.match(persisted.lead_key, /^[a-f0-9]{64}$/);
   assert.match(calls[0].url, /^https:\/\/project\.supabase\.co\/rest\/v1\/movement_partner_leads\?/);

@@ -91,7 +91,7 @@ test("movement API upserts one RSVP by invite id", async () => {
     return response([{ id: "5d49b0db-bde0-4e09-9c91-c2231c186a1e" }], 201);
   };
   const out = res();
-  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", shirtSize: "M", trainingOutfitSize: "G", adultCompanionType: "husband", companionCount: 2, childCount: 1, childKitSize: "8 infantil", privacyAccepted: true, imageConsent: false } }), out);
+  await createMovementHandler({ fetchImpl, env: ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("POST", { body: { token: VALID_TOKEN, response: "confirmed", participationMode: "family", shirtSize: "M", trainingOutfitSize: "G", adultCompanionType: "husband", companionCount: 2, childCount: 1, childAge: 8, childKitSize: "8 infantil", privacyAccepted: true, imageConsent: false } }), out);
   assert.equal(out.statusCode, 200);
   assert.equal(out.payload.ok, true);
   assert.equal(out.payload.reference, "84CCF9B6");

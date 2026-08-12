@@ -1,9 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PARTNER_TIER_OPTIONS, validatePartnerLead } from "../lib/movement-partner.mjs";
+import {
+  LEGACY_PARTNER_TIER_OPTIONS,
+  PARTNER_TIER_OPTIONS,
+  validatePartnerLead,
+} from "../lib/movement-partner.mjs";
 
-test("partner lead exposes only the approved quota-interest options", () => {
-  assert.deepEqual(PARTNER_TIER_OPTIONS, ["founding", "experience", "kit", "mobility", "support", "custom"]);
+test("partner lead exposes exactly four approved public participation options", () => {
+  assert.deepEqual(PARTNER_TIER_OPTIONS, ["select", "experience", "signature", "founding_circle"]);
+  assert.deepEqual(LEGACY_PARTNER_TIER_OPTIONS, ["founding", "experience", "kit", "mobility", "support", "custom"]);
 });
 
 test("partner lead requires identity, contact, quota interest and privacy acknowledgement", () => {
@@ -22,7 +27,7 @@ test("partner lead normalizes fields and keeps quota selection non-binding", () 
     contactName: "  Pessoa Responsável  ",
     email: "MARKETING@EXAMPLE.COM ",
     phone: " (27) 99999-0000 ",
-    tier: "experience",
+    tier: "founding_circle",
     contributionType: "product",
     contributionDetails: "  Produtos para a oficina infantil.  ",
     privacyAccepted: true,
@@ -30,22 +35,36 @@ test("partner lead normalizes fields and keeps quota selection non-binding", () 
   assert.equal(valid.ok, true);
   assert.equal(valid.value.companyName, "Gran Cave");
   assert.equal(valid.value.email, "marketing@example.com");
-  assert.equal(valid.value.tier, "experience");
+  assert.equal(valid.value.tier, "founding_circle");
   assert.equal(valid.value.isBinding, false);
 });
 
-test("partner lead accepts the premium mobility quota as non-binding interest", () => {
+test("partner lead rejects legacy-only values at the public validator", () => {
+  for (const tier of LEGACY_PARTNER_TIER_OPTIONS.filter((value) => !PARTNER_TIER_OPTIONS.includes(value))) {
+    const invalid = validatePartnerLead({
+      companyName: "Marca de mobilidade premium",
+      contactName: "Pessoa Responsável",
+      email: "marketing@example.com",
+      tier,
+      contributionType: "service",
+      contributionDetails: "Experiência de chegada com veículo premium.",
+      privacyAccepted: true,
+    });
+    assert.equal(invalid.ok, false, tier);
+    assert.ok(invalid.errors.tier, tier);
+  }
+
   const valid = validatePartnerLead({
-    companyName: "Marca de mobilidade premium",
+    companyName: "Marca fundadora",
     contactName: "Pessoa Responsável",
     email: "marketing@example.com",
-    tier: "mobility",
+    tier: "founding_circle",
     contributionType: "service",
-    contributionDetails: "Experiência de chegada com veículo premium.",
+    contributionDetails: "Participação editorial no aniversário.",
     privacyAccepted: true,
   });
   assert.equal(valid.ok, true);
-  assert.equal(valid.value.tier, "mobility");
+  assert.equal(valid.value.tier, "founding_circle");
   assert.equal(valid.value.isBinding, false);
 });
 
