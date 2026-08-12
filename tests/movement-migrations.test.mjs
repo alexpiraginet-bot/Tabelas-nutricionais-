@@ -47,4 +47,16 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(personalized, /alter table public\.movement_partner_leads enable row level security/i);
   assert.match(personalized, /revoke all on public\.movement_invites, public\.movement_rsvps, public\.movement_partner_leads from anon, authenticated/i);
   assert.match(personalized, /grant select, insert, update on public\.movement_invites, public\.movement_rsvps, public\.movement_partner_leads to service_role/i);
+
+  for (const constraint of [
+    "movement_rsvps_child_age_check",
+    "movement_rsvps_child_details",
+    "movement_partner_leads_invite_id_key",
+    "movement_partner_leads_invite_id_fkey",
+  ]) {
+    const drop = personalized.indexOf(`drop constraint if exists ${constraint}`);
+    const add = personalized.indexOf(`add constraint ${constraint}`);
+    assert.notEqual(drop, -1, `${constraint} must be dropped before it is recreated`);
+    assert.ok(add > drop, `${constraint} must be recreated after its drop guard`);
+  }
 });

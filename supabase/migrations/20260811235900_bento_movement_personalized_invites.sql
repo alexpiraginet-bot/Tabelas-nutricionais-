@@ -9,15 +9,15 @@ alter table public.movement_rsvps
   add column if not exists transport_interest boolean not null default false;
 
 alter table public.movement_rsvps
-  add constraint movement_rsvps_child_age_check
-  check (child_age is null or child_age between 0 and 120);
-
-alter table public.movement_rsvps
+  drop constraint if exists movement_rsvps_child_age_check,
+  drop constraint if exists movement_rsvps_child_details,
   drop constraint if exists movement_rsvps_shirt_required,
   drop constraint if exists movement_rsvps_companion_shape,
   drop constraint if exists movement_rsvps_family_mode;
 
 alter table public.movement_rsvps
+  add constraint movement_rsvps_child_age_check
+  check (child_age is null or child_age between 0 and 120),
   add constraint movement_rsvps_shirt_required check (
     (response = 'confirmed' and shirt_size is not null and training_outfit_size is not null)
     or (response = 'declined' and participation_mode is null and shirt_size is null and training_outfit_size is null and adult_companion_type is null and companion_count = 0 and child_count = 0 and child_kit_size is null and child_age is null and transport_interest = false)
@@ -34,17 +34,17 @@ alter table public.movement_partner_leads
   add column if not exists invite_id uuid;
 
 alter table public.movement_partner_leads
-  add constraint movement_partner_leads_invite_id_key unique (invite_id);
+  drop constraint if exists movement_partner_leads_invite_id_fkey,
+  drop constraint if exists movement_partner_leads_invite_id_key,
+  drop constraint if exists movement_partner_leads_tier_interest_check;
 
 alter table public.movement_partner_leads
+  add constraint movement_partner_leads_invite_id_key unique (invite_id),
   add constraint movement_partner_leads_invite_id_fkey
   foreign key (invite_id) references public.movement_invites(id) not valid;
 
 alter table public.movement_partner_leads
   validate constraint movement_partner_leads_invite_id_fkey;
-
-alter table public.movement_partner_leads
-  drop constraint if exists movement_partner_leads_tier_interest_check;
 
 alter table public.movement_partner_leads
   add constraint movement_partner_leads_tier_interest_check

@@ -99,6 +99,15 @@ test("movement RSVP accepts child age only for one child as an operational stora
     assert.ok(invalidAge.errors.childAge);
   }
 
+  for (const childAge of [true, false, [6], { valueOf: () => 7 }]) {
+    const invalidType = validateRsvpPayload({
+      response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", companionCount: 1,
+      childCount: 1, childAge, childKitSize: "12 meses", privacyAccepted: true, imageConsent: false,
+    });
+    assert.equal(invalidType.ok, false);
+    assert.ok(invalidType.errors.childAge);
+  }
+
   const withoutChild = validateRsvpPayload({
     response: "confirmed", shirtSize: "P", trainingOutfitSize: "P", childAge: 6,
     childKitSize: "6 infantil", privacyAccepted: true, imageConsent: false,
