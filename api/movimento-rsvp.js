@@ -1,6 +1,6 @@
 import { claimMovementInviteResponse, readMovementJsonBody, resolveMovementInvite } from "../lib/movement-invite.mjs";
 import { validateRsvpPayload } from "../lib/movement-rsvp.mjs";
-import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
+import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 const ALLOWED_HOSTS = ["bentogelateria.com", "localhost", "127.0.0.1"];
 
@@ -34,14 +34,10 @@ function safeSupabaseInfo(url, key) {
   }
 }
 
-function headers(key, extra = {}) {
-  return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", ...extra };
-}
-
 async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
   const select = "response,participation_mode,shirt_size,training_outfit_size,adult_companion_type,companion_count,child_count,child_age,child_kit_size,transport_interest,image_consent,privacy_version,updated_at";
   const url = `${cfg.url}/rest/v1/movement_rsvps?invite_id=eq.${encodeURIComponent(inviteId)}&select=${select}&limit=1`;
-  const response = await fetchImpl(url, { headers: headers(cfg.key) });
+  const response = await fetchImpl(url, { headers: supabaseServiceHeaders(cfg.key) });
   if (!response.ok) return null;
   const rows = await response.json();
   const row = Array.isArray(rows) ? rows[0] : null;
@@ -66,7 +62,7 @@ async function fetchCurrentRsvp({ fetchImpl, cfg, inviteId }) {
 async function fetchCurrentPartnerLead({ fetchImpl, cfg, inviteId }) {
   const select = "tier_interest,contribution_type,contribution_details,email,phone";
   const url = `${cfg.url}/rest/v1/movement_partner_leads?invite_id=eq.${encodeURIComponent(inviteId)}&select=${select}&limit=1`;
-  const response = await fetchImpl(url, { headers: headers(cfg.key) });
+  const response = await fetchImpl(url, { headers: supabaseServiceHeaders(cfg.key) });
   if (!response.ok) return null;
   const rows = await response.json();
   const row = Array.isArray(rows) ? rows[0] : null;
@@ -140,7 +136,7 @@ export function createMovementHandler({ fetchImpl = fetch, env = process.env, no
       const upsertUrl = `${cfg.url}/rest/v1/movement_rsvps?on_conflict=invite_id`;
       const persisted = await fetchImpl(upsertUrl, {
         method: "POST",
-        headers: headers(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
+        headers: supabaseServiceHeaders(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
         body: JSON.stringify(row),
       });
       if (!persisted.ok) throw new Error(`Supabase ${persisted.status}`);

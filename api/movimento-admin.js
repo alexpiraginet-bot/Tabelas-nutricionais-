@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { readMovementJsonBody } from "../lib/movement-invite.mjs";
 import { hashInviteToken, validateAudienceType } from "../lib/movement-rsvp.mjs";
-import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
+import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 function panelAuthorized(req, env) {
   const expected = String(env.PANEL_KEY || "");
@@ -20,16 +20,12 @@ function config(env) {
   };
 }
 
-function headers(key) {
-  return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
-}
-
 function cleanText(value, maxLength) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
 }
 
 async function fetchRows(fetchImpl, url, key) {
-  const response = await fetchImpl(url, { headers: headers(key) });
+  const response = await fetchImpl(url, { headers: supabaseServiceHeaders(key) });
   if (!response.ok) throw new Error(`Supabase ${response.status}`);
   const rows = await response.json();
   return Array.isArray(rows) ? rows : [];
@@ -79,7 +75,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
           const timestamp = now().toISOString();
           const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites?id=eq.${encodeURIComponent(inviteId)}`, {
             method: "PATCH",
-            headers: { ...headers(cfg.key), Prefer: "return=representation" },
+            headers: supabaseServiceHeaders(cfg.key, { Prefer: "return=representation" }),
             body: JSON.stringify({ status: "revoked", revoked_at: timestamp, updated_at: timestamp }),
           });
           if (!response.ok) throw new Error(`Supabase ${response.status}`);
@@ -117,7 +113,7 @@ export function createMovementAdminHandler({ fetchImpl = fetch, env = process.en
         };
         const response = await fetchImpl(`${cfg.url}/rest/v1/movement_invites`, {
           method: "POST",
-          headers: { ...headers(cfg.key), Prefer: "return=representation" },
+          headers: supabaseServiceHeaders(cfg.key, { Prefer: "return=representation" }),
           body: JSON.stringify(row),
         });
         if (!response.ok) throw new Error(`Supabase ${response.status}`);

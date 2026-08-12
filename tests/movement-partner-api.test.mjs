@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { createPartnerLeadHandler } from "../api/movimento-parceiros.js";
 
 const ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" };
+const SECRET_ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_KEY: "sb_secret_test_key" };
 const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
 const PARTNER_INVITE = { id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684", display_name: "Marca Parceira", recipient_name: "Bia", company_name: "Marca Parceira", audience_type: "partner", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 
@@ -56,6 +57,28 @@ test("partner lead API persists one normalized quota interest without returning 
   assert.match(calls[0].url, /^https:\/\/project\.supabase\.co\/rest\/v1\/movement_partner_leads\?/);
   assert.doesNotMatch(calls[0].url, /\/rest\/v1\/rest\/v1\//);
   assert.match(calls[0].url, /on_conflict=lead_key/);
+});
+
+test("partner lead API sends a modern Supabase secret only as apikey", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    return response([{ id: "4c2a980d-e4a2-4591-bb74-b0bcc8372ff8" }], 201);
+  };
+  const out = res();
+
+  await createPartnerLeadHandler({ fetchImpl, env: SECRET_ENV, now: () => new Date("2026-08-11T16:00:00.000Z") })(req("POST", {
+    companyName: "Marca Parceira",
+    contactName: "Pessoa Responsável",
+    email: "marketing@example.com",
+    tier: "select",
+    contributionType: "service",
+    privacyAccepted: true,
+  }), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(calls[0].options.headers.apikey, "sb_secret_test_key");
+  assert.equal("Authorization" in calls[0].options.headers, false);
 });
 
 test("partner lead API associates a personal partner response idempotently by invite id", async () => {

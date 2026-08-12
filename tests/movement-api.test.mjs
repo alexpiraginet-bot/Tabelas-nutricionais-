@@ -4,6 +4,7 @@ import { createMovementHandler } from "../api/movimento-rsvp.js";
 
 const VALID_TOKEN = "invite_abcdefghijklmnopqrstuvwxyz_2026";
 const ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_ROLE_KEY: "test-service-key" };
+const SECRET_ENV = { SUPABASE_URL: "https://project.supabase.co/rest/v1", SUPABASE_SERVICE_KEY: "sb_secret_test_key" };
 const INVITE = { id: "84ccf9b6-b170-4212-9f3d-1ce53901ca18", display_name: "Convidada", recipient_name: "Ana", company_name: null, audience_type: "influencer", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 const PARTNER_INVITE = { id: "fa4ce3a4-bdb7-4612-b9d8-4959099d2684", display_name: "Marca Parceira", recipient_name: "Bia", company_name: "Marca Parceira", audience_type: "partner", status: "sent", opened_at: null, expires_at: "2026-09-01T12:00:00.000Z" };
 
@@ -79,6 +80,23 @@ test("movement API returns a public invitation without private fields", async ()
   assert.match(opening.url, /movement_invites\?id=eq\.84ccf9b6-b170-4212-9f3d-1ce53901ca18&opened_at=is\.null&status=eq\.sent$/);
   assert.equal(opening.options.headers.Prefer, "return=representation");
   assert.deepEqual(JSON.parse(opening.options.body), { opened_at: "2026-08-11T12:00:00.000Z", status: "opened", updated_at: "2026-08-11T12:00:00.000Z" });
+});
+
+test("movement API sends a modern Supabase secret only as apikey", async () => {
+  const calls = [];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    if (url.includes("movement_invites") && options.method === "PATCH") return response([{ id: INVITE.id }]);
+    return response(url.includes("movement_invites") ? [INVITE] : []);
+  };
+  const out = res();
+
+  await createMovementHandler({ fetchImpl, env: SECRET_ENV, now: () => new Date("2026-08-11T12:00:00.000Z") })(req("GET", { query: { token: VALID_TOKEN } }), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.ok(calls.length >= 3);
+  assert.equal(calls.every((call) => call.options.headers.apikey === "sb_secret_test_key"), true);
+  assert.equal(calls.every((call) => !("Authorization" in call.options.headers)), true);
 });
 
 test("movement API resolves a personal partner once with only editable lead data", async () => {

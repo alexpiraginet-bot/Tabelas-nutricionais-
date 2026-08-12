@@ -1,6 +1,6 @@
 import { partnerLeadKey, validatePartnerLead } from "../lib/movement-partner.mjs";
 import { claimMovementInviteResponse, readMovementJsonBody, resolveMovementInvite } from "../lib/movement-invite.mjs";
-import { normalizeSupabaseBaseUrl } from "../lib/supabase-rest.mjs";
+import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 const ALLOWED_HOSTS = ["bentogelateria.com", "localhost", "127.0.0.1"];
 
@@ -20,10 +20,6 @@ function config(env) {
     url: normalizeSupabaseBaseUrl(env.SUPABASE_URL),
     key: env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SERVICE_KEY || "",
   };
-}
-
-function headers(key, extra = {}) {
-  return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", ...extra };
 }
 
 export function createPartnerLeadHandler({ fetchImpl = fetch, env = process.env, now = () => new Date() } = {}) {
@@ -79,7 +75,7 @@ export function createPartnerLeadHandler({ fetchImpl = fetch, env = process.env,
       };
       const response = await fetchImpl(`${cfg.url}/rest/v1/movement_partner_leads?on_conflict=${invite ? "invite_id" : "lead_key"}`, {
         method: "POST",
-        headers: headers(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
+        headers: supabaseServiceHeaders(cfg.key, { Prefer: "resolution=merge-duplicates,return=representation" }),
         body: JSON.stringify(row),
       });
       if (!response.ok && invite && response.status === 409) {

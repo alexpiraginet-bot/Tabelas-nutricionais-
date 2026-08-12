@@ -12,7 +12,7 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.deepEqual(files, [
     "20260811193855_bento_movement_rsvp.sql",
     "20260811195316_bento_movement_mobility_tier.sql",
-    "20260811235900_bento_movement_personalized_invites.sql",
+    "20260812072808_bento_movement_personalized_invites.sql",
   ]);
 
   const versions = files.map((file) => file.split("_")[0]);

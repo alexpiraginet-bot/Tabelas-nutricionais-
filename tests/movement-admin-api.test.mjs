@@ -7,6 +7,11 @@ const ENV = {
   SUPABASE_URL: "https://project.supabase.co/rest/v1",
   SUPABASE_SERVICE_ROLE_KEY: "test-service-key",
 };
+const SECRET_ENV = {
+  PANEL_KEY: "panel-test-key",
+  SUPABASE_URL: "https://project.supabase.co/rest/v1",
+  SUPABASE_SERVICE_KEY: "sb_secret_test_key",
+};
 
 function response(data, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => data };
@@ -80,6 +85,23 @@ test("movement admin API summarizes both invitation audiences without selecting 
   assert.equal(calls.every((call) => call.url.startsWith("https://project.supabase.co/rest/v1/")), true);
   assert.equal(calls.some((call) => call.url.includes("/rest/v1/rest/v1/")), false);
   assert.equal(calls.every((call) => call.options.headers.apikey === "test-service-key"), true);
+});
+
+test("movement admin API sends a modern Supabase secret only as apikey", async () => {
+  const calls = [];
+  const out = res();
+  await createMovementAdminHandler({
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return response([]);
+    },
+    env: SECRET_ENV,
+  })(req(), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(calls.length, 3);
+  assert.equal(calls.every((call) => call.options.headers.apikey === "sb_secret_test_key"), true);
+  assert.equal(calls.every((call) => !("Authorization" in call.options.headers)), true);
 });
 
 test("movement admin API excludes draft, revoked, and expired invitations from pending", async () => {

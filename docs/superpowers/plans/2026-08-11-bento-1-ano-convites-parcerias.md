@@ -29,7 +29,7 @@
 ### Task 1: Contratos de domínio e migration aditiva
 
 **Files:**
-- Create: `supabase/migrations/20260811235900_bento_movement_personalized_invites.sql`
+- Create: `supabase/migrations/20260812072808_bento_movement_personalized_invites.sql`
 - Modify: `lib/movement-rsvp.mjs`
 - Modify: `lib/movement-partner.mjs`
 - Modify: `tests/movement-rsvp.test.mjs`
@@ -46,11 +46,11 @@
 - [ ] **Step 2: Run RED.** Run `node --test tests/movement-rsvp.test.mjs tests/movement-partner.test.mjs`; expected failures mention missing `childAge`, `transportInterest` and new tier identifiers.
 - [ ] **Step 3: Implement the minimal validators.** Normalize booleans, integer age `0..120` as a storage-safety bound rather than an admission rule, size text `1..40`, and keep `imageConsent` separate from privacy.
 - [ ] **Step 4: Write the migration test first.** Assert new columns, nullable unique partner FK, additive indexes, expanded tier check including all legacy values, RLS and grants.
-- [ ] **Step 5: Run migration RED.** Run `node --test tests/movement-migrations.test.mjs`; expected failure is the missing `20260811235900` file.
+- [ ] **Step 5: Run migration RED.** Run `node --test tests/movement-migrations.test.mjs`; expected failure is the missing personalized-invites migration file.
 - [ ] **Step 6: Add the immutable migration.** Drop/recreate only named check constraints, add columns with `if not exists`, add FK `not valid` then validate it, add indexes with `if not exists`, and never mutate/delete existing rows.
 - [ ] **Step 7: Keep API fixtures on the new contract.** Change the existing public partner API fixture from `founding` to `founding_circle` and add a literal child age to the existing confirmed RSVP-with-child fixture; do not change API implementation or persistence expectations in this task.
 - [ ] **Step 8: Run GREEN.** Run the four targeted files and then `npm test`; expected all tests pass.
-- [ ] **Step 9: Commit.** `git add lib/movement-rsvp.mjs lib/movement-partner.mjs tests/movement-rsvp.test.mjs tests/movement-partner.test.mjs tests/movement-partner-api.test.mjs tests/movement-api.test.mjs tests/movement-migrations.test.mjs supabase/migrations/20260811235900_bento_movement_personalized_invites.sql && git commit -m "feat(movimento): add personalized invitation contracts"`.
+- [ ] **Step 9: Commit.** `git add lib/movement-rsvp.mjs lib/movement-partner.mjs tests/movement-rsvp.test.mjs tests/movement-partner.test.mjs tests/movement-partner-api.test.mjs tests/movement-api.test.mjs tests/movement-migrations.test.mjs supabase/migrations/20260812072808_bento_movement_personalized_invites.sql && git commit -m "feat(movimento): add personalized invitation contracts"`.
 
 ### Task 2: Convite unificado, APIs idempotentes e estados
 
