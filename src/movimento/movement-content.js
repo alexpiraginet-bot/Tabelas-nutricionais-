@@ -15,7 +15,7 @@ export const HERO_COPY = {
     title: "{Nome}, esta celebração tem um lugar que só você pode ocupar.",
     fallbackTitle: "Esta celebração tem um lugar que só você pode ocupar.",
     text: "No sábado, 12 de setembro, reuniremos 40–50 pessoas no Le Buffet Lounge para uma manhã de movimento, cuidado e encontros. Sua presença é parte essencial da memória que queremos criar.",
-    factualLine: "Sábado · 12.09.2026 · Le Buffet Lounge · Vitória–ES",
+    factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
     cta: "Confirmar meu lugar",
   },
   partner: {
@@ -23,7 +23,7 @@ export const HERO_COPY = {
     title: "{Empresa}, seu lugar nesta celebração pode ter forma, função e assinatura.",
     fallbackTitle: "Sua marca pode ter forma, função e assinatura nesta celebração.",
     text: "No primeiro aniversário da Bentô Gelatos, 40–50 pessoas viverão uma manhã de movimento e hospitalidade no Le Buffet Lounge. Esta proposta apresenta maneiras de a marca participar de forma natural, útil e memorável.",
-    factualLine: "Sábado · 12.09.2026 · Le Buffet Lounge · Vitória–ES",
+    factualLine: "Sábado · 12 de setembro de 2026 · Le Buffet Lounge · Vitória–ES",
     cta: "Escolher participação",
   },
 };
