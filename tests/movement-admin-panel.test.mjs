@@ -49,7 +49,16 @@ function element(value = "") {
   };
 }
 
-function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = () => true } = {}) {
+function fixedDate(now) {
+  const timestamp = new Date(now).getTime();
+  assert.equal(Number.isFinite(timestamp), true, "harness clock must be a valid date");
+  return class FixedDate extends Date {
+    constructor(...args) { super(...(args.length ? args : [timestamp])); }
+    static now() { return timestamp; }
+  };
+}
+
+function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = () => true, now = "2026-08-12T12:00:00.000Z" } = {}) {
   const elements = new Map(Object.entries({
     "#movInviteAudience": element("influencer"),
     "#movInviteInfluencerField": element(),
@@ -77,6 +86,7 @@ function movementHarness({ fetchImpl, loadMovimento = async () => {}, confirm = 
     localStorage: { getItem: () => "panel-key" },
     KEYSTORE: "bento:panelkey",
     window: { confirm, location: { origin: "https://bentogelateria.com" } },
+    Date: fixedDate(now),
     URL,
     copyLink() {},
     loadMovimento,
@@ -167,6 +177,22 @@ test("Movement admin executes the partner switch and sends the partner create pa
   });
   assert.equal(elements.get("#movInviteResult").hidden, false);
   assert.equal(elements.get("#movInviteLink").href, "https://bentogelateria.com/movimento/convite/opaque-token");
+});
+
+test("Movement admin validates expiration against the harness-defined clock", async () => {
+  const requests = [];
+  const { elements, context } = movementHarness({
+    now: "2028-01-01T12:00:00.000Z",
+    fetchImpl: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, json: async () => ({ invitePath: "/movimento/convite/opaque-token" }) };
+    },
+  });
+
+  await context.createMovementInvite({ preventDefault() {} });
+
+  assert.equal(requests.length, 0);
+  assert.equal(elements.get("#movInviteCreateError").textContent, "Escolha uma validade futura para o convite.");
 });
 
 test("Movement admin keeps a successful revocation final when the following refresh fails", async () => {
