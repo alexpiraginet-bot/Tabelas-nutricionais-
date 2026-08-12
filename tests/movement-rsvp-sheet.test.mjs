@@ -12,18 +12,35 @@ async function readRsvpSurface() {
 }
 
 test("personal influencer invitation opens one persistent RSVP sheet without loading the invite again", async () => {
-  const { flow, site } = await readRsvpSurface();
+  const { flow, site, css } = await readRsvpSurface();
 
-  assert.match(site, /<RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}\/>/);
+  assert.equal(site.match(/<RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}\/>/g)?.length, 1);
   assert.match(flow, /function RsvpFlow\(\{ token, invite, currentRsvp \}\)/);
   assert.doesNotMatch(flow, /fetch\(`\/api\/movimento-rsvp\?token=/);
-  assert.match(flow, /Confirmar meu lugar/);
+  assert.equal(flow.match(/className="mv-rsvp-persistent-cta"/g)?.length, 1);
+  assert.match(flow, /onClick=\{\(\) => \{ setOpen\(true\)/);
+  assert.match(site, /const showHeroCta = !\(personal && audience === "influencer"\);/);
+  assert.match(site, /\{showHeroCta && <a className="mv-hero-cta"/);
+  assert.match(css, /\.mv-rsvp-persistent-cta\{position:fixed;/);
   assert.match(flow, /role="dialog" aria-modal="true"/);
   assert.match(flow, /mv-rsvp-sheet/);
   assert.match(flow, /Escape/);
   assert.match(flow, /document\.body\.style\.overflow/);
   assert.match(flow, /triggerRef\.current\?\.focus\(\)/);
   assert.doesNotMatch(flow, /\}, \[open, state\]\);/);
+});
+
+test("RSVP dialog traps forward and reverse keyboard focus", async () => {
+  const { flow } = await readRsvpSurface();
+
+  assert.match(flow, /const FOCUSABLE_SELECTOR =/);
+  assert.match(flow, /dialogRef\.current\?\.querySelectorAll\(FOCUSABLE_SELECTOR\)/);
+  assert.match(flow, /event\.key !== "Tab"/);
+  assert.match(flow, /event\.shiftKey/);
+  assert.match(flow, /event\.preventDefault\(\)/);
+  assert.match(flow, /activeElement === dialogRef\.current/);
+  assert.match(flow, /firstFocusable\.focus\(\)/);
+  assert.match(flow, /lastFocusable\.focus\(\)/);
 });
 
 test("influencer RSVP keeps every decision in the same sheet with the approved boundaries", async () => {
@@ -55,6 +72,9 @@ test("influencer RSVP keeps every decision in the same sheet with the approved b
 
 test("RSVP sheet supports review, success and editing while meeting mobile dialog requirements", async () => {
   const { flow, css } = await readRsvpSurface();
+  const reviewStart = flow.indexOf('step === "review"');
+  const reviewEnd = flow.indexOf('step === "success"', reviewStart);
+  const review = flow.slice(reviewStart, reviewEnd);
 
   assert.match(flow, /setStep\("review"\)/);
   assert.match(flow, /Resposta registrada/);
@@ -66,4 +86,19 @@ test("RSVP sheet supports review, success and editing while meeting mobile dialo
   assert.match(css, /\.mv-rsvp-sheet [^{]*button[^}]*min-height:\s*44px/);
   assert.match(css, /\.mv-rsvp-sheet[^}]*overflow-y:\s*auto/);
   assert.match(css, /:focus-visible/);
+  assert.match(css, /\.mv-rsvp-size-options label:focus-within\{[^}]*outline:/);
+  assert.match(review, /Acompanhante adulto/);
+  assert.match(review, /ADULT_COMPANION_LABELS\[form\.adultCompanionType\]/);
+  assert.match(review, /form\.childCount === 1/);
+  assert.match(review, /Idade da criança/);
+  assert.match(review, /Tamanho aproximado da criança/);
+});
+
+test("child age uses the domain safety bound without presenting an admission cutoff", async () => {
+  const { flow } = await readRsvpSurface();
+
+  assert.match(flow, /childAge < 0 \|\| childAge > 120/);
+  assert.match(flow, /type="number" min="0" max="120"/);
+  assert.match(flow, /limite técnico de armazenamento/);
+  assert.match(flow, /não limita a participação/);
 });

@@ -65,6 +65,7 @@ function Hero({ audience, invite, personal }) {
     ? replaceTemplate(copy.kicker, audience === "partner" ? { Empresa: companyName, Responsável: responsible } : { Nome: influencerName })
     : audience === "partner" ? "Primeiro aniversário Bentô Gelatos" : "1º aniversário Bentô Gelatos";
   const ctaTarget = personal ? "#responder" : "#como-responder";
+  const showHeroCta = !(personal && audience === "influencer");
 
   return <section className={`mv-hero mv-hero-v2 ${audience === "partner" ? "is-partner" : ""}`}>
     <img src="/movimento/experience-training.jpg" alt="Visualização conceitual de uma manhã de movimento no deck contemporâneo do Le Buffet Lounge" width="1920" height="1080" fetchPriority="high"/>
@@ -74,7 +75,7 @@ function Hero({ audience, invite, personal }) {
       <h1>{title}</h1>
       <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p className="mv-hero-factual"><MapPin size={18}/>{copy.factualLine}</p></div>
       <p>{copy.text}</p>
-      <a className="mv-hero-cta" href={ctaTarget}>{copy.cta}<ArrowDown size={18}/></a>
+      {showHeroCta && <a className="mv-hero-cta" href={ctaTarget}>{copy.cta}<ArrowDown size={18}/></a>}
     </div>
     <span className="mv-ai-disclosure">Visualização conceitual gerada por IA</span>
   </section>;
@@ -116,17 +117,17 @@ function PartnerTiers() {
   return <section id="participacoes" className="mv-partner-roles"><div className="mv-section-head"><span className="mv-kicker">Quatro participações</span><h2>Forma, função<br/><em>e assinatura.</em></h2></div><div className="mv-role-grid">{PARTNER_TIERS.map((tier, index) => <article key={tier.name}><span>{String(index + 1).padStart(2, "0")}</span><h3>{tier.name}</h3><ul>{tier.includes.map((item) => <li key={item}>{item}</li>)}</ul></article>)}</div><p className="mv-annual-note">{PARTNER_PARTICIPATION_NOTE}</p></section>;
 }
 
-function InvitationSheetHandoff({ audience, token, invite, currentRsvp, currentPartnerLead }) {
-  if (audience === "influencer") return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua confirmação começa aqui.</h2><p>Você pode revisar, enviar e editar sua resposta nesta mesma superfície.</p><RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/></section>;
-  return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>{audience === "partner" ? "Sua seleção será aberta aqui." : "Sua confirmação será aberta aqui."}</h2><p>{audience === "partner" ? "A identidade e a seleção já resolvidas serão entregues na mesma superfície." : "Sua identidade e resposta existente já resolvidas serão entregues na mesma superfície."}</p><span hidden>{currentRsvp ? "rsvp-resolvido" : currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
+function InvitationSheetHandoff({ audience, token, currentPartnerLead }) {
+  if (audience === "influencer") return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua confirmação começa aqui.</h2><p>Você pode revisar, enviar e editar sua resposta nesta mesma superfície.</p></section>;
+  return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua seleção será aberta aqui.</h2><p>A identidade e a seleção já resolvidas serão entregues na mesma superfície.</p><span hidden>{currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
 }
 
-function InfluencerStory({ personal, token, invite, currentRsvp }) {
-  return <><Intro/><div id="jornada" className="mv-scene-reel">{INFLUENCER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="influencer"/>)}</div><InfluencerChapters/>{personal ? <InvitationSheetHandoff audience="influencer" token={token} invite={invite} currentRsvp={currentRsvp}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
+function InfluencerStory({ personal, token }) {
+  return <><Intro/><div id="jornada" className="mv-scene-reel">{INFLUENCER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="influencer"/>)}</div><InfluencerChapters/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
 }
 
-function PartnerStory({ personal, token, invite, currentPartnerLead }) {
-  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{PARTNER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner"/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} invite={invite} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+function PartnerStory({ personal, token, currentPartnerLead }) {
+  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{PARTNER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner"/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
 }
 
 export default function MovementSite({ mode = "influencer", token = null }) {
@@ -137,5 +138,5 @@ export default function MovementSite({ mode = "influencer", token = null }) {
   if (personal && state === "error") return <InvalidInvitation error={error}/>;
   const audience = personal ? invite?.audienceType : generic.story;
   if (!audience) return <InvalidInvitation error="Convite inválido ou expirado."/>;
-  return <div className="mv-root"><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/><Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} invite={invite} currentPartnerLead={currentPartnerLead}/> : <InfluencerStory personal={personal} token={token} invite={invite} currentRsvp={currentRsvp}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
+  return <div className="mv-root"><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{personal && audience === "influencer" && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
 }

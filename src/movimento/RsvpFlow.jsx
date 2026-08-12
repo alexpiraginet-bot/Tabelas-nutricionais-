@@ -7,6 +7,8 @@ import X from "lucide-react/dist/esm/icons/x.js";
 import { EVENT } from "./movement-content.js";
 
 const SIZES = ["PP", "P", "M", "G", "GG", "XGG"];
+const ADULT_COMPANION_LABELS = { husband: "Marido", mother: "Mãe" };
+const FOCUSABLE_SELECTOR = "a[href], button:not([disabled]), input:not([disabled]):not([type='hidden']):not([tabindex='-1']), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
 const initialForm = {
   response: "", shirtSize: "", trainingOutfitSize: "", adultCompanionType: "",
   childCount: 0, childAge: "", childKitSize: "", transportInterest: false,
@@ -77,6 +79,24 @@ export default function RsvpFlow({ token, invite, currentRsvp }) {
     dialogRef.current?.focus();
     function onKeyDown(event) {
       if (event.key === "Escape" && stateRef.current !== "submitting") setOpen(false);
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(dialogRef.current?.querySelectorAll(FOCUSABLE_SELECTOR) || []);
+      const firstFocusable = focusable[0];
+      const lastFocusable = focusable[focusable.length - 1];
+      if (!firstFocusable || !lastFocusable) {
+        event.preventDefault();
+        dialogRef.current?.focus();
+        return;
+      }
+      const activeElement = document.activeElement;
+      const focusIsAtDialogBoundary = activeElement === dialogRef.current || !dialogRef.current?.contains(activeElement);
+      if (event.shiftKey && (activeElement === firstFocusable || focusIsAtDialogBoundary)) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && (activeElement === lastFocusable || focusIsAtDialogBoundary)) {
+        event.preventDefault();
+        firstFocusable.focus();
+      }
     }
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -87,12 +107,13 @@ export default function RsvpFlow({ token, invite, currentRsvp }) {
   }, [open]);
 
   const error = (() => {
+    const childAge = Number(form.childAge);
     if (!form.response) return "Escolha se poderá participar.";
     if (form.response !== "confirmed") return form.privacyAccepted ? "" : "Confirme a leitura da Política de Privacidade.";
     if (!SIZES.includes(form.shirtSize)) return "Escolha o tamanho da camiseta.";
     if (!SIZES.includes(form.trainingOutfitSize)) return "Escolha o tamanho da roupa de treino.";
     if (!["", "husband", "mother"].includes(form.adultCompanionType)) return "Escolha marido ou mãe como acompanhante adulto.";
-    if (form.childCount === 1 && !/^\d+$/.test(String(form.childAge))) return "Informe uma idade inteira não negativa para a criança.";
+    if (form.childCount === 1 && (!/^\d+$/.test(String(form.childAge)) || !Number.isInteger(childAge) || childAge < 0 || childAge > 120)) return "Informe uma idade inteira entre 0 e 120 para organização.";
     if (form.childCount === 1 && !form.childKitSize.trim()) return "Informe um tamanho aproximado para a criança.";
     if (!form.privacyAccepted) return "Confirme a leitura da Política de Privacidade.";
     return "";
@@ -143,11 +164,11 @@ export default function RsvpFlow({ token, invite, currentRsvp }) {
   }
 
   return <>
-    <button ref={triggerRef} type="button" className="mv-rsvp-persistent-cta" onClick={() => { setOpen(true); setStep("form"); setMessage(""); }}>
+    <button ref={triggerRef} type="button" className="mv-rsvp-persistent-cta" aria-haspopup="dialog" aria-expanded={open} aria-controls="mv-rsvp-sheet" onClick={() => { setOpen(true); setStep("form"); setMessage(""); }}>
       Confirmar meu lugar<ChevronRight size={18}/>
     </button>
     {open && <div className="mv-rsvp-sheet-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && state !== "submitting") setOpen(false); }}>
-      <section ref={dialogRef} className="mv-rsvp-sheet" role="dialog" aria-modal="true" aria-labelledby="mv-rsvp-sheet-title" tabIndex="-1">
+      <section id="mv-rsvp-sheet" ref={dialogRef} className="mv-rsvp-sheet" role="dialog" aria-modal="true" aria-labelledby="mv-rsvp-sheet-title" tabIndex="-1">
         <div className="mv-rsvp-sheet-header"><span className="mv-kicker">Convite pessoal</span><button type="button" className="mv-rsvp-sheet-close" aria-label="Fechar confirmação" onClick={() => setOpen(false)} disabled={state === "submitting"}><X aria-hidden="true"/></button></div>
         {step === "form" && <form onSubmit={review} className="mv-rsvp-sheet-form" noValidate>
           <h2 id="mv-rsvp-sheet-title">{invite?.displayName || "Convidada"}, confirme seu lugar.</h2>
@@ -167,7 +188,7 @@ export default function RsvpFlow({ token, invite, currentRsvp }) {
             <fieldset><legend>Criança</legend><p className="mv-field-note mv-field-note-first">O convite acolhe no máximo uma criança, sempre acompanhada.</p>
               <label className={form.childCount === 0 ? "is-selected" : ""}><input type="radio" name="childCount" value="0" checked={form.childCount === 0} onChange={() => setForm({ ...form, childCount: 0, childAge: "", childKitSize: "" })}/><span><strong>Nenhuma criança</strong></span></label>
               <label className={form.childCount === 1 ? "is-selected" : ""}><input type="radio" name="childCount" value="1" checked={form.childCount === 1} onChange={() => setForm({ ...form, childCount: 1 })}/><span><strong>Uma criança</strong></span></label>
-              {form.childCount === 1 && <div className="mv-rsvp-child-fields"><label className="mv-text-field"><span>Idade da criança</span><input type="number" min="0" step="1" inputMode="numeric" value={form.childAge} onChange={(event) => setForm({ ...form, childAge: event.target.value })}/></label><label className="mv-text-field"><span>Tamanho aproximado da criança</span><input maxLength="40" value={form.childKitSize} onChange={(event) => setForm({ ...form, childKitSize: event.target.value })}/></label><p>Possível surpresa infantil em confirmação; o tamanho não garante produto ou modelo.</p></div>}
+              {form.childCount === 1 && <div className="mv-rsvp-child-fields"><label className="mv-text-field"><span>Idade da criança</span><input type="number" min="0" max="120" step="1" inputMode="numeric" aria-describedby="mv-child-age-note" value={form.childAge} onChange={(event) => setForm({ ...form, childAge: event.target.value })}/></label><p id="mv-child-age-note">A faixa de 0 a 120 é um limite técnico de armazenamento; a idade não limita a participação.</p><label className="mv-text-field"><span>Tamanho aproximado da criança</span><input maxLength="40" value={form.childKitSize} onChange={(event) => setForm({ ...form, childKitSize: event.target.value })}/></label><p>Possível surpresa infantil em confirmação; o tamanho não garante produto ou modelo.</p></div>}
             </fieldset>
             <fieldset className="mv-rsvp-transport"><legend>Transporte</legend><label><input type="checkbox" checked={form.transportInterest} onChange={(event) => setForm({ ...form, transportInterest: event.target.checked })}/><span><strong>Quero ser avisada caso haja transporte exclusivo disponível</strong><small>A disponibilidade será confirmada depois.</small></span></label></fieldset>
           </>}
@@ -176,7 +197,7 @@ export default function RsvpFlow({ token, invite, currentRsvp }) {
           <button className="mv-primary" type="submit">Revisar resposta<ChevronRight size={18}/></button>
           <p className="mv-security"><ShieldCheck size={16}/>Seu link é individual. Seus dados não aparecem para outras convidadas.</p>
         </form>}
-        {step === "review" && <div className="mv-rsvp-sheet-review"><h2 id="mv-rsvp-sheet-title">Revise sua resposta</h2><dl className="mv-review"><div><dt>Presença</dt><dd>{form.response === "confirmed" ? "Confirmada" : "Acompanho de longe"}</dd></div>{form.response === "confirmed" && <><div><dt>Camiseta</dt><dd>{form.shirtSize}</dd></div><div><dt>Roupa de treino</dt><dd>{form.trainingOutfitSize}</dd></div><div><dt>Acompanhantes</dt><dd>{(form.adultCompanionType ? 1 : 0) + form.childCount}</dd></div><div><dt>Transporte</dt><dd>{form.transportInterest ? "Quero ser avisada" : "Sem interesse no momento"}</dd></div></>}<div><dt>Uso de imagem</dt><dd>{form.imageConsent ? "Autorizado" : "Não autorizado"}</dd></div></dl><button type="button" className="mv-link-button" onClick={() => setStep("form")}>Editar resposta</button><button type="button" className="mv-primary" onClick={submit} disabled={state === "submitting"}>{state === "submitting" ? <><LoaderCircle className="mv-spin"/>Registrando…</> : <>Confirmar resposta<ChevronRight size={18}/></>}</button></div>}
+        {step === "review" && <div className="mv-rsvp-sheet-review"><h2 id="mv-rsvp-sheet-title">Revise sua resposta</h2><dl className="mv-review"><div><dt>Presença</dt><dd>{form.response === "confirmed" ? "Confirmada" : "Acompanho de longe"}</dd></div>{form.response === "confirmed" && <><div><dt>Camiseta</dt><dd>{form.shirtSize}</dd></div><div><dt>Roupa de treino</dt><dd>{form.trainingOutfitSize}</dd></div><div><dt>Acompanhante adulto</dt><dd>{ADULT_COMPANION_LABELS[form.adultCompanionType] || "Nenhum"}</dd></div>{form.childCount === 1 && <><div><dt>Idade da criança</dt><dd>{form.childAge} ano(s) · somente para organização</dd></div><div><dt>Tamanho aproximado da criança</dt><dd>{form.childKitSize}</dd></div></>}<div><dt>Transporte</dt><dd>{form.transportInterest ? "Quero ser avisada" : "Sem interesse no momento"}</dd></div></>}<div><dt>Uso de imagem</dt><dd>{form.imageConsent ? "Autorizado" : "Não autorizado"}</dd></div></dl><button type="button" className="mv-link-button" onClick={() => setStep("form")}>Editar resposta</button><button type="button" className="mv-primary" onClick={submit} disabled={state === "submitting"}>{state === "submitting" ? <><LoaderCircle className="mv-spin"/>Registrando…</> : <>Confirmar resposta<ChevronRight size={18}/></>}</button></div>}
         {step === "success" && <div className="mv-rsvp-sheet-success"><div className="mv-success-mark"><Check aria-hidden="true"/></div><span className="mv-kicker">Resposta registrada</span><h2 id="mv-rsvp-sheet-title">{form.response === "confirmed" ? "Presença confirmada." : "Obrigada por responder."}</h2><p>{form.response === "confirmed" ? "Sua confirmação foi registrada. Você pode editar essa resposta neste mesmo link." : "Sua resposta foi registrada e pode ser alterada neste mesmo link."}</p>{reference && <div className="mv-reference">Referência · {reference}</div>}<button type="button" className="mv-link-button" onClick={() => { setState("ready"); setStep("form"); }}>Editar minha resposta</button></div>}
       </section>
     </div>}
