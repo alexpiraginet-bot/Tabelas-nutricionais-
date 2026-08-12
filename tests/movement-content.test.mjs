@@ -32,11 +32,26 @@ test("movement presentations turn the approved experiences into visual chapters"
   const influencerIds = INFLUENCER_SCENES.map(({ id }) => id);
   const partnerIds = PARTNER_SCENES.map(({ id }) => id);
 
-  assert.deepEqual(influencerIds, ["why-you", "anniversary", "morning", "family", "made-for-you", "september"]);
-  assert.deepEqual(partnerIds, ["anniversary", "real-participation", "welcome", "care", "memory", "family", "visual-signature", "co-creation", "participations"]);
+  assert.deepEqual(influencerIds, ["scenario", "welcome", "training", "kids-workshop", "recovery", "shirt-kit", "celebration"]);
+  assert.deepEqual(partnerIds, ["stage", "mobility", "breakfast", "movement", "recovery", "kids-workshop", "shirt-kit", "product", "backdrop", "curation"]);
   for (const scene of [...INFLUENCER_SCENES, ...PARTNER_SCENES]) {
-    assert.match(scene.image, /^\/movimento\/.+\.(webp|png|jpg)$/);
+    assert.match(scene.assetId, /^(?:INF|PAR)-(?:0[1-9]|10)$/);
     assert.ok(scene.alt.length >= 24);
+    assert.ok(scene.disclosure.length >= 24);
+  }
+  assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-02").alt, /estacionado/i);
+  assert.match(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-09").alt, /preparado|vazio/i);
+  assert.doesNotMatch(PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-09").alt, /em uso/i);
+  assert.match(content.MOVEMENT_HERO_ASSETS.influencer.alt, /grupo|convidadas/i);
+  assert.match(INFLUENCER_SCENES.find(({ id }) => id === "kids-workshop").title, /oficina de decoração de picolés/i);
+  assert.match(PARTNER_SCENES.find(({ id }) => id === "kids-workshop").title, /oficina de decoração de picolés/i);
+  for (const assetId of ["INF-03", "PAR-04"]) {
+    const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
+    assert.match(scene.disclosure, /wordmark oficial Bentô composto sem redesenho/i);
+  }
+  for (const assetId of ["INF-04", "PAR-06"]) {
+    const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
+    assert.match(scene.disclosure, /picolé do acervo real Bentô composto sem redesenho/i);
   }
 });
 
@@ -54,7 +69,7 @@ test("shirt concept reserves the lower back for approved sponsors", () => {
   assert.deepEqual(SHIRT_CONCEPT, {
     front: "Wordmark oficial Bentô",
     back: "MOVIMENTO. ENCONTRO. BENTÔ.",
-    sponsorArea: "Região lombar · Sua marca pode estar aqui",
+    sponsorArea: "Região lombar · composição coletiva aprovada",
   });
 });
 

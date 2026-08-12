@@ -1,53 +1,297 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
+import sharp from "sharp";
 
-const publicDir = path.resolve("public/movimento");
+const repoRoot = path.resolve();
+const manifestPath = path.join(repoRoot, "public/movimento/v2/manifest.json");
+const publicDir = path.join(repoRoot, "public");
+const masterDir = path.join(repoRoot, "assets/movimento-v2/masters");
+const disclosure = "Visualização conceitual gerada por IA";
 
-const sceneAssets = [
-  "experience-training.jpg",
-  "experience-mobility.jpg",
-  "experience-breakfast.jpg",
-  "experience-kids.jpg",
-  "experience-recovery.jpg",
-  "experience-backdrop.jpg",
-];
+const expectedRoutes = {
+  influencer: ["INF-HERO", "INF-01", "INF-02", "INF-03", "INF-04", "INF-05", "INF-06", "INF-07"],
+  partner: ["PAR-HERO", "PAR-01", "PAR-02", "PAR-03", "PAR-04", "PAR-05", "PAR-06", "PAR-07", "PAR-08", "PAR-09", "PAR-10"],
+};
 
-function readJpegSize(buffer) {
-  assert.equal(buffer.readUInt16BE(0), 0xffd8, "asset should be a JPEG");
+const routeBudgets = {
+  influencer: 1_490 * 1024,
+  partner: 1_850 * 1024,
+};
 
-  for (let offset = 2; offset < buffer.length;) {
-    if (buffer[offset] !== 0xff) {
-      offset += 1;
-      continue;
-    }
-
-    const marker = buffer[offset + 1];
-    const length = buffer.readUInt16BE(offset + 2);
-    if ([0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf].includes(marker)) {
-      return { height: buffer.readUInt16BE(offset + 5), width: buffer.readUInt16BE(offset + 7) };
-    }
-    offset += 2 + length;
-  }
-
-  throw new Error("JPEG dimensions not found");
+async function readManifest() {
+  return JSON.parse(await readFile(manifestPath, "utf8"));
 }
 
-test("immersive Movimento scenes are production-sized raster assets", async () => {
-  for (const filename of sceneAssets) {
-    const assetPath = path.join(publicDir, filename);
-    const metadata = readJpegSize(await readFile(assetPath));
+async function sha256(filePath) {
+  return createHash("sha256").update(await readFile(filePath)).digest("hex");
+}
 
-    assert.ok(metadata.width >= 1400, `${filename} should be at least 1400px wide`);
-    assert.ok(metadata.height >= 780, `${filename} should be at least 780px tall`);
+test("V2 manifest contains the 19 exclusive scene families in route order", async () => {
+  const manifest = await readManifest();
+
+  assert.equal(manifest.version, 2);
+  assert.deepEqual(manifest.routes.influencer, expectedRoutes.influencer);
+  assert.deepEqual(manifest.routes.partner, expectedRoutes.partner);
+  assert.equal(Object.keys(manifest.assets).length, 19);
+  assert.deepEqual(new Set([...manifest.routes.influencer, ...manifest.routes.partner]), new Set(Object.keys(manifest.assets)));
+
+  const sourceHashes = Object.values(manifest.assets).map(({ sourceSha256 }) => sourceSha256);
+  assert.equal(new Set(sourceHashes).size, 19, "every chapter needs a unique source family");
+  assert.ok(sourceHashes.every((hash) => /^[a-f0-9]{64}$/.test(hash)));
+
+  const largestJpegHashes = Object.values(manifest.assets).flatMap((asset) => [
+    asset.mobile.sources.jpg.at(-1).sha256,
+    asset.desktop.sources.jpg.at(-1).sha256,
+  ]);
+  assert.equal(new Set(largestJpegHashes).size, largestJpegHashes.length, "no scene family may reuse an identical final raster");
+});
+
+test("chapter families use one source master while heroes keep native portrait art direction", async () => {
+  const filenames = await readdir(masterDir);
+  const allIds = [...expectedRoutes.influencer, ...expectedRoutes.partner];
+
+  for (const id of allIds) {
+    const matching = filenames.filter((filename) => new RegExp(`^${id}(?:-(?:mobile|desktop))?\\.(?:jpe?g|png)$`, "i").test(filename));
+
+    if (id.endsWith("HERO")) {
+      assert.equal(matching.length, 2, `${id} needs one native mobile and one native desktop master`);
+      assert.ok(matching.some((filename) => new RegExp(`^${id}-mobile\\.(?:jpe?g|png)$`, "i").test(filename)));
+      assert.ok(matching.some((filename) => new RegExp(`^${id}-desktop\\.(?:jpe?g|png)$`, "i").test(filename)));
+    } else {
+      assert.equal(matching.length, 1, `${id} must reuse one landscape master for both crops`);
+      assert.match(matching[0], new RegExp(`^${id}\\.(?:jpe?g|png)$`, "i"));
+    }
   }
 });
 
-test("shirt reference is large enough for the interactive sponsor mockup", async () => {
-  const assetPath = path.join(publicDir, "camiseta-referencia.jpg");
-  const metadata = readJpegSize(await readFile(assetPath));
+test("every scene has meaningful accessibility copy and an explicit provenance disclosure", async () => {
+  const manifest = await readManifest();
 
-  assert.ok(metadata.width >= 1000);
-  assert.ok(metadata.height >= 1000);
+  for (const [id, asset] of Object.entries(manifest.assets)) {
+    assert.equal(asset.id, id);
+    assert.ok(asset.alt.length >= 40, `${id} alt text is too short`);
+    assert.ok(asset.generated ? asset.disclosure.startsWith(disclosure) : true);
+    assert.ok(asset.disclosure.length >= 24, `${id} needs visible provenance copy`);
+    assert.match(asset.lqip.src, new RegExp(`^/movimento/v2/${id}-lqip\\.jpg$`));
+    assert.ok(asset.lqip.bytes < 1_536, `${id} LQIP must stay under 1.5 KiB`);
+  }
+
+  for (const id of ["INF-06", "PAR-07"]) assert.match(manifest.assets[id].disclosure, /referência oficial de camiseta Bentô composta sem redesenho/i);
+  for (const id of ["INF-04", "PAR-06"]) assert.match(manifest.assets[id].disclosure, /picolé do acervo real Bentô composto sem redesenho/i);
+  assert.match(manifest.assets["PAR-08"].disclosure, /produto e embalagem do acervo real Bentô compostos sem redesenho/i);
+  for (const id of ["INF-HERO", "INF-03", "PAR-04"]) assert.match(manifest.assets[id].disclosure, /wordmark oficial Bentô composto sem redesenho/i);
+});
+
+test("responsive derivatives are valid, dimensioned, hashed and never upscale their master", async () => {
+  const manifest = await readManifest();
+  const expectedFormats = ["avif", "webp", "jpg"];
+
+  for (const [id, asset] of Object.entries(manifest.assets)) {
+    assert.ok(asset.master.desktop.width >= 1440, `${id} desktop master is too narrow for the required crop`);
+    assert.ok(asset.master.desktop.height >= 810, `${id} desktop master is too short for the required crop`);
+    assert.ok(asset.master.mobile.width >= (id.endsWith("HERO") ? 768 : 752), `${id} mobile master is too narrow for the required crop`);
+    assert.ok(asset.master.mobile.height >= (id.endsWith("HERO") ? 1365 : 940), `${id} mobile master is too short for the required crop`);
+
+    for (const direction of ["mobile", "desktop"]) {
+      const variant = asset[direction];
+      assert.ok(variant.aspectRatio > 0);
+      assert.deepEqual(Object.keys(variant.sources), expectedFormats);
+
+      for (const format of expectedFormats) {
+        const expectedMime = format === "jpg" ? "image/jpeg" : `image/${format}`;
+        const renditions = variant.sources[format];
+        assert.ok(renditions.length >= 2, `${id} ${direction}/${format} needs a responsive srcset`);
+
+        for (const rendition of renditions) {
+          const filePath = path.join(publicDir, rendition.src.replace(/^\//, ""));
+          const [metadata, fileStat, fileHash] = await Promise.all([
+            sharp(filePath).metadata(),
+            stat(filePath),
+            sha256(filePath),
+          ]);
+          const detectedMime = metadata.format === "jpeg"
+            ? "image/jpeg"
+            : metadata.format === "heif" && metadata.compression === "av1"
+              ? "image/avif"
+              : `image/${metadata.format}`;
+          assert.equal(detectedMime, expectedMime);
+          assert.equal(metadata.width, rendition.width);
+          assert.equal(metadata.height, rendition.height);
+          assert.equal(fileStat.size, rendition.bytes);
+          assert.equal(fileHash, rendition.sha256);
+          assert.ok(rendition.width <= asset.master[direction].width, `${id} must not upscale ${direction} width`);
+          assert.ok(rendition.height <= asset.master[direction].height, `${id} must not upscale ${direction} height`);
+        }
+      }
+    }
+
+    const lqipPath = path.join(publicDir, asset.lqip.src.replace(/^\//, ""));
+    assert.equal((await stat(lqipPath)).size, asset.lqip.bytes);
+    assert.equal(await sha256(lqipPath), asset.lqip.sha256);
+  }
+});
+
+test("mobile AVIF route payloads and active heroes remain inside the approved budgets", async () => {
+  const manifest = await readManifest();
+
+  for (const [route, ids] of Object.entries(expectedRoutes)) {
+    const selectedBytes = ids.reduce((total, id) => {
+      const renditions = manifest.assets[id].mobile.sources.avif;
+      return total + renditions.at(-1).bytes;
+    }, 0);
+    const initialBytes = ids.slice(0, 2).reduce((total, id) => total + manifest.assets[id].mobile.sources.avif.at(-1).bytes, 0);
+    assert.ok(initialBytes <= 690 * 1024, `${route} hero and first chapter exceed the initial-load ceiling`);
+    assert.ok(selectedBytes <= routeBudgets[route], `${route} route exceeds its complete mobile media budget`);
+  }
+});
+
+test("runtime uses art-directed picture sources with exactly one priority hero", async () => {
+  const [site, content] = await Promise.all([
+    readFile(path.join(repoRoot, "src/movimento/MovementSite.jsx"), "utf8"),
+    readFile(path.join(repoRoot, "src/movimento/movement-content.js"), "utf8"),
+  ]);
+
+  assert.match(site, /function ScenePicture\(\{ asset, priority = false/);
+  assert.match(site, /const displaySizes = priority \? "100vw" : "\(max-width: 1600px\) 60vw, 960px";/);
+  assert.match(site, /<source media="\(max-width: 900px\)" type="image\/avif"/);
+  assert.match(site, /<source media="\(max-width: 900px\)" type="image\/webp"/);
+  assert.match(site, /<source type="image\/avif"/);
+  assert.match(site, /<source type="image\/webp"/);
+  assert.match(site, /loading=\{priority \? "eager" : "lazy"\}/);
+  assert.match(site, /fetchPriority=\{priority \? "high" : "auto"\}/);
+  assert.match(site, /decoding="async"/);
+  assert.equal(site.match(/<ScenePicture[^>]*\bpriority\b[^>]*\/>/g)?.length, 1);
+  assert.doesNotMatch(site, /document\.createElement\("link"\)/, "a useEffect preload runs too late to improve the active hero request");
+
+  for (const oldAsset of [
+    "experience-training.jpg",
+    "experience-mobility.jpg",
+    "experience-breakfast.jpg",
+    "experience-kids.jpg",
+    "experience-recovery.jpg",
+    "experience-backdrop.jpg",
+    "camiseta-referencia.jpg",
+    "picoles-lineup-real.jpg",
+  ]) {
+    assert.doesNotMatch(site, new RegExp(oldAsset.replace(".", "\\.")));
+    assert.doesNotMatch(content, new RegExp(oldAsset.replace(".", "\\.")));
+  }
+});
+
+test("manifest is portable and contains no nondeterministic build metadata", async () => {
+  const source = await readFile(manifestPath, "utf8");
+
+  assert.doesNotMatch(source, /\/Users\//);
+  assert.doesNotMatch(source, /(?:created|generated|updated)At/i);
+  assert.doesNotMatch(source, /20\d{2}-\d{2}-\d{2}T\d{2}:/);
+});
+
+test("pipeline composes the approved shirt and real Bentô product instead of generated substitutes", async () => {
+  const pipeline = await readFile(path.join(repoRoot, "scripts/build-movement-assets.mjs"), "utf8");
+
+  assert.match(pipeline, /public\/movimento\/camiseta-referencia\.jpg/);
+  assert.match(pipeline, /public\/movimento\/picoles-lineup-real\.jpg/);
+  assert.match(pipeline, /public\/treats\/picole-pistache\.webp/);
+  assert.match(pipeline, /public\/movimento\/bento-wordmark-gold\.png/);
+  assert.match(pipeline, /"INF-06": \{ kind: "shirt"/);
+  assert.match(pipeline, /"PAR-07": \{ kind: "shirt"/);
+  for (const id of ["INF-04", "PAR-06", "PAR-08"]) assert.match(pipeline, new RegExp(`"${id}": \\{[\\s\\S]*?kind: "product"`));
+  assert.match(pipeline, /sharp\(master\.buffer/);
+  assert.match(pipeline, /\.composite\(\[\{ input: inset/);
+  assert.match(pipeline, /async function composeWorkshopProducts/);
+  assert.match(pipeline, /async function createEditorialBoard/);
+  for (const id of ["INF-06", "PAR-07", "PAR-08"]) assert.match(pipeline, new RegExp(`"${id}": \\{ kind: "(?:shirt|product)", mode: "editorial-board"`));
+  assert.match(pipeline, /const maxInsetHeight = Math\.round\(master\.height \* placement\.maxHeight\);/);
+  assert.match(pipeline, /\.resize\(\{ width: insetWidth, height: maxInsetHeight, fit: "inside", withoutEnlargement: true \}\)/);
+  assert.match(pipeline, /const WORDMARK_COMPOSITIONS =/);
+  for (const id of ["INF-HERO", "INF-03", "PAR-04"]) assert.match(pipeline, new RegExp(`"${id}":`));
+  assert.match(pipeline, /const stem = isHero\(id\) \? `\$\{id\}-\$\{direction\}` : id;/);
+  assert.match(pipeline, /for \(const extension of \["jpg", "jpeg", "png"\]\)/);
+});
+
+test("partner shirt personalization stays in a readable external callout and absent from influencer chapters", async () => {
+  const [site, content] = await Promise.all([
+    readFile(path.join(repoRoot, "src/movimento/MovementSite.jsx"), "utf8"),
+    import(new URL(`../src/movimento/movement-content.js?asset-test=${Date.now()}`, import.meta.url)),
+  ]);
+  const calloutStart = site.indexOf("function ShirtSponsorCallout");
+  const calloutEnd = site.indexOf("function SceneSection", calloutStart);
+  const callout = site.slice(calloutStart, calloutEnd);
+
+  assert.ok(calloutStart >= 0, "partner shirt callout is missing");
+  assert.match(callout, /companyName/);
+  assert.match(callout, /Composição coletiva/);
+  assert.match(callout, /Região lombar/);
+  assert.doesNotMatch(callout, /Sua marca aqui/i);
+  assert.doesNotMatch(site, /mv-shirt-sponsor-zone/);
+  assert.doesNotMatch(JSON.stringify(content.INFLUENCER_SCENES), /Sua marca aqui/i);
+});
+
+test("pipeline builds in staging, promotes the directory and can be invoked from any working directory", async () => {
+  const pipeline = await readFile(path.join(repoRoot, "scripts/build-movement-assets.mjs"), "utf8");
+
+  assert.match(pipeline, /const MANAGED_OUTPUT_PATTERN =/);
+  assert.match(pipeline, /const STAGING_DIR =/);
+  assert.match(pipeline, /if \(!finalExists && backupExists\) \{[\s\S]*?await rename\(backupDirectory, finalDirectory\);[\s\S]*?return "restored-backup";/);
+  assert.match(pipeline, /validateDirectory = assertGeneratedDirectory/);
+  assert.match(pipeline, /if \(finalExists && backupExists\) \{[\s\S]*?validateDirectory\(finalDirectory\);[\s\S]*?return "validated-final-with-backup";/);
+  assert.match(pipeline, /await recoverInterruptedPromotion\(\);[\s\S]*?await clearGeneratedDirectory\(STAGING_DIR\);/);
+  assert.match(pipeline, /await rename\(FINAL_OUTPUT_DIR, BACKUP_DIR\)/);
+  assert.match(pipeline, /await rename\(STAGING_DIR, FINAL_OUTPUT_DIR\)/);
+  assert.match(pipeline, /await rename\(BACKUP_DIR, FINAL_OUTPUT_DIR\)/);
+  assert.match(pipeline, /path\.dirname\(fileURLToPath\(import\.meta\.url\)\)/);
+  assert.doesNotMatch(pipeline, /process\.cwd\(\)/);
+
+  const promotion = pipeline.slice(pipeline.indexOf("async function promoteStaging"), pipeline.indexOf("async function main"));
+  const validatesCurrentFinal = promotion.indexOf("await assertGeneratedDirectory(FINAL_OUTPUT_DIR)");
+  const removesOrphanedBackup = promotion.indexOf("await clearGeneratedDirectory(BACKUP_DIR)");
+  assert.ok(validatesCurrentFinal >= 0 && validatesCurrentFinal < removesOrphanedBackup, "the current final must be validated before an orphaned backup is removed");
+});
+
+test("interrupted-promotion recovery validates the new final and preserves the old backup", async () => {
+  const pipelineUrl = new URL(`../scripts/build-movement-assets.mjs?recovery-test=${Date.now()}`, import.meta.url);
+  const { recoverInterruptedPromotion } = await import(pipelineUrl);
+  const tempRoot = await mkdtemp(path.join(tmpdir(), "movement-v2-recovery-"));
+  const finalDirectory = path.join(tempRoot, "final");
+  const backupDirectory = path.join(tempRoot, "backup");
+
+  try {
+    await Promise.all([mkdir(finalDirectory), mkdir(backupDirectory)]);
+    await Promise.all([
+      writeFile(path.join(finalDirectory, "current.txt"), "current"),
+      writeFile(path.join(backupDirectory, "previous.txt"), "previous"),
+    ]);
+    const validated = [];
+    const result = await recoverInterruptedPromotion(finalDirectory, backupDirectory, async (directory) => {
+      validated.push(directory);
+      assert.equal(await readFile(path.join(directory, "current.txt"), "utf8"), "current");
+    });
+
+    assert.equal(result, "validated-final-with-backup");
+    assert.deepEqual(validated, [finalDirectory]);
+    assert.equal(await readFile(path.join(backupDirectory, "previous.txt"), "utf8"), "previous");
+
+    await rm(finalDirectory, { recursive: true });
+    assert.equal(await recoverInterruptedPromotion(finalDirectory, backupDirectory), "restored-backup");
+    assert.equal(await readFile(path.join(finalDirectory, "previous.txt"), "utf8"), "previous");
+  } finally {
+    await rm(tempRoot, { force: true, recursive: true });
+  }
+});
+
+test("movement typography transfers no full TTF when a deterministic WOFF2 subsetter is unavailable", async () => {
+  const css = await readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8");
+  assert.doesNotMatch(css, /@font-face/);
+  assert.doesNotMatch(css, /\.(?:ttf|woff2?)/i);
+  assert.match(css, /ui-serif|Georgia/);
+  assert.match(css, /ui-sans-serif|system-ui/);
+});
+
+test("scene disclosures meet AA contrast on both presentation surfaces", async () => {
+  const css = await readFile(path.join(repoRoot, "src/movimento/movement.css"), "utf8");
+  assert.match(css, /\.mv-scene-disclosure\{[^}]*color:#5f5a50/);
 });

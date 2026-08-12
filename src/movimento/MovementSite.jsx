@@ -15,6 +15,7 @@ import {
   HERO_COPY,
   INFLUENCER_CHAPTERS,
   INFLUENCER_SCENES,
+  MOVEMENT_HERO_ASSETS,
   PARTNER_PARTICIPATION_NOTE,
   PARTNER_SCENES,
   PARTNER_TIERS,
@@ -24,6 +25,23 @@ import "./movement.css";
 
 function Wordmark() {
   return <img className="mv-wordmark" src="/movimento/bento-wordmark-gold.png" alt="Bentô Gelatos" width="282" height="78"/>;
+}
+
+function renditionSrcSet(renditions) {
+  return renditions.map(({ src, width }) => `${src} ${width}w`).join(", ");
+}
+
+function ScenePicture({ asset, priority = false, className = "" }) {
+  const displaySizes = priority ? "100vw" : "(max-width: 1600px) 60vw, 960px";
+  const desktopFallback = asset.desktop.sources.jpg.at(-1);
+  return <picture className={`mv-scene-picture ${className}`.trim()} style={{ "--mv-lqip": `url(${asset.lqip.src})` }}>
+    <source media="(max-width: 900px)" type="image/avif" srcSet={renditionSrcSet(asset.mobile.sources.avif)} sizes="100vw"/>
+    <source media="(max-width: 900px)" type="image/webp" srcSet={renditionSrcSet(asset.mobile.sources.webp)} sizes="100vw"/>
+    <source media="(max-width: 900px)" type="image/jpeg" srcSet={renditionSrcSet(asset.mobile.sources.jpg)} sizes="100vw"/>
+    <source type="image/avif" srcSet={renditionSrcSet(asset.desktop.sources.avif)} sizes={displaySizes}/>
+    <source type="image/webp" srcSet={renditionSrcSet(asset.desktop.sources.webp)} sizes={displaySizes}/>
+    <img src={desktopFallback.src} srcSet={renditionSrcSet(asset.desktop.sources.jpg)} sizes={`(max-width: 900px) 100vw, ${displaySizes}`} alt={asset.alt} width={desktopFallback.width} height={desktopFallback.height} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async"/>
+  </picture>;
 }
 
 function MovementMeta({ audience, personal }) {
@@ -56,6 +74,7 @@ function replaceTemplate(template, replacements) {
 
 function Hero({ audience, invite, personal }) {
   const copy = HERO_COPY[audience];
+  const heroAsset = MOVEMENT_HERO_ASSETS[audience];
   const influencerName = invite?.recipientName || invite?.displayName || "";
   const companyName = invite?.companyName || invite?.displayName || "";
   const responsible = invite?.recipientName || "";
@@ -70,7 +89,7 @@ function Hero({ audience, invite, personal }) {
   const partnerPersonal = personal && audience === "partner";
 
   return <section className={`mv-hero mv-hero-v2 ${audience === "partner" ? "is-partner" : ""}`}>
-    <img src="/movimento/experience-training.jpg" alt="Visualização conceitual de uma manhã de movimento no deck contemporâneo do Le Buffet Lounge" width="1920" height="1080" fetchPriority="high"/>
+    <ScenePicture asset={heroAsset} priority/>
     <div className="mv-hero-wash"/>
     <div className="mv-hero-copy">
       <span className="mv-kicker">{kicker}</span>
@@ -79,7 +98,7 @@ function Hero({ audience, invite, personal }) {
       <p>{copy.text}</p>
       {showHeroCta && <a className="mv-hero-cta" href={ctaTarget} hidden={partnerPersonal} aria-hidden={partnerPersonal} tabIndex={partnerPersonal ? -1 : undefined}>{copy.cta}<ArrowDown size={18}/></a>}
     </div>
-    <span className="mv-ai-disclosure">Visualização conceitual gerada por IA</span>
+    <span className="mv-ai-disclosure">{heroAsset.disclosure}</span>
   </section>;
 }
 
@@ -95,16 +114,16 @@ function EventFacts({ partner = false }) {
   return <div className="mv-event-facts-v2"><article><CalendarDays/><span>Quando</span><strong>{EVENT.dayLabel}<br/>{EVENT.dateLong}</strong></article><article><MapPin/><span>Onde</span><strong>{EVENT.location}</strong></article><article><Users/><span>Escala</span><strong>{EVENT.expectedGuests}</strong></article><article><Sparkles/><span>Experiência</span><strong>{EVENT.training}</strong></article><p>{partner ? "A participação começa por uma conversa de escopo." : "Nome, horário e operação final permanecem em confirmação."}</p></div>;
 }
 
-function ShirtSponsorOverlay() {
-  return <div className="mv-shirt-sponsor-zone" aria-label={SHIRT_CONCEPT.sponsorArea}><span>Sua marca aqui</span><span>Sua marca aqui</span><span>Sua marca aqui</span><span>Sua marca aqui</span></div>;
+function ShirtSponsorCallout({ companyName }) {
+  return <aside className="mv-shirt-sponsor-callout" aria-label={SHIRT_CONCEPT.sponsorArea}><span>{companyName || "Composição coletiva"}</span><small>Região lombar · aplicação definida no mockup</small></aside>;
 }
 
-function SceneSection({ scene, index, audience }) {
-  const shirt = scene.id === "made-for-you" || scene.id === "memory";
-  const product = scene.id === "co-creation";
+function SceneSection({ scene, index, audience, companyName = "" }) {
+  const shirt = scene.assetId === "INF-06" || scene.assetId === "PAR-07";
+  const product = scene.assetId === "PAR-08";
+  const backdrop = scene.assetId === "PAR-09";
   const partner = audience === "partner";
-  const disclosure = product ? "Fotografia do acervo real Bentô." : shirt ? "Referência de camiseta aprovada por Alex; aplicações finais dependem de mockup." : "Visualização conceitual gerada por IA; operação em confirmação.";
-  return <section className={`mv-scene ${index % 2 ? "is-reverse" : ""} ${shirt ? "is-shirt" : ""} ${product ? "is-product" : ""}`}><figure className="mv-scene-media"><img src={scene.image} alt={scene.alt} width={shirt ? "1254" : product ? "1448" : "1920"} height={shirt ? "1254" : product ? "1086" : "1080"} loading="lazy" decoding="async"/>{shirt && partner && <ShirtSponsorOverlay/>}</figure><div className="mv-scene-copy"><span className="mv-scene-number">{String(index + 1).padStart(2, "0")}</span><span className="mv-kicker">{scene.eyebrow}</span><h2>{scene.title}</h2><p>{scene.text}</p>{shirt && partner && <div className="mv-shirt-spec"><span>{SHIRT_CONCEPT.front}</span><span>{SHIRT_CONCEPT.back}</span><span>{SHIRT_CONCEPT.sponsorArea}</span></div>}<small className="mv-scene-disclosure">{disclosure}</small></div></section>;
+  return <section className={`mv-scene ${index % 2 ? "is-reverse" : ""} ${shirt ? "is-shirt" : ""} ${product ? "is-product" : ""}`} data-asset-id={scene.assetId}><figure className="mv-scene-media"><ScenePicture asset={scene.asset}/>{shirt && partner && <ShirtSponsorCallout companyName={companyName}/>} {backdrop && partner && <div className="mv-brand-composition"><span>{companyName || "Composição coletiva"}</span><small>Aplicação definida após conversa de escopo</small></div>}</figure><div className="mv-scene-copy"><span className="mv-scene-number">{String(index + 1).padStart(2, "0")}</span><span className="mv-kicker">{scene.eyebrow}</span><h2>{scene.title}</h2><p>{scene.text}</p>{shirt && partner && <div className="mv-shirt-spec"><span>{SHIRT_CONCEPT.front}</span><span>{SHIRT_CONCEPT.back}</span><span>{SHIRT_CONCEPT.sponsorArea}</span></div>}<small className="mv-scene-disclosure">{scene.disclosure}{!shirt && !product ? "; operação em confirmação." : ""}</small></div></section>;
 }
 
 function Intro({ partner = false }) {
@@ -128,8 +147,8 @@ function InfluencerStory({ personal, token }) {
   return <><Intro/><div id="jornada" className="mv-scene-reel">{INFLUENCER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="influencer"/>)}</div><InfluencerChapters/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
 }
 
-function PartnerStory({ personal, token, currentPartnerLead }) {
-  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{PARTNER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner"/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+function PartnerStory({ personal, token, currentPartnerLead, companyName }) {
+  return <><Intro partner/><div className="mv-scene-reel mv-scene-reel-partner">{PARTNER_SCENES.map((scene, index) => <SceneSection key={scene.id} scene={scene} index={index} audience="partner" companyName={companyName}/>)}</div><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
 }
 
 export default function MovementSite({ mode = "influencer", token = null }) {
@@ -142,5 +161,6 @@ export default function MovementSite({ mode = "influencer", token = null }) {
   if (!audience) return <InvalidInvitation error="Convite inválido ou expirado."/>;
   const hasPersistentRsvpCta = personal && audience === "influencer";
   const hasPersistentPartnerCta = personal && audience === "partner";
-  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
+  const companyName = audience === "partner" ? invite?.companyName || invite?.displayName || "" : "";
+  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead} companyName={companyName}/> : <InfluencerStory personal={personal} token={token}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
 }
