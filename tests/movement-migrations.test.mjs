@@ -17,7 +17,7 @@ test("movement migrations have unique ordered versions and extend personalized i
     "20260812131439_bento_movement_content_function_search_path.sql",
     "20260812151801_bento_movement_invite_resend.sql",
     "20260812164902_bento_movement_invite_aliases.sql",
-    "20260813065755_bento_movement_territory_backgrounds.sql",
+    "20260813184310_bento_movement_territory_backgrounds.sql",
   ]);
 
   const versions = files.map((file) => file.split("_")[0]);
