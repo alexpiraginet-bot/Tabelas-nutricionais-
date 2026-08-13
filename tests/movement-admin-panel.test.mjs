@@ -151,6 +151,20 @@ test("Movement presentation editor is available as a mobile-safe second subtab",
   assert.doesNotMatch(editor, /\.innerHTML\s*=/);
 });
 
+test("Movement invitation history stays inside the invites tab and rows start collapsed", () => {
+  const movementPane = section(panel, '<div class="pane" data-pane="movimento"', '<!-- ================= ABA SITE');
+  assert.match(movementPane, /Aulão funcional com Jonatas Correa/);
+  assert.doesNotMatch(movementPane, /nome em confirmação/);
+  assert.match(
+    movementPane,
+    /<div id="movInvitesPane"[^>]*>[\s\S]*<div class="grid2" id="movInviteHistory">[\s\S]*<\/div>\s*<\/div>\s*<div id="movContentPane"/,
+  );
+
+  const topicFactory = functionBody(panel, "movementTopic", "function movementDetail");
+  assert.match(topicFactory, /document\.createElement\("details"\)/);
+  assert.doesNotMatch(topicFactory, /\.open\s*=\s*true/);
+});
+
 test("Panel login gate keeps password and submit controls touch-ready on iPhone", () => {
   assert.match(panel, /\.gate input\{[^}]*min-height:44px[^}]*font-size:16px[^}]*\}/);
   assert.match(panel, /\.gate button\{[^}]*min-height:44px[^}]*\}/);

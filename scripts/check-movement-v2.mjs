@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import sharp from "sharp";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -130,10 +130,25 @@ async function assertRoutingAndShareShells() {
 async function assertSourceAndBuild() {
   const movementSite = await readText("src/movimento/MovementSite.jsx");
   const movementContent = await readText("src/movimento/movement-content.js");
-  const source = `${movementSite}\n${movementContent}`;
+  const movementAtlas = await readText("src/movimento/MovementStoryAtlas.jsx");
+  const source = `${movementSite}\n${movementContent}\n${movementAtlas}`;
   invariant(!FORBIDDEN_COPY.test(source), "runtime source contains rejected annual copy");
   invariant(!PROSPECT_BRANDS.test(source), "runtime source contains a prospect brand");
   for (const oldAsset of OLD_ASSETS) invariant(!source.includes(oldAsset), `runtime references rejected asset ${oldAsset}`);
+
+  const contentModuleUrl = pathToFileURL(path.join(ROOT, "src/movimento/movement-content.js"));
+  contentModuleUrl.searchParams.set("audit", String(Date.now()));
+  const contentModule = await import(contentModuleUrl.href);
+  invariant(contentModule.MOVEMENT_TERRITORIES?.length === 5, "atlas must expose five territories");
+  invariant(contentModule.PARTNER_FEATURED_GUESTS?.length === 6, "partner guest proof must expose six featured names");
+  invariant(contentModule.PARTNER_GUESTS?.length === 36, "partner guest list must expose 36 names");
+  for (const [audience, scenes] of [["influencer", contentModule.INFLUENCER_SCENES], ["partner", contentModule.PARTNER_SCENES]]) {
+    const groupedIds = contentModule.buildMovementTerritories(audience, scenes)
+      .flatMap(({ scenes: groupedScenes }) => groupedScenes.map(({ assetId }) => assetId));
+    invariant(groupedIds.length === scenes.length && new Set(groupedIds).size === scenes.length, `${audience} atlas must map every scene exactly once`);
+  }
+  invariant(/role="dialog" aria-modal="true"/.test(movementAtlas), "atlas detail must remain modal and accessible");
+  invariant(/PARTNER_GUESTS\.map/.test(movementAtlas), "partner guest list must remain rendered from curated content");
 
   const influencerSource = movementContent.split("export const PARTNER_SCENES")[0];
   invariant(!/Sua marca aqui|patrocin/i.test(influencerSource), "influencer content contains sponsor language");

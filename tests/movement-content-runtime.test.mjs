@@ -23,6 +23,7 @@ test("movement content overrides merge allowed hero and scene fields without mut
   const merged = applyMovementContentOverrides(base, [
     { sceneId: "INF-HERO", revision: 2, override: { imageUrl: "https://cdn.example/hero.webp", mobileImageUrl: "/hero-mobile.webp", imageOpacity: 0.64, eyebrow: "Um ano", title: "Novo título genérico", body: "Novo apoio", altText: "Novo alt", personalizedMessage: "não pode" } },
     { sceneId: "INF-01", revision: 3, override: { imageUrl: "/welcome.webp", imageOpacity: 2, eyebrow: "Chegada", title: "Você chegou", body: "Novo corpo", altText: "Nova chegada" } },
+    { sceneId: "INF-THEME-ARRIVAL", revision: 1, override: { backgroundColor: "#e9e1d3" } },
   ]);
 
   assert.deepEqual(merged.hero.override, {
@@ -36,6 +37,7 @@ test("movement content overrides merge allowed hero and scene fields without mut
   assert.equal(merged.hero.asset.alt, "Novo alt");
   assert.equal("personalizedMessage" in merged.hero, false);
   assert.deepEqual(merged.scenes[0].override, { imageUrl: "/welcome.webp", imageOpacity: 1 });
+  assert.deepEqual(merged.territoryBackgrounds, { arrival: "#E9E1D3" });
   assert.equal(merged.scenes[0].eyebrow, "Chegada");
   assert.equal(merged.scenes[0].title, "Você chegou");
   assert.equal(merged.scenes[0].text, "Novo corpo");

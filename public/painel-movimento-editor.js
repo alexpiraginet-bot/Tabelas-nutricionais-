@@ -9,7 +9,7 @@
     "INF-HERO": ["Capa", "Convite pessoal", "", "Grupo de convidadas chegando em roupa de treino ao lounge contemporâneo junto ao canal urbano de Vitória"],
     "INF-01": ["O cenário", "A cidade encontra a água — e a manhã ganha outra atmosfera.", "No Le Buffet Lounge, o canal, a marina e o skyline urbano desenham o cenário contemporâneo da celebração.", "Deck contemporâneo do lounge junto ao canal e à marina urbana preparado para a manhã Bentô"],
     "INF-02": ["Sua chegada", "A experiência pode começar antes mesmo da porta.", "Um transporte executivo premium, com motorista e embarque coordenado, poderá levar as convidadas ao lounge. A disponibilidade e a logística serão confirmadas mais perto do evento.", "Convidadas em roupa de treino chegando ao lounge em transporte executivo premium com motorista"],
-    "INF-03": ["Movimento", "Energia para começar. Sem cobrança de performance.", "Um aulão funcional com personal renomado — nome em confirmação — em estações organizadas para uma experiência natural e compartilhada.", "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas"],
+    "INF-03": ["Movimento", "Energia para começar. Sem cobrança de performance.", "Um aulão funcional conduzido por Jonatas Correa, em estações organizadas para uma experiência natural e compartilhada.", "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas"],
     "INF-04": ["Seu mundo também cabe aqui", "Oficina de decoração de picolés para as crianças, dentro do cerimonial.", "Uma criança de qualquer idade pode participar sempre acompanhada por um adulto responsável, enquanto a experiência acontece no mesmo lugar.", "Crianças acompanhadas por adultos decorando picolés em oficina organizada dentro do cerimonial"],
     "INF-05": ["Cuidado", "Depois do movimento, tempo para recuperar e conversar.", "Uma estação de recovery amplia a sensação de cuidado sem transformar a manhã em uma sequência de obrigações.", "Convidada em roupa de treino recebendo cuidado em uma estação elegante de recovery"],
     "INF-06": ["Feita para você", "Uma camiseta reservada ao seu lugar nesta manhã.", "Camiseta e roupa de treino são exclusivas da convidada. Uma possível surpresa infantil não é prometida.", "Composição editorial do kit e da camiseta de treino oficial reservados à convidada"],
@@ -25,7 +25,7 @@
     "PAR-01": ["Assinatura de chegada", "A marca pode receber antes mesmo da primeira conversa.", "Recepção, credenciamento e kit de boas-vindas formam um primeiro contato útil, elegante e integrado à experiência.", "Recepção de chegada com anfitriã entregando pulseira a convidadas junto a uma instalação arquitetônica dourada"],
     "PAR-02": ["Mobilidade premium", "A experiência pode começar no caminho.", "Uma marca automotiva premium pode conduzir convidadas em transporte executivo com motorista; modelo, rota, frota e operação dependem do escopo aprovado.", "Transporte executivo premium com motorista recebendo convidadas na chegada ao lounge"],
     "PAR-03": ["Hospitalidade", "O café da manhã pode carregar a assinatura de quem acolhe.", "Mesa, serviço, peças de apoio e conteúdo criam um território útil para uma participação de marca.", "Café da manhã editorial com áreas limpas para presença funcional de uma marca participante"],
-    "PAR-04": ["Movimento", "Garrafa, toalha e acessórios entram em uso real.", "A marca pode viver no treino por meio de pontos de contato funcionais, definidos depois da conversa de escopo.", "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real"],
+    "PAR-04": ["Movimento", "Garrafa, toalha e acessórios entram em uso real.", "Jonatas Correa conduz o treino, enquanto a marca pode participar por meio de pontos de contato funcionais definidos depois da conversa de escopo.", "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real"],
     "PAR-05": ["Recovery", "Cuidado também pode ter forma e função.", "Equipamentos, profissionais e materiais de recovery criam uma integração natural depois do aulão.", "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca"],
     "PAR-06": ["Família", "A oficina de decoração de picolés abre outro território de presença.", "Picolés prontos recebem decoração, materiais e acompanhamento dentro do cerimonial, sempre com adulto responsável.", "Oficina infantil de decoração de picolés com espaço organizado para uma participação de marca"],
     "PAR-07": ["Memória que acompanha", "Kit e camiseta transformam utilidade em lembrança.", "Ecobag, lancheira, press kit e região lombar da camiseta podem receber a composição coletiva aprovada.", "Kit editorial e camiseta oficial com área de composição coletiva abaixo da frase nas costas"],
@@ -55,7 +55,14 @@
       responsibleLine: "Uma proposta para responsável da empresa.",
     },
   };
-  var state = { audienceType: "influencer", sceneId: "INF-HERO", overrides: {}, drafts: {}, mediaStates: {}, loaded: false, loading: false, dirty: false, uploading: false, saving: false, crop: null, focusTarget: null, previewErrorKey: "" };
+  var territories = [
+    { id: "arrival", key: "ARRIVAL", number: "01", title: "Chegada", headline: "A experiência começa antes da primeira conversa.", backgroundColor: "#F2EDE4", summary: { influencer: "O canal, a marina e uma chegada coordenada abrem a manhã com atmosfera e acolhimento.", partner: "Recepção e mobilidade premium transformam o primeiro contato em uma assinatura útil de marca." }, sceneIds: { influencer: ["INF-01", "INF-02"], partner: ["PAR-01", "PAR-02"] } },
+    { id: "movement", key: "MOVEMENT", number: "02", title: "Movimento", headline: "A manhã começa em movimento, com Jonatas Correa.", backgroundColor: "#10291E", summary: { influencer: "Aulão funcional, camiseta e cuidado útil criam energia sem cobrança de performance.", partner: "Treino, acessórios em uso real e suplementação formam um território funcional de participação." }, sceneIds: { influencer: ["INF-03", "INF-06", "INF-11"], partner: ["PAR-04", "PAR-07", "PAR-13"] } },
+    { id: "hospitality", key: "HOSPITALITY", number: "03", title: "Hospitalidade", headline: "Hospitalidade para fazer as pessoas ficarem.", backgroundColor: "#FFFDF9", summary: { influencer: "Cafés especiais, café da manhã e o carrinho Bentô dão ritmo às conversas e aos encontros.", partner: "Serviço vivo, produto e presença contextual aproximam a marca de momentos reais de consumo." }, sceneIds: { influencer: ["INF-08", "INF-09", "INF-10"], partner: ["PAR-03", "PAR-11", "PAR-12"] } },
+    { id: "care", key: "CARE", number: "04", title: "Cuidado", headline: "Cuidado que continua depois do treino.", backgroundColor: "#EBE3D7", summary: { influencer: "Recovery, skincare, maquiagem e um espaço infantil acompanhado ampliam o cuidado da manhã.", partner: "Serviços profissionais e atenção às famílias criam integrações baseadas em utilidade e presença." }, sceneIds: { influencer: ["INF-05", "INF-12", "INF-14"], partner: ["PAR-05", "PAR-14", "PAR-16"] } },
+    { id: "creation", key: "CREATION", number: "05", title: "Criação e memória", headline: "O que se vive também pode acompanhar.", backgroundColor: "#F2EDE4", summary: { influencer: "Oficinas, celebração e produto transformam a experiência em uma memória feita com as mãos.", partner: "Oficinas, kits, backdrop e registro editorial prolongam a experiência sem virar feira de marcas." }, sceneIds: { influencer: ["INF-04", "INF-07", "INF-13"], partner: ["PAR-06", "PAR-08", "PAR-09", "PAR-10", "PAR-15"] } },
+  ];
+  var state = { audienceType: "influencer", territoryId: "cover", sceneId: "INF-HERO", overrides: {}, drafts: {}, mediaStates: {}, loaded: false, loading: false, dirty: false, uploading: false, saving: false, crop: null, focusTarget: null, previewErrorKey: "" };
   var elements = {};
   var REQUEST_TIMEOUT_MS = 15000;
 
@@ -71,6 +78,10 @@
       return audience.prefix + "-" + String(index + 1).padStart(2, "0");
     }));
   }
+  function territoryById(territoryId) { return territories.find(function (territory) { return territory.id === territoryId; }) || null; }
+  function territoryForScene(audienceType, sceneId) { return territories.find(function (territory) { return territory.sceneIds[audienceType].includes(sceneId); }) || null; }
+  function themeSceneId(audienceType, territory) { return (audienceType === "influencer" ? "INF" : "PAR") + "-THEME-" + territory.key; }
+  function activeTerritory() { return territoryById(state.territoryId); }
   function defaultImage(sceneId, mobile) {
     var hero = sceneId.endsWith("HERO");
     return "/movimento/v2/" + sceneId + "-" + (mobile ? "mobile-" + (hero ? "768" : "752") : "desktop-" + (hero ? "1440" : "1080")) + ".jpg";
@@ -88,7 +99,7 @@
     var audienceType = item.audience || item.audienceType;
     var source = item.override || item;
     var normalized = { audienceType: audienceType, sceneId: item.sceneId, revision: Number(item.revision || 0) };
-    ["imageUrl", "mobileImageUrl", "imageOpacity", "eyebrow", "title", "body", "altText"].forEach(function (field) {
+    ["imageUrl", "mobileImageUrl", "imageOpacity", "backgroundColor", "eyebrow", "title", "body", "altText"].forEach(function (field) {
       if (source[field] !== null && source[field] !== undefined) normalized[field] = source[field];
     });
     return normalized;
@@ -98,6 +109,12 @@
   function currentOverride() { return overrideFor(state.audienceType, state.sceneId); }
   function currentContent() { return contentFor(state.audienceType, state.sceneId); }
   function currentKey() { return entryKey(state.audienceType, state.sceneId); }
+  function currentThemeKey() { var territory = activeTerritory(); return territory ? entryKey(state.audienceType, themeSceneId(state.audienceType, territory)) : ""; }
+  function currentThemeContent() {
+    var territory = activeTerritory();
+    if (!territory) return null;
+    return Object.assign({ audienceType: state.audienceType, sceneId: themeSceneId(state.audienceType, territory), revision: 0, backgroundColor: territory.backgroundColor }, overrideFor(state.audienceType, themeSceneId(state.audienceType, territory)), state.drafts[currentThemeKey()] || {});
+  }
   function busy() { return state.loading || state.uploading || state.saving || Boolean(state.crop); }
   async function fetchWithTimeout(url, options) {
     var Controller = window.AbortController;
@@ -132,7 +149,7 @@
     state.focusTarget = null;
     target.focus();
   }
-  function discardCurrentDraft() { delete state.drafts[currentKey()]; state.dirty = false; }
+  function discardCurrentDraft() { delete state.drafts[currentKey()]; if (currentThemeKey()) delete state.drafts[currentThemeKey()]; state.dirty = false; }
   function canLeaveCurrentScene() {
     if (busy()) return false;
     if (!state.dirty) return true;
@@ -141,11 +158,20 @@
     return true;
   }
   function setDirty(value) { state.dirty = value; if (value) setStatus("Alterações não salvas."); }
-  function imageSource(content) {
+  function imageSource(content, sceneId) {
+    sceneId = sceneId || state.sceneId;
     if (content.mobileImageUrl) return content.mobileImageUrl;
-    var defaultDesktop = defaultImage(state.sceneId, false);
+    var defaultDesktop = defaultImage(sceneId, false);
     if (content.imageUrl && content.imageUrl !== defaultDesktop) return content.imageUrl;
-    return defaultImage(state.sceneId, true);
+    return defaultImage(sceneId, true);
+  }
+  function foregroundScheme(color) {
+    var match = /^#([0-9A-F]{6})$/i.exec(String(color || ""));
+    if (!match) return "dark";
+    var value = Number.parseInt(match[1], 16);
+    var red = (value >> 16) & 255; var green = (value >> 8) & 255; var blue = value & 255;
+    var luminance = (red * .2126 + green * .7152 + blue * .0722) / 255;
+    return luminance < .48 ? "light" : "dark";
   }
   function previewKey(source) { return currentKey() + "|" + source; }
   function currentPreviewState() {
@@ -220,13 +246,19 @@
   function renderPreview() {
     if (!elements.preview) return;
     var content = draftContent();
+    var territory = activeTerritory();
+    var theme = draftThemeContent() || currentThemeContent();
     elements.preview.style.setProperty("--mov-editor-opacity", String(content.imageOpacity));
+    if (territory && theme) {
+      elements.preview.style.setProperty("--mov-editor-background", theme.backgroundColor);
+      elements.preview.dataset.colorScheme = foregroundScheme(theme.backgroundColor);
+    }
     setPreviewSource(imageSource(content));
-    elements.previewEyebrow.textContent = content.eyebrow || "Capítulo";
-    elements.previewTitle.textContent = state.sceneId.endsWith("HERO") ? (state.audienceType === "partner" ? "Nome da empresa" : "Nome da convidada") : (content.title || "Título do capítulo");
-    elements.previewContext.textContent = state.sceneId.endsWith("HERO") ? heroDefaults[state.audienceType].responsibleLine : "";
-    elements.previewMessage.textContent = state.sceneId.endsWith("HERO") ? heroDefaults[state.audienceType].personalMessage : "";
-    elements.previewBody.textContent = content.body || "";
+    elements.previewEyebrow.textContent = territory ? territory.number + " · " + territory.title : (content.eyebrow || "Capítulo");
+    elements.previewTitle.textContent = territory ? territory.headline : (state.audienceType === "partner" ? "Nome da empresa" : "Nome da convidada");
+    elements.previewContext.textContent = territory ? "Editando: " + (content.eyebrow || "capítulo") : heroDefaults[state.audienceType].responsibleLine;
+    elements.previewMessage.textContent = territory ? "" : heroDefaults[state.audienceType].personalMessage;
+    elements.previewBody.textContent = territory ? territory.summary[state.audienceType] : (content.body || "");
   }
   function buildEditor() {
     var root = el("section", "mov-editor");
@@ -235,7 +267,7 @@
     elements.audience = document.createElement("select"); elements.audience.id = "movEditorAudience"; elements.audience.setAttribute("aria-label", "Público da apresentação");
     Object.keys(audiences).forEach(function (key) { var option = el("option", "", audiences[key].label); option.value = key; elements.audience.appendChild(option); });
     elements.audience.value = state.audienceType; elements.audience.disabled = busy();
-    elements.audience.addEventListener("change", function () { if (!canLeaveCurrentScene()) { elements.audience.value = state.audienceType; return; } state.audienceType = elements.audience.value; state.sceneId = sceneIds(state.audienceType)[0]; render(); });
+    elements.audience.addEventListener("change", function () { if (!canLeaveCurrentScene()) { elements.audience.value = state.audienceType; return; } state.audienceType = elements.audience.value; state.territoryId = "cover"; state.sceneId = sceneIds(state.audienceType)[0]; render(); });
     audienceLabel.appendChild(elements.audience); toolbar.appendChild(audienceLabel);
     toolbar.appendChild(el("p", "mov-editor-note", "Altere imagem e copy de cada capítulo. Nome, empresa e mensagem pessoal são definidos exclusivamente pelo link individual."));
     elements.status = el("p", "mov-editor-status"); elements.status.id = "movEditorStatus"; elements.status.setAttribute("aria-live", "polite"); toolbar.appendChild(elements.status);
@@ -260,9 +292,18 @@
     var range = elements.form.elements.namedItem("imageOpacity"); if (range) base.imageOpacity = Number(range.value);
     return base;
   }
+  function draftThemeContent() {
+    var theme = currentThemeContent();
+    if (!theme || !elements.form) return theme;
+    var input = elements.form.elements.namedItem("backgroundColor");
+    if (input) theme.backgroundColor = String(input.value || theme.backgroundColor).toUpperCase();
+    return theme;
+  }
   function rememberDraft() {
     if (!elements.form) return;
     state.drafts[currentKey()] = draftContent();
+    var theme = draftThemeContent();
+    if (theme) state.drafts[currentThemeKey()] = theme;
   }
   function render() {
     if (!elements.layout) return;
@@ -271,23 +312,46 @@
     if (elements.reload) elements.reload.disabled = busy();
     document.querySelectorAll("[data-mov-admin-tab]").forEach(function (button) { button.disabled = busy(); });
     elements.layout.replaceChildren();
+    var territoryNav = el("nav", "mov-editor-territories"); territoryNav.id = "movEditorTerritoryList"; territoryNav.setAttribute("aria-label", "Visão macro da apresentação");
+    [{ id: "cover", number: "", title: "Capa" }].concat(territories).forEach(function (territory) {
+      var active = territory.id === state.territoryId;
+      var label = territory.id === "cover" ? "Capa" : territory.number + " · " + territory.title;
+      var button = el("button", "mov-editor-territory" + (active ? " on" : ""), label);
+      button.id = "movEditorTerritory-" + territory.id; button.type = "button"; button.disabled = busy(); button.setAttribute("aria-current", active ? "true" : "false");
+      button.addEventListener("click", function () {
+        if (active || !canLeaveCurrentScene()) return;
+        state.territoryId = territory.id;
+        state.sceneId = territory.id === "cover" ? audiences[state.audienceType].prefix + "-HERO" : territory.sceneIds[state.audienceType][0];
+        render();
+      });
+      territoryNav.appendChild(button);
+    });
+    elements.layout.appendChild(territoryNav);
     var scenes = el("nav", "mov-editor-scenes"); scenes.id = "movEditorSceneList"; scenes.setAttribute("aria-label", "Capítulos da apresentação");
+    var territory = activeTerritory();
+    var visibleSceneIds = territory ? territory.sceneIds[state.audienceType] : [audiences[state.audienceType].prefix + "-HERO"];
     sceneIds(state.audienceType).forEach(function (sceneId, index) {
       var copy = baseScenes[sceneId] || [];
       var button = el("button", "mov-editor-scene" + (sceneId === state.sceneId ? " on" : ""), (index === 0 ? "Capa" : String(index).padStart(2, "0")) + " · " + (copy[0] || sceneId));
-      button.id = "movEditorScene-" + sceneId; button.type = "button"; button.disabled = busy(); button.setAttribute("aria-current", sceneId === state.sceneId ? "true" : "false");
-      button.addEventListener("click", function () { if (sceneId === state.sceneId) return; if (!canLeaveCurrentScene()) return; state.sceneId = sceneId; render(); }); scenes.appendChild(button);
+      button.id = "movEditorScene-" + sceneId; button.type = "button"; button.hidden = !visibleSceneIds.includes(sceneId); button.disabled = busy(); button.setAttribute("aria-current", sceneId === state.sceneId ? "true" : "false");
+      button.addEventListener("click", function () { if (sceneId === state.sceneId) return; if (!canLeaveCurrentScene()) return; state.sceneId = sceneId; var nextTerritory = territoryForScene(state.audienceType, sceneId); state.territoryId = nextTerritory ? nextTerritory.id : "cover"; render(); }); scenes.appendChild(button);
     });
     elements.layout.appendChild(scenes);
     var content = currentContent();
-    elements.preview = el("figure", "mov-editor-preview" + (state.sceneId.endsWith("HERO") ? " is-hero" : "")); elements.preview.id = "movEditorPreview"; elements.preview.style.setProperty("--mov-editor-opacity", String(content.imageOpacity));
+    elements.preview = el("figure", "mov-editor-preview" + (state.sceneId.endsWith("HERO") ? " is-hero" : " is-territory")); elements.preview.id = "movEditorPreview"; elements.preview.style.setProperty("--mov-editor-opacity", String(content.imageOpacity));
     elements.previewImage = document.createElement("img"); elements.previewImage.alt = "Prévia da imagem do capítulo"; elements.preview.appendChild(elements.previewImage); setPreviewSource(imageSource(content));
     var previewCopy = el("figcaption", "mov-editor-preview-copy"); elements.previewEyebrow = el("small", "", content.eyebrow || "Capítulo"); elements.previewTitle = el("strong", "", state.sceneId.endsWith("HERO") ? (state.audienceType === "partner" ? "Nome da empresa" : "Nome da convidada") : (content.title || "Título do capítulo")); elements.previewContext = el("span", "mov-editor-preview-context", state.sceneId.endsWith("HERO") ? heroDefaults[state.audienceType].responsibleLine : ""); elements.previewMessage = el("span", "mov-editor-preview-message", state.sceneId.endsWith("HERO") ? heroDefaults[state.audienceType].personalMessage : ""); elements.previewBody = el("p", "mov-editor-preview-body", content.body || ""); previewCopy.append(elements.previewEyebrow, elements.previewTitle, elements.previewContext, elements.previewMessage, elements.previewBody); elements.preview.appendChild(previewCopy); elements.layout.appendChild(elements.preview);
     elements.form = el("form", "mov-editor-form"); elements.form.id = "movEditorForm"; elements.form.noValidate = true;
     if (state.sceneId.endsWith("HERO")) {
       var lock = el("div", "mov-editor-lock"); lock.append(el("strong", "", "Nome e empresa são definidos pelo link."), document.createElement("br"), document.createTextNode("A mensagem nominal e a chamada de confirmação permanecem protegidas.")); elements.form.appendChild(lock);
     }
-    elements.form.append(fileInput("Foto principal", "imageUrl")); elements.form.append(fileInput("Versão vertical para iPhone (opcional)", "mobileImageUrl"));
+    if (territory) {
+      var theme = currentThemeContent(); var colorLabel = el("label", "mov-editor-color"); colorLabel.appendChild(document.createTextNode("Cor de fundo do card"));
+      var colorLine = el("span", "mov-editor-color-line"); var color = document.createElement("input"); color.type = "color"; color.name = "backgroundColor"; color.value = theme.backgroundColor; color.disabled = busy(); var colorValue = el("output", "", theme.backgroundColor);
+      color.addEventListener("input", function () { color.value = String(color.value).toUpperCase(); colorValue.textContent = color.value; var pending = currentThemeContent(); pending.backgroundColor = color.value; state.drafts[currentThemeKey()] = pending; setDirty(true); renderPreview(); });
+      colorLine.append(color, colorValue); colorLabel.appendChild(colorLine); elements.form.appendChild(colorLabel);
+    }
+    elements.form.append(fileInput("Foto principal deste tópico", "imageUrl")); elements.form.append(fileInput("Versão vertical para iPhone (opcional)", "mobileImageUrl"));
     var rangeLabel = el("label", "mov-editor-range"); rangeLabel.append(document.createTextNode("Intensidade da imagem")); var output = el("output", "", Math.round(content.imageOpacity * 100) + "%");
     var range = document.createElement("input"); range.type = "range"; range.name = "imageOpacity"; range.min = "0"; range.max = "1"; range.step = "0.01"; range.value = String(content.imageOpacity); range.disabled = busy(); range.addEventListener("input", function () { output.textContent = Math.round(Number(range.value) * 100) + "%"; setDirty(true); renderPreview(); }); rangeLabel.append(output, range); elements.form.appendChild(rangeLabel);
     elements.form.append(textInput("Texto superior", "eyebrow", false, 60));
@@ -309,6 +373,22 @@
     var hasCustomImage = content.imageUrl !== baseline.imageUrl || Boolean(content.mobileImageUrl);
     if (hasCustomImage) override.altText = content.altText;
     return override;
+  }
+  function collectThemeOverride(target, content) {
+    var territory = activeTerritory();
+    if (!territory || !content) return {};
+    var value = String(content.backgroundColor || territory.backgroundColor).toUpperCase();
+    var changed = value !== territory.backgroundColor;
+    var wasOverridden = Object.hasOwn(target.saved, "backgroundColor") && target.saved.backgroundColor != null;
+    if (!changed && !wasOverridden) return {};
+    return { backgroundColor: changed ? value : null };
+  }
+  async function persistOverride(target, override) {
+    var key = localStorage.getItem("bento:panelkey") || "";
+    var response = await fetchWithTimeout("/api/movimento-content", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + key }, body: JSON.stringify({ action: "save", audience: target.audienceType, sceneId: target.sceneId, revision: Number(target.saved.revision || 0), override: override }) });
+    var data = await response.json().catch(function () { return {}; });
+    if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
+    state.overrides[target.key] = normalizeItem(data.item || data.override || {});
   }
   async function load() {
     if (busy()) return;
@@ -431,15 +511,20 @@
     if (currentPreviewState() !== "valid") { setStatus("Aguarde a prévia carregar ou substitua a imagem com erro.", "error"); return; }
     var target = { audienceType: state.audienceType, sceneId: state.sceneId, key: currentKey(), saved: currentOverride() };
     var content = draftContent();
-    var override = collectOverride(target, content); if (!Object.keys(override).length) { setStatus("Nenhuma alteração para salvar."); return; }
+    var override = collectOverride(target, content);
+    var territory = activeTerritory();
+    var themeTarget = territory ? { audienceType: state.audienceType, sceneId: themeSceneId(state.audienceType, territory), key: currentThemeKey(), saved: overrideFor(state.audienceType, themeSceneId(state.audienceType, territory)) } : null;
+    var themeContent = draftThemeContent();
+    var themeOverride = themeTarget ? collectThemeOverride(themeTarget, themeContent) : {};
+    if (!Object.keys(override).length && !Object.keys(themeOverride).length) { setStatus("Nenhuma alteração para salvar."); return; }
     state.drafts[target.key] = content;
+    if (themeTarget && themeContent) state.drafts[themeTarget.key] = themeContent;
     if ((override.altText || "").trim() && override.altText.trim().length < 24) { setStatus("A descrição acessível precisa ter pelo menos 24 caracteres.", "error"); return; }
     state.saving = true; render(); setStatus("Salvando conteúdo…");
     try {
-      var key = localStorage.getItem("bento:panelkey") || "";
-      var response = await fetchWithTimeout("/api/movimento-content", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + key }, body: JSON.stringify({ action: "save", audience: target.audienceType, sceneId: target.sceneId, revision: Number(target.saved.revision || 0), override: override }) });
-      var data = await response.json().catch(function () { return {}; }); if (!response.ok) throw new Error(data.error || ("HTTP " + response.status));
-      state.overrides[target.key] = normalizeItem(data.item || data.override || {}); delete state.drafts[target.key]; state.dirty = false; elements.reload.hidden = true; setStatus("Salvo e pronto para a apresentação.", "saved");
+      if (Object.keys(override).length) await persistOverride(target, override);
+      if (themeTarget && Object.keys(themeOverride).length) await persistOverride(themeTarget, themeOverride);
+      delete state.drafts[target.key]; if (themeTarget) delete state.drafts[themeTarget.key]; state.dirty = false; elements.reload.hidden = true; setStatus("Salvo e pronto para a apresentação.", "saved");
     } catch (error) { elements.reload.hidden = false; setStatus((error && error.message) || "Não foi possível salvar o conteúdo.", "error"); }
     finally { state.saving = false; render(); }
   }

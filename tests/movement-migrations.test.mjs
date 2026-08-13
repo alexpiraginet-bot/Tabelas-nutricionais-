@@ -17,6 +17,7 @@ test("movement migrations have unique ordered versions and extend personalized i
     "20260812131439_bento_movement_content_function_search_path.sql",
     "20260812151801_bento_movement_invite_resend.sql",
     "20260812164902_bento_movement_invite_aliases.sql",
+    "20260813065755_bento_movement_territory_backgrounds.sql",
   ]);
 
   const versions = files.map((file) => file.split("_")[0]);
@@ -32,6 +33,7 @@ test("movement migrations have unique ordered versions and extend personalized i
   const content = sql[3];
   const resend = sql[5];
   const aliases = sql[6];
+  const territoryBackgrounds = sql[7];
   assert.match(personalized, /add column if not exists recipient_name text/i);
   assert.match(personalized, /add column if not exists company_name text/i);
   assert.match(personalized, /add column if not exists opened_at timestamptz/i);
@@ -98,4 +100,10 @@ test("movement migrations have unique ordered versions and extend personalized i
   assert.match(aliases, /enable row level security/i);
   assert.match(aliases, /revoke all on public\.movement_invite_aliases from anon, authenticated/i);
   assert.match(aliases, /grant select, insert, update on public\.movement_invite_aliases to service_role/i);
+  assert.match(territoryBackgrounds, /add column if not exists background_color text/i);
+  for (const theme of ["INF-THEME-ARRIVAL", "INF-THEME-CREATION", "PAR-THEME-ARRIVAL", "PAR-THEME-CREATION"]) {
+    assert.match(territoryBackgrounds, new RegExp(`'${theme}'`));
+  }
+  assert.match(territoryBackgrounds, /drop constraint if exists movement_presentation_content_background_color_check/i);
+  assert.match(territoryBackgrounds, /background_color is null or background_color ~ '\^#\[0-9A-Fa-f\]\{6\}\$'/i);
 });

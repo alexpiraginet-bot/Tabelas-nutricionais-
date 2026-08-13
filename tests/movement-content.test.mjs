@@ -24,9 +24,9 @@ test("movement presentations expose the confirmed event date and functional trai
     expectedGuests: "40 a 50 pessoas esperadas",
     location: "Le Buffet Lounge · Vitória, ES",
     time: "Horário em confirmação",
-    training: "Aulão funcional com personal renomado · nome em confirmação",
+    training: "Aulão funcional com Jonatas Correa",
   });
-  assert.ok(EXPERIENCE_STEPS.some(([title, text]) => title === "Aulão funcional" && text.includes("personal renomado")));
+  assert.ok(EXPERIENCE_STEPS.some(([title, text]) => title === "Aulão funcional" && text.includes("Jonatas Correa")));
 });
 
 test("movement presentations turn the approved experiences into visual chapters", () => {

@@ -29,7 +29,7 @@ function res() {
 
 const ROW = {
   audience_type: "influencer", scene_id: "INF-01", image_url: "/movimento/v2/inf-01.webp", mobile_image_url: null,
-  image_opacity: 0.6, eyebrow: "Chegada", title: "A manhã começa aqui", body: "Uma experiência de movimento e hospitalidade pensada para celebrar a Bentô.",
+  image_opacity: 0.6, background_color: "#E9E1D3", eyebrow: "Chegada", title: "A manhã começa aqui", body: "Uma experiência de movimento e hospitalidade pensada para celebrar a Bentô.",
   alt_text: "Convidadas chegando ao Le Buffet Lounge em uma manhã clara de celebração Bentô.", revision: 3,
 };
 
@@ -45,7 +45,7 @@ test("movement content public GET exposes only sanitized overrides and falls bac
   assert.deepEqual(out.payload.items, [{
     audience: "influencer", sceneId: "INF-01",
     override: {
-      imageUrl: "/movimento/v2/inf-01.webp", mobileImageUrl: null, imageOpacity: 0.6, eyebrow: "Chegada",
+      imageUrl: "/movimento/v2/inf-01.webp", mobileImageUrl: null, imageOpacity: 0.6, backgroundColor: "#E9E1D3", eyebrow: "Chegada",
       title: "A manhã começa aqui", body: "Uma experiência de movimento e hospitalidade pensada para celebrar a Bentô.",
       altText: "Convidadas chegando ao Le Buffet Lounge em uma manhã clara de celebração Bentô.",
     },
@@ -107,7 +107,7 @@ test("movement content admin save creates a new override at revision zero and pa
   assert.match(insert.url, /movement_presentation_content\?on_conflict=audience_type,scene_id$/);
   assert.equal(insert.options.method, "POST");
   assert.deepEqual(JSON.parse(insert.options.body), {
-    audience_type: "influencer", scene_id: "INF-01", image_url: null, mobile_image_url: null, image_opacity: null,
+    audience_type: "influencer", scene_id: "INF-01", image_url: null, mobile_image_url: null, image_opacity: null, background_color: null,
     eyebrow: null, title: "Nova visão", body: null, alt_text: null, revision: 1,
   });
   assert.equal(out.payload.item.revision, 1);
@@ -128,6 +128,31 @@ test("movement content admin save creates a new override at revision zero and pa
   assert.match(patchCalls[0].url, /audience_type=eq\.influencer&scene_id=eq\.INF-01&revision=eq\.3$/);
   assert.equal(patchCalls[0].options.method, "PATCH");
   assert.deepEqual(JSON.parse(patchCalls[0].options.body), { title: "Visão atualizada", revision: 4 });
+});
+
+test("movement content API stores a territory background independently from scene copy", async () => {
+  const calls = [];
+  const out = res();
+  await createMovementContentHandler({
+    env: ENV,
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url, options });
+      return response([{
+        audience_type: "partner", scene_id: "PAR-THEME-CARE", image_url: null, mobile_image_url: null,
+        image_opacity: null, background_color: "#10291E", eyebrow: null, title: null, body: null, alt_text: null, revision: 1,
+      }], 201);
+    },
+  })(req("POST", { token: "panel-test-key", body: {
+    action: "save", audience: "partner", sceneId: "PAR-THEME-CARE", revision: 0,
+    override: { backgroundColor: "#10291e" },
+  } }), out);
+
+  assert.equal(out.statusCode, 200);
+  assert.equal(JSON.parse(calls[0].options.body).background_color, "#10291E");
+  assert.deepEqual(out.payload.item.override, {
+    imageUrl: null, mobileImageUrl: null, imageOpacity: null, backgroundColor: "#10291E",
+    eyebrow: null, title: null, body: null, altText: null,
+  });
 });
 
 test("movement content rejects invalid/unpersonalized values, stale revisions, oversized bodies, and protects admin writes", async () => {

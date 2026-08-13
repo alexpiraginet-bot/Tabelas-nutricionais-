@@ -30,10 +30,14 @@ function normalizeOverride(value) {
   const imageOpacity = source.imageOpacity === null || source.imageOpacity === undefined || source.imageOpacity === ""
     ? Number.NaN
     : Number(source.imageOpacity);
+  const backgroundColor = typeof source.backgroundColor === "string" && /^#[0-9a-f]{6}$/i.test(source.backgroundColor.trim())
+    ? source.backgroundColor.trim().toUpperCase()
+    : undefined;
   return {
     imageUrl: editableImageUrl(source.imageUrl),
     mobileImageUrl: editableImageUrl(source.mobileImageUrl),
     imageOpacity: Number.isFinite(imageOpacity) ? Math.min(1, Math.max(0, imageOpacity)) : undefined,
+    backgroundColor,
     eyebrow: editableText(source.eyebrow),
     title: editableText(source.title),
     body: editableText(source.body),
@@ -80,9 +84,16 @@ function mergeEntry(entry, override, hero = false) {
 
 export function applyMovementContentOverrides(defaults, items) {
   const overrides = latestOverrides(items);
+  const territoryKeys = { ARRIVAL: "arrival", MOVEMENT: "movement", HOSPITALITY: "hospitality", CARE: "care", CREATION: "creation" };
+  const territoryBackgrounds = {};
+  for (const [sceneId, entry] of overrides) {
+    const match = /^(?:INF|PAR)-THEME-(ARRIVAL|MOVEMENT|HOSPITALITY|CARE|CREATION)$/.exec(sceneId);
+    if (match && entry.override.backgroundColor) territoryBackgrounds[territoryKeys[match[1]]] = entry.override.backgroundColor;
+  }
   return {
     hero: mergeEntry(defaults.hero, overrides.get(defaults.hero.asset.id)?.override, true),
     scenes: defaults.scenes.map((scene) => mergeEntry(scene, overrides.get(scene.assetId)?.override)),
+    territoryBackgrounds,
   };
 }
 

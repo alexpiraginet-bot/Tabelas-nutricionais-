@@ -216,12 +216,15 @@ test("Vercel resolves personal invitations before generic Movement routes with p
 test("the deterministic Movement audit rejects forbidden build output and leaked personal identity", () => {
   const fixture = generateFixture();
   try {
-    cpSync(new URL("../public/movimento/v2", import.meta.url), join(fixture, "public", "movimento", "v2"), { recursive: true });
+    cpSync(new URL("../public/movimento/v2", import.meta.url), join(fixture, "public", "movimento", "v2"), {
+      recursive: true,
+      filter: (source) => !/ 2\.(?:avif|jpe?g|webp)$/i.test(source),
+    });
     mkdirSync(join(fixture, "src", "movimento"), { recursive: true });
     copyFileSync(new URL("../vercel.json", import.meta.url), join(fixture, "vercel.json"));
     copyFileSync(new URL("../public/movimento/og-influenciadoras.jpg", import.meta.url), join(fixture, "public", "movimento", "og-influenciadoras.jpg"));
     copyFileSync(new URL("../public/movimento/og-parceiros.jpg", import.meta.url), join(fixture, "public", "movimento", "og-parceiros.jpg"));
-    for (const name of ["MovementSite.jsx", "movement-content.js"]) {
+    for (const name of ["MovementSite.jsx", "MovementStoryAtlas.jsx", "movement-content.js"]) {
       copyFileSync(new URL(`../src/movimento/${name}`, import.meta.url), join(fixture, "src", "movimento", name));
     }
     mkdirSync(join(fixture, "dist", "assets"), { recursive: true });

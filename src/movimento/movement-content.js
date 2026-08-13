@@ -6,7 +6,7 @@ export const EVENT = {
   expectedGuests: "40 a 50 pessoas esperadas",
   location: "Le Buffet Lounge · Vitória, ES",
   time: "Horário em confirmação",
-  training: "Aulão funcional com personal renomado · nome em confirmação",
+  training: "Aulão funcional com Jonatas Correa",
 };
 
 export const HERO_COPY = {
@@ -105,7 +105,7 @@ export const KIT_ITEMS = [
 ];
 
 export const EXPERIENCE_STEPS = [
-  ["Aulão funcional", "Uma prática acessível com personal renomado — nome em confirmação — para criar energia, não cobrança de performance."],
+  ["Aulão funcional", "Uma prática acessível com Jonatas Correa para criar energia, não cobrança de performance."],
   ["Café da manhã", "Hospitalidade, sabores Bentô e tempo para estar presente."],
   ["Conexão", "Boas conversas e uma memória compartilhada no primeiro aniversário."],
 ];
@@ -113,7 +113,7 @@ export const EXPERIENCE_STEPS = [
 export const INFLUENCER_SCENES = [
   visualScene({ id: "scenario", assetId: "INF-01", eyebrow: "O cenário", title: "A cidade encontra a água — e a manhã ganha outra atmosfera.", text: "No Le Buffet Lounge, o canal, a marina e o skyline urbano desenham o cenário contemporâneo da celebração.", alt: "Deck contemporâneo do lounge junto ao canal e à marina urbana preparado para a manhã Bentô" }),
   visualScene({ id: "welcome", assetId: "INF-02", eyebrow: "Sua chegada", title: "A experiência pode começar antes mesmo da porta.", text: "Um transporte executivo premium, com motorista e embarque coordenado, poderá levar as convidadas ao lounge. A disponibilidade e a logística serão confirmadas mais perto do evento.", alt: "Convidadas em roupa de treino chegando ao lounge em transporte executivo premium com motorista" }),
-  visualScene({ id: "training", assetId: "INF-03", eyebrow: "Movimento", title: "Energia para começar. Sem cobrança de performance.", text: "Um aulão funcional com personal renomado — nome em confirmação — em estações organizadas para uma experiência natural e compartilhada.", alt: "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas" }),
+  visualScene({ id: "training", assetId: "INF-03", eyebrow: "Movimento", title: "Energia para começar. Sem cobrança de performance.", text: "Um aulão funcional conduzido por Jonatas Correa, em estações organizadas para uma experiência natural e compartilhada.", alt: "Grupo de mulheres atléticas vivendo um aulão funcional natural em estações bem organizadas" }),
   visualScene({ id: "kids-workshop", assetId: "INF-04", eyebrow: "Seu mundo também cabe aqui", title: "Oficina de decoração de picolés para as crianças, dentro do cerimonial.", text: "Uma criança de qualquer idade pode participar sempre acompanhada por um adulto responsável, enquanto a experiência acontece no mesmo lugar.", alt: "Crianças acompanhadas por adultos decorando picolés em oficina organizada dentro do cerimonial" }),
   visualScene({ id: "recovery", assetId: "INF-05", eyebrow: "Cuidado", title: "Depois do movimento, tempo para recuperar e conversar.", text: "Uma estação de recovery amplia a sensação de cuidado sem transformar a manhã em uma sequência de obrigações.", alt: "Convidada em roupa de treino recebendo cuidado em uma estação elegante de recovery" }),
   visualScene({ id: "shirt-kit", assetId: "INF-06", eyebrow: "Feita para você", title: "Uma camiseta reservada ao seu lugar nesta manhã.", text: "Camiseta e roupa de treino são exclusivas da convidada. Uma possível surpresa infantil não é prometida.", alt: "Composição editorial do kit e da camiseta de treino oficial reservados à convidada" }),
@@ -131,7 +131,7 @@ export const PARTNER_SCENES = [
   visualScene({ id: "stage", assetId: "PAR-01", eyebrow: "Assinatura de chegada", title: "A marca pode receber antes mesmo da primeira conversa.", text: "Recepção, credenciamento e kit de boas-vindas formam um primeiro contato útil, elegante e integrado à experiência.", alt: "Recepção de chegada com anfitriã entregando pulseira a convidadas junto a uma instalação arquitetônica dourada" }),
   visualScene({ id: "mobility", assetId: "PAR-02", eyebrow: "Mobilidade premium", title: "A experiência pode começar no caminho.", text: "Uma marca automotiva premium pode conduzir convidadas em transporte executivo com motorista; modelo, rota, frota e operação dependem do escopo aprovado.", alt: "Transporte executivo premium com motorista recebendo convidadas na chegada ao lounge" }),
   visualScene({ id: "breakfast", assetId: "PAR-03", eyebrow: "Hospitalidade", title: "O café da manhã pode carregar a assinatura de quem acolhe.", text: "Mesa, serviço, peças de apoio e conteúdo criam um território útil para uma participação de marca.", alt: "Café da manhã editorial com áreas limpas para presença funcional de uma marca participante" }),
-  visualScene({ id: "movement", assetId: "PAR-04", eyebrow: "Movimento", title: "Garrafa, toalha e acessórios entram em uso real.", text: "A marca pode viver no treino por meio de pontos de contato funcionais, definidos depois da conversa de escopo.", alt: "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real" }),
+  visualScene({ id: "movement", assetId: "PAR-04", eyebrow: "Movimento", title: "Garrafa, toalha e acessórios entram em uso real.", text: "Jonatas Correa conduz o treino, enquanto a marca pode participar por meio de pontos de contato funcionais definidos depois da conversa de escopo.", alt: "Aulão funcional natural com materiais que podem receber aplicações de parceiros em uso real" }),
   visualScene({ id: "recovery", assetId: "PAR-05", eyebrow: "Recovery", title: "Cuidado também pode ter forma e função.", text: "Equipamentos, profissionais e materiais de recovery criam uma integração natural depois do aulão.", alt: "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca" }),
   visualScene({ id: "kids-workshop", assetId: "PAR-06", eyebrow: "Família", title: "A oficina de decoração de picolés abre outro território de presença.", text: "Picolés prontos recebem decoração, materiais e acompanhamento dentro do cerimonial, sempre com adulto responsável.", alt: "Oficina infantil de decoração de picolés com espaço organizado para uma participação de marca" }),
   visualScene({ id: "shirt-kit", assetId: "PAR-07", eyebrow: "Memória que acompanha", title: "Kit e camiseta transformam utilidade em lembrança.", text: "Ecobag, lancheira, press kit e região lombar da camiseta podem receber a composição coletiva aprovada.", alt: "Kit editorial e camiseta oficial com área de composição coletiva abaixo da frase nas costas" }),
@@ -154,3 +154,167 @@ export const PARTNER_TIERS = [
 ];
 
 export const PARTNER_PARTICIPATION_NOTE = "Founding Circle refere-se exclusivamente à participação nesta celebração. Nenhuma opção promete preço, exclusividade, alcance, publicação, categoria protegida ou continuidade anual. A escolha registra interesse e não constitui reserva ou contrato.";
+
+export const MOVEMENT_TERRITORIES = [
+  {
+    id: "arrival",
+    number: "01",
+    slug: "chegada",
+    title: "Chegada",
+    backgroundColor: "#F2EDE4",
+    headline: "A experiência começa antes da primeira conversa.",
+    summary: {
+      influencer: "O canal, a marina e uma chegada coordenada abrem a manhã com atmosfera e acolhimento.",
+      partner: "Recepção e mobilidade premium transformam o primeiro contato em uma assinatura útil de marca.",
+    },
+    sceneIds: { influencer: ["INF-01", "INF-02"], partner: ["PAR-01", "PAR-02"] },
+  },
+  {
+    id: "movement",
+    number: "02",
+    slug: "movimento",
+    title: "Movimento",
+    backgroundColor: "#10291E",
+    headline: "A manhã começa em movimento, com Jonatas Correa.",
+    summary: {
+      influencer: "Aulão funcional, camiseta e cuidado útil criam energia sem cobrança de performance.",
+      partner: "Treino, acessórios em uso real e suplementação formam um território funcional de participação.",
+    },
+    sceneIds: { influencer: ["INF-03", "INF-06", "INF-11"], partner: ["PAR-04", "PAR-07", "PAR-13"] },
+  },
+  {
+    id: "hospitality",
+    number: "03",
+    slug: "hospitalidade",
+    title: "Hospitalidade",
+    backgroundColor: "#FFFDF9",
+    headline: "Hospitalidade para fazer as pessoas ficarem.",
+    summary: {
+      influencer: "Cafés especiais, café da manhã e o carrinho Bentô dão ritmo às conversas e aos encontros.",
+      partner: "Serviço vivo, produto e presença contextual aproximam a marca de momentos reais de consumo.",
+    },
+    sceneIds: { influencer: ["INF-08", "INF-09", "INF-10"], partner: ["PAR-03", "PAR-11", "PAR-12"] },
+  },
+  {
+    id: "care",
+    number: "04",
+    slug: "cuidado",
+    title: "Cuidado",
+    backgroundColor: "#EBE3D7",
+    headline: "Cuidado que continua depois do treino.",
+    summary: {
+      influencer: "Recovery, skincare, maquiagem e um espaço infantil acompanhado ampliam o cuidado da manhã.",
+      partner: "Serviços profissionais e atenção às famílias criam integrações baseadas em utilidade e presença.",
+    },
+    sceneIds: { influencer: ["INF-05", "INF-12", "INF-14"], partner: ["PAR-05", "PAR-14", "PAR-16"] },
+  },
+  {
+    id: "creation",
+    number: "05",
+    slug: "criacao-e-memoria",
+    title: "Criação e memória",
+    backgroundColor: "#F2EDE4",
+    headline: "O que se vive também pode acompanhar.",
+    summary: {
+      influencer: "Oficinas, celebração e produto transformam a experiência em uma memória feita com as mãos.",
+      partner: "Oficinas, kits, backdrop e registro editorial prolongam a experiência sem virar feira de marcas.",
+    },
+    sceneIds: { influencer: ["INF-04", "INF-07", "INF-13"], partner: ["PAR-06", "PAR-08", "PAR-09", "PAR-10", "PAR-15"] },
+  },
+];
+
+export const PARTNER_GUESTS = [
+  "Ludmilla Telles",
+  "Rayanni Thomazini",
+  "Gabriela Fonseca",
+  "Ana Clara Santos",
+  "Julia Sette",
+  "Bianca Romanha",
+  "Beatriz Amaral",
+  "Talita Romagna",
+  "Gabriella Rosa",
+  "Melyssa Viana",
+  "Italla Baptisti",
+  "Lilian Bonatto",
+  "Bruna Machado",
+  "Carolina Neves",
+  "Juliane Neves",
+  "Lara Martinelle",
+  "Aline Mareto",
+  "Lorrayne Colodetti",
+  "Barbara Ferretti",
+  "Rafaela Sterquino",
+  "Marina Coser",
+  "Bárbara Pancotto",
+  "Isadora Binow",
+  "Mylena Personal",
+  "Luna Lubiana",
+  "Nicolle Fiorot",
+  "Ana Lara Grassi",
+  "Natalia Catelan",
+  "Sara Broedel",
+  "Sarah Esteves",
+  "Natalia Rody",
+  "Ana Carolina Nutri",
+  "Alexia Mariano",
+  "Beatriz Scaramussa",
+  "Soraya Honorio",
+  "Brunella Simão",
+];
+
+export const PARTNER_FEATURED_GUESTS = [
+  "Aline Mareto",
+  "Isadora Binow",
+  "Sara Broedel",
+  "Rayanni Thomazini",
+  "Lara Martinelle",
+  "Bianca Romanha",
+];
+
+const MOVEMENT_HASH_TARGETS = new Map([
+  ["#chegada", { territoryId: "arrival", sceneId: null }],
+  ["#mobilidade", { territoryId: "arrival", sceneId: "PAR-02" }],
+  ["#movimento", { territoryId: "movement", sceneId: null }],
+  ["#hospitalidade", { territoryId: "hospitality", sceneId: null }],
+  ["#cuidado", { territoryId: "care", sceneId: null }],
+  ["#criacao-e-memoria", { territoryId: "creation", sceneId: null }],
+]);
+
+const TERRITORY_THEME_KEYS = Object.freeze({ arrival: "ARRIVAL", movement: "MOVEMENT", hospitality: "HOSPITALITY", care: "CARE", creation: "CREATION" });
+
+export function movementTerritoryThemeSceneId(audience, territoryId) {
+  const prefix = audience === "influencer" ? "INF" : audience === "partner" ? "PAR" : "";
+  const key = TERRITORY_THEME_KEYS[territoryId];
+  return prefix && key ? `${prefix}-THEME-${key}` : "";
+}
+
+export function movementForegroundScheme(backgroundColor) {
+  const match = /^#([0-9a-f]{6})$/i.exec(String(backgroundColor || ""));
+  if (!match) return "dark";
+  const channels = [0, 2, 4].map((offset) => Number.parseInt(match[1].slice(offset, offset + 2), 16) / 255)
+    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
+  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  const darkContrast = (luminance + 0.05) / 0.058;
+  const lightContrast = 1.05 / (luminance + 0.05);
+  return lightContrast > darkContrast ? "light" : "dark";
+}
+
+export function buildMovementTerritories(audience, scenes, territoryBackgrounds = {}) {
+  if (!Object.hasOwn(MOVEMENT_TERRITORIES[0].sceneIds, audience)) return [];
+  const byAssetId = new Map(scenes.map((scene) => [scene.assetId, scene]));
+  return MOVEMENT_TERRITORIES.map((territory) => {
+    const backgroundColor = territoryBackgrounds[territory.id] || territory.backgroundColor;
+    return {
+      ...territory,
+      backgroundColor,
+      colorScheme: movementForegroundScheme(backgroundColor),
+      summary: territory.summary[audience],
+      scenes: territory.sceneIds[audience].map((assetId) => byAssetId.get(assetId)).filter(Boolean),
+    };
+  });
+}
+
+export function resolveMovementStoryHash(hash) {
+  if (typeof hash !== "string") return null;
+  return MOVEMENT_HASH_TARGETS.get(hash.trim().toLowerCase()) || null;
+}

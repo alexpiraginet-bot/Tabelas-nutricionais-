@@ -236,6 +236,7 @@ function createHarness({
     findById: (id) => document.getElementById(id),
     findByName: (name) => findAll(host, (node) => node.name === name)[0],
     sceneButtons: () => findAll(host, (node) => node.tagName === "BUTTON" && node.className.split(/\s+/).includes("mov-editor-scene")),
+    territoryButtons: () => findAll(host, (node) => node.tagName === "BUTTON" && node.className.split(/\s+/).includes("mov-editor-territory")),
   };
 }
 
@@ -257,6 +258,34 @@ test("editor renders all 32 scene families and ignores null override fields when
   assert.equal(harness.findByName("title").value, "Título salvo");
   assert.match(harness.findByName("body").value, /Le Buffet Lounge/);
   assert.equal(harness.findByName("imageOpacity").value, "1");
+});
+
+test("editor mirrors the current cover plus five horizontal territories and saves each background independently", async () => {
+  const calls = [];
+  const harness = createHarness({ fetchImpl: async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items: [] });
+    const body = JSON.parse(options.body);
+    return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 1, override: body.override } });
+  } });
+  await openEditor(harness);
+
+  assert.equal(harness.territoryButtons().length, 6);
+  assert.match(harness.territoryButtons()[0].textContent, /Capa/);
+  assert.match(harness.territoryButtons()[1].textContent, /Chegada/);
+  await harness.territoryButtons()[1].click();
+  assert.match(harness.findById("movEditorPreview").className, /is-territory/);
+  assert.match(editorCss, /\.mov-editor-preview\.is-territory\{[^}]*aspect-ratio:16\/9/);
+  assert.equal(harness.sceneButtons().filter((button) => !button.hidden).length, 2);
+
+  const background = harness.findByName("backgroundColor");
+  assert.equal(background.value.toUpperCase(), "#F2EDE4");
+  background.value = "#e9e1d3";
+  await background.dispatch("input");
+  await harness.findById("movEditorForm").dispatch("submit");
+  const payload = JSON.parse(calls.find(({ url }) => url === "/api/movimento-content").options.body);
+  assert.equal(payload.sceneId, "INF-THEME-ARRIVAL");
+  assert.deepEqual(payload.override, { backgroundColor: "#E9E1D3" });
 });
 
 test("failed save preserves the live draft and offers an authenticated reload path", async () => {
@@ -660,14 +689,14 @@ test("a failed preview blocks save until the same media loads successfully", asy
   assert.doesNotMatch(harness.findById("movEditorPreview").className, /error/);
 });
 
-test("hero preview uses an iPhone viewport ratio while regular scenes remain four by five", async () => {
+test("hero preview uses an iPhone viewport ratio while macro territories use the horizontal deck ratio", async () => {
   const harness = createHarness();
   await openEditor(harness);
   assert.match(harness.findById("movEditorPreview").className, /is-hero/);
-  await harness.sceneButtons()[1].click();
-  assert.doesNotMatch(harness.findById("movEditorPreview").className, /is-hero/);
+  await harness.territoryButtons()[1].click();
+  assert.match(harness.findById("movEditorPreview").className, /is-territory/);
   assert.match(editorCss, /\.mov-editor-preview\.is-hero\{aspect-ratio:390\/844\}/);
-  assert.match(editorCss, /\.mov-editor-preview\{[^}]*aspect-ratio:4\/5/);
+  assert.match(editorCss, /\.mov-editor-preview\.is-territory\{[^}]*aspect-ratio:16\/9/);
 });
 
 test("save restores focus to the replacement action after asynchronous re-render", async () => {

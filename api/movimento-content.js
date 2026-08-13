@@ -3,6 +3,7 @@ import { readMovementJsonBody } from "../lib/movement-invite.mjs";
 import {
   movementOverrideInsertRow,
   movementOverridePatchRow,
+  isMovementThemeScene,
   sanitizeMovementContentOverride,
   sanitizeMovementContentRows,
   validateMovementContentTarget,
@@ -11,7 +12,7 @@ import { verifyMovementMediaUrl } from "../lib/movement-media-verification.mjs";
 import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 const TABLE = "movement_presentation_content";
-const SELECT = "audience_type,scene_id,image_url,mobile_image_url,image_opacity,eyebrow,title,body,alt_text,revision";
+const SELECT = "audience_type,scene_id,image_url,mobile_image_url,image_opacity,background_color,eyebrow,title,body,alt_text,revision";
 
 function panelAuthorized(req, env) {
   const expected = String(env.PANEL_KEY || "");
@@ -126,6 +127,11 @@ export function createMovementContentHandler({ fetchImpl = fetch, env = process.
     if (body.action !== "save") { res.status(400).json({ ok: false, error: "Ação inválida." }); return; }
     const override = sanitizeMovementContentOverride(body.override, env, { partial: body.revision > 0 });
     if (!override.ok) { res.status(400).json({ ok: false, error: override.error }); return; }
+    const overrideFields = Object.keys(override.value);
+    if (isMovementThemeScene(target.value.sceneId) ? overrideFields.some((field) => field !== "backgroundColor") : overrideFields.includes("backgroundColor")) {
+      res.status(400).json({ ok: false, error: "Configuração de território inválida." });
+      return;
+    }
 
     const remoteMedia = [...new Set([override.value.imageUrl, override.value.mobileImageUrl]
       .filter((url) => typeof url === "string" && url.startsWith("https://")))];

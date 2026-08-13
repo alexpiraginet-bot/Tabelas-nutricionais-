@@ -163,7 +163,7 @@ test("runtime uses art-directed picture sources with exactly one priority hero",
   assert.match(site, /<source type="image\/avif"/);
   assert.match(site, /<source type="image\/webp"/);
   assert.match(site, /loading=\{priority \? "eager" : "lazy"\}/);
-  assert.match(site, /fetchPriority=\{priority \? "high" : "auto"\}/);
+  assert.match(site, /fetchpriority=\{priority \? "high" : undefined\}/);
   assert.match(site, /decoding="async"/);
   assert.match(site, /const \[mediaReady, setMediaReady\] = useState\(priority\);/);
   assert.match(site, /new IntersectionObserver\(/);
