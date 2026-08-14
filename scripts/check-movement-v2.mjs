@@ -140,7 +140,7 @@ async function assertSourceAndBuild() {
   contentModuleUrl.searchParams.set("audit", String(Date.now()));
   const contentModule = await import(contentModuleUrl.href);
   invariant(contentModule.MOVEMENT_TERRITORIES?.length === 5, "atlas must expose five territories");
-  invariant(contentModule.PARTNER_FEATURED_GUESTS?.length === 6, "partner guest proof must expose six featured names");
+  invariant(contentModule.PARTNER_FEATURED_GUESTS?.length === 9, "partner guest proof must expose nine featured profiles");
   invariant(contentModule.PARTNER_GUESTS?.length === 36, "partner guest list must expose 36 names");
   for (const [audience, scenes] of [["influencer", contentModule.INFLUENCER_SCENES], ["partner", contentModule.PARTNER_SCENES]]) {
     const groupedIds = contentModule.buildMovementTerritories(audience, scenes)

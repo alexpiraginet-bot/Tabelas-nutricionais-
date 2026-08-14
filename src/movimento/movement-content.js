@@ -263,12 +263,15 @@ export const PARTNER_GUESTS = [
 ];
 
 export const PARTNER_FEATURED_GUESTS = [
-  "Aline Mareto",
-  "Isadora Binow",
-  "Sara Broedel",
-  "Rayanni Thomazini",
-  "Lara Martinelle",
-  "Bianca Romanha",
+  { name: "Aline Mareto", handle: "@alinemareto", image: "/movimento/guests/aline-mareto.webp", instagramUrl: "https://www.instagram.com/alinemareto/" },
+  { name: "Isadora Binow", handle: "@isa_binow", image: "/movimento/guests/isadora-binow.webp", instagramUrl: "https://www.instagram.com/isa_binow/" },
+  { name: "Sara Broedel", handle: "@sarabroedel", image: "/movimento/guests/sara-broedel.webp", instagramUrl: "https://www.instagram.com/sarabroedel/" },
+  { name: "Rayanni Thomazini", handle: "@rayannithomazini", image: "/movimento/guests/rayanni-thomazini.webp", instagramUrl: "https://www.instagram.com/rayannithomazini/" },
+  { name: "Lara Martinelle", handle: "@lara.martinelle", image: "/movimento/guests/lara-martinelle.webp", instagramUrl: "https://www.instagram.com/lara.martinelle/" },
+  { name: "Bianca Romanha", handle: "@biancaromanha_", image: "/movimento/guests/bianca-romanha.webp", instagramUrl: "https://www.instagram.com/biancaromanha_/" },
+  { name: "Italla Baptisti", handle: "@italla", image: "/movimento/guests/italla-baptisti.webp", instagramUrl: "https://www.instagram.com/italla/" },
+  { name: "Carolina Neves", handle: "@carolinaneves_", image: "/movimento/guests/carolina-neves.webp", instagramUrl: "https://www.instagram.com/carolinaneves_/" },
+  { name: "Marina Coser", handle: "@marinacoser", image: "/movimento/guests/marina-coser.webp", instagramUrl: "https://www.instagram.com/marinacoser/" },
 ];
 
 const MOVEMENT_HASH_TARGETS = new Map([

@@ -11,7 +11,7 @@ import { useMovementInvite } from "./useMovementInvite.js";
 import { resolveMovementMediaOverride, useMovementContent } from "./useMovementContent.js";
 import PartnerInterestFlow from "./PartnerInterestFlow.jsx";
 import RsvpFlow from "./RsvpFlow.jsx";
-import MovementStoryAtlas, { PartnerGuestProof } from "./MovementStoryAtlas.jsx";
+import MovementStoryAtlas, { OrganicLine, PartnerGuestProof } from "./MovementStoryAtlas.jsx";
 import {
   EVENT,
   HERO_COPY,
@@ -118,6 +118,7 @@ function Hero({ audience, invite, personal, content }) {
   return <section className={`mv-hero mv-hero-v2 ${audience === "partner" ? "is-partner" : ""}`}>
     <ScenePicture asset={heroAsset} priority/>
     <div className="mv-hero-wash"/>
+    <OrganicLine className="mv-organic-line-hero"/>
     <div className="mv-hero-copy">
       <span className="mv-kicker">{kicker}</span>
       {personal ? <><h1 className="mv-hero-identity">{identity}</h1><p className="mv-hero-personal-message">{fixedCopy.personalizedMessage}</p></> : <h1 className="mv-hero-generic-title">{copy.fallbackTitle}</h1>}
@@ -125,7 +126,6 @@ function Hero({ audience, invite, personal, content }) {
       <p className="mv-hero-support">{copy.text}</p>
       {showHeroCta && <a className="mv-hero-cta" href={ctaTarget} hidden={partnerPersonal} aria-hidden={partnerPersonal} tabIndex={partnerPersonal ? -1 : undefined}>{copy.cta}<ArrowDown size={18}/></a>}
     </div>
-    <span className="mv-ai-disclosure">{heroAsset.disclosure}</span>
   </section>;
 }
 
@@ -142,7 +142,7 @@ function EventFacts({ partner = false }) {
 }
 
 function Intro({ partner = false }) {
-  return <section className="mv-story-intro"><div className="mv-story-intro-copy"><span className="mv-kicker">{partner ? "Uma ideia por capítulo" : "Uma manhã em capítulos"}</span><h2>{partner ? <>Participação com<br/><em>função real.</em></> : <>O lugar que só<br/><em>você ocupa.</em></>}</h2><p>{partner ? "A apresentação mostra formas de participar da celebração com utilidade, cuidado e memória." : "Cada capítulo revela uma parte da manhã que vamos guardar na memória."}</p></div><EventFacts partner={partner}/></section>;
+  return <section className="mv-story-intro"><OrganicLine className="mv-organic-line-intro"/><div className="mv-story-intro-copy"><span className="mv-kicker">{partner ? "Uma ideia por capítulo" : "Uma manhã em capítulos"}</span><h2>{partner ? <>Participação com<br/><em>função real.</em></> : <>O lugar que só<br/><em>você ocupa.</em></>}</h2><p>{partner ? "A apresentação mostra formas de participar da celebração com utilidade, cuidado e memória." : "Cada capítulo revela uma parte da manhã que vamos guardar na memória."}</p></div><EventFacts partner={partner}/></section>;
 }
 
 function PartnerTiers() {
@@ -150,16 +150,16 @@ function PartnerTiers() {
 }
 
 function InvitationSheetHandoff({ audience, token, currentPartnerLead }) {
-  if (audience === "influencer") return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua confirmação começa aqui.</h2><p>Você pode revisar, enviar e editar sua resposta nesta mesma superfície.</p></section>;
-  return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua seleção será aberta aqui.</h2><p>A identidade e a seleção já resolvidas serão entregues na mesma superfície.</p><span hidden>{currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
+  if (audience === "influencer") return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua confirmação começa aqui.</h2><p>Você pode revisar, enviar e editar sua resposta nesta mesma superfície.</p></section>;
+  return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua seleção será aberta aqui.</h2><p>A identidade e a seleção já resolvidas serão entregues na mesma superfície.</p><span hidden>{currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
 }
 
 function InfluencerStory({ personal, token, scenes, territoryBackgrounds }) {
-  return <><Intro/><MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} PictureComponent={ScenePicture}/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
+  return <><Intro/><MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} PictureComponent={ScenePicture}/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
 }
 
 function PartnerStory({ personal, token, currentPartnerLead, scenes, territoryBackgrounds, companyName }) {
-  return <><Intro partner/><MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} companyName={companyName} PictureComponent={ScenePicture}/><PartnerGuestProof/><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+  return <><Intro partner/><MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} companyName={companyName} PictureComponent={ScenePicture}/><PartnerGuestProof/><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
 }
 
 function MovementPresentation({ audience, personal, token, invite, currentRsvp, currentPartnerLead }) {
