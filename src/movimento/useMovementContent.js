@@ -25,6 +25,13 @@ export function resolveMovementMediaOverride(value, failed = false) {
   };
 }
 
+function editableFontScale(value) {
+  if (value === null || value === undefined || value === "") return undefined;
+  const scale = Number(value);
+  // mesma faixa validada no servidor (MOVEMENT_FONT_SCALE_RANGE) e na constraint do banco
+  return Number.isFinite(scale) ? Math.min(1.5, Math.max(0.7, scale)) : undefined;
+}
+
 function normalizeOverride(value) {
   const source = value && typeof value === "object" ? value : {};
   const imageOpacity = source.imageOpacity === null || source.imageOpacity === undefined || source.imageOpacity === ""
@@ -38,6 +45,8 @@ function normalizeOverride(value) {
     mobileImageUrl: editableImageUrl(source.mobileImageUrl),
     imageOpacity: Number.isFinite(imageOpacity) ? Math.min(1, Math.max(0, imageOpacity)) : undefined,
     backgroundColor,
+    titleScale: editableFontScale(source.titleScale),
+    bodyScale: editableFontScale(source.bodyScale),
     eyebrow: editableText(source.eyebrow),
     title: editableText(source.title),
     body: editableText(source.body),
@@ -79,6 +88,8 @@ function mergeEntry(entry, override, hero = false) {
     alt,
     asset: { ...entry.asset, alt },
     override: mediaOverride,
+    ...(override.titleScale === undefined ? {} : { titleScale: override.titleScale }),
+    ...(override.bodyScale === undefined ? {} : { bodyScale: override.bodyScale }),
   };
 }
 
@@ -86,14 +97,21 @@ export function applyMovementContentOverrides(defaults, items) {
   const overrides = latestOverrides(items);
   const territoryKeys = { ARRIVAL: "arrival", MOVEMENT: "movement", HOSPITALITY: "hospitality", CARE: "care", CREATION: "creation" };
   const territoryBackgrounds = {};
+  const territoryTypeScales = {};
   for (const [sceneId, entry] of overrides) {
     const match = /^(?:INF|PAR)-THEME-(ARRIVAL|MOVEMENT|HOSPITALITY|CARE|CREATION)$/.exec(sceneId);
-    if (match && entry.override.backgroundColor) territoryBackgrounds[territoryKeys[match[1]]] = entry.override.backgroundColor;
+    if (!match) continue;
+    const territoryId = territoryKeys[match[1]];
+    if (entry.override.backgroundColor) territoryBackgrounds[territoryId] = entry.override.backgroundColor;
+    if (entry.override.titleScale !== undefined || entry.override.bodyScale !== undefined) {
+      territoryTypeScales[territoryId] = { title: entry.override.titleScale, body: entry.override.bodyScale };
+    }
   }
   return {
     hero: mergeEntry(defaults.hero, overrides.get(defaults.hero.asset.id)?.override, true),
     scenes: defaults.scenes.map((scene) => mergeEntry(scene, overrides.get(scene.assetId)?.override)),
     territoryBackgrounds,
+    territoryTypeScales,
   };
 }
 

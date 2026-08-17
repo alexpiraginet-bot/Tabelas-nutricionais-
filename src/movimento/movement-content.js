@@ -302,7 +302,7 @@ export function movementForegroundScheme(backgroundColor) {
   return lightContrast > darkContrast ? "light" : "dark";
 }
 
-export function buildMovementTerritories(audience, scenes, territoryBackgrounds = {}) {
+export function buildMovementTerritories(audience, scenes, territoryBackgrounds = {}, territoryTypeScales = {}) {
   if (!Object.hasOwn(MOVEMENT_TERRITORIES[0].sceneIds, audience)) return [];
   const byAssetId = new Map(scenes.map((scene) => [scene.assetId, scene]));
   return MOVEMENT_TERRITORIES.map((territory) => {
@@ -312,6 +312,7 @@ export function buildMovementTerritories(audience, scenes, territoryBackgrounds 
       backgroundColor,
       colorScheme: movementForegroundScheme(backgroundColor),
       summary: territory.summary[audience],
+      typeScale: territoryTypeScales[territory.id] || {},
       scenes: territory.sceneIds[audience].map((assetId) => byAssetId.get(assetId)).filter(Boolean),
     };
   });
