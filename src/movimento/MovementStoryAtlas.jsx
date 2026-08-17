@@ -14,6 +14,15 @@ function sceneAsset(scene) {
   return { ...scene.asset, override: scene.override };
 }
 
+// Escalas de fonte editadas no painel viram CSS vars; sem edição, o var não
+// existe e o CSS cai no padrão 1. Título e texto têm vars separados.
+export function typeScaleStyle(titleScale, bodyScale, prefix = "--mv-fs") {
+  return {
+    ...(typeof titleScale === "number" ? { [`${prefix}-t`]: titleScale } : {}),
+    ...(typeof bodyScale === "number" ? { [`${prefix}-b`]: bodyScale } : {}),
+  };
+}
+
 export function OrganicLine({ direction = "horizontal", className = "" }) {
   const vertical = direction === "vertical";
   return <img
@@ -74,7 +83,7 @@ function StoryDetailDialog({ territory, requestedSceneId, onClose, triggerRef, P
   }, [onClose, triggerRef]);
 
   return <div className="mv-story-detail-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section ref={dialogRef} className="mv-story-detail" role="dialog" aria-modal="true" aria-labelledby="mv-story-detail-title">
+    <section ref={dialogRef} className="mv-story-detail" role="dialog" aria-modal="true" aria-labelledby="mv-story-detail-title" style={typeScaleStyle(territory.typeScale?.title, territory.typeScale?.body)}>
       <header className="mv-story-detail-header">
         <span className="mv-kicker">{territory.number} · {territory.title}</span>
         <button type="button" className="mv-story-detail-close" aria-label="Fechar detalhes" onClick={onClose}><X aria-hidden="true"/></button>
@@ -83,7 +92,7 @@ function StoryDetailDialog({ territory, requestedSceneId, onClose, triggerRef, P
       <p className="mv-story-detail-lead">{territory.summary}</p>
       <OrganicLine className="mv-organic-line-detail"/>
       <div className="mv-story-detail-scenes">
-        {orderedScenes.map((scene) => <article key={scene.assetId} data-asset-id={scene.assetId} data-requested-scene={scene.assetId === requestedSceneId || undefined}>
+        {orderedScenes.map((scene) => <article key={scene.assetId} data-asset-id={scene.assetId} data-requested-scene={scene.assetId === requestedSceneId || undefined} style={typeScaleStyle(scene.titleScale, scene.bodyScale, "--mv-scene-fs")}>
           <figure><PictureComponent asset={sceneAsset(scene)}/></figure>
           <div><span className="mv-kicker">{scene.eyebrow}</span><h3>{scene.title}</h3><p>{scene.text}</p></div>
         </article>)}
@@ -155,8 +164,8 @@ export function PartnerGuestProof() {
   </section>;
 }
 
-export default function MovementStoryAtlas({ audience, scenes, territoryBackgrounds = {}, companyName = "", PictureComponent }) {
-  const territories = useMemo(() => buildMovementTerritories(audience, scenes, territoryBackgrounds), [audience, scenes, territoryBackgrounds]);
+export default function MovementStoryAtlas({ audience, scenes, territoryBackgrounds = {}, territoryTypeScales = {}, companyName = "", PictureComponent }) {
+  const territories = useMemo(() => buildMovementTerritories(audience, scenes, territoryBackgrounds, territoryTypeScales), [audience, scenes, territoryBackgrounds, territoryTypeScales]);
   const articleRefs = useRef([]);
   const triggerRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -207,7 +216,7 @@ export default function MovementStoryAtlas({ audience, scenes, territoryBackgrou
           data-territory-id={territory.id}
           data-territory-index={index}
           data-color-scheme={territory.colorScheme}
-          style={{ "--mv-territory-bg": territory.backgroundColor }}
+          style={{ "--mv-territory-bg": territory.backgroundColor, ...typeScaleStyle(territory.typeScale?.title, territory.typeScale?.body) }}
         >
           <div className="mv-territory-frame">
             <OrganicLine className={`mv-organic-line-territory mv-organic-line-territory-${(index % 3) + 1}`}/>

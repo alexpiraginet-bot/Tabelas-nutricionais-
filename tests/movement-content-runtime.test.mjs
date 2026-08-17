@@ -97,10 +97,10 @@ test("personal hero keeps identity and fixed message in separate hierarchy", asy
   assert.doesNotMatch(site, /replaceTemplate\(copy\.title/);
   assert.match(site, /const defaults = useMemo\(\(\) => \(\{/);
   assert.match(site, /\}\), \[audience\]\);/);
-  assert.match(css, /\.mv-hero-identity\{[^}]*font-size:clamp\(40px,5\.4vw,78px\)/);
-  assert.match(css, /\.mv-hero-personal-message\{[^}]*font-size:clamp\(19px,2\.15vw,30px\)/);
-  assert.match(css, /\.mv-hero-v2 \.mv-hero-identity\{font-size:clamp\(40px,10\.8vw,54px\)/);
-  assert.match(css, /\.mv-hero-v2 \.mv-hero-personal-message\{font-size:clamp\(18px,5\.3vw,24px\)/);
+  assert.match(css, /\.mv-hero-identity\{[^}]*font-size:calc\(clamp\(40px,5\.4vw,78px\) \* var\(--mv-fs-t,1\)\)/);
+  assert.match(css, /\.mv-hero-personal-message\{[^}]*font-size:calc\(clamp\(19px,2\.15vw,30px\) \* var\(--mv-fs-t,1\)\)/);
+  assert.match(css, /\.mv-hero-v2 \.mv-hero-identity\{font-size:calc\(clamp\(40px,10\.8vw,54px\) \* var\(--mv-fs-t,1\)\)/);
+  assert.match(css, /\.mv-hero-v2 \.mv-hero-personal-message\{font-size:calc\(clamp\(18px,5\.3vw,24px\) \* var\(--mv-fs-t,1\)\)/);
 });
 
 test("image intensity applies to the whole picture instead of revealing the LQIP", async () => {

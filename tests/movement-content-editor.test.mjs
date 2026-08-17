@@ -753,3 +753,45 @@ test("preview shows full hero hierarchy and tabs support roving arrow-key naviga
   assert.match(preview.textContent, /Esta celebração tem um lugar/);
   assert.match(preview.textContent, /40–50 pessoas/);
 });
+
+test("font-size sliders publish per-scene and per-territory scales through the same optimistic flow", async () => {
+  const calls = [];
+  const harness = createHarness({ fetchImpl: async (url, options = {}) => {
+    calls.push({ url, options });
+    if (String(url).includes("fresh=1")) return jsonResponse({ ok: true, items: [] });
+    const body = JSON.parse(options.body);
+    return jsonResponse({ ok: true, item: { audience: body.audience, sceneId: body.sceneId, revision: 1, override: body.override } });
+  } });
+  await openEditor(harness);
+
+  // capa: as escalas da cena valem para o herói
+  const titleScale = harness.findByName("titleScale");
+  const bodyScale = harness.findByName("bodyScale");
+  assert.equal(titleScale.value, "1");
+  assert.equal(bodyScale.value, "1");
+  titleScale.value = "1.2";
+  await titleScale.dispatch("input");
+  await harness.findById("movEditorForm").dispatch("submit");
+  const heroPayload = JSON.parse(calls.find(({ url }) => url === "/api/movimento-content").options.body);
+  assert.equal(heroPayload.sceneId, "INF-HERO");
+  assert.deepEqual(heroPayload.override, { titleScale: 1.2 });
+  // a prévia responde na hora
+  assert.equal(harness.findById("movEditorPreview").style.getPropertyValue("--mov-editor-ts"), "1.2");
+
+  // território: as escalas do card viajam na cena -THEME-
+  calls.length = 0;
+  await harness.territoryButtons()[1].click();
+  const themeBody = harness.findByName("themeBodyScale");
+  assert.equal(themeBody.value, "1");
+  themeBody.value = "0.9";
+  await themeBody.dispatch("input");
+  await harness.findById("movEditorForm").dispatch("submit");
+  const themePayload = JSON.parse(calls.find(({ url }) => url === "/api/movimento-content").options.body);
+  assert.equal(themePayload.sceneId, "INF-THEME-ARRIVAL");
+  assert.deepEqual(themePayload.override, { bodyScale: 0.9 });
+  assert.equal(harness.findById("movEditorPreview").style.getPropertyValue("--mov-editor-bs"), "0.9");
+
+  // e o CSS da prévia realmente usa as variáveis
+  assert.match(editorCss, /\.mov-editor-preview-copy strong\{[^}]*calc\(25px \* var\(--mov-editor-ts,1\)\)/);
+  assert.match(editorCss, /\.mov-editor-preview\.is-territory \.mov-editor-preview-copy strong\{font-size:calc\(clamp\(16px,4\.7vw,24px\) \* var\(--mov-editor-ts,1\)\)/);
+});

@@ -28,7 +28,7 @@ test("movement content validates and persists one background color per macro ter
   const target = { audienceType: "partner", sceneId: "PAR-THEME-CARE" };
   assert.deepEqual(movementOverrideInsertRow(target, { backgroundColor: "#10291E" }), {
     audience_type: "partner", scene_id: "PAR-THEME-CARE", image_url: null, mobile_image_url: null,
-    image_opacity: null, background_color: "#10291E", eyebrow: null, title: null, body: null, alt_text: null, revision: 1,
+    image_opacity: null, background_color: "#10291E", title_scale: null, body_scale: null, eyebrow: null, title: null, body: null, alt_text: null, revision: 1,
   });
   assert.deepEqual(movementOverridePatchRow({ backgroundColor: null }, 4), { background_color: null, revision: 5 });
 });
