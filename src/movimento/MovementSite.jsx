@@ -11,7 +11,7 @@ import { useMovementInvite } from "./useMovementInvite.js";
 import { resolveMovementMediaOverride, useMovementContent } from "./useMovementContent.js";
 import PartnerInterestFlow from "./PartnerInterestFlow.jsx";
 import RsvpFlow from "./RsvpFlow.jsx";
-import MovementStoryAtlas, { OrganicLine, PartnerGuestProof } from "./MovementStoryAtlas.jsx";
+import MovementStoryAtlas, { OrganicLine, PartnerGuestProof, typeScaleStyle } from "./MovementStoryAtlas.jsx";
 import {
   EVENT,
   HERO_COPY,
@@ -119,7 +119,7 @@ function Hero({ audience, invite, personal, content }) {
     <ScenePicture asset={heroAsset} priority/>
     <div className="mv-hero-wash"/>
     <OrganicLine className="mv-organic-line-hero"/>
-    <div className="mv-hero-copy">
+    <div className="mv-hero-copy" style={typeScaleStyle(copy.titleScale, copy.bodyScale)}>
       <span className="mv-kicker">{kicker}</span>
       {personal ? <><h1 className="mv-hero-identity">{identity}</h1><p className="mv-hero-personal-message">{fixedCopy.personalizedMessage}</p></> : <h1 className="mv-hero-generic-title">{copy.fallbackTitle}</h1>}
       <div className="mv-hero-event" aria-label={copy.factualLine}><div><small>{EVENT.dayLabel}</small><strong>12.09.2026</strong></div><p className="mv-hero-factual"><MapPin size={18}/>{copy.factualLine}</p></div>
@@ -154,12 +154,12 @@ function InvitationSheetHandoff({ audience, token, currentPartnerLead }) {
   return <section id="responder" className="mv-final" data-audience={audience} data-token={token ? "present" : "absent"}><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Convite pessoal</span><h2>Sua seleção será aberta aqui.</h2><p>A identidade e a seleção já resolvidas serão entregues na mesma superfície.</p><span hidden>{currentPartnerLead ? "interesse-resolvido" : "sem-resposta"}</span></section>;
 }
 
-function InfluencerStory({ personal, token, scenes, territoryBackgrounds }) {
-  return <><Intro/><MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} PictureComponent={ScenePicture}/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
+function InfluencerStory({ personal, token, scenes, territoryBackgrounds, territoryTypeScales }) {
+  return <><Intro/><MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} territoryTypeScales={territoryTypeScales} PictureComponent={ScenePicture}/>{personal ? <InvitationSheetHandoff audience="influencer" token={token}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Seu próximo passo</span><h2>Abra o convite pessoal.</h2><p>A confirmação acontece somente pelo link individual enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Nenhum dado é coletado nesta apresentação.</div></section>}</>;
 }
 
-function PartnerStory({ personal, token, currentPartnerLead, scenes, territoryBackgrounds, companyName }) {
-  return <><Intro partner/><MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} companyName={companyName} PictureComponent={ScenePicture}/><PartnerGuestProof/><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
+function PartnerStory({ personal, token, currentPartnerLead, scenes, territoryBackgrounds, territoryTypeScales, companyName }) {
+  return <><Intro partner/><MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} territoryTypeScales={territoryTypeScales} PictureComponent={ScenePicture} companyName={companyName}/><PartnerGuestProof/><PartnerTiers/>{personal ? <InvitationSheetHandoff audience="partner" token={token} currentPartnerLead={currentPartnerLead}/> : <section id="como-responder" className="mv-final"><OrganicLine className="mv-organic-line-final"/><Wordmark/><span className="mv-kicker">Próximo passo</span><h2>Abra a proposta pessoal.</h2><p>A seleção de participação acontece somente pelo link enviado pela Bentô.</p><div className="mv-final-lock"><ShieldCheck size={18}/>Esta apresentação não coleta interesse anônimo.</div></section>}</>;
 }
 
 function MovementPresentation({ audience, personal, token, invite, currentRsvp, currentPartnerLead }) {
@@ -172,7 +172,7 @@ function MovementPresentation({ audience, personal, token, invite, currentRsvp, 
   const hasPersistentPartnerCta = personal && audience === "partner";
   const heroContent = { ...content.hero, asset: { ...content.hero.asset, override: content.hero.override } };
   const companyName = invite?.companyName || invite?.displayName || "";
-  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal} content={heroContent}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead} scenes={content.scenes} territoryBackgrounds={content.territoryBackgrounds} companyName={companyName}/> : <InfluencerStory personal={personal} token={token} scenes={content.scenes} territoryBackgrounds={content.territoryBackgrounds}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
+  return <div className={`mv-root${hasPersistentRsvpCta ? " has-rsvp-cta" : ""}`} data-partner-cta={hasPersistentPartnerCta || undefined}><MovementMeta audience={audience} personal={personal}/><Topbar audience={audience}/>{hasPersistentRsvpCta && <RsvpFlow token={token} invite={invite} currentRsvp={currentRsvp}/>} {hasPersistentPartnerCta && <PartnerInterestFlow token={token} invite={invite} currentPartnerLead={currentPartnerLead}/>}<Hero audience={audience} invite={invite} personal={personal} content={heroContent}/>{audience === "partner" ? <PartnerStory personal={personal} token={token} currentPartnerLead={currentPartnerLead} scenes={content.scenes} territoryBackgrounds={content.territoryBackgrounds} territoryTypeScales={content.territoryTypeScales} companyName={companyName}/> : <InfluencerStory personal={personal} token={token} scenes={content.scenes} territoryBackgrounds={content.territoryBackgrounds} territoryTypeScales={content.territoryTypeScales}/>}<footer className="mv-footer"><span>© 2026 ABB Gelateria Ltda.</span><a href="/?privacidade">Privacidade</a></footer></div>;
 }
 
 export default function MovementSite({ mode = "influencer", token = null }) {

@@ -92,14 +92,14 @@
       var hero = heroDefaults[audienceType || state.audienceType];
       copy = [hero.eyebrow, hero.title, hero.body, copy[3]];
     }
-    return { imageUrl: defaultImage(sceneId, false), mobileImageUrl: "", imageOpacity: 1, eyebrow: copy[0], title: copy[1], body: copy[2], altText: copy[3], revision: 0 };
+    return { imageUrl: defaultImage(sceneId, false), mobileImageUrl: "", imageOpacity: 1, titleScale: 1, bodyScale: 1, eyebrow: copy[0], title: copy[1], body: copy[2], altText: copy[3], revision: 0 };
   }
   function entryKey(audienceType, sceneId) { return audienceType + ":" + sceneId; }
   function normalizeItem(item) {
     var audienceType = item.audience || item.audienceType;
     var source = item.override || item;
     var normalized = { audienceType: audienceType, sceneId: item.sceneId, revision: Number(item.revision || 0) };
-    ["imageUrl", "mobileImageUrl", "imageOpacity", "backgroundColor", "eyebrow", "title", "body", "altText"].forEach(function (field) {
+    ["imageUrl", "mobileImageUrl", "imageOpacity", "backgroundColor", "titleScale", "bodyScale", "eyebrow", "title", "body", "altText"].forEach(function (field) {
       if (source[field] !== null && source[field] !== undefined) normalized[field] = source[field];
     });
     return normalized;
@@ -113,7 +113,7 @@
   function currentThemeContent() {
     var territory = activeTerritory();
     if (!territory) return null;
-    return Object.assign({ audienceType: state.audienceType, sceneId: themeSceneId(state.audienceType, territory), revision: 0, backgroundColor: territory.backgroundColor }, overrideFor(state.audienceType, themeSceneId(state.audienceType, territory)), state.drafts[currentThemeKey()] || {});
+    return Object.assign({ audienceType: state.audienceType, sceneId: themeSceneId(state.audienceType, territory), revision: 0, backgroundColor: territory.backgroundColor, titleScale: 1, bodyScale: 1 }, overrideFor(state.audienceType, themeSceneId(state.audienceType, territory)), state.drafts[currentThemeKey()] || {});
   }
   function busy() { return state.loading || state.uploading || state.saving || Boolean(state.crop); }
   async function fetchWithTimeout(url, options) {
@@ -234,6 +234,17 @@
     wrap.appendChild(input);
     return wrap;
   }
+  function scaleInput(label, field, value, onInput) {
+    var wrap = el("label", "mov-editor-range");
+    wrap.appendChild(document.createTextNode(label));
+    var output = el("output", "", Math.round(Number(value) * 100) + "%");
+    var input = document.createElement("input");
+    input.type = "range"; input.name = field; input.min = "0.7"; input.max = "1.5"; input.step = "0.05";
+    input.value = String(value); input.disabled = busy();
+    input.addEventListener("input", function () { output.textContent = Math.round(Number(input.value) * 100) + "%"; onInput(); });
+    wrap.append(output, input);
+    return wrap;
+  }
   function fileInput(label, field) {
     var wrap = el("label", "mov-editor-upload");
     wrap.appendChild(document.createTextNode(label));
@@ -253,6 +264,9 @@
       elements.preview.style.setProperty("--mov-editor-background", theme.backgroundColor);
       elements.preview.dataset.colorScheme = foregroundScheme(theme.backgroundColor);
     }
+    var previewScales = territory && theme ? theme : content;
+    elements.preview.style.setProperty("--mov-editor-ts", String(previewScales.titleScale || 1));
+    elements.preview.style.setProperty("--mov-editor-bs", String(previewScales.bodyScale || 1));
     setPreviewSource(imageSource(content));
     elements.previewEyebrow.textContent = territory ? territory.number + " · " + territory.title : (content.eyebrow || "Capítulo");
     elements.previewTitle.textContent = territory ? territory.headline : (state.audienceType === "partner" ? "Nome da empresa" : "Nome da convidada");
@@ -290,6 +304,7 @@
     if (!elements.form) return base;
     ["eyebrow", "title", "body", "altText"].forEach(function (field) { var input = elements.form.elements.namedItem(field); if (input) base[field] = input.value; });
     var range = elements.form.elements.namedItem("imageOpacity"); if (range) base.imageOpacity = Number(range.value);
+    ["titleScale", "bodyScale"].forEach(function (field) { var slider = elements.form.elements.namedItem(field); if (slider) base[field] = Number(slider.value); });
     return base;
   }
   function draftThemeContent() {
@@ -297,6 +312,7 @@
     if (!theme || !elements.form) return theme;
     var input = elements.form.elements.namedItem("backgroundColor");
     if (input) theme.backgroundColor = String(input.value || theme.backgroundColor).toUpperCase();
+    ["themeTitleScale", "themeBodyScale"].forEach(function (name) { var slider = elements.form.elements.namedItem(name); if (slider) theme[name === "themeTitleScale" ? "titleScale" : "bodyScale"] = Number(slider.value); });
     return theme;
   }
   function rememberDraft() {
@@ -350,10 +366,14 @@
       var colorLine = el("span", "mov-editor-color-line"); var color = document.createElement("input"); color.type = "color"; color.name = "backgroundColor"; color.value = theme.backgroundColor; color.disabled = busy(); var colorValue = el("output", "", theme.backgroundColor);
       color.addEventListener("input", function () { color.value = String(color.value).toUpperCase(); colorValue.textContent = color.value; var pending = currentThemeContent(); pending.backgroundColor = color.value; state.drafts[currentThemeKey()] = pending; setDirty(true); renderPreview(); });
       colorLine.append(color, colorValue); colorLabel.appendChild(colorLine); elements.form.appendChild(colorLabel);
+      elements.form.append(scaleInput("Tamanho do título do card", "themeTitleScale", theme.titleScale, function () { var pending = draftThemeContent(); state.drafts[currentThemeKey()] = pending; setDirty(true); renderPreview(); }));
+      elements.form.append(scaleInput("Tamanho do texto do card", "themeBodyScale", theme.bodyScale, function () { var pending = draftThemeContent(); state.drafts[currentThemeKey()] = pending; setDirty(true); renderPreview(); }));
     }
     elements.form.append(fileInput("Foto principal deste tópico", "imageUrl")); elements.form.append(fileInput("Versão vertical para iPhone (opcional)", "mobileImageUrl"));
     var rangeLabel = el("label", "mov-editor-range"); rangeLabel.append(document.createTextNode("Intensidade da imagem")); var output = el("output", "", Math.round(content.imageOpacity * 100) + "%");
     var range = document.createElement("input"); range.type = "range"; range.name = "imageOpacity"; range.min = "0"; range.max = "1"; range.step = "0.01"; range.value = String(content.imageOpacity); range.disabled = busy(); range.addEventListener("input", function () { output.textContent = Math.round(Number(range.value) * 100) + "%"; setDirty(true); renderPreview(); }); rangeLabel.append(output, range); elements.form.appendChild(rangeLabel);
+    elements.form.append(scaleInput(state.sceneId.endsWith("HERO") ? "Tamanho do título" : "Tamanho do título (no detalhe)", "titleScale", content.titleScale, function () { setDirty(true); renderPreview(); }));
+    elements.form.append(scaleInput(state.sceneId.endsWith("HERO") ? "Tamanho do texto" : "Tamanho do texto (no detalhe)", "bodyScale", content.bodyScale, function () { setDirty(true); renderPreview(); }));
     elements.form.append(textInput("Texto superior", "eyebrow", false, 60));
     elements.form.append(textInput(state.sceneId.endsWith("HERO") ? "Título editorial do link geral" : "Título", "title", true, 140));
     elements.form.append(textInput("Texto", "body", true, 360)); elements.form.append(textInput("Descrição acessível da imagem", "altText", true, 240));
@@ -364,7 +384,7 @@
     var baseline = defaultContent(target.sceneId, target.audienceType);
     var saved = target.saved;
     var override = {};
-    ["imageUrl", "mobileImageUrl", "imageOpacity", "eyebrow", "title", "body", "altText"].forEach(function (field) {
+    ["imageUrl", "mobileImageUrl", "imageOpacity", "titleScale", "bodyScale", "eyebrow", "title", "body", "altText"].forEach(function (field) {
       var changed = content[field] !== baseline[field];
       var wasOverridden = Object.hasOwn(saved, field) && saved[field] != null;
       if (field === "mobileImageUrl") { if (content[field] || wasOverridden) override[field] = content[field] || null; return; }
@@ -377,11 +397,17 @@
   function collectThemeOverride(target, content) {
     var territory = activeTerritory();
     if (!territory || !content) return {};
+    var override = {};
     var value = String(content.backgroundColor || territory.backgroundColor).toUpperCase();
-    var changed = value !== territory.backgroundColor;
-    var wasOverridden = Object.hasOwn(target.saved, "backgroundColor") && target.saved.backgroundColor != null;
-    if (!changed && !wasOverridden) return {};
-    return { backgroundColor: changed ? value : null };
+    var colorChanged = value !== territory.backgroundColor;
+    if (colorChanged || (Object.hasOwn(target.saved, "backgroundColor") && target.saved.backgroundColor != null)) override.backgroundColor = colorChanged ? value : null;
+    ["titleScale", "bodyScale"].forEach(function (field) {
+      var scale = Number(content[field] || 1);
+      var changed = scale !== 1;
+      var wasOverridden = Object.hasOwn(target.saved, field) && target.saved[field] != null;
+      if (changed || wasOverridden) override[field] = changed ? scale : null;
+    });
+    return override;
   }
   async function persistOverride(target, override) {
     var key = localStorage.getItem("bento:panelkey") || "";

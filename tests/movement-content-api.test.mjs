@@ -108,7 +108,7 @@ test("movement content admin save creates a new override at revision zero and pa
   assert.equal(insert.options.method, "POST");
   assert.deepEqual(JSON.parse(insert.options.body), {
     audience_type: "influencer", scene_id: "INF-01", image_url: null, mobile_image_url: null, image_opacity: null, background_color: null,
-    eyebrow: null, title: "Nova visão", body: null, alt_text: null, revision: 1,
+    title_scale: null, body_scale: null, eyebrow: null, title: "Nova visão", body: null, alt_text: null, revision: 1,
   });
   assert.equal(out.payload.item.revision, 1);
 

@@ -12,7 +12,13 @@ import { verifyMovementMediaUrl } from "../lib/movement-media-verification.mjs";
 import { normalizeSupabaseBaseUrl, supabaseServiceHeaders } from "../lib/supabase-rest.mjs";
 
 const TABLE = "movement_presentation_content";
-const SELECT = "audience_type,scene_id,image_url,mobile_image_url,image_opacity,background_color,eyebrow,title,body,alt_text,revision";
+const SELECT = "audience_type,scene_id,image_url,mobile_image_url,image_opacity,background_color,title_scale,body_scale,eyebrow,title,body,alt_text,revision";
+// Se a migração font_scales ainda não rodou, o SELECT novo toma 400 do
+// PostgREST. Sem este fallback, a página pública perderia TODAS as
+// personalizações já salvas até alguém rodar a migração — inaceitável.
+const LEGACY_SELECT = "audience_type,scene_id,image_url,mobile_image_url,image_opacity,background_color,eyebrow,title,body,alt_text,revision";
+// Cena -THEME- guarda só o visual do card do território: cor de fundo e escalas de fonte.
+const THEME_SCENE_FIELDS = new Set(["backgroundColor", "titleScale", "bodyScale"]);
 
 function panelAuthorized(req, env) {
   const expected = String(env.PANEL_KEY || "");
@@ -37,9 +43,11 @@ function validRevision(value) {
 
 async function readOverrides(fetchImpl, cfg, audience = "") {
   const filter = audience ? `&audience_type=eq.${encodeURIComponent(audience)}` : "";
-  const response = await fetchImpl(`${cfg.url}/rest/v1/${TABLE}?select=${SELECT}${filter}&order=audience_type.asc,scene_id.asc`, {
+  const read = (select) => fetchImpl(`${cfg.url}/rest/v1/${TABLE}?select=${select}${filter}&order=audience_type.asc,scene_id.asc`, {
     headers: supabaseServiceHeaders(cfg.key),
   });
+  let response = await read(SELECT);
+  if (response.status === 400) response = await read(LEGACY_SELECT);
   if (!response.ok) throw new Error(`Supabase ${response.status}`);
   return response.json();
 }
@@ -128,7 +136,7 @@ export function createMovementContentHandler({ fetchImpl = fetch, env = process.
     const override = sanitizeMovementContentOverride(body.override, env, { partial: body.revision > 0 });
     if (!override.ok) { res.status(400).json({ ok: false, error: override.error }); return; }
     const overrideFields = Object.keys(override.value);
-    if (isMovementThemeScene(target.value.sceneId) ? overrideFields.some((field) => field !== "backgroundColor") : overrideFields.includes("backgroundColor")) {
+    if (isMovementThemeScene(target.value.sceneId) ? overrideFields.some((field) => !THEME_SCENE_FIELDS.has(field)) : overrideFields.includes("backgroundColor")) {
       res.status(400).json({ ok: false, error: "Configuração de território inválida." });
       return;
     }

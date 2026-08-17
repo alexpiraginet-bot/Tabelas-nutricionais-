@@ -70,8 +70,8 @@ test("public presentation renders a five-slide editorial deck instead of the ful
   ]);
 
   assert.match(site, /import MovementStoryAtlas, \{[^}]*PartnerGuestProof[^}]*\} from "\.\/MovementStoryAtlas\.jsx";/);
-  assert.match(site, /<MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} PictureComponent={ScenePicture}\/>/);
-  assert.match(site, /<MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} companyName={companyName} PictureComponent={ScenePicture}\/>/);
+  assert.match(site, /<MovementStoryAtlas audience="influencer" scenes={scenes} territoryBackgrounds={territoryBackgrounds} territoryTypeScales={territoryTypeScales} PictureComponent={ScenePicture}\/>/);
+  assert.match(site, /<MovementStoryAtlas audience="partner" scenes={scenes} territoryBackgrounds={territoryBackgrounds} territoryTypeScales={territoryTypeScales} PictureComponent={ScenePicture} companyName={companyName}\/>/);
   assert.doesNotMatch(site, /mv-scene-reel/);
   assert.doesNotMatch(site, /InfluencerChapters/);
   assert.match(atlas, /new IntersectionObserver/);
