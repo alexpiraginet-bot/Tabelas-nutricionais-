@@ -238,7 +238,7 @@ export default function TrabalhePage() {
                     <span className="fb" style={{ display: "block", fontSize: 12.5, color: T.inkSoft, marginTop: 3, lineHeight: 1.45 }}>Confirmando seu cadastro para liberar o download… Se não aparecer em instantes, chame no WhatsApp abaixo que enviamos o PDF na hora.</span>
                   </div>
                 ))}
-                <button onClick={falarWhats} className="fb" style={{ marginTop: 14, background: "#1FA855", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
+                <button onClick={falarWhats} className="fb" style={{ marginTop: 14, background: "#0F7F42", color: "#fff", border: "none", borderRadius: 999, padding: "14px 22px", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>📲 Adiantar pelo WhatsApp</button>
                 <div style={{ marginTop: 14 }}><a href="/" className="fb" style={{ fontSize: 13, color: T.pistacheDark, textDecoration: "underline" }}>Voltar ao site</a></div>
               </div>
             ) : (

@@ -120,7 +120,7 @@ export default function PortfolioPage(){
           <h2 style={{fontFamily:SERIF,fontSize:28,margin:"0 0 8px",fontWeight:500}}>Vamos ser parceiros?</h2>
           <p style={{fontSize:14,color:"rgba(255,255,255,.85)",maxWidth:520,margin:"0 auto 18px",lineHeight:1.5}}>Lojas de suplementos, academias, empórios, cafeterias e mercados premium. Fale com a gente para condições de revenda.</p>
           <div className="noprint" style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap"}}>
-            <a href="https://wa.me/5527999159995?text=Quero%20ser%20parceiro%20Bent%C3%B4" target="_blank" rel="noopener noreferrer" style={{background:"#1FA855",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",borderRadius:8,padding:"12px 22px"}}>WhatsApp (27) 99915-9995</a>
+            <a href="https://wa.me/5527999159995?text=Quero%20ser%20parceiro%20Bent%C3%B4" target="_blank" rel="noopener noreferrer" style={{background:"#0F7F42",color:"#fff",fontWeight:700,fontSize:14,textDecoration:"none",borderRadius:8,padding:"12px 22px"}}>WhatsApp (27) 99915-9995</a>
             <a href="/portfolio-bento.pdf" download style={{background:C.gold,color:C.ink,fontWeight:700,fontSize:14,textDecoration:"none",borderRadius:8,padding:"12px 22px"}}>↓ Baixar este portfólio (PDF)</a>
           </div>
           <div style={{fontSize:13,color:"rgba(255,255,255,.8)",marginTop:16,fontFamily:MONO,letterSpacing:"0.04em"}}>bentogelateria@gmail.com · bentogelateria.com</div>

@@ -190,7 +190,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
         <button onClick={()=>window.print()} style={{background:"#C9A86A",border:"none",borderRadius:6,padding:"12px 20px",fontSize:14,fontWeight:700,cursor:"pointer"}}>🖨️ Imprimir / Salvar PDF</button>
         <button onClick={exportICS} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>📅 Agenda (.ics)</button>
         <button onClick={exportJSON} style={{background:"transparent",border:"1px solid #C9A86A",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:600,color:"#F1ECDD",cursor:"pointer"}}>⬇️ Dados (JSON)</button>
-        <button onClick={avisarEquipe} style={{background:"#1FA855",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>📣 Avisar equipe</button>
+        <button onClick={avisarEquipe} style={{background:"#0F7F42",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#fff",cursor:"pointer"}}>📣 Avisar equipe</button>
         <button onClick={enviarControle} style={{background:"#3A4528",border:"none",borderRadius:6,padding:"12px 16px",fontSize:13,fontWeight:700,color:"#F1ECDD",cursor:"pointer"}}>🏭 Enviar p/ Controle Indústria</button>
         <a href="/" style={{color:"#F1ECDD",fontSize:13,textDecoration:"underline"}}>← Voltar ao site</a>
         <span style={{color:"#D9D2BD",fontSize:11.5,flexBasis:"100%"}}>Uso interno · campos amarelos editáveis. <strong>Fluxo de assinatura:</strong> a Bentô assina primeiro (conferência) e, em seguida, o cliente. Modelo automático — recomendamos validação jurídica.</span>
@@ -308,7 +308,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
             <div className="noprint" style={{display:"flex",gap:8,flexWrap:"wrap",marginTop:9}}>
               <button onClick={()=>copyTxt(pixKey,"Chave Pix (CNPJ)")} style={{background:"#C9A86A",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📋 Copiar chave Pix</button>
               <button onClick={()=>copyTxt(pixCode(),"Pix Copia e Cola")} style={{background:"#3A4528",color:"#F1ECDD",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>📲 Copiar Pix Copia e Cola</button>
-              {antecipadoOk&&<button onClick={()=>copyTxt(pixCodeAmount(integralDesc),"Pix integral com 7% de desconto")} style={{background:"#1FA855",color:"#fff",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>💸 Copiar Pix integral −7% ({money(integralDesc)})</button>}
+              {antecipadoOk&&<button onClick={()=>copyTxt(pixCodeAmount(integralDesc),"Pix integral com 7% de desconto")} style={{background:"#0F7F42",color:"#fff",border:"none",borderRadius:5,padding:"8px 13px",fontSize:12,fontWeight:700,cursor:"pointer"}}>💸 Copiar Pix integral −7% ({money(integralDesc)})</button>}
             </div>
             <div className="noprint" style={{fontSize:9.5,color:"#A9831C",marginTop:5}}>O “Pix Copia e Cola” leva titular e chave — cole no app e digite o valor (entrada ou saldo). {antecipadoOk?<>O botão verde já vem com o <strong>valor integral e o 7% de desconto</strong> aplicado.</>:null}</div>
           </div>

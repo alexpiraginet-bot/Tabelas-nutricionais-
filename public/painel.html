@@ -2528,15 +2528,30 @@ function abaAtual(){
 // o painel apareceu vazio e pareceu perda de dados. O gasto era de uma aba
 // aberta em cima da mesa.
 async function refresh(soAAbaAberta){
-  try{
-    const d = await load(); closeGate(); render(d); afterLogin();
-    var fila = soAAbaAberta
-      ? (LOADERS[abaAtual()] || [])
-      : [loadDestaque, loadSiteConfig, loadLeads, loadBooked, loadVagas,
-         loadSejaBento, loadPrevendas, loadSorteio, loadClube, loadMovimento];
-    fila.forEach(function(f){ try{ var r=f(); if(r&&r.catch) r.catch(()=>{}); }catch(e){} });
+  var d;
+  try{ d = await load(); }
+  catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; return; }
+  closeGate();
+  // O painel dos gráficos e as abas de dados são independentes, e precisam
+  // continuar independentes. Antes render() e os carregadores dividiam o mesmo
+  // try: quando o Chart.js do CDN não carregava, render() lançava
+  // "Chart is not defined", o catch engolia, e NENHUMA aba carregava — leads,
+  // contratos, pré-vendas, vagas, tudo em branco, sem uma linha de erro. É a
+  // mesma cara de "perdemos os dados" que já assustou uma vez.
+  try{ render(d); }
+  catch(e){
+    var g = $("#gateErr");
+    if(g && /Chart/.test(String(e && e.message))){
+      g.textContent = "Os gráficos não carregaram (script externo bloqueado). O resto do painel está normal.";
+    }
+    try{ console.error("render:", e); }catch(_){}
   }
-  catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; }
+  try{ afterLogin(); }catch(e){ try{ console.error("afterLogin:", e); }catch(_){} }
+  var fila = soAAbaAberta
+    ? (LOADERS[abaAtual()] || [])
+    : [loadDestaque, loadSiteConfig, loadLeads, loadBooked, loadVagas,
+       loadSejaBento, loadPrevendas, loadSorteio, loadClube, loadMovimento];
+  fila.forEach(function(f){ try{ var r=f(); if(r&&r.catch) r.catch(()=>{}); }catch(e){} });
 }
 
 $("#enter").onclick = ()=>{ localStorage.setItem(KEYSTORE, $("#key").value.trim()); refresh(); };

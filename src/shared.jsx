@@ -42,7 +42,7 @@ export const T = {
   bg:"#F6F1E7",bgWarm:"#EFE7D6",surface:"#FFFDF7",
   ink:"#232619",inkSoft:"#5E6353",
   pistache:"#7C8C66",pistacheDark:"#46583A",
-  border:"#E4DCC9",borderSoft:"#EFE8D8",accent:"#C9A24A",
+  border:"#E4DCC9",borderSoft:"#EFE8D8",accent:"#C9A24A",accentInk:"#7A5E1E",
 };
 
 // Lojas físicas — FONTE ÚNICA: Home ("Venha nos visitar"), Delivery (loja mais
