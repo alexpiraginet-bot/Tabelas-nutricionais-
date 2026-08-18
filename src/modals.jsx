@@ -574,7 +574,7 @@ const PARC_PASSOS=[
 
 export function SejaParceiro({onClose,onForm}){
   // Identidade clara/creme (conceito Programa de Franquias): fundo creme, texto verde/ink, dourado fosco.
-  const ink="#1F2317",cream="#1F3D2A",gold="#B8893C",pist="#46583A",soft="#5A5E4E",bg="#F3ECDB",surf="#FBF8EE",line="#E4D9BE";
+  const ink="#1F2317",cream="#1F3D2A",gold="#B8893C",goldInk="#7A5E1E",pist="#46583A",soft="#5A5E4E",bg="#F3ECDB",surf="#FBF8EE",line="#E4D9BE";
   useModal(onClose);
   const grid="radial-gradient(rgba(184,137,60,0.07) 1px, transparent 1px)";
   const wa="https://wa.me/"+WHATS_REVENDA+"?text="+encodeURIComponent("Olá! Tenho interesse em revender a Bentô no meu ponto.");
@@ -648,7 +648,7 @@ export function SejaParceiro({onClose,onForm}){
       {/* MARGENS / PRODUTOS */}
       <section style={{...wrap,paddingTop:30,paddingBottom:40}}>
         <Kicker>Arquitetura de produtos</Kicker>
-        <H>Margens de <span style={{color:gold}}>30% a 50%</span>.</H>
+        <H>Margens de <span style={{color:goldInk}}>30% a 50%</span>.</H>
         <p className="fb" style={{fontSize:15,color:soft,lineHeight:1.6,marginTop:14,maxWidth:680}}>Faixas de preço pensadas para preservar a percepção premium e entregar margem comercial real ao parceiro.</p>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(240px,1fr))",gap:14,marginTop:26}}>
           {PARC_PRODUTOS.map(p=>(
@@ -657,7 +657,7 @@ export function SejaParceiro({onClose,onForm}){
               <div style={{padding:"18px 20px"}}>
                 <div className="fd" style={{fontSize:20,color:cream}}>{p.n}</div>
                 <div className="fb" style={{fontSize:13,color:soft,marginTop:6,lineHeight:1.45}}>{p.papel}</div>
-                <span className="fm" style={{display:"inline-block",marginTop:14,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:gold,border:`1px solid ${gold}`,borderRadius:999,padding:"6px 13px"}}>{p.badge}</span>
+                <span className="fm" style={{display:"inline-block",marginTop:14,fontSize:11,letterSpacing:"0.08em",textTransform:"uppercase",color:goldInk,border:`1px solid ${gold}`,borderRadius:999,padding:"6px 13px"}}>{p.badge}</span>
               </div>
             </div>
           ))}
@@ -673,7 +673,7 @@ export function SejaParceiro({onClose,onForm}){
           {PARC_MODELOS.map((m,i)=>(
             <div key={m.t} style={card}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <span className="fm" style={{fontSize:13,color:gold}}>0{i+1}</span>
+                <span className="fm" style={{fontSize:13,color:goldInk}}>0{i+1}</span>
                 <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:"#fff",background:pist,borderRadius:999,padding:"4px 9px"}}>{m.tag}</span>
               </div>
               <div className="fd" style={{fontSize:19,color:cream}}>{m.t}</div>
@@ -728,7 +728,7 @@ export function SejaParceiro({onClose,onForm}){
             <a href={wa} target="_blank" rel="noreferrer" className="fb" style={{background:pist,color:"#fff",borderRadius:12,padding:"15px 24px",fontSize:15,fontWeight:600,textDecoration:"none",display:"flex",alignItems:"center",gap:8}}>Chamar no WhatsApp</a>
           </div>
           <div className="fm" style={{fontSize:12,color:soft,marginTop:22,letterSpacing:"0.06em"}}>WhatsApp (27) 99915-9995 · Instagram @bentogelateria · Vitória-ES</div>
-          <div className="fb" style={{fontSize:12,color:soft,marginTop:18,maxWidth:540,marginLeft:"auto",marginRight:"auto",lineHeight:1.6}}>Quer <strong style={{color:cream}}>revender</strong> a Bentô no seu ponto? É o formulário acima. Quer <strong style={{color:cream}}>abrir uma franquia</strong>? O caminho é outro: <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Rodapé")} style={{color:gold,fontWeight:700}}>bentogelateria.com/franqueados</a>.</div>
+          <div className="fb" style={{fontSize:12,color:soft,marginTop:18,maxWidth:540,marginLeft:"auto",marginRight:"auto",lineHeight:1.6}}>Quer <strong style={{color:cream}}>revender</strong> a Bentô no seu ponto? É o formulário acima. Quer <strong style={{color:cream}}>abrir uma franquia</strong>? O caminho é outro: <a href="/franqueados" target="_blank" rel="noopener" onClick={()=>tk("Parceria · Site de franquias · Rodapé")} style={{color:goldInk,fontWeight:700}}>bentogelateria.com/franqueados</a>.</div>
         </div>
       </section>
     </div>

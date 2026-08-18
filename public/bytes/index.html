@@ -20,7 +20,7 @@
 <style>
 :root{
   --bg:#F4F0E6; --surf:#FFFDF7; --ink:#1A2317; --soft:#5E6353;
-  --pist:#6B8E4E; --pistD:#3F5A2E; --gold:#C9A24A; --line:#E4DCC9; --lineS:#EFE8D8;
+  --pist:#6B8E4E; --pistD:#3F5A2E; --gold:#C9A24A; --goldInk:#7A5E1E; --line:#E4DCC9; --lineS:#EFE8D8;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -29,7 +29,7 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-
 .wrap{max-width:760px;margin:0 auto;padding:0 18px}
 .serif{font-family:'Fraunces',Georgia,serif}
 .mono{font-family:'Space Mono',ui-monospace,monospace}
-.kick{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold)}
+.kick{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--goldInk)}
 
 /* topo */
 .top{display:flex;align-items:center;gap:10px;justify-content:center;padding:26px 0 6px}
@@ -61,12 +61,12 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-
 .live .big{font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--pistD)}
 .prevenda{margin:12px 0 0;background:linear-gradient(135deg,#FBF3DD,#F3E6BE);border:1px solid var(--gold);border-radius:16px;padding:13px 16px;text-align:center;font-size:13.5px;color:#5C4A1E}
 .prevenda b{color:var(--pistD)}
-.prevenda .tagp{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:3px}
+.prevenda .tagp{font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--goldInk);display:block;margin-bottom:3px}
 
 /* selos */
 .pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:22px 0 6px}
 .pill{background:var(--surf);border:1px solid var(--line);border-radius:999px;padding:9px 15px;font-size:13px;font-weight:600;color:var(--ink)}
-.pill .g{color:var(--gold)}
+.pill .g{color:var(--goldInk)}
 .pill.hot{background:var(--pistD);border-color:var(--pistD);color:#fff}
 .pill.hot .g{color:#EBD79A}
 
@@ -84,7 +84,7 @@ body{background:var(--bg);color:var(--ink);font-family:'DM Sans',system-ui,sans-
 .fcard .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .fcard .body{padding:15px 16px 18px}
 .fcard .nm{font-family:'Fraunces',serif;font-weight:600;font-size:20px;color:var(--ink)}
-.fcard .sb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin:3px 0 8px}
+.fcard .sb{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--goldInk);margin:3px 0 8px}
 .fcard .ds{font-size:13px;color:var(--soft);line-height:1.5}
 
 /* lojas */
@@ -155,7 +155,7 @@ a.a{background:transparent;color:var(--pistD)}
 .soldsub{font-size:11.5px;color:var(--pistD);font-weight:700;margin-top:7px;text-align:center}
 .sobanner{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;text-align:center;margin:10px 0 0;background:linear-gradient(135deg,var(--pistD),#2C3A22);color:#fff;border:1px solid var(--gold);border-radius:16px;padding:13px 16px;font-size:13.5px;text-decoration:none}
 .sobanner b{color:#EBD79A}
-.sobanner .ar{font-family:'Fraunces',serif;font-size:18px;color:var(--gold)}
+.sobanner .ar{font-family:'Fraunces',serif;font-size:18px;color:var(--goldInk)}
 .solist{list-style:none;margin:0 0 14px;padding:0}
 .solist li{font-size:13.5px;color:var(--ink);padding:8px 0;border-bottom:1px solid var(--lineS);display:flex;gap:9px;align-items:flex-start}
 .solist li b{color:var(--pistD)}
