@@ -659,7 +659,7 @@ function SejaBentoFinal(){
         borderRadius:24,padding:"clamp(26px,4vw,38px) clamp(20px,4vw,32px)",textAlign:"center",
         background:"rgba(255,253,247,.72)",backdropFilter:"blur(22px) saturate(170%)",WebkitBackdropFilter:"blur(22px) saturate(170%)",
         border:`1px solid ${T.accent}66`,boxShadow:"0 24px 60px -38px rgba(35,38,25,.5)"}}>
-      <span className="fm" style={{fontSize:10,letterSpacing:"0.28em",textTransform:"uppercase",color:T.accent}}>Revenda · Franquia · Parceria</span>
+      <span className="fm" style={{fontSize:10,letterSpacing:"0.28em",textTransform:"uppercase",color:T.accentInk}}>Revenda · Franquia · Parceria</span>
       <h2 className="fd" style={{fontSize:"clamp(24px,4.6vw,34px)",color:T.ink,margin:"10px 0 8px",lineHeight:1.1}}>
         Quer crescer com a <em style={{color:T.pistacheDark,fontStyle:"italic"}}>Bentô</em>?
       </h2>
@@ -713,7 +713,7 @@ function VisitSection(){
         <div className="glass" style={{borderRadius:18,padding:"22px 22px 20px",boxShadow:"0 14px 34px -26px rgba(35,38,25,.55)",display:"flex",flexDirection:"column",gap:12,textAlign:"left"}}>
           <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
             <h3 className="fd" style={{fontSize:22,color:T.pistacheDark,margin:0,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vitória — {l.nome}</h3>
-            <span className="fm" style={{fontSize:9,letterSpacing:"0.2em",background:T.accent,color:T.surface,borderRadius:999,padding:"5px 12px",textTransform:"uppercase"}}>Loja</span>
+            <span className="fm" style={{fontSize:9,letterSpacing:"0.2em",background:T.accentInk,color:T.surface,borderRadius:999,padding:"5px 12px",textTransform:"uppercase"}}>Loja</span>
           </div>
           <div className="fb" style={{fontSize:14,color:T.ink,lineHeight:1.55}}>
             📍 {l.endereco||<>Bairro {l.bairro} — toque em <b>Ver no Google Maps</b> para o endereço e a rota exatos.</>}
