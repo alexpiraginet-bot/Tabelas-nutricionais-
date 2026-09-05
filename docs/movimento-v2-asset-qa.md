@@ -43,7 +43,7 @@ As cenas com composição determinística do wordmark em superfície frontal con
 | PAR-05 | Recovery | PASS — nova cena com anatomia natural; wordmark apenas em biombo frontal |
 | PAR-06 | Oficina infantil | PASS — painel frontal com wordmark master; jalecos sem estampa plana |
 | PAR-07 | Camiseta e região lombar | PASS — referência oficial integral em prancha editorial |
-| PAR-08 | Produto real | PASS — lineup Bentô preservado sem redesenho |
+| PAR-08 | Catálogo Bentôlé | PASS — painel editorial regenerado por código com seis produtos vigentes |
 | PAR-09 | Backdrop fotográfico | PASS — presença Bentô e áreas de parceiros legíveis |
 | PAR-10 | Curadoria | PASS — mesa neutra para proposta |
 | PAR-11 | Cafés especiais | PASS — dois baristas e preparo em V60/espresso |

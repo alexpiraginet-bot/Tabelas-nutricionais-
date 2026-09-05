@@ -32,7 +32,7 @@ export const HERO_COPY = {
 export const MOVEMENT_AI_DISCLOSURE = "Visualização conceitual gerada por IA";
 const MOVEMENT_COMPOSED_DISCLOSURES = {
   shirt: "referência oficial de camiseta Bentô composta sem redesenho",
-  product: "produto e embalagem do acervo real Bentô compostos sem redesenho",
+  product: "Painel editorial gerado por código a partir de fotografias ilustrativas e dados do catálogo vigente Bentô",
   wordmark: "wordmark oficial Bentô composto sem redesenho",
   cart: "carrinho real Bentô preservado sem substituição da marca existente",
 };
@@ -66,7 +66,11 @@ function movementAsset(assetId, alt) {
   return {
     id: assetId,
     alt,
-    disclosure: disclosureDetails.length ? `${MOVEMENT_AI_DISCLOSURE} · ${disclosureDetails.join(" · ")}.` : MOVEMENT_AI_DISCLOSURE,
+    disclosure: assetId === "PAR-08"
+      ? `${MOVEMENT_COMPOSED_DISCLOSURES.product}.`
+      : disclosureDetails.length
+        ? `${MOVEMENT_AI_DISCLOSURE} · ${disclosureDetails.join(" · ")}.`
+        : MOVEMENT_AI_DISCLOSURE,
     lqip: { src: `/movimento/v2/${assetId}-lqip.jpg` },
     mobile: { aspectRatio: hero ? 9 / 16 : 4 / 5, sources: mediaSources(assetId, "mobile", hero ? [480, 768] : [480, 752]) },
     desktop: { aspectRatio: hero ? 16 / 9 : 16 / 10, sources: mediaSources(assetId, "desktop", hero ? [1080, 1440] : [768, 1080, 1440]) },
@@ -135,7 +139,7 @@ export const PARTNER_SCENES = [
   visualScene({ id: "recovery", assetId: "PAR-05", eyebrow: "Recovery", title: "Cuidado também pode ter forma e função.", text: "Equipamentos, profissionais e materiais de recovery criam uma integração natural depois do aulão.", alt: "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca" }),
   visualScene({ id: "kids-workshop", assetId: "PAR-06", eyebrow: "Família", title: "A oficina de decoração de picolés abre outro território de presença.", text: "Picolés prontos recebem decoração, materiais e acompanhamento dentro do cerimonial, sempre com adulto responsável.", alt: "Oficina infantil de decoração de picolés com espaço organizado para uma participação de marca" }),
   visualScene({ id: "shirt-kit", assetId: "PAR-07", eyebrow: "Memória que acompanha", title: "Kit e camiseta transformam utilidade em lembrança.", text: "Ecobag, lancheira, press kit e região lombar da camiseta podem receber a composição coletiva aprovada.", alt: "Kit editorial e camiseta oficial com área de composição coletiva abaixo da frase nas costas" }),
-  visualScene({ id: "product", assetId: "PAR-08", eyebrow: "Cocriação", title: "Um produto pode nascer da conversa — se a técnica permitir.", text: "O estudo de picolé ou rótulo co-branded considera formulação, rotulagem, alergênicos, produção e aprovação.", alt: "Produtos reais Bentô compostos em um cenário editorial para estudo de cocriação responsável" }),
+  visualScene({ id: "product", assetId: "PAR-08", eyebrow: "Cocriação", title: "Um produto pode nascer da conversa — se a técnica permitir.", text: "O estudo de picolé ou rótulo co-branded considera formulação, rotulagem, alergênicos, produção e aprovação.", alt: "Seis picolés Bentôlé do catálogo vigente compostos em painel editorial para estudo de cocriação responsável" }),
   visualScene({ id: "backdrop", assetId: "PAR-09", eyebrow: "Visibilidade contextual", title: "O destaque acontece onde a memória é registrada.", text: "O backdrop coletivo oferece presença no enquadramento sem transformar a celebração em uma feira de marcas.", alt: "Backdrop branco e dourado preparado como ponto de fotografia para o encontro Bentô" }),
   visualScene({ id: "curation", assetId: "PAR-10", eyebrow: "Curadoria", title: "A melhor presença é construída para caber na experiência.", text: "A seleção registra interesse e abre uma conversa de escopo; não constitui reserva, exclusividade ou contrato.", alt: "Mesa de curadoria com amostras de materiais e espaços limpos para propostas de participação" }),
   visualScene({ id: "specialty-coffee", assetId: "PAR-11", eyebrow: "Cafés especiais", title: "Uma marca pode assinar uma mesa viva de preparo e conversa.", text: "Dois profissionais, V60, espresso e café coado criam um território próprio para produto, serviço, utensílios e conteúdo durante toda a manhã.", alt: "Dois baristas preparando V60 e espresso em uma mesa de cafés especiais com áreas de presença de marca" }),

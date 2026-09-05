@@ -2,16 +2,34 @@
 # Catálogo editorial premium da Bentô (estilo revista). Gera public/portfolio-bento.pdf.
 # - "Sabor como creme" gerado por SVG (arte da marca) com a paleta real de cada sabor.
 # - Capa com as caixas em pedestal (poster), páginas de produto, contracapa com QR.
-import re, os, io, math, unicodedata, cairosvg, qrcode
+import re, os, io, math, unicodedata, qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 W,H=1240,1754
 BG=(239,233,219); SURF=(251,248,238); INK=(31,35,23); SOFT=(96,100,84)
 PIST=(92,107,58); GOLD=(196,168,130); LINE=(220,213,193)
-SERIF="/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf"
-SERIFB="/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf"
-SANS="/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-SANSB="/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
+def font_path(*candidates):
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    raise FileNotFoundError(f"Nenhuma fonte compatível encontrada: {candidates}")
+
+SERIF=font_path(
+    "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+    "/System/Library/Fonts/Supplemental/Times New Roman.ttf",
+)
+SERIFB=font_path(
+    "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf",
+)
+SANS=font_path(
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+)
+SANSB=font_path(
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+)
 def F(p,s): return ImageFont.truetype(p,s)
 def page(): im=Image.new("RGB",(W,H),BG); return im,ImageDraw.Draw(im)
 def tw(d,t,f): return d.textlength(t,font=f)
@@ -55,7 +73,7 @@ def pal(idkey):
 PAL_EXTRA={"magnesio":("#F6C66A","#E8A34A","#B5651C","#C9402A","#FFE6B0")}
 # Dollops reais (criados pela Bentô), extraídos com fundo transparente em public/portfolio/dollops/
 DOLLOP={"bentole-pistache-cb":"pistache","bentole-choco-dubai":"choco","bentole-opereta":"opereta",
-        "bentole-snickers":"snickers","bentole-prestigio":"prestigio","bentole-franui":"franui",
+        "bentole-snickers":"snickers","bentole-prestigio":"prestigio","bentole-framboesa-duo":"framboesa-duo",
         "chocolate-dubai":"choco","pistache":"pistache","doce-de-leite":"doce","magnesio":"magnesio"}
 def cream(idkey):
     return f"public/portfolio/dollops/{DOLLOP[idkey]}.png"
@@ -65,7 +83,7 @@ PIC=[("Pistache & Choco Branco","10 g proteína · 61 kcal","bentole-pistache-cb
      ("Opereta","9,9 g proteína · 86 kcal","bentole-opereta",False),
      ("Snickers","9,6 g proteína · 95 kcal","bentole-snickers",False),
      ("Prestígio","8 g proteína · 91 kcal","bentole-prestigio",False),
-     ("Franuí","1,2 g proteína · 42 kcal","bentole-franui",False),
+     ("Framboesa Duo","1,2 g proteína · 42 kcal","bentole-framboesa-duo",False),
      ("Magnésio + Inositol Relief 3.0","Lançamento em breve","magnesio",True)]
 POT=[("Chocolate Dubai","Creme crocante e granela · 12 g prot.","chocolate-dubai"),
      ("Pistache","Pistache mesclado e granela · 10 g prot.","pistache"),
@@ -179,9 +197,9 @@ PICOLES=[
    desc="O clássico Prestígio reinventado em mini picolé proteico: coco cremoso com cobertura de chocolate, sem adição de açúcares.",
    dollop="public/portfolio/dollops/prestigio.png",photo="public/sabores/bentole-prestigio.jpg",
    specs=[("Proteína","8 g"),("Valor energético","91 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","1 g"),SZ,("Restrições","Sem glúten · contém lactose")]),
- dict(name="Franuí",sub="Framboesa, chocolate branco e chocolate 70%",
+ dict(name="Framboesa Duo",sub="Framboesa, chocolate branco e chocolate 70%",
    desc="O mais leve e frutado da linha: framboesa real, colágeno e cobertura dupla de chocolate — apenas 42 kcal por unidade.",
-   dollop="public/portfolio/dollops/franui.png",photo="public/sabores/bentole-franui.jpg",
+   dollop="public/portfolio/dollops/framboesa-duo.png",photo="public/sabores/bentole-framboesa-duo.jpg",
    specs=[("Proteína","1,2 g"),("Valor energético","42 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","7,7 g"),SZ,("Restrições","Sem glúten · sem lactose")]),
  dict(name="Magnésio + Inositol Relief 3.0",sub="Tangerina com Maracujá · funcional",
    desc="Picolé funcional da linha Relief 3.0, em parceria com a True.",soon=True,
@@ -208,7 +226,7 @@ ING={
  "Opereta":"Whey WPH, chocolate branco, castanhas selecionadas e leite.",
  "Snickers":"Whey WPH, pasta de amendoim, doce de leite sem adição de açúcares, chocolate 70% e leite.",
  "Prestígio":"Whey WPH, leite de coco, coco ralado e cobertura de chocolate ao leite zero.",
- "Franuí":"Framboesa real, colágeno hidrolisado e cobertura dupla de chocolate (branco e 70% zero).",
+ "Framboesa Duo":"Framboesa real, colágeno hidrolisado e cobertura dupla de chocolate (branco e 70% zero).",
  "Pistache":"Pasta de pistache italiana selecionada, whey WPH e leite.",
  "Doce de Leite":"Doce de leite sem adição de açúcares, whey WPH e leite.",
 }

@@ -74,14 +74,15 @@ test("every scene has meaningful accessibility copy and an explicit provenance d
   for (const [id, asset] of Object.entries(manifest.assets)) {
     assert.equal(asset.id, id);
     assert.ok(asset.alt.length >= 40, `${id} alt text is too short`);
-    assert.ok(asset.generated ? asset.disclosure.startsWith(disclosure) : true);
+    assert.ok(asset.generated && id !== "PAR-08" ? asset.disclosure.startsWith(disclosure) : true);
     assert.ok(asset.disclosure.length >= 24, `${id} needs visible provenance copy`);
     assert.match(asset.lqip.src, new RegExp(`^/movimento/v2/${id}-lqip\\.jpg$`));
     assert.ok(asset.lqip.bytes < 1_536, `${id} LQIP must stay under 1.5 KiB`);
   }
 
   for (const id of ["INF-06", "PAR-07"]) assert.match(manifest.assets[id].disclosure, /referência oficial de camiseta Bentô composta sem redesenho/i);
-  assert.match(manifest.assets["PAR-08"].disclosure, /produto e embalagem do acervo real Bentô compostos sem redesenho/i);
+  assert.match(manifest.assets["PAR-08"].disclosure, /painel editorial gerado por código.*fotografias ilustrativas.*dados do catálogo vigente Bentô/i);
+  assert.doesNotMatch(manifest.assets["PAR-08"].disclosure, /gerad[ao] por IA/i);
   assert.match(manifest.assets["PAR-09"].disclosure, /wordmark oficial Bentô composto sem redesenho/i);
   for (const id of ["INF-10", "PAR-12"]) assert.match(manifest.assets[id].disclosure, /carrinho real Bentô preservado/i);
   for (const id of ["INF-05", "PAR-05", "PAR-06", "PAR-15"]) assert.doesNotMatch(manifest.assets[id].disclosure, /wordmark oficial Bentô composto sem redesenho/i);

@@ -53,9 +53,8 @@ export const T = {
 // que todo o resto do site siga importando LOJAS de shared.jsx como sempre.
 export { LOJAS } from "./lojas.js";
 
-// Apresentação institucional da marca (pitch deck no Gamma)
-
-export const DECK_URL = "/Bento-Functional-Nutrition.pdf";
+// Portfólio institucional atual, gerado a partir do catálogo vigente.
+export const DECK_URL = "/portfolio-bento.pdf";
 
 
 

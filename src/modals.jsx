@@ -1571,7 +1571,7 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
         <PitchStat v="13" u="g" l="proteína por porção (Paçoca, Brigadeiro)" gold={gold} cream={cream}/>
         <PitchStat v="61" u="kcal" l="campeão Pistache & Choco Branco — com 10 g de proteína" gold={gold} cream={cream}/>
         <PitchStat v="0" u="g" l="açúcar adicionado em toda a linha" gold={gold} cream={cream}/>
-        <PitchStat v="42" u="kcal" l="o mais leve (Franui)" gold={gold} cream={cream}/>
+        <PitchStat v="42" u="kcal" l="o mais leve (Framboesa Duo)" gold={gold} cream={cream}/>
       </div>
     </div>,
     // 5 — Engenharia / regulatório

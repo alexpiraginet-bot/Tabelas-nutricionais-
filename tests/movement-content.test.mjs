@@ -57,6 +57,9 @@ test("movement presentations turn the approved experiences into visual chapters"
     const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
     assert.match(scene.disclosure, /carrinho real Bentô preservado/i);
   }
+  const productScene = PARTNER_SCENES.find(({ assetId }) => assetId === "PAR-08");
+  assert.match(productScene.disclosure, /painel editorial gerado por código.*fotografias ilustrativas.*dados do catálogo vigente Bentô/i);
+  assert.doesNotMatch(productScene.disclosure, /gerad[ao] por IA/i);
   for (const assetId of ["INF-02", "INF-03", "INF-04", "INF-05", "INF-13", "PAR-04", "PAR-05", "PAR-06", "PAR-15"]) {
     const scene = [...INFLUENCER_SCENES, ...PARTNER_SCENES].find((candidate) => candidate.assetId === assetId);
     assert.doesNotMatch(scene.disclosure, /wordmark oficial Bentô composto sem redesenho/i);

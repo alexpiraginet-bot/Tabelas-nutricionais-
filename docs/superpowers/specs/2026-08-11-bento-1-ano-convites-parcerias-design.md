@@ -229,7 +229,7 @@ Somente as quatro referências fornecidas por Alex são válidas. A geometria do
 
 ### Produto
 
-Picolés e embalagens usam composição exata de `public/movimento/picoles-lineup-real.jpg` e `public/sabores/bentole-*.jpg`. IA pode gerar ambiente e luz, nunca redesenhar produto, embalagem, logo ou claim.
+O painel `public/movimento/picoles-lineup-real.jpg` é gerado por código com os seis Bentôlés mini vigentes em `src/data.js` e fotografias ilustrativas de `public/sabores/bentole-*.jpg`. Nomes e dados nutricionais vêm da fonte canônica; o painel não representa embalagem ou rótulo regulatório.
 
 ## 8. Matriz de mídia
 

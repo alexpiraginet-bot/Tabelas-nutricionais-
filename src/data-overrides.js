@@ -4,7 +4,7 @@
 // preservando a trilha de auditoria exigida para dados de rotulagem.
 // Formato: { [skuId]: { serving?, portionLabel?, nutrition?: {kcal, carbs, ...}, _pub: {by, at, rev} } }
 export default {
- "bentole-franui-g": {
+ "bentole-framboesa-duo-g": {
   "serving": 110,
   "portionLabel": "110 g (picolé G)",
   "nutrition": {

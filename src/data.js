@@ -43,7 +43,7 @@ export const PREPARADO_CACAU = "Cacau em pó, edulcorantes maltitol (INS 965) e 
 //   eritritol. Rótulo avisa "Diabéticos: contém glicose".
 export const DOCE_LEITE_ZERO = "Leite pasteurizado integral, edulcorantes maltitol, eritritol, polidextrose e sucralose, estabilizante citrato de sódio e conservador sorbato de potássio";
 // · Cobertura zero lactose = barra "Lukau Zero Lactose" (rótulo do fabricante) —
-//   recheio E cobertura do Franuí reformulado. Sem adição de açúcares ✔ (10 g/100 g
+//   recheio E cobertura do Framboesa Duo reformulado. Sem adição de açúcares ✔ (10 g/100 g
 //   de açúcares próprios do leite; galactose 5 g). ZERO LACTOSE, mas CONTÉM LEITE
 //   (proteína láctea) e SOJA (lecitina) — alérgenos mantidos. 43 g de polióis/100 g
 //   (MALTITOL) → advertência laxativa. Sem cacau na composição → denominação
@@ -241,8 +241,8 @@ export const PRODUCTS = [
     nutrition:{kcal:95,carbs:13,sugars:3.1,addedSugars:0,protein:9.6,fat:4.5,satFat:1.7,transFat:0,fiber:0.5,sodium:52},
     flags:{gluten:false,lactose:false}, yield:"~100 picolés",
     description:"Picolé inspirado no Snickers. Amendoim real, doce de leite sem adição de açúcar, chocolate meio amargo. 9,6g de proteína." },
-  { id:"bentole-franui", name:"Franui", category:"bentole", sub:"Framboesa · cobertura zero lactose", emoji:"🫐",
-    moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:"/sabores/bentole-franui.jpg",
+  { id:"bentole-framboesa-duo", name:"Framboesa Duo", category:"bentole", sub:"Framboesa · cobertura zero lactose", emoji:"🫐",
+    moods:["refrescante","leve","zerocal"], palette:{base:"#D85A6E",mid:"#A8334A",deep:"#5C1422",swirl:"#F2E7D0",hl:"#FFB0BE"}, image:"/sabores/bentole-framboesa-duo.jpg",
     serving:55, portionLabel:"55 g (mini picolé)",
     ingredients:[{name:BASE_NOME,qty:"1.000 g",note:BASE},{name:"Água",qty:"2.500 mL"},{name:"Framboesa",qty:"2.000 g"},{name:"Colágeno Hidrolisado",qty:"80 g"},{name:"Cobertura sabor chocolate branco zero lactose",qty:"45 g",note:COBERTURA_ZERO_LACTOSE}],
     nutrition:{kcal:42,carbs:8.9,sugars:1.4,addedSugars:0,protein:1.2,fat:0.3,satFat:0.1,transFat:0,fiber:7.7,sodium:4.64},
@@ -316,7 +316,7 @@ export const ALLERGENS = {
   "banana-canela":      ["LEITE"],
   "bentole-choco-dubai":["LEITE","PISTACHE","TRIGO","SOJA"],
   "bentole-snickers":   ["LEITE","AMENDOIM","SOJA"],
-  "bentole-franui":     ["LEITE","SOJA"],
+  "bentole-framboesa-duo":["LEITE","SOJA"],
   "bentole-opereta":    ["LEITE","AMÊNDOA","CASTANHA-DO-PARÁ","CASTANHA-DE-CAJU","AVELÃ","PISTACHE"],  // mix por espécie (RDC 26/2015); soja do lattíssimo só "pode conter"
   "bentole-pistache-cb":["LEITE","PISTACHE","SOJA"],
   "bentole-prestigio":  ["LEITE","SOJA"],
@@ -333,13 +333,13 @@ export const PODE_CONTER = ["LEITE","OVOS","AMENDOIM","AMÊNDOA","AVELÃ","CASTA
 // LACTOSE e GLÚTEN = derivados dos alérgicos — FONTE ÚNICA DE VERDADE (RDC 26/2015).
 // Whey e leite em pó contêm lactose → sabor com LEITE nos alérgicos contém lactose,
 // EXCETO quando todos os insumos lácteos são zero lactose (proteína láctea presente
-// → alérgeno LEITE permanece, mas lactose = 0). Caso auditado: Franuí, cuja única
+// → alérgeno LEITE permanece, mas lactose = 0). Caso auditado: Framboesa Duo, cuja única
 // fonte láctea é a cobertura Lukau zero lactose ("NÃO CONTÉM LACTOSE" no rótulo).
 // Glúten: sabores com TRIGO nos alérgicos (kadaif) E, por declaração do
 // fornecedor, os que levam pasta de pistache MEC3 — a ficha diz "CONTÉM GLÚTEN"
 // sem trigo na composição (Lei 10.674 é binária); ver exceção logo abaixo.
 // Contato cruzado de produção é tratado à parte em PODE_CONTER ("pode conter").
-const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-franui", "bentole-franui-g"];
+const ZERO_LACTOSE_APESAR_DE_LEITE = ["bentole-framboesa-duo", "bentole-framboesa-duo-g"];
 // A pasta de pistache (MEC3) declara "CONTÉM GLÚTEN" sem trigo na composição
 // (cereais no "pode conter"; a Lei 10.674 é binária) → sabores com essa pasta
 // declaram glúten mesmo sem TRIGO nos alérgicos.

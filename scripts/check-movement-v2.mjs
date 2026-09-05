@@ -53,9 +53,12 @@ async function assertGeneratedMedia(manifest) {
   const renditionHashes = new Map();
   for (const id of ids) {
     const asset = manifest.assets[id];
+    const disclosurePrefix = id === "PAR-08"
+      ? "Painel editorial gerado por código"
+      : "Visualização conceitual gerada por IA";
     invariant(asset?.id === id, `${id} is missing or malformed`);
     invariant(asset.alt?.length >= 40, `${id} alt is too short`);
-    invariant(asset.disclosure?.startsWith("Visualização conceitual gerada por IA"), `${id} disclosure is missing`);
+    invariant(asset.disclosure?.startsWith(disclosurePrefix), `${id} disclosure is missing`);
     invariant(asset.lqip?.bytes < 1_536, `${id} LQIP exceeds 1.5 KiB`);
 
     for (const rendition of [asset.lqip, ...Object.values(asset.mobile.sources).flat(), ...Object.values(asset.desktop.sources).flat()]) {

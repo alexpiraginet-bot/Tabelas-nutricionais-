@@ -17,10 +17,10 @@ const EXACT_ASSETS = {
 };
 const DISCLOSURE = "Visualização conceitual gerada por IA";
 const COMPOSED_DISCLOSURES = {
-  "editorial-board:product": "produto e embalagem do acervo real Bentô compostos sem redesenho",
+  "editorial-board:product": "Painel editorial gerado por código a partir de fotografias ilustrativas e dados do catálogo vigente Bentô",
   "editorial-board:shirt": "referência oficial de camiseta Bentô composta sem redesenho",
   shirt: "referência oficial de camiseta Bentô composta sem redesenho",
-  product: "produto e embalagem do acervo real Bentô compostos sem redesenho",
+  product: "Painel editorial gerado por código a partir de fotografias ilustrativas e dados do catálogo vigente Bentô",
   wordmark: "wordmark oficial Bentô composto sem redesenho",
   cart: "carrinho real Bentô preservado sem substituição da marca existente",
 };
@@ -57,7 +57,7 @@ const ALT_TEXT = {
   "PAR-05": "Estação premium de recovery com equipamentos e superfícies disponíveis para integração de marca",
   "PAR-06": "Oficina infantil de decoração de picolés com espaço organizado para uma participação de marca",
   "PAR-07": "Kit editorial e camiseta oficial com área de composição coletiva abaixo da frase nas costas",
-  "PAR-08": "Produtos reais Bentô compostos em um cenário editorial para estudo de cocriação responsável",
+  "PAR-08": "Seis picolés Bentôlé do catálogo vigente compostos em painel editorial para estudo de cocriação responsável",
   "PAR-09": "Backdrop branco e dourado preparado como ponto de fotografia para o encontro Bentô",
   "PAR-10": "Mesa de curadoria com amostras de materiais e espaços limpos para propostas de participação",
   "PAR-11": "Dois baristas preparando V60 e espresso em uma mesa de cafés especiais com áreas de presença de marca",
@@ -147,6 +147,7 @@ async function inspectMaster(id, direction) {
 }
 
 function disclosureFor(id) {
+  if (id === "PAR-08") return `${COMPOSED_DISCLOSURES["editorial-board:product"]}.`;
   const details = [];
   if (COMPOSITIONS[id]) {
     const composition = COMPOSITIONS[id];
