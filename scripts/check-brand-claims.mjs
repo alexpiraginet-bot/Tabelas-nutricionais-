@@ -13,6 +13,7 @@ const publicSources = [
   "../src/video/FranquiasStory.tsx",
   "../src/video/SemCulpaStory.tsx",
   "../public/manifest.webmanifest",
+  "../public/bytes/index.html",
 ];
 
 for (const relativePath of publicSources) {
