@@ -30,7 +30,6 @@
   .live{display:inline-flex;align-items:center;gap:6px}
   .blip{width:8px;height:8px;border-radius:50%;background:var(--pist)}
   #updated.velho{color:var(--gold)}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(184,201,122,.6)}70%{box-shadow:0 0 0 9px rgba(184,201,122,0)}100%{box-shadow:0 0 0 0 rgba(184,201,122,0)}}
   button.ghost{background:transparent;border:1px solid var(--line);color:var(--soft);border-radius:8px;padding:7px 12px;font-size:11px;cursor:pointer}
   button.ghost:hover{border-color:var(--pistD);color:var(--ink)}
   /* 2 colunas no celular, 4 em telas largas — colunas fr explícitas (auto-fit/minmax não estica no iOS) */
@@ -638,8 +637,6 @@ function render(d){
   // bar ranking (top 14)
   const top = ranked.slice(0,14);
   drawBar(top.map(n=>n), top.map(n=>totals[n]||0), top.map(isConv));
-
-  marcarCarga();
 }
 
 function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -2534,6 +2531,7 @@ async function refresh(soAAbaAberta){
   try{ d = await load(); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; return; }
   closeGate();
+  marcarCarga();   // o dado chegou; a idade conta daqui, mesmo se render() falhar
   // O painel dos gráficos e as abas de dados são independentes, e precisam
   // continuar independentes. Antes render() e os carregadores dividiam o mesmo
   // try: quando o Chart.js do CDN não carregava, render() lançava
