@@ -72,6 +72,28 @@ lugares: `ORDEM_PADRAO` (`src/App.jsx`), `BANNERS_VALIDOS` (`api/destaque.js`) e
 Detalhe que já mordeu: o card da loja exibe `resumo` (texto agrupado), mas o painel
 edita `dias`. O `resumo` é **derivado** de `dias`; não editar os dois em paralelo.
 
+## Rolagem
+
+Quem rola neste site é o **`<html>`**, não o `<body>`. Por isso
+`document.body.style.overflow="hidden"` **não trava nada** — foi medido: com o
+modal de eventos aberto, um `scrollTo` levava a página de 900 para 1800 atrás
+dele. A trava de verdade está em `useModal` (`src/shared.jsx`): fixa o body no
+deslocamento atual e devolve a pessoa ao mesmo ponto ao fechar. Tem contador,
+porque modal abre modal (GLP-1 → ficha) e sem ele o segundo leria posição 0 e
+jogaria a pessoa para o topo.
+
+`overscroll-behavior:contain` nos modais impede que o gesto continue na página
+atrás ao chegar no fim, e `overscroll-behavior-x:none` global tira o arrasto
+lateral de borracha. Nenhum dos dois toca o eixo vertical.
+
+**Não ponha `overflow-x` no body ou no html.** Não há estouro lateral em página
+nenhuma (conferido), e qualquer valor diferente de `visible` num eixo tira o
+outro de `visible`: o elemento vira contêiner de rolagem e leva junto o
+`position:sticky` e o movimento comandado pela rolagem.
+
+`/movimento/` não responde a `window.scrollTo` — é da página, não regressão.
+Confirmado A/B com e sem as regras acima.
+
 ## Movimento e acessibilidade
 
 **Movimento comandado pela rolagem NUNCA é desligado.** O iPhone do dono usa

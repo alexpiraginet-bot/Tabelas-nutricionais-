@@ -8,6 +8,23 @@ html, body, #root {
   min-height: 100%;
 }
 
+/* ROLAGEM SÓ NO EIXO VERTICAL.
+   overscroll-behavior-x:none mata o arrasto lateral de borracha — o gesto que
+   no iPhone faz a página inteira deslizar de lado e voltar. Não toca no eixo
+   vertical: o movimento comandado pela rolagem continua inteiro.
+
+   Não há overflow-x aqui de propósito. Nenhuma página do site tem estouro
+   horizontal de documento — conferido em /, /?tabelas, /bytes/, /movimento/ e
+   /?vagas, todas com scrollWidth igual a clientWidth. Uma rede de `overflow-x`
+   no body seria mexer no que rola para resolver problema que não existe, e
+   mexer aí tem preço: qualquer valor diferente de `visible` num eixo empurra o
+   outro para fora de `visible`, o body vira contêiner de rolagem e position:
+   sticky e o movimento comandado pela rolagem vão junto. Se um dia aparecer
+   estouro lateral, conserte o elemento que estoura. */
+html, body {
+  overscroll-behavior-x: none;
+}
+
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

@@ -100,13 +100,48 @@ export function MacroBar({label,value,max,color=T.pistacheDark}){
 }
 
 
+// TRAVA DE ROLAGEM DOS MODAIS
+//
+// `document.body.style.overflow="hidden"` não trava nada aqui, e isso foi
+// MEDIDO, não suposto: com o modal de eventos aberto, um window.scrollTo levou
+// a página de 900 para 1800. O motivo é que quem rola neste site é o <html>, e
+// a regra estava no <body> — travar o elemento errado não trava.
+//
+// No iPhone o mesmo defeito é pior: além de a página continuar rolando atrás do
+// modal, ao fechar ela não volta para onde estava.
+//
+// Fixar o body no deslocamento atual segura nos dois casos, e o scrollTo do
+// cleanup devolve a página exatamente onde o cliente parou.
+//
+// O contador existe porque modal pode abrir modal (GLP-1 → ficha do sabor). Sem
+// ele, o segundo modal leria scrollY = 0 (o body já está fixo) e, ao fechar,
+// jogaria a pessoa para o topo.
+let travas = 0, yTravado = 0, estiloAnterior = null;
+function travarRolagem(){
+  if (travas++ === 0) {
+    yTravado = window.scrollY || document.documentElement.scrollTop || 0;
+    const s = document.body.style;
+    estiloAnterior = {position:s.position,top:s.top,left:s.left,right:s.right,width:s.width,overflow:s.overflow};
+    s.position="fixed"; s.top=`-${yTravado}px`; s.left="0"; s.right="0"; s.width="100%"; s.overflow="hidden";
+  }
+}
+function soltarRolagem(){
+  if (--travas <= 0) {
+    travas = 0;
+    if (estiloAnterior) { Object.assign(document.body.style, estiloAnterior); estiloAnterior = null; }
+    // 'instant' para a página não fazer uma viagem animada de volta se algum dia
+    // alguém puser scroll-behavior:smooth no html.
+    try { window.scrollTo({top:yTravado,left:0,behavior:"instant"}); }
+    catch { window.scrollTo(0,yTravado); }
+  }
+}
+
 export function useModal(onClose){
   useEffect(()=>{
     const h=e=>{if(e.key==="Escape")onClose();};
     document.addEventListener("keydown",h);
-    const prev=document.body.style.overflow;
-    document.body.style.overflow="hidden";
-    return()=>{document.removeEventListener("keydown",h);document.body.style.overflow=prev;};
+    travarRolagem();
+    return()=>{document.removeEventListener("keydown",h);soltarRolagem();};
   },[onClose]);
 }
 

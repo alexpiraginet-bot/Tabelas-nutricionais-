@@ -69,7 +69,11 @@ function GStyle(){return(<style>{`
 .hl:hover{transform:translateY(-3px);border-color:${T.accent};box-shadow:0 18px 44px -20px rgba(70,88,58,.30)}
 .hd{background-image:linear-gradient(90deg,${T.border} 50%,transparent 0);background-size:6px 1px;background-repeat:repeat-x;height:1px}
 .gn{position:relative}
-.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none;overscroll-behavior-x:contain}
+/* A rolagem para em quem a recebeu. Sem isto, chegar ao fim de um modal faz o
+   gesto continuar na página atrás dele (scroll chaining) — medido: os
+   contêineres do site estavam todos em overscroll-behavior:auto. */
+[role="dialog"],.rise{overscroll-behavior:contain}
 /* superfície premium lisa (textura 'lab' removida no refresh visual) */
 *::-webkit-scrollbar{width:5px}*::-webkit-scrollbar-thumb{background:${T.border};border-radius:99px}
 button{cursor:pointer}
