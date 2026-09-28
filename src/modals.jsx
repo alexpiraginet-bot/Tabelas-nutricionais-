@@ -1126,22 +1126,30 @@ export function EventosModal({onClose}){
                 <button key={p} onClick={()=>togglePers(p)} className="fb" style={{fontSize:12,padding:"9px 12px",borderRadius:999,border:`1px solid ${ev.pers.includes(p)?T.pistacheDark:T.border}`,background:ev.pers.includes(p)?"#EFF5E5":"transparent",color:T.ink,cursor:"pointer"}}>{ev.pers.includes(p)?"✓ ":""}{p}</button>
               ))}
             </div>
-            {/* Foto de evento real, e não render: é a única coisa que responde
-                "como fica na prática?" sobre rótulo personalizado. Aparece só
-                quando a pessoa marca a opção — antes disso é decoração, ali é
-                resposta. Uso do nome da cliente autorizado pelo dono. */}
-            {EV_POTINHOS(ev.pers)&&(
-              <div className="fade" style={{marginTop:12,background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
-                {/* Largura total, não miniatura: a 78px o rótulo — que é o
-                    argumento inteiro — vira borrão. Aqui o nome se lê. */}
-                <img src="/eventos/caixa-real.jpg" alt="Caixa térmica Bentô aberta num evento, com potinhos de gelato trazendo o rótulo personalizado da cliente" loading="lazy"
-                  style={{display:"block",width:"100%",maxWidth:"100%",aspectRatio:"5 / 4",objectFit:"cover"}} onError={onImgErr}/>
-                <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.5,padding:"11px 13px"}}>
-                  Assim fica na prática: cada potinho sai com o <strong style={{color:T.ink}}>seu nome ou a sua marca</strong> no rótulo.
-                  Foto de um evento real que atendemos.
+            {/* REFERÊNCIA ABERTA, não escondida atrás do checkbox.
+                Antes esta foto só aparecia depois de marcar "potinhos
+                personalizados" — ou seja, só via quem já sabia que a
+                personalização existia. Quem precisa ver é justamente quem NÃO
+                sabe: a empresa que está orçando um evento e não imagina que o
+                potinho pode sair com a marca dela. Prova de que funciona não
+                pode ficar atrás da pergunta que ela responde.
+                Foto de evento real, e não render — nenhum render mostra um
+                rótulo impresso de verdade. Uso do nome da cliente autorizado
+                pelo dono. */}
+            <div style={{marginTop:12,background:T.bgWarm,border:`1px solid ${ev.pers.length&&EV_POTINHOS(ev.pers)?T.pistacheDark:T.border}`,borderRadius:12,overflow:"hidden",transition:"border-color .2s"}}>
+              {/* Largura total, não miniatura: a 78px o rótulo — que é o
+                  argumento inteiro — vira borrão. Aqui o nome se lê. */}
+              <img src="/eventos/caixa-real.jpg" alt="Caixa térmica Bentô aberta num evento, com potinhos de gelato trazendo o rótulo personalizado da empresa contratante" loading="lazy"
+                style={{display:"block",width:"100%",maxWidth:"100%",aspectRatio:"5 / 4",objectFit:"cover"}} onError={onImgErr}/>
+              <div style={{padding:"11px 13px"}}>
+                <div className="fm" style={{fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:T.accentInk}}>Empresas e marcas</div>
+                <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.5,marginTop:4}}>
+                  Cada potinho pode sair com <strong style={{color:T.ink}}>o seu nome, a sua marca ou a arte do evento</strong> no rótulo —
+                  em qualquer um dos três formatos. Foto de um evento real que atendemos.
+                  {!EV_POTINHOS(ev.pers)&&<> Marque <strong style={{color:T.ink}}>“Potinhos ou rótulos personalizados”</strong> acima para incluir no orçamento.</>}
                 </div>
               </div>
-            )}
+            </div>
             {menor?(
               <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:12,padding:"16px"}}>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de {EV_MIN} convidados?</div>

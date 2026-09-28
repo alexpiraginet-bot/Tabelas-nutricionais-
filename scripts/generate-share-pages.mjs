@@ -39,7 +39,7 @@ const VIEWS = {
   },
   eventos: {
     title: "Eventos — Bentô Gelatos",
-    desc: "Leve a Bentô para o seu evento: casamentos, festas e corporativo com estrutura completa e orçamento online na hora.",
+    desc: "Leve a Bentô para o seu evento, de 20 a 500 convidados: caixa térmica, balcão ou carrinho completo. Potinhos com a sua marca no rótulo e orçamento online na hora.",
     image: "/og-share/eventos.jpg",
   },
   parceria: {
