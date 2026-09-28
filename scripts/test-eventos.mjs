@@ -1,0 +1,120 @@
+// Trava o motor de preço dos três formatos de evento, extraído do modals.jsx.
+//
+// O que este arquivo protege, em uma frase: o preço por pessoa, a faixa de
+// convidados e a equipe de cada formato são combinados com o dono, e mudar
+// qualquer um deles por acidente sai caro nos dois sentidos — orçamento abaixo
+// do custo ou cliente perdido por preço alto.
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+
+const src = readFileSync(new URL("../src/modals.jsx", import.meta.url), "utf8");
+// slice(a,-1) com marcador ausente fatia o arquivo INTEIRO e o teste quebra com
+// um erro de sintaxe que não diz nada. Melhor falhar dizendo qual marcador sumiu.
+const corte = (de, ate) => {
+  const a = src.indexOf(de), b = src.indexOf(ate);
+  if (a < 0) throw new Error("marcador sumiu do modals.jsx: " + de);
+  if (b < 0) throw new Error("marcador sumiu do modals.jsx: " + ate);
+  return src.slice(a, b);
+};
+const bloco =
+  corte("const EV_PERS_ESTRUTURA", "const fmtBRL") +
+  corte("const EV_KM_RATE", "// Geocodificação do local") +
+  corte("const EV_FORMATOS", "export function EventosModal(");
+
+const M = new Function(bloco + "\nreturn { calcEvento, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE };")();
+const { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE } = M;
+
+let falhas = 0;
+const caso = (nome, fn) => {
+  try { fn(); console.log("PASS · " + nome); }
+  catch (e) { falhas++; console.log("FALHA · " + nome + "\n         " + e.message); }
+};
+
+caso("são três formatos, do menor para o maior", () => {
+  assert.deepEqual(EV_FORMATOS.map((f) => f.id), ["caixa", "balcao", "carrinho"]);
+});
+
+caso("o preço por pessoa fica na banda combinada de R$ 25 a R$ 27", () => {
+  for (const f of EV_FORMATOS) {
+    assert.ok(f.preco >= 25 && f.preco <= 27, `${f.nome} está a R$ ${f.preco}`);
+  }
+  // Mais serviço nunca pode custar menos que menos serviço.
+  const p = EV_FORMATOS.map((f) => f.preco);
+  assert.deepEqual([...p].sort((a, b) => a - b), p, "os preços não crescem junto com o serviço");
+});
+
+caso("as faixas de convidados são as que o dono definiu", () => {
+  const f = Object.fromEntries(EV_FORMATOS.map((x) => [x.id, x]));
+  assert.deepEqual([f.caixa.min, f.caixa.max], [20, 60]);
+  assert.deepEqual([f.balcao.min, f.balcao.max], [30, 120]);
+  assert.equal(f.carrinho.min, 100);
+  assert.equal(f.carrinho.max, null, "o carrinho não pode ter teto");
+});
+
+caso("o orçamento online começa em 20 pessoas", () => {
+  assert.equal(EV_MIN, 20);
+  assert.ok(!EV_CABE(EV_FORMATOS[0], 19), "19 convidados não deveriam caber em nenhum formato");
+});
+
+caso("cada tamanho de evento cai no formato certo", () => {
+  assert.equal(EV_SUGERE(20), "caixa");
+  assert.equal(EV_SUGERE(45), "caixa");
+  assert.equal(EV_SUGERE(80), "balcao");
+  assert.equal(EV_SUGERE(150), "carrinho");
+  assert.equal(EV_SUGERE(1000), "carrinho");
+});
+
+caso("só o carrinho tem promotora dobrada acima de 300", () => {
+  assert.equal(calcEvento(25, "Mix (gelatos + picolés)", [], null, "caixa").promotoras, 0);
+  assert.equal(calcEvento(80, "Mix (gelatos + picolés)", [], null, "balcao").promotoras, 1);
+  assert.equal(calcEvento(150, "Mix (gelatos + picolés)", [], null, "carrinho").promotoras, 1);
+  assert.equal(calcEvento(400, "Mix (gelatos + picolés)", [], null, "carrinho").promotoras, 2);
+});
+
+caso("onde não tem atendente, o rendimento fala em potinho selado, não em litro", () => {
+  for (const id of ["caixa", "balcao"]) {
+    const r = calcEvento(40, "Gelatos", [], null, id).rend;
+    assert.match(r, /potinho/, `${id}: "${r}"`);
+    assert.doesNotMatch(r, / L de gelato/, `${id} promete gelato servido a granel: "${r}"`);
+  }
+  assert.match(calcEvento(150, "Gelatos", [], null, "carrinho").rend, / L de gelato/);
+});
+
+caso("o total soma serviço + logística + personalizações", () => {
+  const q = calcEvento(100, "Mix (gelatos + picolés)", ["Balcão personalizado", "Potinhos ou rótulos personalizados"], 30, "balcao");
+  assert.equal(q.base, 100 * 26);
+  assert.equal(q.potinhos, 100 * 2 * 0.5);
+  assert.equal(q.carrinho, 200);
+  assert.equal(q.logistica, 30 * 2 * 2.0);
+  assert.equal(q.total, q.base + q.potinhos + q.carrinho + q.logistica);
+});
+
+caso("sem km, o total não inventa logística", () => {
+  const q = calcEvento(50, "Picolés", [], null, "caixa");
+  assert.equal(q.logistica, null);
+  assert.equal(q.total, q.base);
+});
+
+caso("o rótulo antigo de personalização continua valendo", () => {
+  // Orçamento fechado antes dos três formatos guardou "Carrinho personalizado".
+  // Se o novo código só reconhecesse "Balcão personalizado", o item sumiria da
+  // conta e o mesmo evento reabriria R$ 200 mais barato.
+  const q = calcEvento(150, "Mix (gelatos + picolés)", ["Carrinho personalizado"], null, "carrinho");
+  assert.equal(q.carrinho, 200, "o rótulo antigo deixou de somar");
+  const p = calcEvento(150, "Mix (gelatos + picolés)", ["Potinhos personalizados"], null, "carrinho");
+  assert.equal(p.potinhos, 150, "o rótulo antigo de potinhos deixou de somar");
+});
+
+caso("a caixa térmica não oferece personalizar estrutura que ela não tem", () => {
+  assert.ok(!EV_PERS_DE("caixa").some((x) => /personalizado$/.test(x) && /Carrinho|Balcão/.test(x)));
+  assert.ok(EV_PERS_DE("balcao").includes("Balcão personalizado"));
+  assert.ok(EV_PERS_DE("carrinho").includes("Carrinho personalizado"));
+});
+
+caso("nenhum evento sai com menos de 3 sabores onde o produto é envasado", () => {
+  assert.ok(calcEvento(20, "Mix (gelatos + picolés)", [], null, "caixa").sabores >= 3);
+  assert.equal(calcEvento(150, "Mix (gelatos + picolés)", [], null, "carrinho").sabores, 6);
+});
+
+console.log(falhas ? `\n${falhas} FALHA(S)` : "\nEventos: todos os casos passaram.");
+process.exit(falhas ? 1 : 0);

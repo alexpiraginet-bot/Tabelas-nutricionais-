@@ -135,6 +135,16 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
   // Centavos aparecem quando existem: o Pix é gerado com toFixed(2), então esconder
   // os centavos aqui fazia o botão anunciar um valor e o app cobrar outro.
   const money=v=>typeof v==="number"?v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:0,maximumFractionDigits:2}):v;
+  // COMPATIBILIDADE COM ORÇAMENTO ANTIGO. O link do contrato é o payload inteiro
+  // codificado na URL: um orçamento fechado antes dos três formatos não tem
+  // `formato`, `formatoNome`, `preco` nem `servico`. Sem estes padrões, um PDF
+  // já impresso reabriria com "undefined" no objeto do contrato e "R$ NaN" na
+  // tabela de valores — documento assinado que deixa de bater consigo mesmo.
+  // Todo contrato antigo é, por definição, o carrinho a R$ 27.
+  const fmtNome=d.formatoNome||"Carrinho Bentô";
+  const fmtServico=d.servico||(Number(d.promotoras)>0?"estrutura montada no local com equipe":"itens pré-envasados e selados");
+  const precoPax=Number(d.preco)>0?Number(d.preco)
+    :(Number(d.convidados)>0&&Number(d.base)>0?Math.round(Number(d.base)/Number(d.convidados)):27);
   const dl=(name,text,mime)=>{const b=new Blob([text],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);};
   const exportICS=()=>{
     const [dd,mm,yy]=(d.data||"").split("/");if(!dd||!mm||!yy){alert("Data do evento inválida — não foi possível gerar o .ics.");return;}
@@ -251,18 +261,20 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
           <strong>CONTRATADA:</strong> ABB GELATERIA LTDA (nome fantasia <strong>Bentô Gelateria</strong>), CNPJ 61.590.463/0001-45, com sede na R. Joaquim Lírio, 455, Quiosque 02, Praia do Canto, Vitória — ES, CEP 29.055-460, WhatsApp (27) 99915-9995, e-mail bentogelateria@gmail.com.<br/>
           <strong>CONTRATANTE:</strong> {d.nome}, CPF/CNPJ {d.doc}{d.empresa?<> , representando <strong>{d.empresa}</strong></>:null}, e-mail {d.email}, WhatsApp {d.zap}.
         </div>
-        <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, incluindo carrinho Bentô, produtos e equipe, a realizar-se em <strong>{d.data}</strong>{d.hora?<> com início previsto às <strong>{d.hora}</strong></>:null}, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
+        <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, no formato <strong>{fmtNome}</strong> ({fmtServico}), incluindo estrutura, produtos e equipe, a realizar-se em <strong>{d.data}</strong>{d.hora?<> com início previsto às <strong>{d.hora}</strong></>:null}, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
         <Clause n="2ª" t="DETALHAMENTO DO SERVIÇO">
-          Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}). Equipe: <strong>{d.promotoras} promotora{d.promotoras>1?"s":""}</strong> uniformizada{d.promotoras>1?"s":""} e treinada{d.promotoras>1?"s":""}. {d.pers&&d.pers.length>0?<>Personalização contratada: <strong>{d.pers.join(", ")}</strong>. </>:null}
+          Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}). Equipe: {Number(d.promotoras)>0
+            ?<><strong>{d.promotoras} promotora{d.promotoras>1?"s":""}</strong> uniformizada{d.promotoras>1?"s":""} e treinada{d.promotoras>1?"s":""}</>
+            :<><strong>sem atendente no local</strong> — os produtos são entregues pré-envasados e selados</>}. {d.pers&&d.pers.length>0?<>Personalização contratada: <strong>{d.pers.join(", ")}</strong>. </>:null}
           Duração do serviço: <Ed>[definir horário de início e término]</Ed>.
         </Clause>
         <Clause n="3ª" t="VALORES">
           <table style={{width:"100%",borderCollapse:"collapse",marginTop:6,fontSize:11}}>
             <tbody>
-              {[["Serviço de gelateria (R$ 27 × "+d.convidados+" convidados)",money(d.base)],
+              {[["Serviço de gelateria — "+fmtNome+" (R$ "+precoPax+" × "+d.convidados+" convidados)",money(d.base)],
                 d.logistica!=null?["Logística — ~"+d.km+" km · referência Bentô "+d.loja+" (ida e volta)",money(d.logistica)]:["Logística (deslocamento)","a confirmar"],
                 d.potinhos>0?["Potinhos ou rótulos personalizados (2 por pessoa)",money(d.potinhos)]:null,
-                d.carrinho>0?["Personalização do carrinho",money(d.carrinho)]:null,
+                d.carrinho>0?["Personalização da estrutura",money(d.carrinho)]:null,
                 d.persAC&&d.persAC.length>0?[d.persAC.join(", "),"a combinar"]:null,
               ].filter(Boolean).map(([l,v],i)=>(
                 <tr key={i}><td style={{border:"1px solid #999",padding:"6px 10px"}}>{l}</td><td style={{border:"1px solid #999",padding:"6px 10px",textAlign:"right",whiteSpace:"nowrap"}}>{v}</td></tr>

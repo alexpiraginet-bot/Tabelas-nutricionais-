@@ -737,7 +737,16 @@ export function SejaParceiro({onClose,onForm}){
 
 /* ========== EVENTOS ========== */
 
-const EV_PERS=["Carrinho personalizado","Potinhos ou rótulos personalizados","Outra personalização"];
+// A personalização da estrutura tem nome diferente conforme o formato — não dá
+// para oferecer "carrinho personalizado" a quem contratou o balcão. O PREÇO é o
+// mesmo, e os dois rótulos continuam valendo para sempre: orçamento antigo
+// (link salvo, lead no painel, PDF impresso) carrega o texto velho, e comparar
+// por igualdade faria o item sumir da conta — preço menor, sem ninguém notar.
+const EV_PERS_ESTRUTURA={carrinho:"Carrinho personalizado",balcao:"Balcão personalizado",caixa:null};
+const EV_ESTRUTURA=(pers)=>pers.includes("Carrinho personalizado")||pers.includes("Balcão personalizado");
+const EV_PERS_BASE=["Potinhos ou rótulos personalizados","Outra personalização"];
+// Opções visíveis para um formato: a caixa térmica não tem estrutura a decorar.
+const EV_PERS_DE=(formatoId)=>{const e=EV_PERS_ESTRUTURA[formatoId];return e?[e,...EV_PERS_BASE]:[...EV_PERS_BASE];};
 // O rótulo mudou de nome. Orçamento antigo — link salvo, lead no painel, PDF
 // impresso — carrega o texto velho, e comparar por igualdade faria o item
 // simplesmente sumir da conta: preço menor, sem ninguém perceber. Por isso os
@@ -754,128 +763,119 @@ const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
 
 const EV_CARRINHO=200;    // R$ personalização do carrinho
 
-function evHaversine(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const h=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return 2*R*Math.asin(Math.sqrt(h));}
-// Geocodificação do local do evento — alimenta o km da logística, que entra no
-// PREÇO. Endereço errado aqui vira orçamento errado, então tudo abaixo é sobre
-// preferir "a confirmar" a um número inventado.
+// Geocodificação do local — agora é uma chamada à NOSSA API (`api/geo.js`).
 //
-// Cinco furos que existiam e foram fechados:
-//  1. a busca era só `countrycodes=br`: "Rua das Flores" casava em qualquer
-//     canto do país. Agora é limitada à caixa do Espírito Santo (bounded=1);
-//  2. havia um palpite com o PRIMEIRO pedaço do texto isolado — nome de salão
-//     sozinho ("Espaço Vitória") casa com qualquer coisa. Saiu;
-//  3. `limit=1` pegava o primeiro resultado às cegas. Agora pede 5, exige que o
-//     estado seja o Espírito Santo e escolhe o mais perto de uma loja nossa;
-//  4. não havia teto de distância: um casamento a 1.800 km passava como válido.
-//     Agora, acima de EV_MAX_KM, o resultado é descartado;
-//  5. o endereço encontrado nunca aparecia na tela — casamento errado era
-//     invisível. Agora volta em `endereco` e o orçamento mostra o que casou.
-const EV_MAX_KM = 320;                       // ES inteiro cabe nisto a partir de Vitória
-const EV_CAIXA_ES = "-41.95,-17.85,-39.65,-21.35";  // lon1,lat1,lon2,lat2 (ES continental)
-const evNoES = (a) => {
-  const uf = String((a && (a.state_code || a["ISO3166-2-lvl4"])) || "").toUpperCase();
-  const nome = String((a && a.state) || "").toLowerCase();
-  return uf.endsWith("-ES") || nome.includes("esp") && nome.includes("santo");
-};
-
+// POR QUE SAIU DAQUI: este código falava direto com o Nominatim
+// (OpenStreetMap) do navegador do cliente. O Nominatim recusa tráfego de
+// aplicação — exige User-Agent que identifique o app (o navegador manda o dele)
+// e limita a 1 requisição por segundo por IP. Medido contra o serviço real:
+// HTTP 403 em todas as tentativas, e 429 já na segunda. O catch engolia o erro
+// em silêncio, e a tela dizia só "Logística: a confirmar". Era exatamente a
+// reclamação — "o cliente não consegue calcular a logística".
+//
+// A regra de negócio (teto de distância, bloqueio fora do ES, desempate de
+// homônimo) mora agora no servidor, com cache no Redis. Aqui ficou só o
+// transporte e um cache de sessão para não repetir a mesma busca.
 async function evGeocode(text){
   const base=(text||"").trim();
   if(!base) return{ok:false};
   try{const c=sessionStorage.getItem("bento:geo:"+base.toLowerCase());if(c)return JSON.parse(c);}catch{}
-
-  // Variações seguras: o texto como veio, e o texto ancorado no estado. Nada de
-  // pedaço solto — pedaço solto foi o que produzia casamento em outro estado.
-  const tries=[...new Set([base, base+", Espírito Santo"])];
   let res={ok:false};
-  for(const t of tries){
-    try{
-      const url="https://nominatim.openstreetmap.org/search"
-        +"?format=json&addressdetails=1&limit=5&countrycodes=br"
-        +"&viewbox="+EV_CAIXA_ES+"&bounded=1"
-        +"&q="+encodeURIComponent(t);
-      const r=await fetch(url,{headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
-      if(!r.ok) continue;            // 429/403 etc. → tenta a próxima variação
-      const j=await r.json();
-      if(!Array.isArray(j)||!j.length) continue;
-      // só candidatos no ES; entre eles, o mais perto de uma loja nossa
-      let best=null;
-      for(const c of j){
-        if(!evNoES(c.address)) continue;
-        const la=+c.lat, lo=+c.lon;
-        if(!Number.isFinite(la)||!Number.isFinite(lo)) continue;
-        for(const st of LOJAS){
-          const km=evHaversine(la,lo,st.lat,st.lng);
-          if(!best||km<best.km) best={km,loja:st.nome,endereco:String(c.display_name||"").slice(0,140)};
-        }
-      }
-      // Teto de distância: acima disso é quase certo que casou no lugar errado,
-      // e um número errado no orçamento é pior que nenhum número.
-      if(best&&best.km<=EV_MAX_KM){
-        res={ok:true,km:Math.max(1,Math.round(best.km*EV_ROTA)),loja:best.loja,endereco:best.endereco};
-        break;
-      }
-    }catch(e){ /* timeout/rede: tenta próxima; se todas falharem, retorna ok:false */ }
-  }
-  // Não achou no ES. Antes de desistir, descobre ONDE é: sem isso, "fora do
-  // estado" e "não consegui localizar" ficam indistinguíveis — e bloquear os dois
-  // barraria cliente de Vitória cujo endereço só não geocodificou.
-  if(!res.ok){
-    try{
-      const r=await fetch("https://nominatim.openstreetmap.org/search"
-        +"?format=json&addressdetails=1&limit=1&countrycodes=br&q="+encodeURIComponent(base),
-        {headers:{"Accept-Language":"pt-BR"},signal:AbortSignal.timeout(6000)});
-      if(r.ok){
-        const j=await r.json();
-        if(Array.isArray(j)&&j[0]&&!evNoES(j[0].address)){
-          const a=j[0].address||{};
-          // A COORDENADA ESTAVA AQUI E ERA JOGADA FORA. Sem ela, uma cidade de
-          // Minas a 90 km de Vitória caía no mesmo balde que Manaus: as duas
-          // sem logística. A distância é medida do mesmo jeito que dentro do ES.
-          const la=+j[0].lat, lo=+j[0].lon;
-          let melhor=null;
-          if(Number.isFinite(la)&&Number.isFinite(lo)){
-            for(const st of LOJAS){
-              const d=evHaversine(la,lo,st.lat,st.lng);
-              if(!melhor||d<melhor.km) melhor={km:d,loja:st.nome};
-            }
-          }
-          const km=melhor?Math.max(1,Math.round(melhor.km*EV_ROTA)):null;
-          // `ok:false` SEMPRE: fora do ES não sai orçamento, então não existe
-          // preço de deslocamento a fechar. O km segue sendo medido porque é
-          // informação de decisão no painel — 131 km é uma exceção que pode
-          // valer a pena, 3.728 km não é —, mas ele não vira preço em lugar
-          // nenhum. Medir e precificar são coisas separadas.
-          res={ok:false,fora:true,
-               uf:String(a.state||"").slice(0,40),
-               endereco:String(j[0].display_name||"").slice(0,140),
-               km,loja:melhor?melhor.loja:null};
-        }
-      }
-    }catch(e){ /* rede ruim: segue como "não localizei", que NÃO bloqueia */ }
-  }
-  // Só guarda acerto ou certeza de fora. "Não localizei" não é guardado: seria
-  // prender um endereço mal digitado mesmo depois de a pessoa corrigir.
-  if(res.ok||res.fora){ try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{} }
+  try{
+    const r=await fetch("/api/geo?q="+encodeURIComponent(base),{signal:AbortSignal.timeout(12000)});
+    if(r.ok) res=await r.json();
+  }catch{ /* rede ruim: segue como "não localizei", que NÃO bloqueia o orçamento */ }
+  // Só guarda resposta conclusiva. "Não localizei" não é guardado: seria prender
+  // um endereço mal digitado mesmo depois de a pessoa corrigir.
+  if(res.ok||res.fora||res.ambiguo){ try{sessionStorage.setItem("bento:geo:"+base.toLowerCase(),JSON.stringify(res));}catch{} }
   return res;
 }
 
-function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
+/* ---------- os três formatos de evento ----------
+   A estrutura muda, o preço por pessoa muda junto, e o que vai no copo muda com
+   ela: onde não tem atendente, o produto sai pré-envasado e selado da fábrica.
+   Faixas e preços definidos pelo dono — a banda é R$ 25 a R$ 27 por pessoa, do
+   serviço mais enxuto ao mais completo. Mexer aqui muda site, orçamento,
+   WhatsApp e contrato de uma vez só. */
+const EV_FORMATOS=[
+  {
+    id:"caixa", nome:"Caixa térmica", sub:"Sem atendente",
+    min:20, max:60, preco:25, equipe:0,
+    img:"/eventos/caixa-1.jpg",
+    alt:"Caixa térmica Bentô aberta, com potinhos e picolés sobre gelo",
+    resumo:"A caixa chega montada e gelada. Seus convidados se servem sozinhos, no ritmo da festa.",
+    inclui:["Potinhos selados e picolés, prontos para servir","Caixa térmica que segura o gelo durante o evento","Entrega e recolhimento da caixa"],
+    servico:"Sem atendente · itens pré-envasados e selados",
+    prod:"envasado",
+  },
+  {
+    id:"balcao", nome:"Balcão Bentô", sub:"Eventos menores",
+    min:30, max:120, preco:26, equipe:1,
+    img:"/eventos/balcao-1.jpg",
+    alt:"Balcão Bentô em madeira com logo iluminado, freezer embutido e guarda-sol",
+    resumo:"Nosso balcão novo, feito para festas que não comportam o carrinho inteiro — mesma presença, menos espaço.",
+    inclui:["Balcão com freezer e iluminação própria","1 promotora uniformizada e treinada","Potinhos selados e picolés, servidos no balcão"],
+    servico:"1 promotora · balcão montado no local",
+    prod:"envasado",
+  },
+  {
+    id:"carrinho", nome:"Carrinho Bentô", sub:"Estrutura completa",
+    min:100, max:null, preco:27, equipe:1,
+    img:"/eventos/carrinho-1.jpg",
+    alt:"Carrinho de gelateria Bentô montado em casamento",
+    resumo:"A estrutura completa: gelato servido na hora, na casquinha ou no copo, com a equipe atendendo a fila.",
+    inclui:["Carrinho de gelateria completo","Gelato servido na hora + picolés","Promotoras uniformizadas e treinadas"],
+    servico:"Gelato servido na hora · promotoras",
+    prod:"servido",
+  },
+];
+const EV_FMT=(id)=>EV_FORMATOS.find(f=>f.id===id)||EV_FORMATOS[2];
+const EV_CABE=(f,n)=>n>=f.min&&(f.max==null||n<=f.max);
+// Menor número de convidados que o orçamento online atende — abaixo disto é
+// conversa no WhatsApp, não formulário.
+const EV_MIN=Math.min(...EV_FORMATOS.map(f=>f.min));
+// Melhor formato para um número de convidados: o primeiro que couber. A ordem
+// do array é do menor para o maior, então 40 pessoas cai na caixa e 150 no
+// carrinho sem precisar de tabela à parte.
+const EV_SUGERE=(n)=>(EV_FORMATOS.find(f=>EV_CABE(f,n))||EV_FORMATOS[EV_FORMATOS.length-1]).id;
+
+function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId="carrinho"){
   const n=Math.max(1,Number(g)||0);
+  const f=EV_FMT(formatoId);
+  // O rendimento muda com a estrutura. No carrinho o gelato é servido na hora e
+  // a conta é em litros; na caixa e no balcão ele sai em potinho selado, e
+  // prometer "litros" ali seria descrever um serviço que não existe nesse
+  // formato. A proporção por pessoa é a mesma nos três.
   let rend;
-  if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
-  else if(tipo==="Picolés") rend=`~${n*2} picolés Bistrô · 2 por pessoa`;
-  else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
-  const base=n*27;                                                        // R$ 27 por pessoa
+  if(f.prod==="servido"){
+    if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
+    else if(tipo==="Picolés") rend=`~${n*2} picolés · 2 por pessoa`;
+    else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
+  }else{
+    if(tipo==="Gelatos") rend=`~${n*2} potinhos selados · 2 por pessoa`;
+    else if(tipo==="Picolés") rend=`~${n*2} picolés · 2 por pessoa`;
+    else rend=`~${n} potinhos selados + ~${n} picolés · 1 + 1 por pessoa`;
+  }
+  const base=n*f.preco;
   const potinhos=EV_POTINHOS(pers)?n*2*EV_POTINHO:0;                       // 2 por pessoa
-  const carrinho=pers.includes("Carrinho personalizado")?EV_CARRINHO:0;
-  const persACombinar=pers.filter(p=>!EV_POTINHOS([p])&&p!=="Carrinho personalizado");
+  const estrutura=EV_ESTRUTURA(pers)?EV_CARRINHO:0;
+  const persACombinar=pers.filter(p=>!EV_POTINHOS([p])&&!EV_ESTRUTURA([p]));
   const logistica=km!=null?Math.round(km*2*EV_KM_RATE):null;              // ida e volta × R$/km
+  // Duas promotoras só fazem sentido onde existe fila para atender. A caixa
+  // térmica não tem equipe nenhuma — é isso que a torna mais barata.
+  const promotoras=f.equipe===0?0:(f.id==="carrinho"&&n>300?2:f.equipe);
   return{
-    sabores:n>=150?6:Math.max(2,Math.round(n*6/150)),   // até 6 sabores (150+); proporcional abaixo
+    formato:f.id, formatoNome:f.nome, preco:f.preco, servico:f.servico,
+    // Até 6 sabores (150+), proporcional abaixo. O piso muda com o formato: a
+    // fórmula foi feita quando o evento mínimo era 70 pessoas, e com o mínimo em
+    // 20 ela passou a devolver "até 2 sabores" o tempo todo. Onde o produto sai
+    // pré-envasado o sabor não depende da máquina no local — é só variar o que
+    // se põe na caixa —, então ali o piso é 3.
+    sabores:n>=150?6:Math.max(f.prod==="servido"?2:3,Math.round(n*6/150)),
     rend,
-    promotoras:n>300?2:1,                                // até 2 promotoras acima de 300
-    base,potinhos,carrinho,persACombinar,logistica,
-    total:base+potinhos+carrinho+(logistica||0),
+    promotoras,
+    base,potinhos,carrinho:estrutura,persACombinar,logistica,
+    total:base+potinhos+estrutura+(logistica||0),
     corporativo:n>300,
   };
 }
@@ -883,15 +883,31 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null){
 export function EventosModal({onClose}){
   useModal(onClose);
   const[step,setStep]=useState(1);
-  const[ev,setEv]=useState({data:"",hora:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[]});
+  const[ev,setEv]=useState({data:"",hora:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[],formato:EV_SUGERE(150)});
   const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:"",consent:false});
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
+  // Mudar o número de convidados pode deixar o formato escolhido fora da faixa
+  // (120 pessoas não cabem na caixa térmica). Em vez de deixar a tela num estado
+  // impossível, o formato acompanha — e a pessoa pode trocar de novo se quiser.
+  const setConvidados=(v)=>setEv(f=>{
+    const n=v===""?"":Number(v);
+    const cabe=EV_CABE(EV_FMT(f.formato),Number(n)||0);
+    const formato=cabe?f.formato:EV_SUGERE(Number(n)||0);
+    // Personalização de estrutura que não existe no formato novo sai junto.
+    const validas=EV_PERS_DE(formato);
+    return{...f,convidados:n,formato,pers:f.pers.filter(x=>validas.includes(x))};
+  });
+  const setFormato=(id)=>setEv(f=>{
+    const validas=EV_PERS_DE(id);
+    return{...f,formato:id,pers:f.pers.filter(x=>validas.includes(x))};
+  });
   const setC=(k,v)=>setCad(f=>({...f,[k]:v}));
   const togglePers=p=>setE("pers",ev.pers.includes(p)?ev.pers.filter(x=>x!==p):[...ev.pers,p]);
   const[geo,setGeo]=useState(null);   // {ok,km,loja} após geocodificar o local
   const[busy,setBusy]=useState(false);
   const[conflict,setConflict]=useState(false);   // data já reservada → aviso suave
-  const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null);
+  const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null,ev.formato);
+  const fmt=EV_FMT(ev.formato);
   const nConv=Number(ev.convidados)||0;
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
   // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
@@ -900,11 +916,12 @@ export function EventosModal({onClose}){
   const mkPayload=(qq,gg)=>({nome:cad.nome.trim(),doc:cad.doc.trim(),email:cad.email.trim(),zap:cad.zap.trim(),empresa:cad.empresa.trim(),
     data:ev.data?ev.data.split("-").reverse().join("/"):"",hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,
     sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,pers:ev.pers,persAC:qq.persACombinar,
+    formato:qq.formato,formatoNome:qq.formatoNome,preco:qq.preco,servico:qq.servico,
     base:qq.base,logistica:qq.logistica,km:gg&&gg.ok?gg.km:null,loja:gg&&gg.ok?gg.loja:null,
     potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim()});
   const mkLink=(p)=>"https://bentogelateria.com/?contrato="+btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   // Campos do orçamento a guardar junto do lead (para abrir o PDF completo no painel)
-  const orcFields=(qq,gg,link)=>({link,sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,base:qq.base,logistica:qq.logistica,potinhos:qq.potinhos,carrinho:qq.carrinho,pers:ev.pers});
+  const orcFields=(qq,gg,link)=>({link,sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,base:qq.base,logistica:qq.logistica,potinhos:qq.potinhos,carrinho:qq.carrinho,pers:ev.pers,formato:qq.formatoNome,preco:qq.preco});
   const verOrcamento=async()=>{
     setBusy(true);
     const g=await evGeocode(ev.local);
@@ -925,24 +942,39 @@ export function EventosModal({onClose}){
                 km:g.km!=null?g.km:null,fora:true,uf:g.uf||""});
       return;
     }
-    const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null);
+    const q2=calcEvento(ev.convidados,ev.tipo,ev.pers,g&&g.ok?g.km:null,ev.formato);
     const link2=mkLink(mkPayload(q2,g));
     tk(fora?"Lead · Orçamento gerado (fora do ES)":"Lead · Orçamento gerado");
     postLead({stage:"orçamento",phone:cad.zap.trim(),nome:cad.nome.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q2.total,km:g&&g.km!=null?g.km:null,loja:g&&g.loja?g.loja:null,fora,uf:fora?(g.uf||""):"",...orcFields(q2,g,link2)});
     setStep(2);
   };
-  const menor=nConv>0&&nConv<70;
+  const menor=nConv>0&&nConv<EV_MIN;
   // Nome entra na exigência: sem ele o orçamento gera lead anônimo e contrato
   // sem contratante. Dois nomes bastam para não passar iniciais soltas.
   const nomeOk=cad.nome.trim().length>=3;
-  const ok1=nomeOk&&ev.data&&ev.local.trim()&&nConv>=70&&zapOk;
+  const ok1=nomeOk&&ev.data&&ev.local.trim()&&nConv>=EV_MIN&&zapOk;
   const waMenor=()=>{
-    const l=["*Evento Bentô — até 70 convidados* 🎉","Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
+    const l=[`*Evento Bentô — menos de ${EV_MIN} convidados* 🎉`,"Olá! Gostaria de levar a Bentô para um evento menor e ver outras possibilidades de serviço.",
       ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
       ev.hora&&`*Horário previsto:* ${ev.hora}`,
       ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
       nConv>0&&`*Convidados:* ${nConv}`].filter(Boolean);
-    tk("Conversão · Evento (até 70)");
+    tk("Conversão · Evento menor que o mínimo");
+    window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank","noopener,noreferrer");
+  };
+  // Fechar por QUANTIDADE DE ITENS (ex.: 40 picolés) não entra no orçamento
+  // online: lá o cálculo é por pessoa, e misturar as duas réguas na mesma tela
+  // produz dois preços para o mesmo evento. Esse caminho vai direto para o
+  // WhatsApp, onde a equipe monta à mão.
+  const waItens=()=>{
+    const l=["*Evento Bentô — fechar por quantidade de itens* 🍦",
+      "Olá! Prefiro fechar por quantidade de itens (picolés e/ou potinhos de gelato) em vez de por pessoa.",
+      ev.data&&`*Data:* ${ev.data.split("-").reverse().join("/")}`,
+      ev.hora&&`*Horário previsto:* ${ev.hora}`,
+      ev.local.trim()&&`*Local:* ${ev.local.trim()}`,
+      nConv>0&&`*Convidados (referência):* ${nConv}`,
+      `*Produtos:* ${ev.tipo}`].filter(Boolean);
+    tk("Conversão · Evento por quantidade de itens");
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(l.join("\n"))}`,"_blank","noopener,noreferrer");
   };
   const emailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
@@ -966,15 +998,16 @@ export function EventosModal({onClose}){
       ev.hora&&`*Horário previsto para início:* ${ev.hora}`,
       `*Local:* ${ev.local.trim()}`,
       `*Convidados:* ${ev.convidados}`,
+      `*Formato:* ${q.formatoNome} — ${q.servico}`,
       `*Produtos:* ${ev.tipo}`,
       `*Sabores:* até ${q.sabores}`,
       `*Rendimento:* ${q.rend}`,
-      `*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`,"",
+      q.promotoras>0?`*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`:"*Equipe:* sem atendente (itens pré-envasados e selados)","",
       "*— Orçamento online —*",
-      `*Serviço (R$ 27 × ${ev.convidados}):* ${fmtBRL(q.base)}`,
+      `*Serviço (R$ ${q.preco} × ${ev.convidados}):* ${fmtBRL(q.base)}`,
       geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`:"*Logística:* a confirmar",
       q.potinhos>0&&`*Potinhos ou rótulos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
-      q.carrinho>0&&`*Personalização do carrinho:* ${fmtBRL(q.carrinho)}`,
+      q.carrinho>0&&`*Personalização da estrutura:* ${fmtBRL(q.carrinho)}`,
       q.persACombinar.length>0&&`*A combinar:* ${q.persACombinar.join(", ")}`,
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
       `*Total estimado:* ${fmtBRL(q.total)}`,
@@ -1018,16 +1051,18 @@ export function EventosModal({onClose}){
         </div>
         <div style={{padding:22}}>
           {step===1&&(<>
-            <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gridTemplateRows:"76px 76px",gap:8,marginBottom:14}}>
-              <img src="/eventos/carrinho-1.jpg" alt="Carrinho Bentô em casamento" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,gridRow:"1 / span 2",border:`1px solid ${T.border}`}} onError={onImgErr} />
-              <img src="/eventos/carrinho-2.jpg" alt="Carrinho Bentô em área externa" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`}} onError={onImgErr} />
-              <img src="/eventos/carrinho-3.jpg" alt="Carrinho Bentô servindo em evento real" loading="lazy" style={{width:"100%",height:"100%",objectFit:"cover",borderRadius:12,border:`1px solid ${T.border}`}} onError={onImgErr} />
+            {/* Três formatos, três fotos. Antes a tira mostrava só o carrinho,
+                e o carrinho agora é o maior dos três — abrir a tela com ele era
+                anunciar estrutura de 100 pessoas para quem tem 25. */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8,marginBottom:12}}>
+              {EV_FORMATOS.map(f=>(
+                <img key={f.id} src={f.img} alt={f.alt} loading="lazy"
+                  style={{width:"100%",aspectRatio:"3 / 4",objectFit:"cover",borderRadius:12,
+                          border:`1px solid ${T.border}`,opacity:ev.formato===f.id?1:0.55,transition:"opacity .2s"}}
+                  onError={onImgErr}/>
+              ))}
             </div>
-            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Nosso carrinho de gelateria no seu evento — casamentos, festas e corporativo. Preencha e veja seu orçamento na hora:</div>
-            {/* Nome no PASSO 1, não só no 3. O link do contrato é montado aqui,
-                e sem nome ele nascia com "CONTRATANTE:" vazio — documento sem
-                parte não identifica quem assina. Além disso, orçamento sem nome
-                vira lead que a equipe não sabe a quem responder. */}
+            <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Três formas de levar a Bentô para o seu evento — da caixa térmica que se serve sozinha ao carrinho completo. Preencha e veja seu orçamento na hora:</div>
             <span className="fm" style={lab}>Seu nome *</span>
             <input className="fb" style={inp} value={cad.nome} onChange={e=>setC("nome",e.target.value)} placeholder="Nome de quem contrata" autoComplete="name"/>
             <span className="fm" style={lab}>Deixe seu WhatsApp (com DDD) *</span>
@@ -1039,12 +1074,45 @@ export function EventosModal({onClose}){
             <input type="time" className="fb" style={inp} value={ev.hora} onChange={e=>setE("hora",e.target.value)}/>
             <span className="fm" style={lab}>Local (cidade / espaço) *</span>
             <input className="fb" style={inp} value={ev.local} onChange={e=>setE("local",e.target.value)} placeholder="Ex.: Vitória — Cerimonial X"/>
-            <span className="fm" style={lab}>Quantidade de convidados * (mín. 70)</span>
-            <input type="number" min={70} className="fb" style={inp} value={ev.convidados} onChange={e=>setE("convidados",e.target.value===""?"":Number(e.target.value))} inputMode="numeric"/>
+            <span className="fm" style={lab}>Quantidade de convidados * (mín. {EV_MIN})</span>
+            <input type="number" min={EV_MIN} className="fb" style={inp} value={ev.convidados} onChange={e=>setConvidados(e.target.value)} inputMode="numeric"/>
             <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap"}}>
-              {[70,100,150,300,500].map(n=>(
-                <button key={n} onClick={()=>setE("convidados",n)} className="fm" style={{fontSize:10,padding:"6px 12px",borderRadius:999,border:`1px solid ${Number(ev.convidados)===n?T.pistacheDark:T.border}`,background:Number(ev.convidados)===n?T.pistacheDark:"transparent",color:Number(ev.convidados)===n?T.surface:T.inkSoft,cursor:"pointer"}}>{n}</button>
+              {[20,40,80,150,300].map(n=>(
+                <button key={n} onClick={()=>setConvidados(n)} className="fm" style={{fontSize:10,padding:"6px 12px",borderRadius:999,border:`1px solid ${Number(ev.convidados)===n?T.pistacheDark:T.border}`,background:Number(ev.convidados)===n?T.pistacheDark:"transparent",color:Number(ev.convidados)===n?T.surface:T.inkSoft,cursor:"pointer"}}>{n}</button>
               ))}
+            </div>
+            {/* O formato define preço por pessoa, equipe e se o produto sai
+                servido na hora ou pré-envasado. Formato fora da faixa não some
+                da tela: fica visível e desabilitado, dizendo por quê — sumir
+                deixaria a pessoa sem entender que a opção existe. */}
+            <span className="fm" style={lab}>Como levar a Bentô?</span>
+            <div style={{display:"grid",gap:8}}>
+              {EV_FORMATOS.map(f=>{
+                const cabe=EV_CABE(f,nConv), sel=ev.formato===f.id;
+                const faixa=f.max==null?`${f.min}+ convidados`:`${f.min} a ${f.max} convidados`;
+                return(
+                  <button key={f.id} onClick={()=>cabe&&setFormato(f.id)} disabled={!cabe} aria-pressed={sel}
+                    className="fb" style={{textAlign:"left",display:"flex",gap:11,alignItems:"flex-start",
+                      padding:"11px 12px",borderRadius:12,cursor:cabe?"pointer":"not-allowed",
+                      border:`1.5px solid ${sel?T.pistacheDark:T.border}`,
+                      background:sel?"#EFF5E5":"transparent",opacity:cabe?1:0.5}}>
+                    <img src={f.img} alt="" aria-hidden="true" loading="lazy"
+                      style={{width:52,height:66,objectFit:"cover",borderRadius:8,flexShrink:0,border:`1px solid ${T.border}`}} onError={onImgErr}/>
+                    <span style={{flex:1,minWidth:0}}>
+                      <span style={{display:"flex",alignItems:"baseline",gap:7,flexWrap:"wrap"}}>
+                        <span className="fd" style={{fontSize:15.5,color:T.ink}}>{f.nome}</span>
+                        <span className="fm" style={{fontSize:9,letterSpacing:"0.12em",textTransform:"uppercase",color:T.accentInk}}>{f.sub}</span>
+                      </span>
+                      <span style={{display:"block",fontSize:11.5,color:T.inkSoft,marginTop:2}}>{faixa} · R$ {f.preco} por pessoa</span>
+                      <span style={{display:"block",fontSize:12,color:T.ink,marginTop:5,lineHeight:1.45}}>{f.resumo}</span>
+                      <span style={{display:"block",fontSize:11,color:T.inkSoft,marginTop:4}}>{f.servico}</span>
+                      {!cabe&&<span style={{display:"block",fontSize:11,color:T.accentInk,marginTop:5}}>
+                        {nConv>0?(nConv<f.min?`A partir de ${f.min} convidados.`:`Até ${f.max} convidados — acima disso, o formato seguinte atende melhor.`):`${faixa}.`}
+                      </span>}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
             <span className="fm" style={lab}>O que servir?</span>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
@@ -1054,14 +1122,14 @@ export function EventosModal({onClose}){
             </div>
             <span className="fm" style={lab}>Personalização (opcional · custo a combinar)</span>
             <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-              {EV_PERS.map(p=>(
+              {EV_PERS_DE(ev.formato).map(p=>(
                 <button key={p} onClick={()=>togglePers(p)} className="fb" style={{fontSize:12,padding:"9px 12px",borderRadius:999,border:`1px solid ${ev.pers.includes(p)?T.pistacheDark:T.border}`,background:ev.pers.includes(p)?"#EFF5E5":"transparent",color:T.ink,cursor:"pointer"}}>{ev.pers.includes(p)?"✓ ":""}{p}</button>
               ))}
             </div>
             {menor?(
               <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:12,padding:"16px"}}>
-                <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de 70 convidados?</div>
-                <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online é para eventos a partir de <strong>70 pessoas</strong>. Para grupos menores temos <strong>outras possibilidades de serviço</strong> — fale com a gente que montamos algo sob medida.</div>
+                <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de {EV_MIN} convidados?</div>
+                <div className="fb" style={{fontSize:13,color:T.inkSoft,marginTop:6,lineHeight:1.5}}>O orçamento online começa em <strong>{EV_MIN} pessoas</strong>, que é a nossa caixa térmica. Para grupos menores dá para fechar <strong>por quantidade de itens</strong> — fale com a gente que montamos sob medida.</div>
                 <button onClick={waMenor} className="fb" style={{width:"100%",marginTop:14,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar no WhatsApp</button>
               </div>
             ):(<>
@@ -1080,7 +1148,7 @@ export function EventosModal({onClose}){
                     Que pena — ainda não chegamos {geo.uf?<>a{/^[AEIOU]/i.test(geo.uf)?"o":""} {geo.uf}</>:"nesse estado"}
                   </div>
                   <p className="fb" style={{fontSize:13.5,color:T.ink,lineHeight:1.6,margin:"9px 0 0"}}>
-                    Nossos carrinhos saem das lojas de <strong>Vitória</strong>, e por enquanto atendemos eventos
+                    Nossas estruturas saem das lojas de <strong>Vitória</strong>, e por enquanto atendemos eventos
                     só no <strong>Espírito Santo</strong>. Adoraríamos levar a Bentô para o seu evento — mas seria
                     desonesto prometer o que a gente ainda não consegue entregar aí.
                   </p>
@@ -1110,7 +1178,7 @@ export function EventosModal({onClose}){
                 if(!zapOk) falta.push("um WhatsApp com DDD");
                 if(!ev.data) falta.push("a data do evento");
                 if(!ev.local.trim()) falta.push("o local");
-                if(!(nConv>=70)) falta.push("pelo menos 70 convidados");
+                if(!(nConv>=EV_MIN)) falta.push(`pelo menos ${EV_MIN} convidados`);
                 return falta.length?(
                   <div className="fb" style={{fontSize:12,color:T.inkSoft,marginTop:14,lineHeight:1.5}}>
                     Falta {falta.length>1?falta.slice(0,-1).join(", ")+" e "+falta.at(-1):falta[0]} para ver o orçamento.
@@ -1118,19 +1186,28 @@ export function EventosModal({onClose}){
                 ):null;
               })()}
               <button onClick={verOrcamento} disabled={!ok1||busy} className="fb" style={{width:"100%",marginTop:20,padding:"14px",borderRadius:10,border:"none",background:ok1&&!busy?T.pistacheDark:T.border,color:ok1&&!busy?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:ok1&&!busy?"pointer":"not-allowed"}}>{busy?"Montando seu orçamento…":"Ver meu orçamento →"}</button>
-              {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos 70 convidados.</div>}
+              {!ok1&&<div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:8}}>Preencha WhatsApp, data, local e ao menos {EV_MIN} convidados.</div>}
+              {/* Por item é a outra régua de preço. Fica fora do orçamento online
+                  de propósito — dois cálculos na mesma tela dariam dois preços
+                  para o mesmo evento. Aqui vira conversa. */}
+              <button onClick={waItens} className="fb" style={{width:"100%",marginTop:12,padding:"12px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:12.5,cursor:"pointer",lineHeight:1.4}}>
+                Prefere fechar por <strong>quantidade de itens</strong> (a partir de 30 picolés ou potinhos)? Falar no WhatsApp
+              </button>
             </>)}
           </>)}
 
           {step===2&&(<>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.25em",color:T.pistacheDark,textTransform:"uppercase",marginBottom:10}}>Seu orçamento online</div>
             <div style={{background:T.bg,border:`1.5px solid ${T.pistacheDark}`,borderRadius:12,padding:"6px 16px 4px"}}>
+              <Row l="Formato" v={q.formatoNome} strong/>
               <Row l="Convidados" v={ev.convidados}/>
               <Row l="Produtos" v={ev.tipo}/>
               <Row l="Sabores inclusos" v={`até ${q.sabores}`}/>
               <Row l="Rendimento" v={q.rend}/>
-              <Row l="Equipe" v={`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`}/>
-              <Row l={`Serviço (R$ 27 × ${ev.convidados})`} v={fmtBRL(q.base)}/>
+              <Row l="Equipe" v={q.promotoras>0
+                ?`${q.promotoras} promotora${q.promotoras>1?"s":""} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`
+                :"Sem atendente — itens pré-envasados"}/>
+              <Row l={`Serviço (R$ ${q.preco} × ${ev.convidados})`} v={fmtBRL(q.base)}/>
               {geo&&geo.ok
                 ? <>
                     <Row l={`Logística · ~${geo.km} km da Bentô ${geo.loja} (ida e volta)`} v={fmtBRL(q.logistica)}/>
@@ -1152,7 +1229,7 @@ export function EventosModal({onClose}){
                     </div>
                   </>}
               {q.potinhos>0&&<Row l={`Potinhos ou rótulos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
-              {q.carrinho>0&&<Row l="Personalização do carrinho" v={fmtBRL(q.carrinho)}/>}
+              {q.carrinho>0&&<Row l="Personalização da estrutura" v={fmtBRL(q.carrinho)}/>}
               {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
                 <span className="fb" style={{fontSize:13,color:T.inkSoft}}>
@@ -1163,8 +1240,17 @@ export function EventosModal({onClose}){
             </div>
             {/* Só quando REALMENTE não localizamos. Antes isto aparecia junto com
                 o card que dizia o estado do cliente — a tela se contradizia. */}
-            {geo&&!geo.ok&&(
+            {geo&&!geo.ok&&!geo.ambiguo&&(
               <div className="fb" style={{marginTop:10,fontSize:12,color:T.inkSoft,lineHeight:1.5}}>📍 Não conseguimos localizar o endereço para calcular a logística — confirmamos o deslocamento no fechamento. Dica: volte e inclua bairro e cidade no local.</div>
+            )}
+            {/* Nome que existe em mais de um estado ("Anchieta" é do ES e de SC).
+                Chutar um dos dois erra o preço na metade das vezes, então o
+                orçamento sai sem o deslocamento e a tela pede o desempate. */}
+            {geo&&geo.ambiguo&&(
+              <div className="fb" style={{marginTop:10,fontSize:12,color:T.ink,lineHeight:1.5,background:"#F7F2E3",border:`1px solid ${T.accent}55`,borderRadius:10,padding:"11px 13px"}}>
+                📍 Existe mais de um lugar com esse nome — um {geo.uf?<>n{/^[AEIOU]/i.test(geo.uf)?"o":"a"} <strong>{geo.uf}</strong></>:"fora do estado"} e outro no Espírito Santo
+                {geo.sugestao?<> (<strong>{geo.sugestao}</strong>)</>:null}. Para a logística entrar no valor, volte e escreva a <strong>cidade e o estado</strong> no local.
+              </div>
             )}
             {geo&&geo.ok&&(
               <div className="fb" style={{marginTop:10,fontSize:11.5,color:T.inkSoft,lineHeight:1.5}}>🚚 Logística estimada a partir da nossa loja mais próxima (Bentô {geo.loja}), incluindo combustível e deslocamento médios.</div>
