@@ -1126,6 +1126,22 @@ export function EventosModal({onClose}){
                 <button key={p} onClick={()=>togglePers(p)} className="fb" style={{fontSize:12,padding:"9px 12px",borderRadius:999,border:`1px solid ${ev.pers.includes(p)?T.pistacheDark:T.border}`,background:ev.pers.includes(p)?"#EFF5E5":"transparent",color:T.ink,cursor:"pointer"}}>{ev.pers.includes(p)?"✓ ":""}{p}</button>
               ))}
             </div>
+            {/* Foto de evento real, e não render: é a única coisa que responde
+                "como fica na prática?" sobre rótulo personalizado. Aparece só
+                quando a pessoa marca a opção — antes disso é decoração, ali é
+                resposta. Uso do nome da cliente autorizado pelo dono. */}
+            {EV_POTINHOS(ev.pers)&&(
+              <div className="fade" style={{marginTop:12,background:T.bgWarm,border:`1px solid ${T.border}`,borderRadius:12,overflow:"hidden"}}>
+                {/* Largura total, não miniatura: a 78px o rótulo — que é o
+                    argumento inteiro — vira borrão. Aqui o nome se lê. */}
+                <img src="/eventos/caixa-real.jpg" alt="Caixa térmica Bentô aberta num evento, com potinhos de gelato trazendo o rótulo personalizado da cliente" loading="lazy"
+                  style={{display:"block",width:"100%",maxWidth:"100%",aspectRatio:"5 / 4",objectFit:"cover"}} onError={onImgErr}/>
+                <div className="fb" style={{fontSize:12,color:T.inkSoft,lineHeight:1.5,padding:"11px 13px"}}>
+                  Assim fica na prática: cada potinho sai com o <strong style={{color:T.ink}}>seu nome ou a sua marca</strong> no rótulo.
+                  Foto de um evento real que atendemos.
+                </div>
+              </div>
+            )}
             {menor?(
               <div style={{marginTop:18,background:"#EFF5E5",border:`1px solid ${T.pistacheDark}55`,borderRadius:12,padding:"16px"}}>
                 <div className="fd" style={{fontSize:16,color:T.ink}}>Evento com menos de {EV_MIN} convidados?</div>
