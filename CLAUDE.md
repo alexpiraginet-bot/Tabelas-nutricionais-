@@ -10,6 +10,21 @@ Vite + React 18 em **JavaScript** (`.jsx`) — **não** é Next.js, **não** tem
 (`T.bg`, `T.ink`, `T.pistacheDark`…) e as classes `.fd` (Fraunces), `.fb` (DM Sans),
 `.fm` (JetBrains Mono). Ícones: `lucide-react`. Deploy na Vercel.
 
+Eventos têm **três formatos** (`EV_FORMATOS` em `src/modals.jsx`): caixa térmica
+(20–60, R$ 25/pessoa, sem atendente), balcão (30–120, R$ 26) e carrinho (100+,
+R$ 27). Mudar faixa ou preço ali muda site, orçamento, WhatsApp e contrato de uma
+vez — e `npm run test:eventos` trava os três. Fechar por quantidade de itens é
+WhatsApp, nunca orçamento online: as duas réguas na mesma tela dão dois preços
+para o mesmo evento.
+
+**Nunca chame o Nominatim do navegador.** Ele recusa tráfego de aplicação (403
+sem User-Agent próprio, 429 na segunda chamada por IP) e o erro chega silencioso:
+o orçamento sai sem logística e ninguém vê erro nenhum. A geocodificação vive em
+`api/geo.js`, com User-Agent que nos identifica e cache no Redis. E a busca
+começa no **Brasil inteiro**, não presa ao ES: prender à caixa do estado faz
+"Manaus" casar com a Rua Manaus, em Vila Velha, e cobrar 5 km por um evento a
+3.700 km.
+
 Arquivos centrais: `src/App.jsx` (home, seções, pushes), `src/modals.jsx` (todos os
 modais), `src/shared.jsx` (tokens, `LOJAS`, helpers), `public/painel.html` (admin,
 HTML+JS puro), `api/*.js` (funções serverless).
@@ -98,8 +113,24 @@ Doeu horas descobrir; não repita:
   explícito** em `body.innerText`.
 - `fonts.googleapis.com` é **bloqueado pelo proxy** do container: os testes acusam
   erro de console que não existe em produção. Filtre.
-- Chromium **não alcança hosts externos** (só `curl` passa pelo proxy). Para testar
-  contra o totem, capture a resposta real com `curl` e sirva por `page.route`.
+- Chromium **alcança, sim, hosts externos** — o que faltava era confiança na CA do
+  proxy, que não vem no repositório NSS. Uma vez por container:
+
+  ```
+  apt-get update -qq && apt-get install -y libnss3-tools
+  mkdir -p $HOME/.pki/nssdb && certutil -d sql:$HOME/.pki/nssdb -N --empty-password
+  certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n ccr-agent-proxy -i /root/.ccr/agent-proxy-ca.crt
+  ```
+
+  Sem isso a navegação morre em `ERR_CERT_AUTHORITY_INVALID` e parece bloqueio de
+  rede. Com isso dá para testar **produção de verdade** pelo navegador. NÃO use
+  `--ignore-https-errors`: some o erro e some também a verificação.
+- **Asserção de teste é no JS, não no bash.** O `agent-browser eval` devolve JSON
+  escapado; comparar acento e `\n` no `case` do bash gera falha falsa em teste
+  que passou. Faça a comparação dentro da página e traga só PASS/FALHA.
+- Regex montada por string que passa pelo bash: `[\s\S]` precisa chegar ao
+  `new RegExp` como `\s`, não `\\s` — com quatro barras vira "barra ou s" e
+  nunca casa. Já custou meia dúzia de falhas falsas.
 - `pkill -f "vite preview"` mata o próprio shell — use porta nova a cada rodada.
 - CSS `textTransform: uppercase` faz `innerText` devolver MAIÚSCULAS: use regex com `/i`.
 
@@ -109,6 +140,8 @@ Doeu horas descobrir; não repita:
 npm run build              # inclui geração de fichas e páginas de compartilhamento
 npm run lint               # 1 erro pré-existente em modals.jsx (config do eslint), ignore
 npm run test:home-banners  # trava a sincronia da lista de banners
+npm run test:eventos       # trava preço, faixa e equipe dos três formatos
+npm run test:geocode       # trava a decisão de dentro/fora do ES e o User-Agent
 ```
 
 ## Pendências conhecidas
