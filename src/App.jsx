@@ -563,7 +563,7 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
     cardapio:{img:"/banners/cardapio.webp",action:onDelivery,tkName:"Entrega própria e retirada",
       alt:"Entrega própria e retirada em loja — peça no site e escolha como receber"},
     eventos:{img:"/banners/eventos.webp",action:onEventos,tkName:"Nos leve para seu evento",
-      alt:"Nos leve para seu evento — estrutura completa e orçamento online na hora: casamentos, festas e corporativo"},
+      alt:"Nos leve para seu evento — de 20 a 500 convidados em caixa térmica, balcão ou carrinho completo, com potinhos personalizados e orçamento online na hora"},
     parceiro:{img:"/banners/parceiro.webp",action:onParceria,tkName:"Seja um parceiro",
       alt:"Seja um parceiro ou futuro franqueado — revenda e expanda a Bentô"},
     conheca:{img:"/banners/conheca.webp",action:onPitch,tkName:"Conheça a Bentô + FAQ",

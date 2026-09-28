@@ -1,176 +1,126 @@
-// Exercita a evGeocode extraida do modals.jsx contra respostas simuladas do Nominatim.
-import { readFileSync } from 'node:fs';
-const src = readFileSync('/home/user/Tabelas-nutricionais-/src/modals.jsx','utf8');
-const bloco = src.slice(src.indexOf('const EV_MAX_KM'), src.indexOf('function calcEvento(g,'));
-const haver = src.match(/function evHaversine[^\n]*\n/)[0];
-const LOJAS = [{nome:"Praia do Canto",lat:-20.2947,lng:-40.2925},{nome:"Jardim Camburi",lat:-20.2547,lng:-40.2670}];
-const EV_ROTA = 1.3;
-globalThis.sessionStorage = { _d:{}, getItem(k){return this._d[k]||null;}, setItem(k,v){this._d[k]=v;} };
+// Exercita a decisão de `api/geo.js` contra respostas simuladas do Nominatim.
+//
+// A versão anterior deste arquivo testava a evGeocode que vivia no modals.jsx e
+// falava com o Nominatim direto do navegador. Ela passava — e o recurso estava
+// quebrado em produção o tempo todo, porque o fetch era simulado e o serviço
+// real respondia HTTP 403 a todas as chamadas. Por isso o primeiro caso aqui é
+// sobre o TRANSPORTE (o User-Agent que nos identifica), e não só sobre parsing.
+import assert from "node:assert/strict";
 
-let ultimaURL = '';
-let URLS = [];
-let RESPOSTA = [];
-globalThis.fetch = async (u) => { ultimaURL = u; URLS.push(u); return { ok:true, json: async()=>RESPOSTA }; };
-
-const mod = new Function('LOJAS','EV_ROTA', haver + bloco + '\nreturn { evGeocode };')(LOJAS, EV_ROTA);
-const ok=(c,m)=>console.log((c?'PASS':'FALHA')+' · '+m);
-
-// 1. a URL agora restringe ao ES
-// Confere a PRIMEIRA busca, não a última: sem resultado no ES, o código faz uma
-// segunda busca ampla no Brasil só para descobrir em que estado o endereço fica.
-// Olhando `ultimaURL`, o teste inspecionava justamente a busca que NÃO é
-// limitada — e acusava falha num comportamento correto.
-RESPOSTA = [];
-URLS = [];
-await mod.evGeocode('Rua qualquer');
-const primeira = URLS[0] || '';
-ok(/bounded=1/.test(primeira), 'busca é limitada (bounded=1)');
-ok(/viewbox=-41\.95/.test(primeira), 'caixa do Espírito Santo aplicada');
-ok(/limit=5/.test(primeira), 'pede 5 candidatos, não 1');
-ok(/addressdetails=1/.test(primeira), 'pede detalhes do endereço para conferir o estado');
-ok(URLS.length===3 && URLS.slice(0,2).every(u=>/bounded=1/.test(u)) && !/bounded=1/.test(URLS[2]),
-   'duas tentativas presas ao ES e, só então, UMA busca ampla para descobrir o estado');
-ok(/Esp/.test(decodeURIComponent(URLS[1])),
-   'a segunda tentativa acrescenta "Espírito Santo" ao endereço');
-
-// 2. resultado FORA do ES é descartado
-RESPOSTA = [{lat:"-3.10",lon:"-60.02",display_name:"Rua das Flores, Manaus - AM",address:{state:"Amazonas","ISO3166-2-lvl4":"BR-AM"}}];
-let r = await mod.evGeocode('Rua das Flores 100');
-ok(r.ok===false, 'endereço em outro estado é RECUSADO (não vira km)');
-
-// 3. resultado no ES, perto: aceito com endereco
-RESPOSTA = [{lat:"-20.30",lon:"-40.29",display_name:"Av. N. Sra. da Penha, Praia do Canto, Vitória - ES",address:{state:"Espírito Santo","ISO3166-2-lvl4":"BR-ES"}}];
-r = await mod.evGeocode('Av Nossa Senhora da Penha 1000');
-ok(r.ok===true && r.km>=1, 'endereço no ES é aceito (km='+r.km+')');
-ok(/Praia do Canto/.test(r.endereco||''), 'devolve o endereço casado para a tela mostrar');
-
-// 4. no ES mas absurdamente longe (fora do teto) — nao deveria acontecer com bounded, mas e a rede de seguranca
-RESPOSTA = [{lat:"-17.90",lon:"-39.70",display_name:"Divisa norte",address:{state:"Espírito Santo","ISO3166-2-lvl4":"BR-ES"}}];
-r = await mod.evGeocode('lugar bem no norte');
-console.log('   (norte do ES: ok=' + r.ok + (r.ok?(', km='+r.km):'') + ')');
-
-// 5. o candidato certo NAO e o primeiro da lista
-RESPOSTA = [
-  {lat:"-19.00",lon:"-40.60",display_name:"Homônimo em Colatina - ES",address:{state:"Espírito Santo","ISO3166-2-lvl4":"BR-ES"}},
-  {lat:"-20.31",lon:"-40.30",display_name:"O certo, em Vitória - ES",address:{state:"Espírito Santo","ISO3166-2-lvl4":"BR-ES"}},
-];
-r = await mod.evGeocode('Rua com homonimo');
-ok(/Vitória/.test(r.endereco||''), 'escolhe o candidato mais perto de uma loja, não o primeiro');
-
-// 6. falha nao e guardada em cache
-RESPOSTA = [];
-await mod.evGeocode('endereco ruim');
-ok(!globalThis.sessionStorage._d['bento:geo:endereco ruim'], 'falha NÃO é guardada (permite corrigir e tentar de novo)');
-
-// ---------- A EQUAÇÃO ----------
-// O preço é uma conta, e conta se confere com o resultado na mão. Cada caso
-// abaixo tem o valor calculado FORA do código; se a fórmula mudar sem querer,
-// o número aqui denuncia.
-console.log('\n--- a equação do orçamento ---');
-// O helper EV_POTINHOS (que aceita o rótulo antigo e o novo) vem do arquivo
-// junto: extraí-lo daqui é o que garante que o teste exercita a MESMA regra que
-// o site, e não uma cópia que pode divergir.
-const evPotinhosSrc = src.slice(src.indexOf('const EV_POTINHOS='), src.indexOf('\n', src.indexOf('const EV_POTINHOS=')));
-const calc = new Function('EV_POTINHO','EV_CARRINHO','EV_KM_RATE',
-  evPotinhosSrc + '\n'
-  + src.slice(src.indexOf('function calcEvento('), src.indexOf('export function EventosModal'))
-  + '\nreturn calcEvento;'
-)(0.5, 200, 2.0);
-
-// 100 pessoas, nada personalizado, 20 km:
-//   serviço   100 × 27 = 2.700
-//   logística  20 × 2 × 2,00 = 80
-//   total     2.780
-let e = calc(100, 'Mix (gelatos + picolés)', [], 20);
-ok(e.base === 2700, 'serviço = 27 × convidados (100 -> 2.700)');
-ok(e.logistica === 80, 'logística = km × 2 (ida e volta) × R$ 2,00 (20 km -> 80)');
-ok(e.total === 2780, 'total fecha: 2.700 + 80 = ' + e.total);
-
-// 137 pessoas com potinhos: 137 × 2 × R$ 0,50 = 137,00 exatos. É o único ponto
-// da conta com centavo, e onde erro de ponto flutuante apareceria: (n×2) é par,
-// e par × 0,5 é sempre inteiro exato.
-e = calc(137, 'Gelatos', ['Potinhos ou rótulos personalizados'], 13);
-ok(e.potinhos === 137, 'potinhos = convidados exatos, sem centavo perdido (137)');
-ok(calc(137,'Gelatos',['Potinhos personalizados'],13).potinhos === 137,
-   'orçamento ANTIGO, com o rótulo velho, continua cobrando igual — senão o item sumia da conta');
-ok(Number.isInteger(e.total), 'total continua inteiro — sem resíduo de ponto flutuante');
-ok(e.total === 137*27 + 137 + 52, 'total fecha: 3.699 + 137 + 52 = ' + e.total);
-
-e = calc(80, 'Picolés', ['Carrinho personalizado'], null);
-ok(e.carrinho === 200, 'carrinho personalizado é fixo em 200, não por pessoa');
-ok(e.logistica === null && e.total === 80*27 + 200,
-   'sem distância, a logística NÃO entra no total (fica a combinar): ' + e.total);
-
-e = calc(90, 'Mix (gelatos + picolés)', ['Outra personalização'], null);
-ok(e.persACombinar.length === 1, 'personalização sem tabela fica "a combinar", não vira zero silencioso');
-
-ok(calc(300,'Gelatos',[],null).promotoras === 1, '300 convidados: 1 promotora');
-ok(calc(301,'Gelatos',[],null).promotoras === 2, '301 convidados: 2 promotoras');
-ok(calc(301,'Gelatos',[],null).corporativo === true, 'acima de 300 marca como corporativo');
-ok(calc(70,'Gelatos',[],null).sabores === 3, '70 convidados: 3 sabores (70 × 6 ÷ 150)');
-ok(calc(150,'Gelatos',[],null).sabores === 6, '150+: teto de 6 sabores');
-
-ok(/15 L de gelato/.test(calc(100,'Gelatos',[],null).rend), 'Gelatos: 150 ml/pessoa (100 -> 15 L)');
-ok(/200 picolés/.test(calc(100,'Picolés',[],null).rend), 'Picolés: 2 por pessoa (100 -> 200)');
-ok(/8 L de gelato/.test(calc(100,'Mix (gelatos + picolés)',[],null).rend), 'Mix: 75 ml/pessoa (100 -> ~8 L)');
-
-let faixaOk = true;
-for (const km of [1,7,23,100,320]) if (calc(70,'Gelatos',[],km).logistica !== km*4) faixaOk = false;
-ok(faixaOk, 'logística = 4 × km em toda a faixa (1, 7, 23, 100 e 320 km)');
-
-// ---------- distinguir FORA DO ES de NAO LOCALIZEI ----------
-console.log('\n--- fora do estado vs nao localizado ---');
-let chamadas = 0;
-const RESPOSTAS = [];
-globalThis.fetch = async (u) => { ultimaURL = u; chamadas++; return { ok:true, json: async()=>RESPOSTAS[chamadas-1] || [] }; };
-
-// caso A: nada no ES, mas o Brasil inteiro acha em Minas -> BLOQUEIA
-chamadas = 0; RESPOSTAS.length = 0;
-RESPOSTAS.push([], [], [{lat:"-19.92",lon:"-43.94",display_name:"Av. Afonso Pena, Belo Horizonte - MG",address:{state:"Minas Gerais","ISO3166-2-lvl4":"BR-MG"}}]);
-r = await mod.evGeocode('Av Afonso Pena 1000 Belo Horizonte');
-ok(r.ok===false && r.fora===true, 'endereço de MG: marcado como FORA (bloqueia)');
-ok(/Minas/.test(r.uf||''), 'diz o estado encontrado: ' + r.uf);
-ok(/Belo Horizonte/.test(r.endereco||''), 'diz o endereço encontrado, para o cliente corrigir se errou');
-
-// caso B: nada em lugar nenhum -> NAO bloqueia
-chamadas = 0; RESPOSTAS.length = 0;
-RESPOSTAS.push([], [], []);
-r = await mod.evGeocode('salao do ze sem endereco');
-ok(r.ok===false && !r.fora, 'endereço não localizado NÃO é bloqueado (equipe confirma)');
-
-// caso C: rede cai na segunda busca -> NAO bloqueia
-chamadas = 0; RESPOSTAS.length = 0;
-globalThis.fetch = async () => { chamadas++; if(chamadas>=3) throw new Error('rede'); return { ok:true, json: async()=>[] }; };
-r = await mod.evGeocode('endereco com rede ruim');
-ok(r.ok===false && !r.fora, 'falha de rede NÃO bloqueia o cliente');
-
-// ---------- fora do ES: bloqueia, mas MEDE ----------
-// Regra do dono: fora do estado não sai orçamento, ponto. A distância continua
-// sendo medida — não para virar preço, mas para o painel saber a diferença
-// entre uma cidade vizinha (exceção que pode valer a pena) e o outro lado do
-// país. Medir e precificar são coisas separadas.
-console.log('\n--- fora do ES: bloqueia, mas mede ---');
-
-const foraCom = async (lat, lon, nome, uf, sigla) => {
-  let n = 0;
-  globalThis.fetch = async (u) => { ultimaURL = u; URLS.push(u); n++;
-    return { ok:true, json: async () => n <= 2 ? [] : [{lat, lon, display_name:nome,
-      address:{state:uf, "ISO3166-2-lvl4":"BR-" + sigla}}] }; };
-  return mod.evGeocode(nome);
+const UA_ESPERADO = /BentoGelatos/;
+let CHAMADAS = [];
+let RESPOSTAS = [];     // uma por chamada, na ordem; número = status de erro
+const real = globalThis.fetch;
+globalThis.fetch = async (u, opt) => {
+  const url = String(u);
+  // O Redis não existe no teste: deixa o cache no-op e não conta como chamada.
+  if (!url.includes("nominatim")) return { ok: false, status: 500, json: async () => ({}) };
+  CHAMADAS.push({ url, ua: (opt && opt.headers && opt.headers["User-Agent"]) || "" });
+  const r = RESPOSTAS.shift();
+  if (typeof r === "number") return { ok: false, status: r, text: async () => "", json: async () => [] };
+  return { ok: true, status: 200, json: async () => r || [] };
 };
 
-const perto = await foraCom("-20.60","-41.20","Centro, Manhuaçu - MG","Minas Gerais","MG");
-ok(perto.fora === true, 'cidade de MG vizinha: marcada como fora do estado');
-ok(perto.ok === false, 'e BLOQUEADA — fora do ES não sai orçamento, por perto que seja');
-ok(perto.km != null && perto.km > 0, 'mas a distância foi medida: ' + perto.km + ' km');
-ok(perto.loja, 'e de qual loja ela sairia: ' + perto.loja);
+const { default: handler } = await import("../api/geo.js");
+const chamar = (q) => new Promise((r) => {
+  CHAMADAS = [];
+  handler({ method: "GET", headers: {}, query: { q } },
+          { setHeader() {}, status(c) { this._c = c; return this; }, json(b) { r(b); } });
+});
 
-const longe = await foraCom("-3.10","-60.02","Centro, Manaus - AM","Amazonas","AM");
-ok(longe.fora === true && longe.ok === false, 'Manaus: fora e bloqueada também');
-ok(longe.km > 2000, 'com a distância real, não um teto inventado (' + longe.km + ' km)');
-ok(longe.km > perto.km * 10, 'o painel consegue distinguir vizinha de longe demais ('
-   + perto.km + ' km contra ' + longe.km + ' km)');
+// Fábricas de resposta do Nominatim, só com os campos que a decisão usa.
+const lugar = (nome, uf, tipo, lat, lon) => ({
+  lat: String(lat), lon: String(lon), addresstype: tipo,
+  display_name: nome, address: { state: uf, "ISO3166-2-lvl4": uf === "Espírito Santo" ? "BR-ES" : "BR-XX" },
+});
+const VITORIA = [-20.3155, -40.3128];
+const MANAUS = [-3.119, -60.0217];
+const SC = [-26.55, -53.03];
 
-// a medição NÃO pode virar preço em lugar nenhum
-ok(calc(100,'Gelatos',[],null).logistica === null,
-   'sem `ok`, a logística não entra na conta — medir não é precificar');
+let falhas = 0;
+const caso = async (nome, fn) => {
+  try { await fn(); console.log("PASS · " + nome); }
+  catch (e) { falhas++; console.log("FALHA · " + nome + "\n         " + e.message); }
+};
+
+await caso("manda o User-Agent que nos identifica (era HTTP 403 sem ele)", async () => {
+  RESPOSTAS = [[lugar("Vitória, Espírito Santo", "Espírito Santo", "municipality", ...VITORIA)]];
+  await chamar("Vitória");
+  assert.match(CHAMADAS[0].ua, UA_ESPERADO, "a busca saiu sem User-Agent próprio");
+});
+
+await caso("a PRIMEIRA busca é no Brasil inteiro, não presa ao ES", async () => {
+  RESPOSTAS = [[lugar("Vitória, Espírito Santo", "Espírito Santo", "municipality", ...VITORIA)]];
+  await chamar("Vitória");
+  assert.ok(!/bounded=1/.test(CHAMADAS[0].url),
+    "a primeira busca ainda força o resultado para dentro do ES — foi assim que 'Manaus' virou 5 km");
+});
+
+await caso("endereço no ES devolve km e loja de referência", async () => {
+  RESPOSTAS = [[lugar("Vila Velha, Espírito Santo", "Espírito Santo", "municipality", -20.33, -40.29)]];
+  const r = await chamar("Vila Velha");
+  assert.equal(r.ok, true);
+  assert.ok(r.km > 0 && r.km < 320, "km fora do esperado: " + r.km);
+  assert.ok(r.loja, "não disse de qual loja mediu");
+});
+
+await caso("mede do lugar que a pessoa quis dizer, não do candidato mais perto de uma loja", async () => {
+  // Cachoeiro no topo + uma rua em Vitória na mesma lista. Pegar "a mais perto"
+  // devolveria ~1 km e cobraria deslocamento de bairro por um evento a 140 km.
+  RESPOSTAS = [[
+    lugar("Cachoeiro de Itapemirim, Espírito Santo", "Espírito Santo", "municipality", -20.849, -41.113),
+    lugar("Rua Cachoeiro, Praia do Canto, Vitória", "Espírito Santo", "road", ...VITORIA),
+  ]];
+  const r = await chamar("Cachoeiro de Itapemirim");
+  assert.equal(r.ok, true);
+  assert.ok(r.km > 100, "mediu " + r.km + " km — pegou o candidato errado da lista");
+});
+
+await caso("cidade de outro estado NÃO vira preço local por causa de rua homônima", async () => {
+  // Este é o bug que o 403 escondia: 'Manaus' casava com a Rua Manaus, em Vila
+  // Velha, e o orçamento saía com 5 km para um evento a 3.700 km.
+  RESPOSTAS = [
+    [lugar("Manaus, Amazonas", "Amazonas", "city", ...MANAUS)],          // busca BR
+    [lugar("Rua Manaus, Vila Velha", "Espírito Santo", "road", -20.33, -40.29)],  // busca ES
+  ];
+  const r = await chamar("Manaus");
+  assert.equal(r.ok, false, "aceitou um endereço fora do ES");
+  assert.equal(r.fora, true, "não marcou como fora do ES");
+  assert.equal(r.uf, "Amazonas");
+  assert.ok(r.km > 1000, "mediu " + r.km + " km — está medindo da rua homônima");
+});
+
+await caso("homônimo de mesma força não é chutado: pede a cidade", async () => {
+  RESPOSTAS = [
+    [lugar("Anchieta, Santa Catarina", "Santa Catarina", "village", ...SC)],
+    [lugar("Anchieta, Espírito Santo", "Espírito Santo", "municipality", -20.8, -40.64)],
+  ];
+  const r = await chamar("Anchieta");
+  assert.equal(r.ok, false);
+  assert.equal(r.ambiguo, true, "chutou um dos dois em vez de pedir desempate");
+  assert.notEqual(r.fora, true, "ambíguo não pode bloquear o orçamento");
+});
+
+await caso("fora do teto de distância não vira preço", async () => {
+  RESPOSTAS = [[lugar("Ponta longe", "Espírito Santo", "municipality", -10.0, -40.0)]];
+  const r = await chamar("Ponta longe");
+  assert.equal(r.ok, false, "aceitou um ponto acima do teto de 320 km");
+});
+
+await caso("nada encontrado não bloqueia o orçamento", async () => {
+  RESPOSTAS = [[], []];
+  const r = await chamar("asdkjhasd zzz");
+  assert.equal(r.ok, false);
+  assert.notEqual(r.fora, true, "marcou como fora do ES sem ter localizado nada");
+});
+
+await caso("Nominatim recusando (403/429) não derruba o orçamento", async () => {
+  RESPOSTAS = [403, 429];
+  const r = await chamar("Vitória");
+  assert.equal(r.ok, false);
+  assert.notEqual(r.fora, true);
+});
+
+globalThis.fetch = real;
+console.log(falhas ? `\n${falhas} FALHA(S)` : "\nGeocodificação: todos os casos passaram.");
+process.exit(falhas ? 1 : 0);

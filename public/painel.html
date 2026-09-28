@@ -28,8 +28,8 @@
   .brand .sub{font-size:10px;letter-spacing:.32em;text-transform:uppercase;color:var(--soft);margin-top:2px}
   .meta{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--soft)}
   .live{display:inline-flex;align-items:center;gap:6px}
-  .blip{width:8px;height:8px;border-radius:50%;background:var(--pist);box-shadow:0 0 0 0 rgba(184,201,122,.7);animation:pulse 1.8s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(184,201,122,.6)}70%{box-shadow:0 0 0 9px rgba(184,201,122,0)}100%{box-shadow:0 0 0 0 rgba(184,201,122,0)}}
+  .blip{width:8px;height:8px;border-radius:50%;background:var(--pist)}
+  #updated.velho{color:var(--gold)}
   button.ghost{background:transparent;border:1px solid var(--line);color:var(--soft);border-radius:8px;padding:7px 12px;font-size:11px;cursor:pointer}
   button.ghost:hover{border-color:var(--pistD);color:var(--ink)}
   /* 2 colunas no celular, 4 em telas largas — colunas fr explícitas (auto-fit/minmax não estica no iOS) */
@@ -174,7 +174,7 @@
       </div>
     </div>
     <div class="meta">
-      <span class="live"><span class="blip"></span> ao vivo</span>
+      <span class="live"><span class="blip"></span> sob demanda</span>
       <span id="updated" class="mono"></span>
       <button class="ghost" id="faceEnable" style="display:none">🙂 Ativar Face ID</button>
       <button class="ghost" id="refresh">Atualizar</button>
@@ -637,8 +637,6 @@ function render(d){
   // bar ranking (top 14)
   const top = ranked.slice(0,14);
   drawBar(top.map(n=>n), top.map(n=>totals[n]||0), top.map(isConv));
-
-  $("#updated").textContent = "atualizado " + new Date(d.updatedAt||Date.now()).toLocaleTimeString("pt-BR");
 }
 
 function escapeHtml(s){ return s.replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
@@ -2518,8 +2516,9 @@ function abaAtual(){
   return (b && b.dataset.t) || "geral";
 }
 
-// refresh(true) = tique automático: recarrega o painel de números e SÓ a aba
-// aberta. refresh() = entrada ou clique em "Atualizar": carrega tudo.
+// refresh() = entrada ou clique em "Atualizar": carrega tudo.
+// refresh(true) carrega só a aba aberta. Continua existindo para quem quiser
+// uma carga barata, mas nada mais chama sozinho: não há relógio automático.
 //
 // POR QUE: cada ciclo pedia os DEZ endpoints, olhando ou não. Uma aba esquecida
 // aberta fazia ~2.600 chamadas por dia em cada um deles, cada chamada com um a
@@ -2532,6 +2531,7 @@ async function refresh(soAAbaAberta){
   try{ d = await load(); }
   catch(e){ if(String(e.message)!=="401") $("#gateErr").textContent = "Erro: "+e.message; return; }
   closeGate();
+  marcarCarga();   // o dado chegou; a idade conta daqui, mesmo se render() falhar
   // O painel dos gráficos e as abas de dados são independentes, e precisam
   // continuar independentes. Antes render() e os carregadores dividiam o mesmo
   // try: quando o Chart.js do CDN não carregava, render() lançava
@@ -2566,15 +2566,35 @@ $("#bookAdd").onclick = ()=>{ const d = $("#bookDate").value; if(d) bookAction("
 $("#refresh").onclick = function(){ refresh(); };   // clique do dono: carrega tudo
 $("#logout").onclick = ()=>{ localStorage.removeItem(KEYSTORE); localStorage.removeItem(CREDSTORE); openGate(""); };
 
+// SEM RELOGIO AUTOMATICO. O painel so vai ao banco quando o dono pede.
+//
+// POR QUE: antes havia um tique de 60s. Cada tique custava uma chamada ao
+// /api/stats mais os carregadores da aba aberta — com o painel 8h aberto,
+// algo entre 1.500 e 2.000 invocacoes por dia sem ninguem ter pedido nada.
+// Somado ao historico (uma aba esquecida aberta ja queimou a cota do banco em
+// agosto), o preco de "tempo real" nao se paga num painel que uma pessoa olha
+// algumas vezes por dia. Agora atualiza no botao Atualizar, e o relogio ao
+// lado mostra a idade do dado para ninguem ler numero velho como se fosse de
+// agora.
+var ULTIMA_CARGA = 0;
+function marcarCarga(){ ULTIMA_CARGA = Date.now(); pintarIdade(); }
+function pintarIdade(){
+  var el = $("#updated"); if(!el || !ULTIMA_CARGA) return;
+  var seg = Math.round((Date.now() - ULTIMA_CARGA)/1000);
+  var txt = seg < 45 ? "agora"
+          : seg < 5400 ? "ha " + Math.round(seg/60) + " min"
+          : "ha " + Math.round(seg/3600) + " h";
+  el.textContent = "dados de " + txt;
+  el.classList.toggle("velho", seg > 900);   // 15 min: avisa que envelheceu
+}
+// So conta o tempo na tela — nao vai ao banco.
+setInterval(pintarIdade, 30000);
+
 // início: com Face ID configurado, sempre exige a biometria; senão, mantém o atalho pela senha salva.
 if (waOK && localStorage.getItem(CREDSTORE)) openGate("");
 else if (localStorage.getItem(KEYSTORE)) refresh();
 else openGate("");
-// Só recarrega com a aba VISÍVEL. Uma aba do painel esquecida aberta batia no
-// banco a cada 30s por dias — 2.880 ciclos/dia, vários comandos cada, sem
-// ninguém olhando. Custo de banco não pode ser gerado por aba esquecida.
-setInterval(()=>{ if(document.hidden) return;
-                  if($("#app").style.display!=="none") refresh(true); }, 60000);
+
 </script>
 <script src="/painel-movimento-editor.js"></script>
 </body>
