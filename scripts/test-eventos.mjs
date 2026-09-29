@@ -19,7 +19,7 @@ const corte = (de, ate) => {
 const bloco =
   corte("const EV_PERS_ESTRUTURA", "const fmtBRL") +
   corte("const EV_KM_RATE", "// Geocodificação do local") +
-  corte("const EV_FORMATOS", "export function EventosModal(");
+  corte("const EV_PRECO_PESSOA", "export function EventosModal(");
 
 const M = new Function(bloco + "\nreturn { calcEvento, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE };")();
 const { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE } = M;
@@ -34,13 +34,31 @@ caso("são três formatos, do menor para o maior", () => {
   assert.deepEqual(EV_FORMATOS.map((f) => f.id), ["caixa", "balcao", "carrinho"]);
 });
 
-caso("o preço por pessoa fica na banda combinada de R$ 25 a R$ 27", () => {
-  for (const f of EV_FORMATOS) {
-    assert.ok(f.preco >= 25 && f.preco <= 27, `${f.nome} está a R$ ${f.preco}`);
-  }
-  // Mais serviço nunca pode custar menos que menos serviço.
-  const p = EV_FORMATOS.map((f) => f.preco);
-  assert.deepEqual([...p].sort((a, b) => a - b), p, "os preços não crescem junto com o serviço");
+caso("o preço por pessoa é R$ 27 em qualquer formato", () => {
+  // Decisão do dono: o que muda entre formatos é equipe e entrega, não o preço
+  // por pessoa. Um formato "mais barato" aqui seria desconto que ninguém deu.
+  for (const f of EV_FORMATOS) assert.equal(f.preco, 27, `${f.nome} está a R$ ${f.preco}`);
+});
+
+caso("personalização custa +20% abaixo de 100 convidados, e preço cheio a partir de 100", () => {
+  const P = "Potinhos ou rótulos personalizados";
+  // 40 pessoas: 40 × 2 × R$ 0,50 = 40 → com +20% = 48. Estrutura 200 → 240.
+  const q40 = calcEvento(40, "Mix (gelatos + picolés)", [P, "Balcão personalizado"], null, "balcao");
+  assert.equal(q40.potinhos, 48, "potinhos sem o acréscimo em quantidade pequena");
+  assert.equal(q40.carrinho, 240, "estrutura sem o acréscimo em quantidade pequena");
+  assert.equal(q40.persFator, 1.2);
+  // 99 ainda é quantidade pequena; 100 já não.
+  assert.equal(calcEvento(99, "Gelatos", [P], null, "balcao").potinhos, Math.round(99 * 2 * 0.5 * 1.2));
+  const q100 = calcEvento(100, "Mix (gelatos + picolés)", [P, "Carrinho personalizado"], null, "carrinho");
+  assert.equal(q100.potinhos, 100, "cobrou acréscimo em quantidade grande");
+  assert.equal(q100.carrinho, 200, "cobrou acréscimo na estrutura em quantidade grande");
+  assert.equal(q100.persFator, 1);
+});
+
+caso("o acréscimo não vaza para o serviço nem para a logística", () => {
+  const q = calcEvento(40, "Picolés", ["Potinhos ou rótulos personalizados"], 10, "caixa");
+  assert.equal(q.base, 40 * 27, "o serviço por pessoa mudou junto com a personalização");
+  assert.equal(q.logistica, 10 * 2 * 2.0, "a logística mudou junto com a personalização");
 });
 
 caso("as faixas de convidados são as que o dono definiu", () => {
@@ -82,7 +100,7 @@ caso("onde não tem atendente, o rendimento fala em potinho selado, não em litr
 
 caso("o total soma serviço + logística + personalizações", () => {
   const q = calcEvento(100, "Mix (gelatos + picolés)", ["Balcão personalizado", "Potinhos ou rótulos personalizados"], 30, "balcao");
-  assert.equal(q.base, 100 * 26);
+  assert.equal(q.base, 100 * 27);
   assert.equal(q.potinhos, 100 * 2 * 0.5);
   assert.equal(q.carrinho, 200);
   assert.equal(q.logistica, 30 * 2 * 2.0);

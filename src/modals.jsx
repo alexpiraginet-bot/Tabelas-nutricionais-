@@ -761,7 +761,16 @@ const EV_ROTA=1.3;        // fator linha reta → rota real
 
 const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
 
-const EV_CARRINHO=200;    // R$ personalização do carrinho
+const EV_CARRINHO=200;    // R$ personalização da estrutura (carrinho ou balcão)
+
+// Personalização custa mais em quantidade pequena: tiragem curta de rótulo e
+// montagem sob medida têm custo fixo que se dilui em evento grande. Regra do
+// dono: cerca de 20% a mais abaixo da quantidade "grande" — que é a faixa do
+// carrinho. A partir dela, preço cheio. Vale para potinhos/rótulos e para a
+// estrutura personalizada.
+const EV_PERS_ACRESCIMO=0.20;
+const EV_PERS_GRANDE=100;
+const EV_PERS_FATOR=(n)=>n<EV_PERS_GRANDE?1+EV_PERS_ACRESCIMO:1;
 
 // Geocodificação do local — agora é uma chamada à NOSSA API (`api/geo.js`).
 //
@@ -794,13 +803,15 @@ async function evGeocode(text){
 /* ---------- os três formatos de evento ----------
    A estrutura muda, o preço por pessoa muda junto, e o que vai no copo muda com
    ela: onde não tem atendente, o produto sai pré-envasado e selado da fábrica.
-   Faixas e preços definidos pelo dono — a banda é R$ 25 a R$ 27 por pessoa, do
-   serviço mais enxuto ao mais completo. Mexer aqui muda site, orçamento,
-   WhatsApp e contrato de uma vez só. */
+   Preço por pessoa é UM SÓ, R$ 27, em qualquer formato e quantidade — decisão
+   do dono. O que muda entre formatos é equipe e forma de entrega; logística,
+   horas de promotora e personalização são linhas à parte. Mexer aqui muda site,
+   orçamento, WhatsApp e contrato de uma vez só. */
+const EV_PRECO_PESSOA=27;
 const EV_FORMATOS=[
   {
     id:"caixa", nome:"Caixa térmica", sub:"Sem atendente",
-    min:20, max:60, preco:25, equipe:0,
+    min:20, max:60, preco:EV_PRECO_PESSOA, equipe:0,
     img:"/eventos/caixa-1.jpg",
     alt:"Caixa térmica Bentô aberta, com potinhos e picolés sobre gelo",
     resumo:"A caixa chega montada e gelada. Seus convidados se servem sozinhos, no ritmo da festa.",
@@ -810,7 +821,7 @@ const EV_FORMATOS=[
   },
   {
     id:"balcao", nome:"Balcão Bentô", sub:"Eventos menores",
-    min:30, max:120, preco:26, equipe:1,
+    min:30, max:120, preco:EV_PRECO_PESSOA, equipe:1,
     img:"/eventos/balcao-1.jpg",
     alt:"Balcão Bentô em madeira com logo iluminado, freezer embutido e guarda-sol",
     resumo:"Nosso balcão novo, feito para festas que não comportam o carrinho inteiro — mesma presença, menos espaço.",
@@ -820,7 +831,7 @@ const EV_FORMATOS=[
   },
   {
     id:"carrinho", nome:"Carrinho Bentô", sub:"Estrutura completa",
-    min:100, max:null, preco:27, equipe:1,
+    min:100, max:null, preco:EV_PRECO_PESSOA, equipe:1,
     img:"/eventos/carrinho-1.jpg",
     alt:"Carrinho de gelateria Bentô montado em casamento",
     resumo:"A estrutura completa: gelato servido na hora, na casquinha ou no copo, com a equipe atendendo a fila.",
@@ -857,8 +868,11 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId=
     else rend=`~${n} potinhos selados + ~${n} picolés · 1 + 1 por pessoa`;
   }
   const base=n*f.preco;
-  const potinhos=EV_POTINHOS(pers)?n*2*EV_POTINHO:0;                       // 2 por pessoa
-  const estrutura=EV_ESTRUTURA(pers)?EV_CARRINHO:0;
+  // Arredondado em reais inteiros: com o acréscimo o unitário vira R$ 0,60 e
+  // 2 por pessoa daria centavos quebrados no contrato.
+  const persFator=EV_PERS_FATOR(n);
+  const potinhos=EV_POTINHOS(pers)?Math.round(n*2*EV_POTINHO*persFator):0;   // 2 por pessoa
+  const estrutura=EV_ESTRUTURA(pers)?Math.round(EV_CARRINHO*persFator):0;
   const persACombinar=pers.filter(p=>!EV_POTINHOS([p])&&!EV_ESTRUTURA([p]));
   const logistica=km!=null?Math.round(km*2*EV_KM_RATE):null;              // ida e volta × R$/km
   // Duas promotoras só fazem sentido onde existe fila para atender. A caixa
@@ -866,6 +880,7 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId=
   const promotoras=f.equipe===0?0:(f.id==="carrinho"&&n>300?2:f.equipe);
   return{
     formato:f.id, formatoNome:f.nome, preco:f.preco, servico:f.servico,
+    persFator, persUnit:Math.round(EV_POTINHO*persFator*100)/100,
     // Até 6 sabores (150+), proporcional abaixo. O piso muda com o formato: a
     // fórmula foi feita quando o evento mínimo era 70 pessoas, e com o mínimo em
     // 20 ela passou a devolver "até 2 sabores" o tempo todo. Onde o produto sai
@@ -1006,7 +1021,7 @@ export function EventosModal({onClose}){
       "*— Orçamento online —*",
       `*Serviço (R$ ${q.preco} × ${ev.convidados}):* ${fmtBRL(q.base)}`,
       geo&&geo.ok?`*Logística (~${geo.km} km · Bentô ${geo.loja} · ida e volta):* ${fmtBRL(q.logistica)}`:"*Logística:* a confirmar",
-      q.potinhos>0&&`*Potinhos ou rótulos personalizados (2/pessoa):* ${fmtBRL(q.potinhos)}`,
+      q.potinhos>0&&`*Potinhos ou rótulos personalizados (2/pessoa${q.persFator>1?" · +20% quantidade menor":""}):* ${fmtBRL(q.potinhos)}`,
       q.carrinho>0&&`*Personalização da estrutura:* ${fmtBRL(q.carrinho)}`,
       q.persACombinar.length>0&&`*A combinar:* ${q.persACombinar.join(", ")}`,
       q.corporativo&&"*Evento corporativo 300+:* condições especiais",
@@ -1252,8 +1267,8 @@ export function EventosModal({onClose}){
                       o restante do orçamento já vale.
                     </div>
                   </>}
-              {q.potinhos>0&&<Row l={`Potinhos ou rótulos personalizados (2/pessoa · R$ 0,50)`} v={fmtBRL(q.potinhos)}/>}
-              {q.carrinho>0&&<Row l="Personalização da estrutura" v={fmtBRL(q.carrinho)}/>}
+              {q.potinhos>0&&<Row l={`Potinhos ou rótulos personalizados (2/pessoa · R$ ${q.persUnit.toFixed(2).replace(".",",")}${q.persFator>1?" · quantidade menor":""})`} v={fmtBRL(q.potinhos)}/>}
+              {q.carrinho>0&&<Row l={`Personalização da estrutura${q.persFator>1?" (quantidade menor)":""}`} v={fmtBRL(q.carrinho)}/>}
               {q.persACombinar.length>0&&<Row l={q.persACombinar.join(" · ")} v="a combinar ✨"/>}
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0 10px"}}>
                 <span className="fb" style={{fontSize:13,color:T.inkSoft}}>

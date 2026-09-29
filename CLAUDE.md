@@ -11,9 +11,13 @@ Vite + React 18 em **JavaScript** (`.jsx`) — **não** é Next.js, **não** tem
 `.fm` (JetBrains Mono). Ícones: `lucide-react`. Deploy na Vercel.
 
 Eventos têm **três formatos** (`EV_FORMATOS` em `src/modals.jsx`): caixa térmica
-(20–60, R$ 25/pessoa, sem atendente), balcão (30–120, R$ 26) e carrinho (100+,
-R$ 27). Mudar faixa ou preço ali muda site, orçamento, WhatsApp e contrato de uma
-vez — e `npm run test:eventos` trava os três. Fechar por quantidade de itens é
+(20–60, sem atendente), balcão (30–120, 1 promotora) e carrinho (100+). O preço por
+pessoa é **um só, R$ 27, em qualquer formato** (`EV_PRECO_PESSOA`) — decisão do
+dono; o que muda entre formatos é equipe e entrega. Logística é linha à parte, e
+**personalização custa +20% abaixo de 100 convidados** (`EV_PERS_ACRESCIMO`,
+`EV_PERS_GRANDE`): tiragem curta de rótulo é mais cara por unidade. Mudar faixa,
+preço ou acréscimo ali muda site, orçamento, WhatsApp e contrato de uma vez — e
+`npm run test:eventos` trava tudo. Fechar por quantidade de itens é
 WhatsApp, nunca orçamento online: as duas réguas na mesma tela dão dois preços
 para o mesmo evento.
 
