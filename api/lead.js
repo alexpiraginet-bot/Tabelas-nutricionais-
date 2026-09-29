@@ -100,6 +100,11 @@ export default async function handler(req, res) {
       local: semControle(body.local || ""),
       convidados: Number(body.convidados) || 0,
       tipo: semControle(body.tipo || ""),
+      // Formato do evento (caixa térmica / balcão / carrinho). A lista de campos
+      // é fechada de propósito, e por isso o formato vinha sendo DESCARTADO: o
+      // painel e o Telegram mostravam "25 convidados · Mix · R$ 713" sem dizer
+      // se era caixa térmica ou carrinho — e são serviços diferentes.
+      formato: semControle(body.formato || ""),
       total: Number(body.total) || 0,
       km: body.km == null ? null : Number(body.km),
       loja: semControle(body.loja || ""),
@@ -140,7 +145,7 @@ export default async function handler(req, res) {
         `👤 ${esc(lead.nome || "—")} · ${esc(lead.phone)}`,
         (lead.data || lead.hora) ? `📅 ${esc(lead.data)}${lead.hora ? ` ⏰ ${esc(lead.hora)}` : ""}` : "",
         lead.local ? `📍 ${esc(lead.local)}` : "",
-        `👥 ${lead.convidados || "—"} convidados · ${esc(lead.tipo || "—")}`,
+        `👥 ${lead.convidados || "—"} convidados · ${esc(lead.tipo || "—")}${lead.formato ? ` · ${esc(lead.formato)}` : ""}`,
         lead.total ? `💰 ${brl(lead.total)}` : "",
         lead.link ? `📄 <a href="${esc(lead.link)}">Abrir orçamento</a>` : "",
         `💬 <a href="${wa}">Responder no WhatsApp</a>`,

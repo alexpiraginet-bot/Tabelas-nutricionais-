@@ -160,7 +160,7 @@ Doeu horas descobrir; não repita:
 
 ```
 npm run build              # inclui geração de fichas e páginas de compartilhamento
-npm run lint               # 1 erro pré-existente em modals.jsx (config do eslint), ignore
+npm run lint               # tem de sair limpo
 npm run test:home-banners  # trava a sincronia da lista de banners
 npm run test:eventos       # trava preço, faixa e equipe dos três formatos
 npm run test:geocode       # trava a decisão de dentro/fora do ES e o User-Agent

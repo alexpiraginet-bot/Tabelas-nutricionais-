@@ -983,6 +983,7 @@ function leadQuoteRow(l){
   if(l.fora) stageTag = '<span class="tag" style="border-color:#e8c877;color:#e8c877">bloqueado · fora do ES'+(l.uf?" · "+escapeHtml(l.uf):"")+'</span>';
   var det = [
     l.convidados ? ("👥 "+l.convidados+" convid.") : "",
+    l.formato ? ("🎪 "+escapeHtml(l.formato)) : "",   // caixa térmica / balcão / carrinho
     leadTipo(l),
     l.data ? ("📅 "+fmtDateBR(l.data)+(l.hora?(" ⏰ "+l.hora):"")) : "",
     l.local ? ("📍 "+l.local) : "",
@@ -1024,7 +1025,9 @@ async function ctDoLead(ts, el){
         data: lead.data ? fmtDateBR(lead.data) : "", horario: lead.hora || "",
         local: lead.local || "", convidados: lead.convidados || 0,
         subtotal: lead.total || 0, desconto: 0,
-        observacoes: lead.obs || "",
+        // O contrato da API não tem campo de formato; sem isto, um contrato de
+        // caixa térmica nasceria sem dizer que é caixa térmica.
+        observacoes: (lead.formato ? "Formato: "+lead.formato+". " : "") + (lead.obs || ""),
         leadTs: lead.ts,
       }) });
     var j = await r.json();
@@ -1809,7 +1812,8 @@ async function ctImportar(todos){
                  zap: l.phone || "", empresa: l.empresa || "",
                  data: l.data ? fmtDateBR(l.data) : "", horario: l.hora || "",
                  local: l.local || "", convidados: l.convidados || 0,
-                 subtotal: l.total || 0, desconto: 0, observacoes: l.obs || "" };
+                 subtotal: l.total || 0, desconto: 0,
+                 observacoes: (l.formato ? "Formato: "+l.formato+". " : "") + (l.obs || "") };
       }) }) });
     var j = await r.json();
     if(!j.ok){ msg.textContent = "Erro: " + (j.error || "falhou"); return; }
