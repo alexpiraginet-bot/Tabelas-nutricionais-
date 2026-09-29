@@ -120,9 +120,15 @@ let travas = 0, yTravado = 0, estiloAnterior = null;
 function travarRolagem(){
   if (travas++ === 0) {
     yTravado = window.scrollY || document.documentElement.scrollTop || 0;
+    // No desktop a página tem barra de rolagem. Fixar o body faz a barra sumir e
+    // o conteúdo alargar pela largura dela: tudo salta ~15px para a direita ao
+    // abrir o modal e volta ao fechar. A compensação é um padding do mesmo
+    // tamanho. No celular a barra é sobreposta, a diferença é 0 e nada muda.
+    const barra = window.innerWidth - document.documentElement.clientWidth;
     const s = document.body.style;
-    estiloAnterior = {position:s.position,top:s.top,left:s.left,right:s.right,width:s.width,overflow:s.overflow};
+    estiloAnterior = {position:s.position,top:s.top,left:s.left,right:s.right,width:s.width,overflow:s.overflow,paddingRight:s.paddingRight};
     s.position="fixed"; s.top=`-${yTravado}px`; s.left="0"; s.right="0"; s.width="100%"; s.overflow="hidden";
+    if (barra > 0) s.paddingRight = `${barra}px`;
   }
 }
 function soltarRolagem(){
