@@ -64,8 +64,8 @@ caso("o acréscimo não vaza para o serviço nem para a logística", () => {
 caso("as faixas de convidados são as que o dono definiu", () => {
   const f = Object.fromEntries(EV_FORMATOS.map((x) => [x.id, x]));
   assert.deepEqual([f.caixa.min, f.caixa.max], [20, 60]);
-  assert.deepEqual([f.balcao.min, f.balcao.max], [30, 120]);
-  assert.equal(f.carrinho.min, 100);
+  assert.deepEqual([f.balcao.min, f.balcao.max], [30, 80]);
+  assert.equal(f.carrinho.min, 80, "acima de 80 é carrinho direto");
   assert.equal(f.carrinho.max, null, "o carrinho não pode ter teto");
 });
 
@@ -78,6 +78,7 @@ caso("cada tamanho de evento cai no formato certo", () => {
   assert.equal(EV_SUGERE(20), "caixa");
   assert.equal(EV_SUGERE(45), "caixa");
   assert.equal(EV_SUGERE(80), "balcao");
+  assert.equal(EV_SUGERE(90), "carrinho", "90 convidados não cabem mais no balcão");
   assert.equal(EV_SUGERE(150), "carrinho");
   assert.equal(EV_SUGERE(1000), "carrinho");
 });
@@ -89,13 +90,18 @@ caso("só o carrinho tem promotora dobrada acima de 300", () => {
   assert.equal(calcEvento(400, "Mix (gelatos + picolés)", [], null, "carrinho").promotoras, 2);
 });
 
-caso("onde não tem atendente, o rendimento fala em potinho selado, não em litro", () => {
-  for (const id of ["caixa", "balcao"]) {
-    const r = calcEvento(40, "Gelatos", [], null, id).rend;
-    assert.match(r, /potinho/, `${id}: "${r}"`);
-    assert.doesNotMatch(r, / L de gelato/, `${id} promete gelato servido a granel: "${r}"`);
-  }
+caso("sem atendente o rendimento é em potinho selado; com promotora e cuba, em litros", () => {
+  const r = calcEvento(40, "Gelatos", [], null, "caixa").rend;
+  assert.match(r, /potinho/, `caixa: "${r}"`);
+  assert.doesNotMatch(r, / L de gelato/, `caixa promete gelato servido a granel: "${r}"`);
+  // Balcão tem promotora e serve da cuba: a conta é em litros, como o carrinho.
+  assert.match(calcEvento(60, "Gelatos", [], null, "balcao").rend, / L de gelato/);
   assert.match(calcEvento(150, "Gelatos", [], null, "carrinho").rend, / L de gelato/);
+});
+
+caso("o acréscimo de personalização segue a quantidade, não o formato", () => {
+  // Carrinho com 90 convidados ainda está abaixo de 100: paga o acréscimo.
+  assert.equal(calcEvento(90, "Gelatos", ["Potinhos ou rótulos personalizados"], null, "carrinho").persFator, 1.2);
 });
 
 caso("o total soma serviço + logística + personalizações", () => {

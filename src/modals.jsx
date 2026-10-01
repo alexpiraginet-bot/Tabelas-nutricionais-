@@ -765,12 +765,22 @@ const EV_CARRINHO=200;    // R$ personalização da estrutura (carrinho ou balc�
 
 // Personalização custa mais em quantidade pequena: tiragem curta de rótulo e
 // montagem sob medida têm custo fixo que se dilui em evento grande. Regra do
-// dono: cerca de 20% a mais abaixo da quantidade "grande" — que é a faixa do
-// carrinho. A partir dela, preço cheio. Vale para potinhos/rótulos e para a
+// dono: cerca de 20% a mais abaixo de 100 convidados; a partir daí, preço
+// cheio. É régua de QUANTIDADE, não de formato — o carrinho começa em 80 e
+// ainda paga o acréscimo entre 80 e 99. Vale para potinhos/rótulos e para a
 // estrutura personalizada.
 const EV_PERS_ACRESCIMO=0.20;
 const EV_PERS_GRANDE=100;
 const EV_PERS_FATOR=(n)=>n<EV_PERS_GRANDE?1+EV_PERS_ACRESCIMO:1;
+
+// Subir de estrutura (balcão -> carrinho) NÃO é escolha do cliente: o formato
+// sai da faixa de convidados, e fora da faixa o botão fica travado. Só acontece
+// quando a estrutura do formato dele já está reservada naquela data — aí a
+// equipe joga o evento para a estrutura seguinte e cobra logística extra. O
+// site não decide isso (a reserva no painel é por data, não por estrutura);
+// ele só avisa a regra e o valor quando detecta a data ocupada, para o cliente
+// não descobrir os R$ 200 na hora de fechar.
+const EV_UPGRADE_LOGISTICA=200;
 
 // Geocodificação do local — agora é uma chamada à NOSSA API (`api/geo.js`).
 //
@@ -821,17 +831,19 @@ const EV_FORMATOS=[
   },
   {
     id:"balcao", nome:"Balcão Bentô", sub:"Eventos menores",
-    min:30, max:120, preco:EV_PRECO_PESSOA, equipe:1,
+    min:30, max:80, preco:EV_PRECO_PESSOA, equipe:1,
     img:"/eventos/balcao-1.jpg",
     alt:"Balcão Bentô em madeira com logo iluminado, freezer embutido e guarda-sol",
     resumo:"Nosso balcão novo, feito para festas que não comportam o carrinho inteiro — mesma presença, menos espaço.",
-    inclui:["Balcão com freezer e iluminação própria","1 promotora uniformizada e treinada","Potinhos selados e picolés, servidos no balcão"],
-    servico:"1 promotora · balcão montado no local",
-    prod:"envasado",
+    inclui:["Balcão com freezer e iluminação própria","1 promotora uniformizada e treinada","Gelato servido na hora, da cuba — ou em potinhos selados"],
+    servico:"1 promotora · gelato servido na hora ou em potinhos",
+    // Tem promotora e cuba: o gelato é servido na hora, então o rendimento é em
+    // litros, como no carrinho. Potinho selado é alternativa, não a regra.
+    prod:"servido",
   },
   {
     id:"carrinho", nome:"Carrinho Bentô", sub:"Estrutura completa",
-    min:100, max:null, preco:EV_PRECO_PESSOA, equipe:1,
+    min:80, max:null, preco:EV_PRECO_PESSOA, equipe:1,
     img:"/eventos/carrinho-1.jpg",
     alt:"Carrinho de gelateria Bentô montado em casamento",
     resumo:"A estrutura completa: gelato servido na hora, na casquinha ou no copo, com a equipe atendendo a fila.",
@@ -1001,7 +1013,7 @@ export function EventosModal({onClose}){
     const linkContrato=mkLink(payload);
     const linhas=[
       "*Novo orçamento — Eventos Bentô* 🎉","",
-      conflito&&"⚠️ *Atenção:* esta data pode já ter um evento confirmado. Gostaria de verificar a disponibilidade (outro horário ou formato) para o meu também. 🙏","",
+      conflito&&`⚠️ *Atenção:* esta data pode já ter um evento confirmado. Gostaria de verificar a disponibilidade (outro horário ou formato) para o meu também. Sei que, se precisar subir de estrutura, a logística extra é de ${fmtBRL(EV_UPGRADE_LOGISTICA)}. 🙏`,"",
       "*— Dados do contratante —*",
       `*Nome:* ${cad.nome.trim()}`,
       `*CPF/CNPJ:* ${cad.doc.trim()}`,
@@ -1332,7 +1344,7 @@ export function EventosModal({onClose}){
             {conflict?(
               <div style={{marginTop:14,background:"#F2E2C5",border:"1px solid #D9BD8A",borderRadius:12,padding:"14px 16px"}}>
                 <div className="fb" style={{fontSize:13.5,color:"#7A5320",fontWeight:600,lineHeight:1.4}}>⚠️ Já temos um evento confirmado nessa data.</div>
-                <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário ou formato</strong>. Fale com a gente que verificamos a disponibilidade pro seu evento também! 💛</div>
+                <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário</strong>. E se a estrutura do seu formato for a que está reservada, dá para subir para a <strong>estrutura seguinte</strong> (balcão → carrinho) com <strong>{fmtBRL(EV_UPGRADE_LOGISTICA)} a mais de logística</strong>. Fale com a gente que verificamos pro seu evento! 💛</div>
                 <button onClick={()=>doEnviar(true)} className="fb" style={{width:"100%",marginTop:12,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar com a equipe sobre a data</button>
                 <button onClick={()=>{setConflict(false);setStep(1);}} className="fb" style={{width:"100%",marginTop:8,padding:"11px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.inkSoft,fontSize:13,cursor:"pointer"}}>📅 Escolher outra data</button>
               </div>
