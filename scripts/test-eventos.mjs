@@ -64,8 +64,17 @@ caso("o acréscimo não vaza para o serviço nem para a logística", () => {
 caso("as faixas de convidados são as que o dono definiu", () => {
   const f = Object.fromEntries(EV_FORMATOS.map((x) => [x.id, x]));
   assert.deepEqual([f.caixa.min, f.caixa.max], [20, 60]);
-  assert.deepEqual([f.balcao.min, f.balcao.max], [30, 120]);
-  assert.equal(f.carrinho.min, 100);
+  assert.deepEqual([f.balcao.min, f.balcao.max], [30, 80]);
+  assert.equal(f.carrinho.min, 81, "acima de 80 é carrinho direto; 80 ainda é balcão");
+  // Faixas não podem se sobrepor no limite: com 80 nas duas, quem abriu no
+  // carrinho (padrão 150) e trocou para 80 ficava no carrinho. Codex, PR #241.
+  assert.ok(!EV_CABE(f.carrinho, 80), "carrinho aceita 80 convidados — sobrepõe o balcão");
+  assert.ok(EV_CABE(f.balcao, 80) && EV_CABE(f.carrinho, 81));
+  // Entre 30 e 60 caixa E balcão cabem DE PROPÓSITO: ali a diferença é de
+  // serviço (sem atendente × promotora servindo na hora), e isso o cliente
+  // escolhe. "Subir de estrutura" é só balcão -> carrinho. Codex pediu para
+  // fechar esta sobreposição no PR #241; não é bug, é oferta do dono.
+  assert.ok(EV_CABE(f.caixa, 40) && EV_CABE(f.balcao, 40), "caixa e balcão deixaram de coexistir em 40 convidados");
   assert.equal(f.carrinho.max, null, "o carrinho não pode ter teto");
 });
 
@@ -78,6 +87,8 @@ caso("cada tamanho de evento cai no formato certo", () => {
   assert.equal(EV_SUGERE(20), "caixa");
   assert.equal(EV_SUGERE(45), "caixa");
   assert.equal(EV_SUGERE(80), "balcao");
+  assert.equal(EV_SUGERE(81), "carrinho", "81 já é carrinho");
+  assert.equal(EV_SUGERE(90), "carrinho", "90 convidados não cabem mais no balcão");
   assert.equal(EV_SUGERE(150), "carrinho");
   assert.equal(EV_SUGERE(1000), "carrinho");
 });
@@ -89,13 +100,18 @@ caso("só o carrinho tem promotora dobrada acima de 300", () => {
   assert.equal(calcEvento(400, "Mix (gelatos + picolés)", [], null, "carrinho").promotoras, 2);
 });
 
-caso("onde não tem atendente, o rendimento fala em potinho selado, não em litro", () => {
-  for (const id of ["caixa", "balcao"]) {
-    const r = calcEvento(40, "Gelatos", [], null, id).rend;
-    assert.match(r, /potinho/, `${id}: "${r}"`);
-    assert.doesNotMatch(r, / L de gelato/, `${id} promete gelato servido a granel: "${r}"`);
-  }
+caso("sem atendente o rendimento é em potinho selado; com promotora e cuba, em litros", () => {
+  const r = calcEvento(40, "Gelatos", [], null, "caixa").rend;
+  assert.match(r, /potinho/, `caixa: "${r}"`);
+  assert.doesNotMatch(r, / L de gelato/, `caixa promete gelato servido a granel: "${r}"`);
+  // Balcão tem promotora e serve da cuba: a conta é em litros, como o carrinho.
+  assert.match(calcEvento(60, "Gelatos", [], null, "balcao").rend, / L de gelato/);
   assert.match(calcEvento(150, "Gelatos", [], null, "carrinho").rend, / L de gelato/);
+});
+
+caso("o acréscimo de personalização segue a quantidade, não o formato", () => {
+  // Carrinho com 90 convidados ainda está abaixo de 100: paga o acréscimo.
+  assert.equal(calcEvento(90, "Gelatos", ["Potinhos ou rótulos personalizados"], null, "carrinho").persFator, 1.2);
 });
 
 caso("o total soma serviço + logística + personalizações", () => {
