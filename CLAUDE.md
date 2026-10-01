@@ -12,7 +12,8 @@ Vite + React 18 em **JavaScript** (`.jsx`) — **não** é Next.js, **não** tem
 
 Eventos têm **três formatos** (`EV_FORMATOS` em `src/modals.jsx`): caixa térmica
 (20–60, sem atendente), balcão (30–80, 1 promotora, gelato servido na hora da cuba
-ou em potinhos) e carrinho (80+). O preço por pessoa é **um só, R$ 27, em qualquer
+ou em potinhos) e carrinho (81+ — 80 ainda é balcão; as faixas não se sobrepõem
+no limite, senão a tela preserva o formato maior já escolhido). O preço por pessoa é **um só, R$ 27, em qualquer
 formato** (`EV_PRECO_PESSOA`) — decisão do dono; o que muda entre formatos é equipe
 e entrega. Logística é linha à parte, e **personalização custa +20% abaixo de 100
 convidados** (`EV_PERS_ACRESCIMO`, `EV_PERS_GRANDE`) — régua de quantidade, não de

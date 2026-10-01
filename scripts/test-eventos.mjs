@@ -65,7 +65,11 @@ caso("as faixas de convidados são as que o dono definiu", () => {
   const f = Object.fromEntries(EV_FORMATOS.map((x) => [x.id, x]));
   assert.deepEqual([f.caixa.min, f.caixa.max], [20, 60]);
   assert.deepEqual([f.balcao.min, f.balcao.max], [30, 80]);
-  assert.equal(f.carrinho.min, 80, "acima de 80 é carrinho direto");
+  assert.equal(f.carrinho.min, 81, "acima de 80 é carrinho direto; 80 ainda é balcão");
+  // Faixas não podem se sobrepor no limite: com 80 nas duas, quem abriu no
+  // carrinho (padrão 150) e trocou para 80 ficava no carrinho. Codex, PR #241.
+  assert.ok(!EV_CABE(f.carrinho, 80), "carrinho aceita 80 convidados — sobrepõe o balcão");
+  assert.ok(EV_CABE(f.balcao, 80) && EV_CABE(f.carrinho, 81));
   assert.equal(f.carrinho.max, null, "o carrinho não pode ter teto");
 });
 
@@ -78,6 +82,7 @@ caso("cada tamanho de evento cai no formato certo", () => {
   assert.equal(EV_SUGERE(20), "caixa");
   assert.equal(EV_SUGERE(45), "caixa");
   assert.equal(EV_SUGERE(80), "balcao");
+  assert.equal(EV_SUGERE(81), "carrinho", "81 já é carrinho");
   assert.equal(EV_SUGERE(90), "carrinho", "90 convidados não cabem mais no balcão");
   assert.equal(EV_SUGERE(150), "carrinho");
   assert.equal(EV_SUGERE(1000), "carrinho");

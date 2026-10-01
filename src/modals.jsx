@@ -843,7 +843,11 @@ const EV_FORMATOS=[
   },
   {
     id:"carrinho", nome:"Carrinho Bentô", sub:"Estrutura completa",
-    min:80, max:null, preco:EV_PRECO_PESSOA, equipe:1,
+    // 81, não 80: o balcão vai ATÉ 80 inclusive. Com os dois cabendo em 80, a
+    // tela preservava o carrinho de quem abriu no padrão de 150 e trocou para
+    // 80 — e o cliente escolhia a estrutura maior sem conflito de data. Achado
+    // do Codex no PR #241.
+    min:81, max:null, preco:EV_PRECO_PESSOA, equipe:1,
     img:"/eventos/carrinho-1.jpg",
     alt:"Carrinho de gelateria Bentô montado em casamento",
     resumo:"A estrutura completa: gelato servido na hora, na casquinha ou no copo, com a equipe atendendo a fila.",
