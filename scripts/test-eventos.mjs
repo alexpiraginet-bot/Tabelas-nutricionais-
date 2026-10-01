@@ -70,6 +70,11 @@ caso("as faixas de convidados são as que o dono definiu", () => {
   // carrinho (padrão 150) e trocou para 80 ficava no carrinho. Codex, PR #241.
   assert.ok(!EV_CABE(f.carrinho, 80), "carrinho aceita 80 convidados — sobrepõe o balcão");
   assert.ok(EV_CABE(f.balcao, 80) && EV_CABE(f.carrinho, 81));
+  // Entre 30 e 60 caixa E balcão cabem DE PROPÓSITO: ali a diferença é de
+  // serviço (sem atendente × promotora servindo na hora), e isso o cliente
+  // escolhe. "Subir de estrutura" é só balcão -> carrinho. Codex pediu para
+  // fechar esta sobreposição no PR #241; não é bug, é oferta do dono.
+  assert.ok(EV_CABE(f.caixa, 40) && EV_CABE(f.balcao, 40), "caixa e balcão deixaram de coexistir em 40 convidados");
   assert.equal(f.carrinho.max, null, "o carrinho não pode ter teto");
 });
 

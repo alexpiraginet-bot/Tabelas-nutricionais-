@@ -773,14 +773,18 @@ const EV_PERS_ACRESCIMO=0.20;
 const EV_PERS_GRANDE=100;
 const EV_PERS_FATOR=(n)=>n<EV_PERS_GRANDE?1+EV_PERS_ACRESCIMO:1;
 
-// Subir de estrutura (balcão -> carrinho) NÃO é escolha do cliente: o formato
-// sai da faixa de convidados, e fora da faixa o botão fica travado. Só acontece
-// quando a estrutura do formato dele já está reservada naquela data — aí a
-// equipe joga o evento para a estrutura seguinte e cobra logística extra. O
-// site não decide isso (a reserva no painel é por data, não por estrutura);
-// ele só avisa a regra e o valor quando detecta a data ocupada, para o cliente
-// não descobrir os R$ 200 na hora de fechar.
+// Subir de estrutura é UMA transição: balcão -> carrinho. O carrinho só é
+// alcançável acima de 80 convidados ou por conflito de data — quando o balcão
+// daquele dia já está reservado, a equipe joga o evento para o carrinho e cobra
+// logística extra. Acima do carrinho não há nada, e a caixa térmica não é
+// "estrutura abaixo" do balcão: entre 30 e 60 convidados os dois cabem de
+// propósito, porque ali a diferença é de serviço (sem atendente × promotora
+// servindo na hora), e isso o cliente escolhe. O site não decide o upgrade (a
+// reserva no painel é por data, não por estrutura); ele só avisa a regra e o
+// valor quando detecta a data ocupada, e só para quem está no balcão — a
+// única posição de onde se sobe.
 const EV_UPGRADE_LOGISTICA=200;
+const EV_TEM_UPGRADE=(formatoId)=>formatoId==="balcao";
 
 // Geocodificação do local — agora é uma chamada à NOSSA API (`api/geo.js`).
 //
@@ -1017,7 +1021,7 @@ export function EventosModal({onClose}){
     const linkContrato=mkLink(payload);
     const linhas=[
       "*Novo orçamento — Eventos Bentô* 🎉","",
-      conflito&&`⚠️ *Atenção:* esta data pode já ter um evento confirmado. Gostaria de verificar a disponibilidade (outro horário ou formato) para o meu também. Sei que, se precisar subir de estrutura, a logística extra é de ${fmtBRL(EV_UPGRADE_LOGISTICA)}. 🙏`,"",
+      conflito&&`⚠️ *Atenção:* esta data pode já ter um evento confirmado. Gostaria de verificar a disponibilidade (outro horário${EV_TEM_UPGRADE(ev.formato)?" ou o carrinho":""}) para o meu também.${EV_TEM_UPGRADE(ev.formato)?` Sei que, se precisar subir do balcão para o carrinho, a logística extra é de ${fmtBRL(EV_UPGRADE_LOGISTICA)}.`:""} 🙏`,"",
       "*— Dados do contratante —*",
       `*Nome:* ${cad.nome.trim()}`,
       `*CPF/CNPJ:* ${cad.doc.trim()}`,
@@ -1348,7 +1352,7 @@ export function EventosModal({onClose}){
             {conflict?(
               <div style={{marginTop:14,background:"#F2E2C5",border:"1px solid #D9BD8A",borderRadius:12,padding:"14px 16px"}}>
                 <div className="fb" style={{fontSize:13.5,color:"#7A5320",fontWeight:600,lineHeight:1.4}}>⚠️ Já temos um evento confirmado nessa data.</div>
-                <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário</strong>. E se a estrutura do seu formato for a que está reservada, dá para subir para a <strong>estrutura seguinte</strong> (balcão → carrinho) com <strong>{fmtBRL(EV_UPGRADE_LOGISTICA)} a mais de logística</strong>. Fale com a gente que verificamos pro seu evento! 💛</div>
+                <div className="fb" style={{fontSize:12.5,color:"#7A5320",marginTop:6,lineHeight:1.5}}>Mas calma — às vezes conseguimos encaixar no mesmo dia em <strong>outro horário</strong>.{EV_TEM_UPGRADE(ev.formato)&&<> E se o balcão for o que está reservado, dá para subir para o <strong>carrinho</strong> com <strong>{fmtBRL(EV_UPGRADE_LOGISTICA)} a mais de logística</strong>.</>} Fale com a gente que verificamos pro seu evento! 💛</div>
                 <button onClick={()=>doEnviar(true)} className="fb" style={{width:"100%",marginTop:12,padding:"13px",borderRadius:10,border:"none",background:"#25D366",color:"#fff",fontSize:14.5,fontWeight:600,cursor:"pointer"}}>💬 Falar com a equipe sobre a data</button>
                 <button onClick={()=>{setConflict(false);setStep(1);}} className="fb" style={{width:"100%",marginTop:8,padding:"11px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.inkSoft,fontSize:13,cursor:"pointer"}}>📅 Escolher outra data</button>
               </div>
