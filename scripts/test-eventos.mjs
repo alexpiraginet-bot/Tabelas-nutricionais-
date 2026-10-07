@@ -109,6 +109,18 @@ caso("sem atendente o rendimento é em potinho selado; com promotora e cuba, em 
   assert.match(calcEvento(150, "Gelatos", [], null, "carrinho").rend, / L de gelato/);
 });
 
+caso("mix na caixa: 1 picolé por pessoa e 1 potinho a cada 2, com 1 sabor de gelato e até 2 de picolé", () => {
+  // 30 convidados: 30 picolés + 15 potinhos — não 30 + 30. Combinado com o dono.
+  const r = calcEvento(30, "Mix (gelatos + picolés)", [], null, "caixa").rend;
+  assert.match(r, /~30 picolés/, `caixa: "${r}"`);
+  assert.match(r, /~15 potinhos selados/, `caixa: "${r}"`);
+  assert.match(r, /1 sabor de gelato/);
+  assert.match(r, /até 2 sabores/);
+  // Convidados ímpares arredondam o potinho para cima: ninguém fica sem.
+  assert.match(calcEvento(25, "Mix (gelatos + picolés)", [], null, "caixa").rend, /~13 potinhos/);
+  assert.equal(calcEvento(30, "Mix (gelatos + picolés)", [], null, "caixa").sabores, 3);
+});
+
 caso("o acréscimo de personalização segue a quantidade, não o formato", () => {
   // Carrinho com 90 convidados ainda está abaixo de 100: paga o acréscimo.
   assert.equal(calcEvento(90, "Gelatos", ["Potinhos ou rótulos personalizados"], null, "carrinho").persFator, 1.2);
