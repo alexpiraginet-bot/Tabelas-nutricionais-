@@ -876,7 +876,7 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId=
   // O rendimento muda com a estrutura. No carrinho o gelato é servido na hora e
   // a conta é em litros; na caixa e no balcão ele sai em potinho selado, e
   // prometer "litros" ali seria descrever um serviço que não existe nesse
-  // formato. A proporção por pessoa é a mesma nos três.
+  // formato.
   let rend;
   if(f.prod==="servido"){
     if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
@@ -885,7 +885,10 @@ function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId=
   }else{
     if(tipo==="Gelatos") rend=`~${n*2} potinhos selados · 2 por pessoa`;
     else if(tipo==="Picolés") rend=`~${n*2} picolés · 2 por pessoa`;
-    else rend=`~${n} potinhos selados + ~${n} picolés · 1 + 1 por pessoa`;
+    // Mix na caixa (decisão do dono): 1 picolé por pessoa e 1 potinho a cada
+    // 2 — 30 convidados levam 30 picolés + 15 potinhos, não 30 + 30. E o
+    // sortimento é fechado: 1 sabor de gelato e até 2 de picolé.
+    else rend=`~${n} picolés (até 2 sabores) + ~${Math.ceil(n/2)} potinhos selados (1 sabor de gelato) · 1 picolé por pessoa e 1 potinho a cada 2`;
   }
   const base=n*f.preco;
   // Arredondado em reais inteiros: com o acréscimo o unitário vira R$ 0,60 e
