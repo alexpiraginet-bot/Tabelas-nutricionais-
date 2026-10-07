@@ -15,7 +15,9 @@ Eventos têm **três formatos** (`EV_FORMATOS` em `src/modals.jsx`): caixa térm
 ou em potinhos) e carrinho (81+ — 80 ainda é balcão; as faixas não se sobrepõem
 no limite, senão a tela preserva o formato maior já escolhido). O preço por pessoa é **um só, R$ 27, em qualquer
 formato** (`EV_PRECO_PESSOA`) — decisão do dono; o que muda entre formatos é equipe
-e entrega. Logística é linha à parte, e **personalização custa +20% abaixo de 100
+e entrega. No **mix da caixa térmica** vai 1 picolé por pessoa e 1 potinho selado
+a cada 2 (30 convidados = 30 picolés + 15 potinhos), com 1 sabor de gelato e até
+2 de picolé. Logística é linha à parte, e **personalização custa +20% abaixo de 100
 convidados** (`EV_PERS_ACRESCIMO`, `EV_PERS_GRANDE`) — régua de quantidade, não de
 formato. **Subir de estrutura não é escolha do cliente**: só acontece quando a
 estrutura do formato dele já está reservada na data, e custa `EV_UPGRADE_LOGISTICA`
