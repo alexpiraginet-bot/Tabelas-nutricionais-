@@ -8,13 +8,13 @@
 // Opus 5.5 só vale com o histórico intacto).
 import assert from "node:assert/strict";
 import Anthropic from "@anthropic-ai/sdk";
-import { PRODUCTS } from "../src/data.js";
+import { PRODUCTS, SHAKES } from "../src/data.js";
 import { EV_PRECO_PESSOA } from "../src/eventos-regras.js";
 import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, corrigirAlegacoes,
   filtroAlegacoes, FERRAMENTAS, ErroConversa,
 } from "../lib/ia-motor.js";
-import { alegacoes, fichaSabor } from "../src/ia/catalogo.js";
+import { alegacoes, fichaSabor, fatosSabor, saborPorId } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
 
 let falhas = 0;
@@ -129,6 +129,25 @@ caso("ficha de shake traz o aviso de produção compartilhada, como a dos outros
   assert.equal(shake.aviso_contato_cruzado, gelato.aviso_contato_cruzado);
   const r = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-choco-power" })).resultado);
   assert.deepEqual(r.pode_conter, gelato.pode_conter, "a IA recebeu ficha de shake sem o pode conter");
+});
+
+caso("alérgicos do shake seguem o líquido: com leite de amêndoas, AMÊNDOA é ingrediente", async () => {
+  for (const s of SHAKES) {
+    const f = fatosSabor(s);
+    for (const r of s.nutrition) {
+      const contem = f.alergicos_por_liquido[r.liquid];
+      assert.ok(contem && contem.includes("LEITE"), `${s.id} com ${r.liquid}: faltou o LEITE do whey`);
+      assert.equal(contem.includes("AMÊNDOA"), /amêndoa/i.test(r.liquid), `${s.id} com ${r.liquid}`);
+    }
+    if (s.nutrition.some((r) => /amêndoa/i.test(r.liquid))) assert.match(f.alergicos, /com leite de amêndoas, também AMÊNDOA/, s.id);
+  }
+  // Proteína vegana não tem alérgicos no cadastro: manda confirmar, não supõe.
+  assert.match(fatosSabor(saborPorId("shake-acai-banana")).alergicos, /proteína vegana, confirme os alérgicos com a equipe/);
+  // Chega ao modelo (ficha), ao prompt e ao llms.txt.
+  const r = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-choco-power" })).resultado);
+  assert.deepEqual(r.alergicos_por_liquido["Leite de amêndoas"], ["LEITE", "AMÊNDOA"]);
+  assert.match(montarSistema(), /shake-choco-power \|[^\n]*também AMÊNDOA/);
+  assert.match(montarLlmsTxt(), /Shake Choco Power:[^\n]*também amêndoa/);
 });
 
 caso("o orçamento de evento é o do motor oficial", async () => {
@@ -294,6 +313,16 @@ caso("falha no meio entrega o texto retido antes de subir o erro", async () => {
   const g = gravador();
   await assert.rejects(conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: g.enviar }), Anthropic.APIError);
   assert.equal(g.texto(), "O Pistache é ótimo e bem leve demais");
+});
+
+caso("resposta cortada no limite de tokens sobe como erro, com o que chegou na tela", async () => {
+  const cortada = clienteFalso([{ eventos: [{ texto: "Os dois são ótimos no pós-treino, e o Pistache tem" }], final: { stop_reason: "max_tokens", content: [{ type: "text", text: "Os dois são ótimos no pós-treino, e o Pistache tem" }] } }]);
+  const g = gravador();
+  await assert.rejects(conversar({ client: cortada, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: g.enviar }), /max_tokens/);
+  assert.equal(g.texto(), "Os dois são ótimos no pós-treino, e o Pistache tem");
+  // Orçamento gasto só com pensamento: nada escrito também é falha, não resposta em branco.
+  const so = clienteFalso([{ eventos: [], final: { stop_reason: "max_tokens", content: [{ type: "thinking", thinking: "", signature: "x" }] } }]);
+  await assert.rejects(conversar({ client: so, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: gravador().enviar }), /max_tokens/);
 });
 
 caso("cota do site só conta pergunta que passou no limite do IP; chave do IP morre na meia-noite", async () => {

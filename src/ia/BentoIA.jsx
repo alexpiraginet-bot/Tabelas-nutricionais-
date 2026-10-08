@@ -9,7 +9,7 @@ import { Sparkles, X, ArrowUp, Mic, Square, RotateCcw, MapPin, MessageCircle, Sh
 import { tk, T, ProductArt, useModal } from "../shared.jsx";
 import { ALLERGENS } from "../data.js";
 import { LOJAS } from "../lojas.js";
-import { saborPorId, ehShake, alegacoes, orcamentoEvento, DESTINOS, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
+import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, orcamentoEvento, DESTINOS, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
 import { SUGESTOES } from "./sugestoes.js";
 
 const CHAVE = "bento:ia:v1";
@@ -67,7 +67,7 @@ function CardSabor({ id, acoes }) {
         <div style={{ minWidth: 0, flex: 1 }}>
           <div className="fd" style={{ fontSize: 16, color: T.ink, lineHeight: 1.15 }}>{x.name}</div>
           <div className="fb" style={{ fontSize: 12, color: T.inkSoft, marginTop: 3 }}>{x.protein} g de proteína · {Math.min(...kcal)} a {Math.max(...kcal)} kcal conforme o líquido</div>
-          <div className="fb" style={{ fontSize: 11, color: T.inkSoft, marginTop: 3 }}>Contém: LEITE (whey)</div>
+          <div className="fb" style={{ fontSize: 11, color: T.inkSoft, marginTop: 3, lineHeight: 1.45 }}>Contém: {alergicosShakeTexto(x)}</div>
           <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
             <button onClick={() => tk("IA · Card · Pedir", () => abrir(PEDIR_URL))} style={botao(true)}><ShoppingBag size={13} />Pedir</button>
           </div>

@@ -29,6 +29,31 @@ export function saborPorId(id) {
 }
 export const ehShake = (x) => !!(x && SHAKES.includes(x));
 
+// Alérgicos do shake saem da receita: o whey é LEITE, e o líquido escolhido
+// soma o dele — com leite de amêndoas, a amêndoa é ingrediente, não traço.
+// Proteína vegana (opção de algum shake) não tem alérgicos no cadastro: aí o
+// caminho é confirmar com a equipe, nunca supor.
+const alergicosDoLiquido = (liquido) => (/amêndoa/i.test(liquido) ? ["AMÊNDOA"] : /leite/i.test(liquido) ? ["LEITE"] : []);
+export function alergicosShake(x) {
+  const proteina = x.ingredients.find((i) => /soro de leite|whey/i.test(i.name));
+  const base = proteina ? ["LEITE"] : [];
+  return {
+    porLiquido: x.nutrition.map((r) => ({ liquido: r.liquid, contem: [...new Set([...base, ...alergicosDoLiquido(r.liquid)])] })),
+    vegana: !!(proteina && /vegan/i.test(proteina.note || "")),
+  };
+}
+// Em uma linha, para card, catálogo da IA e llms.txt.
+export function alergicosShakeTexto(x) {
+  const { porLiquido, vegana } = alergicosShake(x);
+  let t = "LEITE (whey)";
+  for (const l of porLiquido) {
+    const extra = l.contem.filter((a) => a !== "LEITE");
+    if (extra.length) t += `; com ${l.liquido.toLowerCase()}, também ${extra.join(", ")}`;
+  }
+  if (vegana) t += "; na versão com proteína vegana, confirme os alérgicos com a equipe";
+  return t;
+}
+
 // Alegações que a marca PODE fazer, calculadas pelas mesmas funções da tabela
 // nutricional: a de açúcar é só a da sugarClaim, como manda a política da marca.
 export function alegacoes(p) {
@@ -49,7 +74,8 @@ export function fatosSabor(x) {
       id: x.id, nome: x.name, linha: LINHA.shake, porcao: x.sub,
       proteina_g: x.protein, kcal_com_agua: agua.kcal,
       liquidos: x.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g proteína`),
-      alergicos: ["LEITE (whey)"],
+      alergicos: alergicosShakeTexto(x),
+      alergicos_por_liquido: Object.fromEntries(alergicosShake(x).porLiquido.map((l) => [l.liquido, l.contem])),
       observacao: "Valores calculados por porção, variam com o líquido escolhido.",
     };
   }
@@ -102,9 +128,9 @@ export function catalogoTexto() {
     linhas.push(`  ${p.description}`);
   }
   linhas.push("");
-  linhas.push("SHAKES (batidos na hora, whey + fruta/cacau, líquido à escolha)");
+  linhas.push("SHAKES (batidos na hora, whey + fruta/cacau, líquido à escolha; os alérgicos mudam com o líquido)");
   for (const s of SHAKES) {
-    linhas.push(`- ${s.id} | ${s.name} | ${s.sub} | ${s.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g prot`).join(" · ")} | contém: LEITE (whey)`);
+    linhas.push(`- ${s.id} | ${s.name} | ${s.sub} | ${s.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g prot`).join(" · ")} | contém: ${alergicosShakeTexto(s)}`);
     linhas.push(`  ${s.description}`);
   }
   linhas.push("");
