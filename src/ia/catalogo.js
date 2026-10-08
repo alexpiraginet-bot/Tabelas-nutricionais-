@@ -68,16 +68,18 @@ export function fatosSabor(x) {
 
 // Ficha completa: ingredientes, alérgicos e avisos. Usada quando a pessoa
 // pergunta o que vai no sabor ou tem alergia.
+// Vale para tudo o que sai da loja, shake incluído (é batido no mesmo balcão).
+const CONTATO_CRUZADO = { pode_conter: PODE_CONTER, aviso_contato_cruzado: "Produção compartilhada na mesma gelateria: pode conter traços dos alérgicos listados em pode_conter." };
+
 export function fichaSabor(id) {
   const x = saborPorId(id);
   if (!x) return null;
-  if (ehShake(x)) return { ...fatosSabor(x), ingredientes: x.ingredients.map((i) => i.note ? `${i.name} (${i.qty}; ${i.note})` : `${i.name} (${i.qty})`) };
+  if (ehShake(x)) return { ...fatosSabor(x), ingredientes: x.ingredients.map((i) => i.note ? `${i.name} (${i.qty}; ${i.note})` : `${i.name} (${i.qty})`), ...CONTATO_CRUZADO };
   return {
     ...fatosSabor(x),
     descricao: x.description,
     ingredientes: x.ingredients.map((i) => (i.note ? `${i.name}: ${i.note}` : i.name)),
-    pode_conter: PODE_CONTER,
-    aviso_contato_cruzado: "Produção compartilhada na mesma gelateria: pode conter traços dos alérgicos listados em pode_conter.",
+    ...CONTATO_CRUZADO,
   };
 }
 

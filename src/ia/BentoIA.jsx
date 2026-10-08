@@ -155,9 +155,19 @@ function Comparacao({ ids, acoes }) {
   );
 }
 
+const AVISO_CRUZADO = "Produção compartilhada: pode conter traços de outros alérgicos.";
+
 function Ficha({ id, acoes }) {
   const x = saborPorId(id);
-  if (!x || ehShake(x)) return id ? <CardSabor id={id} acoes={acoes} /> : null;
+  if (!x) return null;
+  if (ehShake(x)) {
+    return (
+      <div style={{ display: "grid", gap: 6 }}>
+        <CardSabor id={id} acoes={acoes} />
+        <div className="fb" style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.45, padding: "0 4px" }}>{AVISO_CRUZADO}</div>
+      </div>
+    );
+  }
   const contem = ALLERGENS[x.id] || [];
   return (
     <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 14 }}>
@@ -166,20 +176,34 @@ function Ficha({ id, acoes }) {
         <strong>{contem.length ? "Alérgicos: contém " + contem.join(", ") + "." : "Sem alérgicos de declaração obrigatória."}</strong>
         <div style={{ marginTop: 4 }}>{x.flags.lactose ? "Contém lactose" : "Não contém lactose"} · {x.flags.gluten ? "contém glúten" : "não contém glúten"}.</div>
         {x.hasPolyols && <div style={{ marginTop: 4 }}>Contém polióis: este produto pode ter efeito laxativo.</div>}
-        <div style={{ marginTop: 4, color: T.inkSoft, fontSize: 12 }}>Produção compartilhada: pode conter traços de outros alérgicos.</div>
+        <div style={{ marginTop: 4, color: T.inkSoft, fontSize: 12 }}>{AVISO_CRUZADO}</div>
       </div>
       <button onClick={() => tk("IA · Ficha · Abrir", () => acoes.ficha(x.id))} style={{ ...botao(false), marginTop: 10 }}>Abrir ficha completa<ChevronRight size={13} /></button>
     </div>
   );
 }
 
+// Aberta agora, horário de hoje e entrega valem para o momento da pergunta, e
+// a conversa fica guardada na aba. Passado este tempo o card mostra só o fixo
+// (endereço e botões) e pede para perguntar de novo: sem dado fresco, não
+// afirma nada (a mesma regra de ouro da entrega).
+const VALIDADE_LOJAS = 5 * 60 * 1000;
+
 function Lojas({ bloco }) {
-  const estado = Array.isArray(bloco.lojas) ? bloco.lojas : [];
+  const em = typeof bloco.em === "number" ? bloco.em : 0;
+  const [vivo, setVivo] = useState(() => Date.now() - em < VALIDADE_LOJAS);
+  useEffect(() => {
+    if (!vivo) return undefined;
+    const t = setTimeout(() => setVivo(false), Math.max(0, em + VALIDADE_LOJAS - Date.now()));
+    return () => clearTimeout(t);
+  }, [vivo, em]);
+  const estado = vivo && Array.isArray(bloco.lojas) ? bloco.lojas : [];
+  const entrega = vivo && Array.isArray(bloco.entrega) ? bloco.entrega : [];
   return (
     <div style={{ display: "grid", gap: 8 }}>
       {LOJAS.map((l) => {
         const s = estado.find((x) => x && x.id === l.id);
-        const e = Array.isArray(bloco.entrega) ? bloco.entrega.find((x) => x && x.id === l.id) : null;
+        const e = entrega.find((x) => x && x.id === l.id);
         return (
           <div key={l.id} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, padding: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
@@ -199,6 +223,7 @@ function Lojas({ bloco }) {
           </div>
         );
       })}
+      {!vivo && <div className="fb" style={{ fontSize: 11.5, color: T.inkSoft, lineHeight: 1.45, padding: "0 4px" }}>Horário de hoje e entrega mudam ao longo do dia: pergunte de novo para ver como está agora.</div>}
     </div>
   );
 }
@@ -264,7 +289,7 @@ function Bloco({ b, acoes }) {
   if (b.tipo === "sabores" && Array.isArray(b.ids)) return <div style={{ display: "grid", gap: 8 }}>{b.ids.map((id) => <CardSabor key={id} id={id} acoes={acoes} />)}</div>;
   if (b.tipo === "comparar" && Array.isArray(b.ids)) return <Comparacao ids={b.ids} acoes={acoes} />;
   if (b.tipo === "ficha") return <Ficha id={b.id} acoes={acoes} />;
-  if (b.tipo === "lojas") return <Lojas bloco={b} />;
+  if (b.tipo === "lojas") return <Lojas key={b.em || 0} bloco={b} />;
   if (b.tipo === "evento") return <Evento bloco={b} acoes={acoes} />;
   if (b.tipo === "atalho") return <Atalho bloco={b} acoes={acoes} />;
   return null;
@@ -344,7 +369,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
       let falha = null, terminou = false;
       await lerFluxo(r, (ev, d) => {
         if (ev === "texto" && typeof d.t === "string") { resposta.texto += d.t; resposta.status = null; }
-        else if (ev === "bloco") resposta.blocos.push(d);
+        else if (ev === "bloco") resposta.blocos.push(d && d.tipo === "lojas" ? { ...d, em: Date.now() } : d);
         else if (ev === "status" && typeof d.texto === "string") resposta.status = d.texto;
         else if (ev === "erro") falha = d.msg || "Algo deu errado.";
         else if (ev === "fim") terminou = true;

@@ -14,7 +14,7 @@ import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, corrigirAlegacoes,
   filtroAlegacoes, FERRAMENTAS, ErroConversa,
 } from "../lib/ia-motor.js";
-import { alegacoes } from "../src/ia/catalogo.js";
+import { alegacoes, fichaSabor } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
 
 let falhas = 0;
@@ -120,6 +120,15 @@ caso("llms.txt só faz alegação de açúcar na linha do sabor que tem a alega�
     assert.doesNotMatch(l, /sem adição/i, p.name + " tem açúcar adicionado e saiu com alegação");
   }
   assert.doesNotMatch(linhas.join("\n"), /\b(?:zero\s+aç[uú]car(?:es)?|sem\s+aç[uú]car\s+adicionado)\b/i);
+});
+
+caso("ficha de shake traz o aviso de produção compartilhada, como a dos outros sabores", async () => {
+  const gelato = fichaSabor("pacoca"), shake = fichaSabor("shake-choco-power");
+  assert.ok(gelato.pode_conter.length > 0);
+  assert.deepEqual(shake.pode_conter, gelato.pode_conter);
+  assert.equal(shake.aviso_contato_cruzado, gelato.aviso_contato_cruzado);
+  const r = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-choco-power" })).resultado);
+  assert.deepEqual(r.pode_conter, gelato.pode_conter, "a IA recebeu ficha de shake sem o pode conter");
 });
 
 caso("o orçamento de evento é o do motor oficial", async () => {
@@ -320,6 +329,42 @@ caso("cota do site só conta pergunta que passou no limite do IP; chave do IP mo
   } finally {
     globalThis.fetch = fetchOriginal;
     delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN;
+  }
+});
+
+// Depois do caso da cota: api/ia.js lê o banco na importação, e este caso não
+// pode chegar nele (para antes, nas checagens de origem e de tipo).
+caso("só a própria origem (ou bentogelateria.com) e só JSON chegam à IA", async () => {
+  const { default: handler } = await import("../api/ia.js");
+  const chamar = async (headers) => {
+    const res = {
+      statusCode: 0, corpo: null,
+      setHeader() {}, writeHead() {}, write() {}, end() {}, on() {},
+      status(c) { this.statusCode = c; return this; },
+      json(o) { this.corpo = o; return this; },
+    };
+    await handler({ method: "POST", headers, body: { mensagens: [{ papel: "cliente", texto: "oi" }] } }, res);
+    return res.statusCode;
+  };
+  const json = { "content-type": "application/json" };
+  const desligada = process.env.IA_DESLIGADA;
+  process.env.IA_DESLIGADA = "1"; // quem passa das checagens para no 503, sem rede
+  try {
+    // Página qualquer na Vercel (o ataque do Codex): fora.
+    assert.equal(await chamar({ ...json, origin: "https://golpe.vercel.app", host: "bentogelateria.com" }), 403);
+    assert.equal(await chamar({ ...json, origin: "https://tabelas-nutricionais-x-outro-lexprojects.vercel.app", host: "bentogelateria.com" }), 403);
+    assert.equal(await chamar({ ...json, host: "bentogelateria.com" }), 403, "pedido sem origem passou");
+    assert.equal(await chamar({ ...json, origin: "null", host: "bentogelateria.com" }), 403);
+    // text/plain é pedido "simples" (sem preflight): recusado mesmo da origem certa.
+    assert.equal(await chamar({ "content-type": "text/plain", origin: "https://bentogelateria.com", host: "bentogelateria.com" }), 415);
+    // Site, www, subdomínio nosso, o preview na própria origem e o dev local passam.
+    assert.equal(await chamar({ ...json, origin: "https://bentogelateria.com", host: "bentogelateria.com" }), 503);
+    assert.equal(await chamar({ ...json, origin: "https://www.bentogelateria.com", "x-forwarded-host": "www.bentogelateria.com", host: "interno" }), 503);
+    const preview = "tabelas-nutricionais-git-claude-x-lexprojects.vercel.app";
+    assert.equal(await chamar({ ...json, origin: "https://" + preview, "x-forwarded-host": preview }), 503);
+    assert.equal(await chamar({ "content-type": "application/json; charset=utf-8", origin: "http://127.0.0.1:4142", host: "127.0.0.1:4142" }), 503);
+  } finally {
+    if (desligada === undefined) delete process.env.IA_DESLIGADA; else process.env.IA_DESLIGADA = desligada;
   }
 });
 

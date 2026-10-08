@@ -48,13 +48,18 @@ async function pipeline(cmds) {
 }
 const valor = (x) => (x && typeof x === "object" && "result" in x ? x.result : x);
 
-// Só o nosso site conversa com a IA (e os previews da Vercel).
+// Só páginas do próprio site conversam com a IA: a mesma origem do pedido
+// (bentogelateria.com, o preview desta implantação, o localhost do dev) ou um
+// subdomínio nosso. Nada de *.vercel.app genérico: qualquer pessoa publica uma
+// página lá, e os visitantes dela gastariam a cota da IA sem saber.
 function originOk(req) {
   const o = req.headers.origin || req.headers.referer || "";
   if (!o) return false;
   try {
-    const h = new URL(o).hostname;
-    return h === "bentogelateria.com" || h.endsWith(".bentogelateria.com") || h.endsWith(".vercel.app") || h === "localhost" || h === "127.0.0.1";
+    const u = new URL(o);
+    const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim().toLowerCase();
+    if (host && u.host.toLowerCase() === host) return true;
+    return u.hostname === "bentogelateria.com" || u.hostname.endsWith(".bentogelateria.com");
   } catch { return false; }
 }
 const ipOf = (req) => String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "sem-ip";
@@ -141,6 +146,9 @@ export default async function handler(req, res) {
   }
   if (req.method !== "POST") { res.status(405).end(); return; }
   if (!originOk(req)) { res.status(403).json({ ok: false, erro: "origem" }); return; }
+  // Só JSON: de outro site, um POST application/json exige preflight de CORS,
+  // que este endpoint nunca aprova. Um text/plain "simples" passaria direto.
+  if (!/^application\/json\b/i.test(String(req.headers["content-type"] || ""))) { res.status(415).json({ ok: false, erro: "pedido inválido" }); return; }
   if (!process.env.ANTHROPIC_API_KEY || process.env.IA_DESLIGADA === "1") {
     res.status(503).json({ ok: false, erro: "A Bentô IA está desligada agora. Fale com a equipe pelo WhatsApp (27) 99915-9995." });
     return;
