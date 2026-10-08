@@ -56,6 +56,10 @@ caso("o prompt traz o catálogo inteiro e nenhuma alegação de açúcar proibid
   assert.doesNotMatch(s.replace(/Nunca escreva "zero açúcar", "sem açúcar" ou "sem açúcar adicionado"\./, ""),
     /\b(?:zero\s+aç[uú]car(?:es)?|sem\s+aç[uú]car\s+adicionado)\b/i);
   assert.ok(s.includes("R$ " + EV_PRECO_PESSOA + " por pessoa"), "o preço do evento não veio do módulo de regras");
+  // Opus 5.5: texto escrito ENTRE chamadas de ferramenta volta como pensamento
+  // oculto. Sem esta regra, a resposta de "a loja está aberta?" sumia quando o
+  // modelo chamava um segundo atalho depois de escrever (visto em produção).
+  assert.match(s, /Texto escrito entre uma ferramenta e outra não aparece para o cliente/);
   // Cache: o prompt é o mesmo a cada chamada (nada de data/hora dentro dele).
   assert.equal(s, montarSistema());
 });
