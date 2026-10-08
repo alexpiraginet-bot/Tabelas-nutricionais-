@@ -316,7 +316,9 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
   useModal(onClose);
   const [msgs, setMsgs] = useState(ler);
   const [atual, setAtual] = useState(null);      // resposta em andamento: { texto, blocos, status }
-  const [erro, setErro] = useState(null);
+  // Conversa guardada que termina numa pergunta sem resposta (o painel fechou
+  // no meio): mostra a falha com "Tentar de novo", em vez de uma pergunta solta.
+  const [erro, setErro] = useState(() => (!pergunta && msgs.length && msgs[msgs.length - 1].papel === "cliente" ? "A resposta não chegou. Tente de novo." : null));
   const [entrada, setEntrada] = useState("");
   const [ouvindo, setOuvindo] = useState(false);
   const [altura, setAltura] = useState(null);
@@ -352,7 +354,12 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
     if (!t || ctrl.current) return;
     tk("IA · Pergunta");
     setErro(null); setEntrada("");
-    const historico = [...(Array.isArray(base) ? base : msgs), { papel: "cliente", texto: t }];
+    // Pergunta que ficou sem resposta (falhou antes de qualquer texto, ou o
+    // painel fechou no meio) não vai junto com a próxima: no servidor as duas
+    // virariam uma mensagem só, e a velha seria reenviada sem a pessoa saber.
+    let anterior = Array.isArray(base) ? base : msgs;
+    while (anterior.length && anterior[anterior.length - 1].papel === "cliente") anterior = anterior.slice(0, -1);
+    const historico = [...anterior, { papel: "cliente", texto: t }];
     setMsgs(historico); guardar(historico);
     const resposta = { texto: "", blocos: [], status: "Pensando…" };
     setAtual({ ...resposta });
@@ -391,12 +398,18 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
     }
   }, [msgs]);
 
-  // Pergunta que veio da home (chip) ou do link ?ia=...: envia ao abrir.
+  // Pergunta que veio da home (chip) ou do link ?ia=...: envia ao abrir. Por
+  // timer, não direto: o StrictMode do desenvolvimento monta, desmonta e monta
+  // de novo, e a desmontagem cancelaria um pedido já no ar sem reenviar. Assim
+  // ela cancela só o timer, e a montagem que fica é a que envia.
   useEffect(() => {
-    if (enviouInicial.current) return;
-    enviouInicial.current = true;
-    if (pergunta) enviar(pergunta);
-    else if (focar) setTimeout(() => { try { campo.current && campo.current.focus(); } catch { /* */ } }, 60);
+    if (enviouInicial.current) return undefined;
+    const t = setTimeout(() => {
+      enviouInicial.current = true;
+      if (pergunta) enviar(pergunta);
+      else if (focar) { try { campo.current && campo.current.focus(); } catch { /* */ } }
+    }, pergunta ? 0 : 60);
+    return () => clearTimeout(t);
   }, [pergunta, focar, enviar]);
 
   const novaConversa = () => {
