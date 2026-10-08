@@ -2,9 +2,10 @@
 // cliente falso faz o papel do Claude e o teste confere o que sai para a tela.
 //
 // O que protege: a IA só mostra card de sabor que existe, nunca publica
-// "zero açúcar", usa o mesmo cálculo do orçamento de eventos, não afirma
-// entrega sem dado do totem e manda de volta ao modelo a volta inteira, sem
-// editar (o pensamento do Opus 5.5 só vale com o histórico intacto).
+// "zero açúcar" nem alegação para a linha inteira (prompt e llms.txt), usa o
+// mesmo cálculo do orçamento de eventos, não afirma entrega sem dado do totem
+// e manda de volta ao modelo a volta inteira, sem editar (o pensamento do
+// Opus 5.5 só vale com o histórico intacto).
 import assert from "node:assert/strict";
 import Anthropic from "@anthropic-ai/sdk";
 import { PRODUCTS } from "../src/data.js";
@@ -13,6 +14,8 @@ import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, corrigirAlegacoes,
   filtroAlegacoes, FERRAMENTAS, ErroConversa,
 } from "../lib/ia-motor.js";
+import { alegacoes } from "../src/ia/catalogo.js";
+import { montarLlmsTxt } from "./generate-llms-txt.mjs";
 
 let falhas = 0;
 const casos = [];
@@ -56,6 +59,9 @@ caso("o prompt traz o catálogo inteiro e nenhuma alegação de açúcar proibid
   assert.doesNotMatch(s.replace(/Nunca escreva "zero açúcar", "sem açúcar" ou "sem açúcar adicionado"\./, ""),
     /\b(?:zero\s+aç[uú]car(?:es)?|sem\s+aç[uú]car\s+adicionado)\b/i);
   assert.ok(s.includes("R$ " + EV_PRECO_PESSOA + " por pessoa"), "o preço do evento não veio do módulo de regras");
+  // Extra Dark, Maracujá e o Chocolate Dubai levam açúcar adicionado: a
+  // apresentação da marca não pode prometer "sem adição" para a linha inteira.
+  assert.doesNotMatch(s.split("\n")[0], /sem adição de açúcares|com proteína/i);
   // Opus 5.5: texto escrito ENTRE chamadas de ferramenta volta como pensamento
   // oculto. Sem esta regra, a resposta de "a loja está aberta?" sumia quando o
   // modelo chamava um segundo atalho depois de escrever (visto em produção).
@@ -83,6 +89,37 @@ caso("card só sai com id do catálogo; id inventado volta como erro para o mode
   assert.equal(poucos.erro, true);
   const texto = await executarFerramenta("mostrar_sabores", { ids: "pacoca" });
   assert.equal(texto.erro, true, "string no lugar da lista passou");
+});
+
+caso("shake não entra na comparação por porção: volta como erro e o caminho é mostrar_sabores", async () => {
+  const r = await executarFerramenta("comparar_sabores", { ids: ["pacoca", "shake-choco-power"] });
+  assert.equal(r.erro, true);
+  assert.equal(r.bloco, null, "comparação com shake chegou à tela");
+  assert.match(r.resultado, /shake-choco-power/);
+  assert.match(r.resultado, /mostrar_sabores/);
+  assert.match(FERRAMENTAS.find((f) => f.name === "comparar_sabores").description, /Shakes não entram/);
+  const ok = await executarFerramenta("mostrar_sabores", { ids: ["pacoca", "shake-choco-power"] });
+  assert.deepEqual(ok.bloco, { tipo: "sabores", ids: ["pacoca", "shake-choco-power"] });
+  const doisGelatos = await executarFerramenta("comparar_sabores", { ids: ["pacoca", "pistache"] });
+  assert.deepEqual(doisGelatos.bloco, { tipo: "comparar", ids: ["pacoca", "pistache"] });
+});
+
+caso("llms.txt só faz alegação de açúcar na linha do sabor que tem a alegação", () => {
+  const linhas = montarLlmsTxt().split("\n");
+  const sabores = PRODUCTS.filter((p) => !(p.category === "bentole" && p.id.endsWith("-g")));
+  // Nome sozinho não identifica: há Chocolate Dubai gelato e Bentôlé. A porção desempata.
+  const saborDaLinha = (l) => sabores.find((p) => l.startsWith(`- ${p.name} (${p.portionLabel}):`));
+  for (const l of linhas.filter((x) => /sem adição de açúcares/i.test(x))) {
+    const p = saborDaLinha(l);
+    assert.ok(p, "alegação de açúcar fora da linha de um sabor: " + l.slice(0, 140));
+    assert.ok(alegacoes(p).some((a) => a.startsWith("SEM ADIÇÃO")), p.name + " ganhou alegação que não tem");
+  }
+  for (const p of sabores.filter((x) => x.nutrition.addedSugars > 0)) {
+    const l = linhas.find((x) => saborDaLinha(x) === p);
+    assert.ok(l, p.name + " sumiu do llms.txt");
+    assert.doesNotMatch(l, /sem adição/i, p.name + " tem açúcar adicionado e saiu com alegação");
+  }
+  assert.doesNotMatch(linhas.join("\n"), /\b(?:zero\s+aç[uú]car(?:es)?|sem\s+aç[uú]car\s+adicionado)\b/i);
 });
 
 caso("o orçamento de evento é o do motor oficial", async () => {

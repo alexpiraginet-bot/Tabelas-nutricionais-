@@ -108,9 +108,14 @@ function CardSabor({ id, acoes }) {
   );
 }
 
-function Comparacao({ ids }) {
-  const ps = ids.map(saborPorId).filter((p) => p && !ehShake(p));
-  if (ps.length < 2) return <>{ids.map((id) => <CardSabor key={id} id={id} acoes={{ ficha: () => {} }} />)}</>;
+// Tabela por porção só para gelatos e Bentôlé: o shake muda com o líquido. O
+// motor já recusa shake na comparação; se algum chegar, vira card abaixo da
+// tabela — nada some e todo botão funciona.
+function Comparacao({ ids, acoes }) {
+  const xs = ids.map(saborPorId).filter(Boolean);
+  const ps = xs.filter((p) => !ehShake(p));
+  const cards = (lista) => lista.map((x) => <CardSabor key={x.id} id={x.id} acoes={acoes} />);
+  if (ps.length < 2) return <div style={{ display: "grid", gap: 8 }}>{cards(xs)}</div>;
   const linhas = [
     ["Porção", (p) => p.portionLabel.replace(/ \(.*\)/, "")],
     ["Calorias", (p) => num(p.nutrition.kcal) + " kcal", "min", (p) => p.nutrition.kcal],
@@ -122,27 +127,30 @@ function Comparacao({ ids }) {
     ["Lactose", (p) => (p.flags.lactose ? "contém" : "não contém")],
   ];
   return (
-    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, overflowX: "auto" }}>
-      <table className="fb" style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-        <thead>
-          <tr>
-            <th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 500, color: T.inkSoft }}>Por porção</th>
-            {ps.map((p) => <th key={p.id} className="fd" style={{ textAlign: "left", padding: "10px 8px", fontWeight: 400, fontSize: 13.5, color: T.ink, minWidth: 92 }}>{p.name}</th>)}
-          </tr>
-        </thead>
-        <tbody>
-          {linhas.map(([rot, f, melhor, val]) => {
-            const vals = val ? ps.map(val) : null;
-            const alvo = vals ? (melhor === "max" ? Math.max(...vals) : Math.min(...vals)) : null;
-            return (
-              <tr key={rot} style={{ borderTop: `1px solid ${T.borderSoft}` }}>
-                <td style={{ padding: "8px 12px", color: T.inkSoft, whiteSpace: "nowrap" }}>{rot}</td>
-                {ps.map((p, i) => <td key={p.id} style={{ padding: "8px", color: vals && vals[i] === alvo ? T.pistacheDark : T.ink, fontWeight: vals && vals[i] === alvo ? 700 : 400 }}>{f(p)}</td>)}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div style={{ display: "grid", gap: 8 }}>
+      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 14, overflowX: "auto" }}>
+        <table className="fb" style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr>
+              <th style={{ textAlign: "left", padding: "10px 12px", fontWeight: 500, color: T.inkSoft }}>Por porção</th>
+              {ps.map((p) => <th key={p.id} className="fd" style={{ textAlign: "left", padding: "10px 8px", fontWeight: 400, fontSize: 13.5, color: T.ink, minWidth: 92 }}>{p.name}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map(([rot, f, melhor, val]) => {
+              const vals = val ? ps.map(val) : null;
+              const alvo = vals ? (melhor === "max" ? Math.max(...vals) : Math.min(...vals)) : null;
+              return (
+                <tr key={rot} style={{ borderTop: `1px solid ${T.borderSoft}` }}>
+                  <td style={{ padding: "8px 12px", color: T.inkSoft, whiteSpace: "nowrap" }}>{rot}</td>
+                  {ps.map((p, i) => <td key={p.id} style={{ padding: "8px", color: vals && vals[i] === alvo ? T.pistacheDark : T.ink, fontWeight: vals && vals[i] === alvo ? 700 : 400 }}>{f(p)}</td>)}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {cards(xs.filter(ehShake))}
     </div>
   );
 }
@@ -254,7 +262,7 @@ function Atalho({ bloco, acoes }) {
 function Bloco({ b, acoes }) {
   if (!b || typeof b !== "object") return null;
   if (b.tipo === "sabores" && Array.isArray(b.ids)) return <div style={{ display: "grid", gap: 8 }}>{b.ids.map((id) => <CardSabor key={id} id={id} acoes={acoes} />)}</div>;
-  if (b.tipo === "comparar" && Array.isArray(b.ids)) return <Comparacao ids={b.ids} />;
+  if (b.tipo === "comparar" && Array.isArray(b.ids)) return <Comparacao ids={b.ids} acoes={acoes} />;
   if (b.tipo === "ficha") return <Ficha id={b.id} acoes={acoes} />;
   if (b.tipo === "lojas") return <Lojas bloco={b} />;
   if (b.tipo === "evento") return <Evento bloco={b} acoes={acoes} />;
