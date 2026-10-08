@@ -311,12 +311,15 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
   }, []);
   useEffect(() => { const el = lista.current; if (el) el.scrollTop = el.scrollHeight; }, [msgs, atual, erro]);
 
-  const enviar = useCallback(async (texto) => {
+  // base: histórico de onde a pergunta parte. "Tentar de novo" passa a conversa
+  // já sem a pergunta que falhou — ler o estado aqui pegaria a versão antiga
+  // (a deste render) e a pergunta apareceria duas vezes.
+  const enviar = useCallback(async (texto, base) => {
     const t = String(texto || "").trim().slice(0, 600);
     if (!t || ctrl.current) return;
     tk("IA · Pergunta");
     setErro(null); setEntrada("");
-    const historico = [...msgs, { papel: "cliente", texto: t }];
+    const historico = [...(Array.isArray(base) ? base : msgs), { papel: "cliente", texto: t }];
     setMsgs(historico); guardar(historico);
     const resposta = { texto: "", blocos: [], status: "Pensando…" };
     setAtual({ ...resposta });
@@ -330,17 +333,23 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
         const j = await r.json().catch(() => null);
         throw new Error((j && j.erro) || "A Bentô IA não respondeu agora. Tente de novo em instantes.");
       }
-      let falha = null;
+      let falha = null, terminou = false;
       await lerFluxo(r, (ev, d) => {
         if (ev === "texto" && typeof d.t === "string") { resposta.texto += d.t; resposta.status = null; }
         else if (ev === "bloco") resposta.blocos.push(d);
         else if (ev === "status" && typeof d.texto === "string") resposta.status = d.texto;
         else if (ev === "erro") falha = d.msg || "Algo deu errado.";
+        else if (ev === "fim") terminou = true;
         setAtual({ ...resposta, blocos: [...resposta.blocos] });
       });
-      if (falha && !resposta.texto && !resposta.blocos.length) throw new Error(falha);
-      const final = [...historico, { papel: "ia", texto: resposta.texto.trim() || (falha || ""), blocos: resposta.blocos }];
+      // Fluxo que acabou sem "fim" (conexão caiu no meio) também é falha.
+      if (!falha && !terminou) falha = "A resposta foi interrompida. Tente de novo.";
+      if (falha && !resposta.texto.trim() && !resposta.blocos.length) throw new Error(falha);
+      // O que chegou fica na tela, mas a falha aparece com "Tentar de novo" —
+      // uma resposta pela metade não pode parecer completa.
+      const final = [...historico, { papel: "ia", texto: resposta.texto.trim(), blocos: resposta.blocos }];
       setMsgs(final); guardar(final);
+      if (falha) setErro(falha);
     } catch (e) {
       if (e && e.name === "AbortError") return;
       setErro(String((e && e.message) || "Sem conexão agora. Tente de novo."));
@@ -363,11 +372,12 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
     setMsgs([]); setAtual(null); setErro(null); guardar([]);
   };
   const tentarDeNovo = () => {
-    const ult = [...msgs].reverse().find((m) => m.papel === "cliente");
-    if (!ult) return;
-    const sem = msgs.slice(0, msgs.lastIndexOf(ult));
-    setMsgs(sem); guardar(sem); setErro(null);
-    setTimeout(() => enviar(ult.texto), 0);
+    // Refaz a última pergunta a partir da conversa SEM ela (e sem a resposta
+    // pela metade que veio depois, se houver).
+    const i = msgs.map((m) => m.papel).lastIndexOf("cliente");
+    if (i < 0) return;
+    setErro(null);
+    enviar(msgs[i].texto, msgs.slice(0, i));
   };
 
   // Ditado por voz (quando o navegador tem): preenche a caixa, a pessoa revisa e envia.
@@ -450,7 +460,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
         <div style={{ padding: "8px 12px calc(10px + env(safe-area-inset-bottom))", borderTop: `1px solid ${T.border}`, background: T.surface }}>
           <form onSubmit={(e) => { e.preventDefault(); enviar(entrada); }} style={{ display: "flex", alignItems: "flex-end", gap: 8, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 18, padding: "8px 8px 8px 14px" }}>
             <textarea ref={campo} className="ia-campo fb" rows={1} value={entrada} maxLength={600} aria-label="Sua pergunta para a Bentô IA"
-              placeholder={ouvindo ? "Pode falar…" : "Pergunte sobre sabores, lojas, eventos…"}
+              placeholder={ouvindo ? "Pode falar…" : "Pergunte do seu jeito…"}
               onChange={(e) => { setEntrada(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.min(120, el.scrollHeight) + "px"; }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); enviar(entrada); } }} />
             {SR && <button type="button" onClick={falar} aria-label={ouvindo ? "Parar de ouvir" : "Falar a pergunta"} aria-pressed={ouvindo} style={{ width: 36, height: 36, borderRadius: "50%", border: `1px solid ${T.border}`, background: ouvindo ? "#F2E2C5" : T.surface, color: ouvindo ? "#7A5320" : T.inkSoft, display: "grid", placeItems: "center", flexShrink: 0 }}>{ouvindo ? <Square size={13} /> : <Mic size={15} />}</button>}

@@ -214,6 +214,74 @@ caso("JSON de ferramenta ilegível refaz a volta; erro da API sobe", async () =>
   await assert.rejects(conversar({ client: caiu, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: () => {} }), Anthropic.RateLimitError);
 });
 
+caso("volta que já mostrou texto não é refeita (a frase sairia duas vezes)", async () => {
+  // A volta emite texto e SÓ ENTÃO o SDK falha ao montar a resposta.
+  const cliente = { beta: { messages: {} } };
+  cliente.beta.messages.stream = function () {
+    const ouvintes = {};
+    return {
+      on(ev, cb) { (ouvintes[ev] ||= []).push(cb); return this; },
+      async finalMessage() {
+        for (const cb of ouvintes.text || []) cb("Começando a responder e ");
+        throw new Anthropic.AnthropicError("Unable to parse tool parameter JSON from model.");
+      },
+    };
+  };
+  await assert.rejects(conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: () => {} }), Anthropic.AnthropicError);
+});
+
+caso("falha no meio entrega o texto retido antes de subir o erro", async () => {
+  const cliente = { beta: { messages: { stream() {
+    const ouvintes = {};
+    return {
+      on(ev, cb) { (ouvintes[ev] ||= []).push(cb); return this; },
+      async finalMessage() {
+        for (const cb of ouvintes.text || []) cb("O Pistache é ótimo e bem leve demais");
+        throw new Anthropic.APIConnectionError({ message: "terminated" });
+      },
+    };
+  } } } };
+  const g = gravador();
+  await assert.rejects(conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: g.enviar }), Anthropic.APIError);
+  assert.equal(g.texto(), "O Pistache é ótimo e bem leve demais");
+});
+
+caso("cota do site só conta pergunta que passou no limite do IP; chave do IP morre na meia-noite", async () => {
+  // Upstash falso em memória (só os comandos que a função usa).
+  const banco = new Map(), validade = new Map();
+  const fetchOriginal = globalThis.fetch;
+  globalThis.fetch = async (url, op) => {
+    assert.match(String(url), /\/pipeline$/);
+    const res = JSON.parse(op.body).map(([cmd, k, v]) => {
+      if (cmd === "INCR") { banco.set(k, (banco.get(k) || 0) + 1); return { result: banco.get(k) }; }
+      if (cmd === "EXPIRE") { validade.set(k, Math.floor(Date.now() / 1000) + Number(v)); return { result: 1 }; }
+      if (cmd === "EXPIREAT") { validade.set(k, Number(v)); return { result: 1 }; }
+      if (cmd === "GET") return { result: banco.has(k) ? String(banco.get(k)) : null };
+      throw new Error("comando inesperado " + cmd);
+    });
+    return new Response(JSON.stringify(res), { status: 200 });
+  };
+  process.env.KV_REST_API_URL = "https://kv.teste";
+  process.env.KV_REST_API_TOKEN = "token-teste";
+  try {
+    const { limitesEConfig, fimDoDiaSP } = await import("../api/ia.js");
+    const r = [];
+    for (let i = 0; i < 20; i++) r.push(await limitesEConfig("203.0.113.9"));
+    assert.equal(r.filter((x) => x.ok).length, 15, "o limite de rajada por IP mudou");
+    assert.ok(r.slice(15).every((x) => x.motivo === "ip"));
+    const dia = [...banco.keys()].find((k) => k.startsWith("ia:dia:"));
+    assert.equal(banco.get(dia), 15, "pedido recusado pelo IP gastou a cota do site");
+    const chaveIp = [...banco.keys()].find((k) => k.startsWith("ia:rldia:"));
+    const agora = Math.floor(Date.now() / 1000);
+    assert.ok(validade.get(chaveIp) > agora && validade.get(chaveIp) - agora <= 86400, "chave diária do IP vive mais de um dia");
+    assert.equal(validade.get(chaveIp), fimDoDiaSP(chaveIp.split(":")[2]));
+    assert.equal(fimDoDiaSP("2026-10-08"), Date.parse("2026-10-09T03:00:00Z") / 1000);
+  } finally {
+    globalThis.fetch = fetchOriginal;
+    delete process.env.KV_REST_API_URL; delete process.env.KV_REST_API_TOKEN;
+  }
+});
+
 for (const [nome, fn] of casos) {
   try { await fn(); console.log("PASS · " + nome); }
   catch (e) { falhas++; console.log("FALHA · " + nome + "\n         " + (e && e.message)); }

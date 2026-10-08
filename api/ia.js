@@ -63,23 +63,34 @@ const hojeSP = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_P
 // Limites: por IP (rajada e dia) e do site inteiro por dia. Banco fora do ar
 // não derruba a IA — o limite do site é proteção de custo, não de segurança.
 // Também lê o horário que a equipe editou no painel (site:config), na mesma ida.
-async function limitesEConfig(ip) {
+// Fim do dia em Vitória (meia-noite seguinte), em segundos. O Brasil não tem
+// horário de verão desde 2019, então o fuso é fixo em -03:00.
+export function fimDoDiaSP(dia) {
+  return Math.floor(Date.parse(dia + "T00:00:00-03:00") / 1000) + 86400;
+}
+
+export async function limitesEConfig(ip) {
   if (!KV_URL || !KV_TOKEN) return { ok: true, config: null };
   const dia = hojeSP();
   try {
     // Janelas fixas (a chave carrega a janela), sem depender de EXPIRE NX.
+    // A chave diária do IP morre na meia-noite de Vitória (EXPIREAT), nunca
+    // depois: é o "no máximo um dia" prometido na política de privacidade.
     const janela = Math.floor(Date.now() / 600000);
+    const k10 = "ia:rl10:" + janela + ":" + ip, kDia = "ia:rldia:" + dia + ":" + ip;
     const r = await pipeline([
-      ["INCR", "ia:rl10:" + janela + ":" + ip], ["EXPIRE", "ia:rl10:" + janela + ":" + ip, 660],
-      ["INCR", "ia:rldia:" + dia + ":" + ip], ["EXPIRE", "ia:rldia:" + dia + ":" + ip, 90000],
-      ["INCR", "ia:dia:" + dia], ["EXPIRE", "ia:dia:" + dia, 60 * 60 * 24 * 40],
+      ["INCR", k10], ["EXPIRE", k10, 660],
+      ["INCR", kDia], ["EXPIREAT", kDia, fimDoDiaSP(dia)],
       ["GET", "site:config"],
     ]);
-    const n10 = Number(valor(r[0])), nDia = Number(valor(r[2])), nSite = Number(valor(r[4]));
+    const n10 = Number(valor(r[0])), nDia = Number(valor(r[2]));
     let cfg = null;
-    try { cfg = JSON.parse(valor(r[6]) || "null"); } catch { cfg = null; }
+    try { cfg = JSON.parse(valor(r[4]) || "null"); } catch { cfg = null; }
     if (n10 > LIMITE_IP_10MIN || nDia > LIMITE_IP_DIA) return { ok: false, motivo: "ip", config: cfg };
-    if (nSite > LIMITE_DIA) return { ok: false, motivo: "site", config: cfg };
+    // Só pergunta que passou no limite do IP conta na cota do site: senão um
+    // único visitante insistindo (e recebendo 429) esgotaria a cota de todos.
+    const g = await pipeline([["INCR", "ia:dia:" + dia], ["EXPIRE", "ia:dia:" + dia, 60 * 60 * 24 * 40]]);
+    if (Number(valor(g[0])) > LIMITE_DIA) return { ok: false, motivo: "site", config: cfg };
     return { ok: true, config: cfg };
   } catch {
     return { ok: true, config: null };
