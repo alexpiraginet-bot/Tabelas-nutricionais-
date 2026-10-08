@@ -8,6 +8,12 @@ const publicSources = [
   "../src/App.jsx",
   "../src/modals.jsx",
   "../src/PortfolioPage.jsx",
+  // Bentô IA: o que a conversa mostra na tela (o texto do modelo passa por
+  // corrigirAlegacoes em lib/ia-motor.js, travado em scripts/test-ia.mjs).
+  "../src/ia/BentoIA.jsx",
+  "../src/ia/EntradaIA.jsx",
+  "../src/ia/sugestoes.js",
+  "../src/ia/catalogo.js",
   "../src/video/BentoStory.tsx",
   "../src/video/DeliveryStory.tsx",
   "../src/video/FranquiasStory.tsx",

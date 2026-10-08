@@ -17,3 +17,6 @@ public/fichas-data.json
 
 # gerado por scripts/generate-painel-padroes.mjs (fonte: src/lojas.js)
 public/painel-padroes.js
+
+# gerado por scripts/generate-llms-txt.mjs (fonte: src/data.js, lojas.js, eventos-regras.js)
+public/llms.txt

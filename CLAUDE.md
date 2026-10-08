@@ -10,7 +10,8 @@ Vite + React 18 em **JavaScript** (`.jsx`) — **não** é Next.js, **não** tem
 (`T.bg`, `T.ink`, `T.pistacheDark`…) e as classes `.fd` (Fraunces), `.fb` (DM Sans),
 `.fm` (JetBrains Mono). Ícones: `lucide-react`. Deploy na Vercel.
 
-Eventos têm **três formatos** (`EV_FORMATOS` em `src/modals.jsx`): caixa térmica
+Eventos têm **três formatos** (`EV_FORMATOS` em `src/eventos-regras.js`, módulo sem JSX
+que o modal, o teste e a IA importam): caixa térmica
 (20–60, sem atendente), balcão (30–80, 1 promotora, gelato servido na hora da cuba
 ou em potinhos) e carrinho (81+ — 80 ainda é balcão; as faixas não se sobrepõem
 no limite, senão a tela preserva o formato maior já escolhido). O preço por pessoa é **um só, R$ 27, em qualquer
@@ -39,6 +40,35 @@ começa no **Brasil inteiro**, não presa ao ES: prender à caixa do estado faz
 Arquivos centrais: `src/App.jsx` (home, seções, pushes), `src/modals.jsx` (todos os
 modais), `src/shared.jsx` (tokens, `LOJAS`, helpers), `public/painel.html` (admin,
 HTML+JS puro), `api/*.js` (funções serverless).
+
+## Bentô IA (concierge do site)
+
+Barra "Pergunte à Bentô IA" na home e link `?ia` / `?ia=pergunta`. O modelo
+conversa; **quem mostra dado é o código**: ele só escolhe QUAIS cards aparecer
+(sabores, comparação, ficha, lojas, evento, atalho) por ferramentas com ids
+validados, e o site monta os cards com os dados do bundle. Nunca deixe o modelo
+escrever número, preço ou tabela na tela por conta própria.
+
+- `lib/ia-motor.js`: prompt (regras + catálogo), ferramentas, laço com o Claude,
+  filtro que troca "zero açúcar"/"sem açúcar adicionado" por "sem adição de
+  açúcares" mesmo no streaming. `api/ia.js`: HTTP, limites por IP e por dia,
+  SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
+  `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
+- Modelo `claude-opus-5-5`, esforço `low`, fallback de recusa ligado. Env:
+  `ANTHROPIC_API_KEY` (a mesma das fichas), `IA_MODELO`, `IA_ESFORCO`,
+  `IA_LIMITE_DIA` (padrão 500 perguntas/dia no site), `IA_DESLIGADA=1` (some a
+  barra sem deploy). Uso diário em tokens fica em `ia:uso:<dia>` no Redis; o
+  texto da conversa **não** é guardado em lugar nenhum nosso.
+- A volta inteira do modelo (pensamento + ferramenta) vai de volta sem edição:
+  o pensamento do Opus 5.5 só vale com o histórico intacto. Entre perguntas, o
+  histórico é só texto (sem blocos de pensamento) — de propósito.
+- Entrega: a IA só afirma o que `/api/delivery/estado` do totem disse (mesma
+  regra de ouro). Evento: valores do `calcEvento`, e o botão abre o orçamento já
+  com os convidados (`convidadosInicial`).
+- WebMCP (`src/ia/webmcp.js`): as mesmas ferramentas para agentes de IA do
+  navegador, em `document.modelContext` (padrão em incubação; sem suporte, nada
+  acontece). `public/llms.txt` é gerado no build — não edite.
+- `npm run test:ia` trava tudo isso com um cliente falso, sem rede.
 
 ## Fronteira com o TOTEM — a regra mais importante
 
@@ -175,6 +205,7 @@ npm run lint               # tem de sair limpo
 npm run test:home-banners  # trava a sincronia da lista de banners
 npm run test:eventos       # trava preço, faixa e equipe dos três formatos
 npm run test:geocode       # trava a decisão de dentro/fora do ES e o User-Agent
+npm run test:ia            # trava a Bentô IA: cards só com id real, alegações, evento, entrega
 ```
 
 ## Pendências conhecidas

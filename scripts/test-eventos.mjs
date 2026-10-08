@@ -1,28 +1,14 @@
-// Trava o motor de preço dos três formatos de evento, extraído do modals.jsx.
+// Trava o motor de preço dos três formatos de evento (src/eventos-regras.js).
 //
 // O que este arquivo protege, em uma frase: o preço por pessoa, a faixa de
 // convidados e a equipe de cada formato são combinados com o dono, e mudar
 // qualquer um deles por acidente sai caro nos dois sentidos — orçamento abaixo
 // do custo ou cliente perdido por preço alto.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-
-const src = readFileSync(new URL("../src/modals.jsx", import.meta.url), "utf8");
-// slice(a,-1) com marcador ausente fatia o arquivo INTEIRO e o teste quebra com
-// um erro de sintaxe que não diz nada. Melhor falhar dizendo qual marcador sumiu.
-const corte = (de, ate) => {
-  const a = src.indexOf(de), b = src.indexOf(ate);
-  if (a < 0) throw new Error("marcador sumiu do modals.jsx: " + de);
-  if (b < 0) throw new Error("marcador sumiu do modals.jsx: " + ate);
-  return src.slice(a, b);
-};
-const bloco =
-  corte("const EV_PERS_ESTRUTURA", "const fmtBRL") +
-  corte("const EV_KM_RATE", "// Geocodificação do local") +
-  corte("const EV_PRECO_PESSOA", "export function EventosModal(");
-
-const M = new Function(bloco + "\nreturn { calcEvento, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE };")();
-const { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE } = M;
+// As regras moram em src/eventos-regras.js (sem JSX), importadas pelo modal e
+// pela IA do site. Antes este teste fatiava o modals.jsx por marcadores de
+// texto; agora testa exatamente o módulo que as telas usam.
+import { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE } from "../src/eventos-regras.js";
 
 let falhas = 0;
 const caso = (nome, fn) => {

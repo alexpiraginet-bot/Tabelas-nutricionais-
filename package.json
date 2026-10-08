@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run fichas && node scripts/generate-painel-padroes.mjs && node scripts/build-vite.mjs && node scripts/generate-share-pages.mjs && node scripts/check-movement-v2.mjs",
+    "build": "npm run fichas && node scripts/generate-painel-padroes.mjs && node scripts/generate-llms-txt.mjs && node scripts/build-vite.mjs && node scripts/generate-share-pages.mjs && node scripts/check-movement-v2.mjs",
     "preview": "vite preview",
     "lint": "eslint src/",
     "test": "node --test tests/*.test.mjs",
@@ -27,7 +27,8 @@
     "test:docvalida": "node scripts/test-docvalida.mjs",
     "test:lua": "node scripts/test-lua-contrato.mjs",
     "test:backup": "node scripts/test-backup.mjs",
-    "test:captura": "node scripts/test-captura.mjs"
+    "test:captura": "node scripts/test-captura.mjs",
+    "test:ia": "node scripts/test-ia.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.109.1",
