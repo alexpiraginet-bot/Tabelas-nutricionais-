@@ -51,7 +51,7 @@ export function montarLlmsTxt() {
   out.push("- Também em tamanho G: o dobro do mini, com os valores em dobro.");
   out.push("");
   out.push("## Shakes proteicos");
-  for (const s of SHAKES) out.push(`- ${s.name}: ${s.protein} g de proteína; ${s.nutrition.map((r) => `${r.liquid.toLowerCase()} ${r.kcal} kcal`).join(", ")}. Contém ${alergicosShakeTexto(s).toLowerCase()}.`);
+  for (const s of SHAKES) out.push(`- ${s.name}: ${s.protein} g de proteína; ${s.nutrition.map((r) => `${r.liquid.charAt(0).toLowerCase() + r.liquid.slice(1)} ${r.kcal} kcal`).join(", ")}. Alérgicos: ${alergicosShakeTexto(s)}.`);
   out.push("");
   out.push("## Eventos");
   out.push(`- R$ ${EV_PRECO_PESSOA} por pessoa em qualquer formato; logística e personalização à parte. Orçamento online a partir de ${EV_MIN} convidados: [Orçamento de evento](${SITE}/?eventos)`);

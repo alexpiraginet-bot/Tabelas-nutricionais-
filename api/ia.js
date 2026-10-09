@@ -113,6 +113,9 @@ async function registrarUso(uso) {
       ["HINCRBY", "ia:uso:" + dia, "cache_lido", uso.cache_lido || 0],
       ["HINCRBY", "ia:uso:" + dia, "cache_escrito", uso.cache_escrito || 0],
       ["HINCRBY", "ia:uso:" + dia, "saida", uso.saida || 0],
+      // Frases que a revisão de saída tirou da tela (número ou alegação sem
+      // respaldo): se crescer, o prompt está escorregando.
+      ["HINCRBY", "ia:uso:" + dia, "frases_cortadas", uso.frases_cortadas || 0],
       ["EXPIRE", "ia:uso:" + dia, 60 * 60 * 24 * 40],
     ]);
   } catch { /* contagem é bônus */ }

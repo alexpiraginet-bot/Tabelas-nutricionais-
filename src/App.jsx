@@ -13,6 +13,7 @@ import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 import { tk, T, LOJAS, PEDIR_URL, ENTREGA_ESTADO_URL, distanciaM, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { janelaEntrega as janelaDe } from "./lojas.js";
 import WorldFundo from "./WorldFundo.jsx";
 import EntradaIA, { useIAAtiva } from "./ia/EntradaIA.jsx";
 import { registrarFerramentasWebMCP } from "./ia/webmcp.js";
@@ -419,18 +420,8 @@ const raioDe=(e)=>{
   if(Number.isFinite(km)&&km>0) return Math.round(km*1000);
   return Number(e.raioM??e.raio_m??e.raioMetros)||0;
 };
-/* Janela de entrega. A casa não entrega antes das 11h nem depois das 20h, então
-   fora disso o site não oferece entrega — só retirada e iFood.
-   O horário é regra de negócio e, como o resto, deveria vir do totem: se o
-   endpoint mandar horario:{abre,fecha}, é ele que vale. O padrão abaixo existe
-   só enquanto o campo não for exposto lá — quando for, some daqui. */
-const JANELA_PADRAO={abre:11,fecha:20};
-const janelaDe=(e)=>{
-  const h=e&&(e.horario||e.janela);
-  const abre=Number(h&&(h.abre??h.inicio??h.open));
-  const fecha=Number(h&&(h.fecha??h.fim??h.close));
-  return Number.isFinite(abre)&&Number.isFinite(fecha)&&fecha>abre?{abre,fecha}:JANELA_PADRAO;
-};
+/* Janela de entrega (janelaDe: 11h–20h, ou a que o totem mandar) vem de
+   src/lojas.js, que a Bentô IA também usa antes de dizer que há entrega agora. */
 // Hora de Vitória (America/Sao_Paulo) — não a do aparelho do cliente, que pode
 // estar em qualquer fuso.
 function horaVitoria(){

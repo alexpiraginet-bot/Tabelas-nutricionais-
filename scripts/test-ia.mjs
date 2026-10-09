@@ -11,8 +11,8 @@ import Anthropic from "@anthropic-ai/sdk";
 import { PRODUCTS, SHAKES } from "../src/data.js";
 import { EV_PRECO_PESSOA } from "../src/eventos-regras.js";
 import {
-  conversar, executarFerramenta, historicoParaMensagens, montarSistema, corrigirAlegacoes,
-  filtroAlegacoes, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
+  conversar, executarFerramenta, historicoParaMensagens, montarSistema, fraseSegura, filtroFrases,
+  numerosDe, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
 } from "../lib/ia-motor.js";
 import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
@@ -94,6 +94,72 @@ caso("card só sai com id do catálogo; id inventado volta como erro para o mode
   assert.equal(texto.erro, true, "string no lugar da lista passou");
 });
 
+caso("o número que decide vai em destaque no card (o modelo escolhe qual; o valor é do catálogo)", async () => {
+  const r = await executarFerramenta("mostrar_sabores", { ids: ["pacoca"], destaque: "kcal" });
+  assert.deepEqual(r.bloco, { tipo: "sabores", ids: ["pacoca"], destaque: "kcal" });
+  const ruim = await executarFerramenta("mostrar_sabores", { ids: ["pacoca"], destaque: "<script>" });
+  assert.equal(ruim.erro, false);
+  assert.deepEqual(ruim.bloco, { tipo: "sabores", ids: ["pacoca"] }, "destaque inventado chegou à tela");
+  assert.deepEqual(FERRAMENTAS.find((f) => f.name === "mostrar_sabores").input_schema.properties.destaque.enum,
+    ["proteina", "kcal", "acucar_adicionado", "fibras", "carboidratos", "gordura_saturada"]);
+  // E o prompt manda usar o destaque em vez de escrever número.
+  assert.match(montarSistema(), /passe em destaque o número que decide/);
+  assert.match(montarSistema(), /No texto, nenhum algarismo nem número por extenso/);
+  assert.doesNotMatch(montarSistema(), /10 g de proteína com 61 kcal/, "o exemplo que pedia número no texto voltou");
+});
+
+caso("card além do limite não aparece, e o modelo fica sabendo", async () => {
+  const sete = Array.from({ length: 7 }, (_, i) => usoDeFerramenta("t" + i, "mostrar_sabores", { ids: ["pacoca"] }));
+  const cliente = clienteFalso([
+    { final: { stop_reason: "tool_use", content: sete } },
+    { eventos: [{ texto: "Pronto." }], final: { stop_reason: "end_turn", content: [] } },
+  ]);
+  const g = gravador();
+  await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "tudo" }], enviar: g.enviar });
+  assert.equal(g.ev.filter(([t]) => t === "bloco").length, 6);
+  const resultados = cliente.pedidos[1].messages[2].content;
+  assert.equal(resultados.length, 7, "toda chamada precisa de resultado");
+  assert.ok(resultados.slice(0, 6).every((x) => !x.is_error && /"mostrado_na_tela":true/.test(x.content)));
+  assert.equal(resultados[6].is_error, true);
+  assert.match(resultados[6].content, /NÃO apareceu na tela/);
+  assert.doesNotMatch(resultados[6].content, /mostrado_na_tela/);
+});
+
+caso("resposta que ficaria vazia (tudo cortado, sem card) vira o atalho da equipe", async () => {
+  const cliente = clienteFalso([{ eventos: [{ texto: "Tem 12 g de proteína." }], final: { stop_reason: "end_turn", content: [] } }]);
+  const g = gravador();
+  const uso = await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "proteína?" }], enviar: g.enviar });
+  assert.equal(uso.frases_cortadas, 1);
+  assert.match(g.texto(), /equipe/);
+  assert.deepEqual(g.ev.find(([t]) => t === "bloco")[1], { tipo: "atalho", destino: "whatsapp", mensagem: "" });
+});
+
+caso("o número de convidados que foi ao orçamento pode ser repetido no texto", async () => {
+  // O cliente escreveu por extenso; o modelo passou 50 ao orçamento e o card mostra 50.
+  const cliente = clienteFalso([
+    { final: { stop_reason: "tool_use", content: [usoDeFerramenta("t1", "orcamento_evento", { convidados: 50 })] } },
+    { eventos: [{ texto: "Para 50 convidados, a caixa térmica atende bem. O total é R$ 1.350." }], final: { stop_reason: "end_turn", content: [] } },
+  ]);
+  const g = gravador();
+  await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "evento para cinquenta pessoas" }], enviar: g.enviar });
+  assert.equal(g.texto().trim(), "Para 50 convidados, a caixa térmica atende bem.");
+});
+
+caso("resposta interrompida vai marcada no histórico (falha ou parada pelo cliente)", () => {
+  const m = historicoParaMensagens([
+    { papel: "cliente", texto: "quero proteína" },
+    { papel: "ia", texto: "O Paçoca é", blocos: [{ tipo: "sabores", ids: ["pacoca"] }], interrompida: "falha" },
+    { papel: "cliente", texto: "e sem lactose?" },
+    { papel: "ia", texto: "Separei", interrompida: "parada" },
+    { papel: "cliente", texto: "ok" },
+    { papel: "ia", texto: "Completa", interrompida: "__proto__" },
+    { papel: "cliente", texto: "e agora?" },
+  ]);
+  assert.match(m[1].content, /\[Na tela: sabores: pacoca\]\n\[Esta resposta foi interrompida por uma falha antes do fim\.\]$/);
+  assert.match(m[3].content, /\[O cliente parou esta resposta antes do fim\.\]$/);
+  assert.equal(m[5].content, "Completa", "marca desconhecida entrou no histórico");
+});
+
 caso("shake não entra na comparação por porção: volta como erro e o caminho é mostrar_sabores", async () => {
   const r = await executarFerramenta("comparar_sabores", { ids: ["pacoca", "shake-choco-power"] });
   assert.equal(r.erro, true);
@@ -134,23 +200,38 @@ caso("ficha de shake traz o aviso de produção compartilhada, como a dos outros
   assert.deepEqual(r.pode_conter, gelato.pode_conter, "a IA recebeu ficha de shake sem o pode conter");
 });
 
-caso("alérgicos do shake seguem o líquido: com leite de amêndoas, AMÊNDOA é ingrediente", async () => {
+caso("alérgicos do shake: proteína e líquido separados; a versão vegana não vira LEITE", async () => {
   for (const s of SHAKES) {
     const f = fatosSabor(s);
+    // A proteína whey é LEITE; o líquido soma os dele (amêndoa é ingrediente, não traço).
+    assert.deepEqual(f.alergicos_da_proteina.whey, ["LEITE"], s.id);
     for (const r of s.nutrition) {
-      const contem = f.alergicos_por_liquido[r.liquid];
-      assert.ok(contem && contem.includes("LEITE"), `${s.id} com ${r.liquid}: faltou o LEITE do whey`);
-      assert.equal(contem.includes("AMÊNDOA"), /amêndoa/i.test(r.liquid), `${s.id} com ${r.liquid}`);
+      const liq = f.alergicos_do_liquido[r.liquid];
+      assert.ok(Array.isArray(liq), `${s.id} sem alérgicos do líquido ${r.liquid}`);
+      assert.equal(liq.includes("AMÊNDOA"), /amêndoa/i.test(r.liquid), `${s.id} com ${r.liquid}`);
+      assert.equal(liq.includes("LEITE"), /^leite (?!de amêndoas)/i.test(r.liquid), `${s.id} com ${r.liquid}`);
     }
     if (s.nutrition.some((r) => /amêndoa/i.test(r.liquid))) assert.match(f.alergicos, /com leite de amêndoas, também AMÊNDOA/, s.id);
   }
-  // Proteína vegana não tem alérgicos no cadastro: manda confirmar, não supõe.
-  assert.match(fatosSabor(saborPorId("shake-acai-banana")).alergicos, /proteína vegana, confirme os alérgicos com a equipe/);
+  // Açaí tem proteína vegana como opção, sem alérgicos no cadastro: o LEITE
+  // fica preso à escolha do whey (nada de "contém LEITE" incondicional) e a
+  // vegana manda confirmar com a equipe — nem LEITE, nem "sem alérgicos".
+  const acai = fatosSabor(saborPorId("shake-acai-banana"));
+  assert.match(acai.alergicos_da_proteina.vegana, /confirmar com a equipe/);
+  assert.doesNotMatch(acai.alergicos, /^LEITE/, "o açaí ainda abre com LEITE para todo mundo");
+  assert.match(acai.alergicos, /^com whey, LEITE; com proteína vegana, alérgicos não cadastrados: confirme com a equipe/);
+  assert.match(acai.alergicos, /com leite A2 integral, também LEITE/, "com a vegana, o LEITE do líquido sumiu");
+  assert.deepEqual(acai.alergicos_do_liquido["Água"], []);
+  // Shake só com whey continua "LEITE (whey)" para todo mundo.
+  assert.match(fatosSabor(saborPorId("shake-choco-power")).alergicos, /^LEITE \(whey\)/);
   // Chega ao modelo (ficha), ao prompt e ao llms.txt.
   const r = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-choco-power" })).resultado);
-  assert.deepEqual(r.alergicos_por_liquido["Leite de amêndoas"], ["LEITE", "AMÊNDOA"]);
+  assert.deepEqual(r.alergicos_do_liquido["Leite de amêndoas"], ["AMÊNDOA"]);
+  assert.deepEqual(r.alergicos_da_proteina, { whey: ["LEITE"] });
   assert.match(montarSistema(), /shake-choco-power \|[^\n]*também AMÊNDOA/);
-  assert.match(montarLlmsTxt(), /Shake Choco Power:[^\n]*também amêndoa/);
+  assert.match(montarSistema(), /shake-acai-banana \|[^\n]*com proteína vegana, alérgicos não cadastrados/);
+  assert.match(montarLlmsTxt(), /Shake Choco Power:[^\n]*também AMÊNDOA/);
+  assert.match(montarLlmsTxt(), /Shake Açaí com Banana:[^\n]*Alérgicos: com whey, LEITE; com proteína vegana/);
 });
 
 caso("o orçamento de evento é o do motor oficial", async () => {
@@ -178,15 +259,41 @@ caso("sem resposta do totem a IA não afirma nada sobre entrega", async () => {
   assert.equal(praia.abre, "hoje às 10h");
   assert.equal(jc.hoje, "fechada hoje");
   assert.equal(jc.abre, "amanhã às 11h");
-  // Com o totem respondendo, grátis só vale para loja que entrega.
-  // Formato real do totem (chaves com underscore, raio em km, prazo e mínimo).
-  const r2 = await executarFerramenta("lojas_agora", {}, { agora, carregarEntrega: async () => ({
-    praia_do_canto: { entrega: true, gratis: false, raioKm: 7, pedidoMinimo: 60, prazoEntrega: { modo: "prazo", minutos: 25 } },
+  // Com o totem respondendo: formato real (chaves com underscore, raio em km,
+  // prazo e mínimo). Grátis só vale para loja que entrega.
+  const totem = async () => ({
+    praia_do_canto: { entrega: true, gratis: true, raioKm: 7, pedidoMinimo: 60, prazoEntrega: { modo: "prazo", minutos: 25 } },
     jardim_camburi: { entrega: false, gratis: true },
-  }) });
-  const e2 = JSON.parse(r2.resultado).entrega;
-  assert.deepEqual(e2.find((x) => x.id === "praia-do-canto"), { id: "praia-do-canto", entrega: true, gratis: false, raio_km: 7, pedido_minimo: 60, prazo_min: 25 });
-  assert.deepEqual(e2.find((x) => x.id === "jardim-camburi"), { id: "jardim-camburi", entrega: false, gratis: false, raio_km: null, pedido_minimo: null, prazo_min: null });
+  });
+  const entregaAs = async (iso, extra = {}) => JSON.parse((await executarFerramenta("lojas_agora", {}, { agora: new Date(iso), carregarEntrega: totem, ...extra })).resultado).entrega;
+  const praiaAs = async (iso, extra) => (await entregaAs(iso, extra)).find((x) => x.id === "praia-do-canto");
+  // 9h de segunda: loja fechada. Oferece entrega, mas não está entregando, e nada de grátis.
+  const fechada = await praiaAs("2026-10-05T12:00:00Z");
+  assert.equal(fechada.oferece_entrega, true);
+  assert.equal(fechada.entregando_agora, false);
+  assert.equal(fechada.gratis, false, "grátis anunciado com a loja fechada");
+  assert.equal(fechada.horario_entrega, "11h às 20h");
+  assert.match(fechada.agora_nao_porque, /loja fechada/);
+  // 10h30 de segunda: loja ABERTA (abre às 10h), mas antes da janela das 11h — o caso do Codex.
+  const cedo = await praiaAs("2026-10-05T13:30:00Z");
+  assert.equal(cedo.entregando_agora, false, "entrega anunciada antes das 11h");
+  assert.equal(cedo.gratis, false);
+  assert.match(cedo.agora_nao_porque, /fora do horário de entrega/);
+  // 12h de segunda: aberta e na janela — agora sim, com grátis, raio, mínimo e prazo.
+  assert.deepEqual(await praiaAs("2026-10-05T15:00:00Z"), {
+    id: "praia-do-canto", oferece_entrega: true, horario_entrega: "11h às 20h", entregando_agora: true,
+    gratis: true, raio_km: 7, pedido_minimo: 60, prazo_min: 25,
+  });
+  // Janela mandada pelo totem vale por cima do padrão (10h30 dentro de 10h–22h).
+  const totemJanela = async () => ({ praia_do_canto: { entrega: true, horario: { abre: 10, fecha: 22 } } });
+  const r4 = JSON.parse((await executarFerramenta("lojas_agora", {}, { agora: new Date("2026-10-05T13:30:00Z"), carregarEntrega: totemJanela })).resultado);
+  assert.equal(r4.entrega.find((x) => x.id === "praia-do-canto").entregando_agora, true);
+  const jcEntrega = (await entregaAs("2026-10-07T15:00:00Z")).find((x) => x.id === "jardim-camburi");
+  assert.deepEqual(jcEntrega, { id: "jardim-camburi", oferece_entrega: false, horario_entrega: null, entregando_agora: false, gratis: false, raio_km: null, pedido_minimo: null, prazo_min: null });
+  // A regra mora em src/lojas.js, a mesma que o site usa (não há uma segunda cópia no App).
+  const app = await import("node:fs").then((fs) => fs.readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8"));
+  assert.match(app, /import \{ janelaEntrega as janelaDe \} from "\.\/lojas\.js"/);
+  assert.doesNotMatch(app, /JANELA_PADRAO\s*=/);
   // O horário editado no painel vale por cima do código.
   const r3 = await executarFerramenta("lojas_agora", {}, { agora, overridesLojas: { "praia-do-canto": { dias: { 1: [8, 20] } } } });
   assert.equal(JSON.parse(r3.resultado).lojas.find((l) => l.id === "praia-do-canto").aberta, true);
@@ -199,15 +306,54 @@ caso("atalho só para destino conhecido", async () => {
   assert.equal(z.bloco.mensagem, "Olá! Quero 30 caixas");
 });
 
-caso("'zero açúcar' nunca chega à tela, nem partido entre pedaços", () => {
-  assert.equal(corrigirAlegacoes("É zero açúcar."), "É sem adição de açúcares.");
-  assert.equal(corrigirAlegacoes("Sem açúcar adicionado"), "Sem adição de açúcares");
-  assert.equal(corrigirAlegacoes("Contém açúcares próprios dos ingredientes."), "Contém açúcares próprios dos ingredientes.");
-  const f = filtroAlegacoes();
+caso("alegação de açúcar: forma proibida sai inteira (nunca vira a aprovada); a aprovada só com sabor que a tem", () => {
+  const N = new Set();
+  // O exemplo do Codex: reescrever daria ao Extra Dark (açúcar adicionado) uma alegação falsa.
+  for (const f of [
+    "O Extra Dark é zero açúcar.", "É zero açúcar.", "O Morango é sem açúcar adicionado.", "Não leva açúcar nenhum.",
+    "É livre de açúcar.", "Tem baixo teor de açúcar.",
+    "O Extra Dark é sem adição de açúcares.",                        // não tem a alegação
+    "O Choco Dubai é sem adição de açúcares.",                       // apelido de quem não tem
+    "O Morango e o Maracujá são sem adição de açúcares.",            // um dos dois não tem
+    "O Shake Choco Power é sem adição de açúcares.",                 // shake não tem alegação
+    "Nossos gelatos são sem adição de açúcares.",                    // linha inteira: proibido
+    "Todos são sem adição de açúcares.",                             // sem nome, não dá para conferir
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "O Morango é sem adição de açúcares e contém açúcares próprios dos ingredientes.",
+    "O Bentôlé Pistache e Chocolate Branco é sem adição de açúcares.",
+    "Contém açúcares próprios dos ingredientes.",
+    "O Limão Siciliano é refrescante e sem lactose.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+  // Em streaming, partida entre pedaços: some a frase, o resto chega.
+  const f = filtroFrases(N);
   let s = "";
-  for (const d of ["Ele é ze", "ro açú", "car e leve", " demais."]) s += f.push(d);
+  for (const d of ["Ele é ótimo. O Extra Dark é ze", "ro açú", "car e leve", " demais. Peça hoje."]) s += f.push(d);
   s += f.fim();
-  assert.equal(s, "Ele é sem adição de açúcares e leve demais.");
+  assert.equal(s, "Ele é ótimo. Peça hoje.");
+});
+
+caso("número no texto só se o cliente escreveu: tabela, preço e horário ficam no card", () => {
+  const N = numerosDe("Quanto fica um evento para 1.500 pessoas? E para 80?");
+  for (const f of [
+    "Para 80 convidados, o balcão atende bem.", "Para 1500 convidados, o carrinho é o formato.",
+    "Fale com a equipe no WhatsApp (27) 99915-9995.",               // o número oficial, idêntico
+    "Quem usa caneta de GLP-1 deve confirmar com o médico.", "Com leite A2 fica mais cremoso.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+  for (const f of [
+    "O Pistache tem 10 g de proteína.", "Custa R$ 27 por pessoa.", "Para 80 convidados o total é R$ 2.160.",
+    "Abre amanhã às 13h.", "Fica pronto em dez minutos.", "Tem doze gramas de proteína.",
+    "Fale no (27) 99915-9996.", "São 6 litros de gelato.",
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  // "2.160": o ponto de milhar não é fim de frase.
+  const fl = filtroFrases(numerosDe("80 convidados"));
+  let s = "";
+  for (const d of ["Para 8", "0 convidados, o bal", "cão atende. O total fica em R$ 2.1", "60. Chame a equipe."]) s += fl.push(d);
+  s += fl.fim();
+  assert.equal(s, "Para 80 convidados, o balcão atende. Chame a equipe.");
+  // Quebra de parágrafo depois de frase cortada fica (o texto não gruda).
+  const fp = filtroFrases(new Set());
+  assert.equal(fp.push("Tem 10 g.\n\nO card mostra tudo.") + fp.fim(), "\n\nO card mostra tudo.");
 });
 
 caso("histórico do navegador é saneado: começa no cliente, sem controle, com nota do que estava na tela", () => {
@@ -233,14 +379,16 @@ caso("uma conversa com ferramenta: card, texto corrigido e a volta devolvida sem
   const cliente = clienteFalso([
     { eventos: [{ raw: { type: "content_block_start", content_block: { type: "tool_use", name: "mostrar_sabores" } } }],
       final: { stop_reason: "tool_use", content: [pensamento, usoDeFerramenta("t1", "mostrar_sabores", { ids: ["pacoca", "bentole-pistache-cb"] })] } },
-    { eventos: [{ texto: "Os dois são ótimos no pós-treino e são zero" }, { texto: " açúcar." }],
+    { eventos: [{ texto: "Os dois são ótimos no pós-treino. E são zero" }, { texto: " açúcar. O Paçoca tem 9 g de proteína." }],
       final: { stop_reason: "end_turn", content: [{ type: "text", text: "..." }] } },
   ]);
   const g = gravador();
   const uso = await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "algo pós-treino?" }], enviar: g.enviar });
   assert.deepEqual(g.ev.filter(([t]) => t === "bloco").map(([, d]) => d), [{ tipo: "sabores", ids: ["pacoca", "bentole-pistache-cb"] }]);
   assert.ok(g.ev.some(([t]) => t === "status"));
-  assert.equal(g.texto(), "Os dois são ótimos no pós-treino e são sem adição de açúcares.");
+  // A frase com alegação proibida e a com número saem; o resto chega.
+  assert.equal(g.texto().trim(), "Os dois são ótimos no pós-treino.");
+  assert.equal(uso.frases_cortadas, 2);
   assert.equal(uso.voltas, 2);
   const [p1, p2] = cliente.pedidos;
   assert.equal(p1.model, "claude-sonnet-5-5");
@@ -361,12 +509,17 @@ const escolha = (id, input) => ({ content: [{ type: "tool_use", id, name: "escol
 const EV_CAIXA = { convidados: 45, tipo: "Mix (gelatos + picolés)", formato: "caixa" };
 
 caso("sugestão de sabores: a IA só escolhe ids, dentro do limite; o texto passa pelo filtro", async () => {
-  const c = clienteCreate([escolha("s1", { gelatos: ["brigadeiro"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Chocolate agrada as crianças e é zero açúcar." })]);
+  const c = clienteCreate([escolha("s1", { gelatos: ["brigadeiro"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Chocolate agrada as crianças. E é zero açúcar." })]);
   const r = await sugerirSaboresEvento({ client: c, evento: EV_CAIXA, prefs: { criancas: true } });
   assert.equal(r.origem, "ia");
   assert.deepEqual([r.gelatos, r.picoles], [["brigadeiro"], ["bentole-prestigio", "bentole-framboesa-duo"]]);
   assert.deepEqual(r.limites, { gelatos: 1, picoles: 2, total: 3 });
-  assert.doesNotMatch(r.motivo, /zero açúcar/i);
+  assert.equal(r.motivo, "Chocolate agrada as crianças.", "só a frase com a alegação devia sair (e nunca virar \"sem adição\")");
+  // Motivo que cai inteiro na revisão (número de tabela) dá lugar ao da regra.
+  const sóNumero = await sugerirSaboresEvento({ client: clienteCreate([escolha("s9", { gelatos: ["brigadeiro"], picoles: ["bentole-prestigio"], motivo: "Rende 30 potinhos com 9 g de proteína." })]), evento: EV_CAIXA, prefs: { criancas: true } });
+  assert.equal(sóNumero.origem, "ia");
+  assert.match(sóNumero.motivo, /pensada para criança/);
+  assert.equal(sóNumero.uso.frases_cortadas, 1);
   const p = c.pedidos[0];
   assert.equal(p.model, "claude-sonnet-5-5");
   assert.deepEqual(p.output_config, { effort: "low" });

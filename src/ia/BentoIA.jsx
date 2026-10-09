@@ -15,7 +15,7 @@ import { Sparkles, X, ArrowUp, Mic, Square, RotateCcw, MapPin, MessageCircle, Sh
 import { tk, T, ProductArt, useModal, useSemFlutuantes } from "../shared.jsx";
 import { ALLERGENS } from "../data.js";
 import { LOJAS } from "../lojas.js";
-import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, orcamentoEvento, DESTINOS, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
+import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, orcamentoEvento, DESTINOS, DESTAQUES, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
 import { SUGESTOES } from "./sugestoes.js";
 
 const CHAVE = "bento:ia:v1";
@@ -81,8 +81,13 @@ const Foto = ({ x, tam = 76, raio = 14 }) => (
 
 /* ---------- blocos (UI gerada a partir de ids validados) ---------- */
 
-function LinhaShake({ x }) {
+// O número que decide a recomendação (a IA escolhe qual; o valor é o do
+// catálogo) fica em evidência. Sem escolha, a proteína.
+const destaqueValido = (d) => (typeof d === "string" && Object.keys(DESTAQUES).includes(d) ? d : "proteina");
+
+function LinhaShake({ x, destaque }) {
   const kcal = x.nutrition.map((r) => r.kcal);
+  const d = destaqueValido(destaque);
   return (
     <div style={{ display: "flex", gap: 14, padding: 16 }}>
       <span aria-hidden="true" style={{ width: 76, height: 76, borderRadius: 14, background: x.color.bg, color: x.color.ink, display: "grid", placeItems: "center", flexShrink: 0 }}><CupSoda size={28} strokeWidth={1.5} /></span>
@@ -90,8 +95,8 @@ function LinhaShake({ x }) {
         <div className="fb" style={{ fontSize: 12, color: T.inkSoft }}>Shake proteico · batido na hora</div>
         <div className="fd" style={{ fontSize: 18, color: T.ink, lineHeight: 1.2, marginTop: 2 }}>{x.name}</div>
         <div style={{ display: "flex", gap: 18, marginTop: 10 }}>
-          <Numero valor={`${x.protein} g`} rotulo="proteína" destaque />
-          <Numero valor={`${Math.min(...kcal)}–${Math.max(...kcal)}`} rotulo="kcal, pelo líquido" />
+          <Numero valor={`${x.protein} g`} rotulo="proteína" destaque={d !== "kcal"} />
+          <Numero valor={`${Math.min(...kcal)}–${Math.max(...kcal)}`} rotulo="kcal, pelo líquido" destaque={d === "kcal"} />
         </div>
         <div className="fb" style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 8, lineHeight: 1.5 }}>Contém: {alergicosShakeTexto(x)}</div>
         <div style={{ marginTop: 12 }}>
@@ -102,11 +107,16 @@ function LinhaShake({ x }) {
   );
 }
 
-function LinhaSabor({ id, acoes }) {
+const TRIO = ["proteina", "kcal", "acucar_adicionado"];
+
+function LinhaSabor({ id, acoes, destaque }) {
   const x = saborPorId(id);
   if (!x) return null;
-  if (ehShake(x)) return <LinhaShake x={x} />;
+  if (ehShake(x)) return <LinhaShake x={x} destaque={destaque} />;
   const n = x.nutrition, contem = ALLERGENS[x.id] || [], al = alegacoes(x);
+  // Sempre três números; um destaque fora do trio entra na frente dele.
+  const d = destaqueValido(destaque);
+  const numeros = TRIO.includes(d) ? TRIO : [d, "proteina", "kcal"];
   const acucar = al.find((a) => a.startsWith("SEM ADIÇÃO"));
   const proteina = al.find((a) => /PROTEÍNA/.test(a));
   return (
@@ -116,9 +126,10 @@ function LinhaSabor({ id, acoes }) {
         <div className="fb" style={{ fontSize: 12, color: T.inkSoft }}>{x.category === "bentole" ? "Picolé Bentôlé" : "Gelato"} · {x.portionLabel.replace(/ \(.*\)/, "")}</div>
         <div className="fd" style={{ fontSize: 18, color: T.ink, lineHeight: 1.2, marginTop: 2 }}>{x.name}</div>
         <div style={{ display: "flex", gap: 18, marginTop: 10, flexWrap: "wrap" }}>
-          <Numero valor={`${num(n.protein)} g`} rotulo="proteína" destaque />
-          <Numero valor={num(n.kcal)} rotulo="kcal" />
-          <Numero valor={`${num(n.addedSugars)} g`} rotulo="açúcar adic." />
+          {numeros.map((k) => {
+            const m = DESTAQUES[k];
+            return <Numero key={k} valor={num(n[m.campo]) + (m.unidade ? " " + m.unidade : "")} rotulo={m.rotulo} destaque={k === d} />;
+          })}
         </div>
         {(acucar || proteina) && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "4px 12px", marginTop: 10 }}>
@@ -253,6 +264,14 @@ function Ficha({ id, acoes }) {
 // afirma nada (a mesma regra de ouro da entrega).
 const VALIDADE_LOJAS = 5 * 60 * 1000;
 
+// "Oferece entrega" não é "entregando agora": fora da janela de entrega (ou com
+// a loja fechada) a linha diz quando volta, e sem "grátis" — como o selo do site.
+function textoEntrega(e) {
+  const raio = e.raio_km ? ` até ${num(e.raio_km)} km` : "";
+  if (e.entregando_agora) return `Entrega ${e.gratis ? "grátis " : ""}agora${raio}${e.pedido_minimo ? ` · mínimo ${brl(e.pedido_minimo)}` : ""}${e.prazo_min ? ` · ~${e.prazo_min} min` : ""}`;
+  return `Entrega${raio}${e.horario_entrega ? `, das ${e.horario_entrega}` : ""} · ${/fechada/.test(e.agora_nao_porque || "") ? "volta quando a loja abrir" : "agora, só retirada"}`;
+}
+
 function Lojas({ bloco }) {
   const em = typeof bloco.em === "number" ? bloco.em : 0;
   const [vivo, setVivo] = useState(() => Date.now() - em < VALIDADE_LOJAS);
@@ -279,9 +298,9 @@ function Lojas({ bloco }) {
               </div>
             )}
             <div className="fb" style={{ fontSize: 13, color: T.inkSoft, marginTop: 4, lineHeight: 1.5 }}>{l.endereco}</div>
-            {e && e.entrega === true && (
-              <div className="fb" style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, fontSize: 13, color: T.pistacheDark }}>
-                <Truck {...ICONE} size={15} />Entrega própria{e.gratis ? (e.raio_km ? ` grátis até ${num(e.raio_km)} km` : " grátis") : e.raio_km ? ` até ${num(e.raio_km)} km` : ""}{e.pedido_minimo ? ` · mínimo ${brl(e.pedido_minimo)}` : ""}{e.prazo_min ? ` · ~${e.prazo_min} min` : ""}
+            {e && e.oferece_entrega === true && (
+              <div className="fb" style={{ display: "flex", alignItems: "flex-start", gap: 6, marginTop: 6, fontSize: 13, lineHeight: 1.45, color: e.entregando_agora ? T.pistacheDark : T.inkSoft }}>
+                <Truck {...ICONE} size={15} style={{ flexShrink: 0, marginTop: 1 }} /><span>{textoEntrega(e)}</span>
               </div>
             )}
             <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
@@ -365,7 +384,7 @@ function Bloco({ b, acoes }) {
   if (!b || typeof b !== "object") return null;
   if (b.tipo === "sabores" && Array.isArray(b.ids)) {
     const ids = b.ids.filter((id) => saborPorId(id));   // conversa antiga guardada pode citar sabor que saiu do cardápio
-    return ids.length ? <Grupo>{ids.map((id) => <LinhaSabor key={id} id={id} acoes={acoes} />)}</Grupo> : null;
+    return ids.length ? <Grupo>{ids.map((id) => <LinhaSabor key={id} id={id} acoes={acoes} destaque={b.destaque} />)}</Grupo> : null;
   }
   if (b.tipo === "comparar" && Array.isArray(b.ids)) return <Comparacao ids={b.ids} acoes={acoes} />;
   if (b.tipo === "ficha") return <Ficha id={b.id} acoes={acoes} />;
@@ -392,11 +411,16 @@ function Esqueleto({ status }) {
 }
 
 // Uma resposta da IA: texto (do modelo) + blocos (montados aqui).
-function Resposta({ m, vivo, acoes }) {
+// Resposta que não terminou continua marcada depois de fechar e abrir o painel
+// (a falha da vez é o quadro de "Tentar de novo"; aviso=false nela).
+function Resposta({ m, vivo, acoes, aviso = true }) {
   return (
     <div className="ia-entra" style={{ display: "grid", gap: 12, maxWidth: "100%" }}>
       {m.texto ? <div className="fb" style={{ fontSize: 15.5, color: T.ink, lineHeight: 1.6, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.texto}</div> : null}
       {(m.blocos || []).map((b, i) => <Bloco key={i} b={b} acoes={acoes} />)}
+      {aviso && !vivo && (m.interrompida === "falha" || m.interrompida === "parada") && (
+        <div className="fb" style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5 }}>{m.interrompida === "parada" ? "Você parou esta resposta antes do fim." : "Esta resposta foi interrompida antes do fim."}</div>
+      )}
       {vivo && m.status && (
         <>
           <div className="fb" role="status" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, color: T.inkSoft }}>
@@ -420,8 +444,14 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
   const [msgs, setMsgs] = useState(ler);
   const [atual, setAtual] = useState(null);      // resposta em andamento: { texto, blocos, status }
   // Conversa guardada que termina numa pergunta sem resposta (o painel fechou
-  // no meio): mostra a falha com "Tentar de novo", em vez de uma pergunta solta.
-  const [erro, setErro] = useState(() => (!pergunta && msgs.length && msgs[msgs.length - 1].papel === "cliente" ? "A resposta não chegou. Tente de novo." : null));
+  // no meio) ou numa resposta que falhou pela metade: mostra a falha com
+  // "Tentar de novo", em vez de uma pergunta solta ou de algo que parece completo.
+  const [erro, setErro] = useState(() => {
+    const ult = !pergunta && msgs.length ? msgs[msgs.length - 1] : null;
+    if (!ult) return null;
+    if (ult.papel === "cliente") return "A resposta não chegou. Tente de novo.";
+    return ult.interrompida === "falha" ? "A resposta foi interrompida. Tente de novo." : null;
+  });
   const [entrada, setEntrada] = useState("");
   const [ouvindo, setOuvindo] = useState(false);
   const [altura, setAltura] = useState(null);
@@ -484,8 +514,10 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
       if (!falha && !terminou) falha = "A resposta foi interrompida. Tente de novo.";
       if (falha && !resposta.texto.trim() && !resposta.blocos.length) throw new Error(falha);
       // O que chegou fica na tela, mas a falha aparece com "Tentar de novo" —
-      // uma resposta pela metade não pode parecer completa.
-      const final = [...historico, { papel: "ia", texto: resposta.texto.trim(), blocos: resposta.blocos }];
+      // uma resposta pela metade não pode parecer completa. A marca vai junto
+      // para a aba (reabrir o painel mostra a falha de novo) e para a próxima
+      // pergunta (o servidor avisa o modelo de que ela não terminou).
+      const final = [...historico, { papel: "ia", texto: resposta.texto.trim(), blocos: resposta.blocos, ...(falha ? { interrompida: "falha" } : {}) }];
       setMsgs(final); guardar(final);
       if (falha) setErro(falha);
     } catch (e) {
@@ -495,7 +527,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
         // começar outra conversa também abortam, e aí não há o que mostrar.
         if (motivoAbort.current === "parar") {
           if (resposta.texto.trim() || resposta.blocos.length) {
-            const final = [...historico, { papel: "ia", texto: resposta.texto.trim(), blocos: resposta.blocos }];
+            const final = [...historico, { papel: "ia", texto: resposta.texto.trim(), blocos: resposta.blocos, interrompida: "parada" }];
             setMsgs(final); guardar(final);
           } else setErro("Você parou a resposta.");
         }
@@ -616,10 +648,12 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
               </div>
             </div>
           )}
-          {msgs.map((m, i) => m.papel === "cliente"
+          {/* A resposta em andamento entra na mesma lista, na posição que vai
+              ocupar: ao terminar, o React reaproveita o mesmo elemento, e a
+              resposta inteira não pisca refazendo a animação de entrada. */}
+          {(atual ? [...msgs, atual] : msgs).map((m, i) => m.papel === "cliente"
             ? <div key={i} className="fb ia-entra" style={{ alignSelf: "flex-end", maxWidth: "84%", background: T.pistacheDark, color: T.surface, fontSize: 15, lineHeight: 1.5, padding: "10px 14px", borderRadius: "18px 18px 6px 18px", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.texto}</div>
-            : <Resposta key={i} m={m} acoes={acoes} />)}
-          {atual && <Resposta m={atual} vivo acoes={acoes} />}
+            : <Resposta key={i} m={m} vivo={m === atual} acoes={acoes} aviso={!(erro && i === msgs.length - 1)} />)}
           {erro && (
             <div role="alert" className="ia-entra" style={{ ...superficie, padding: "14px 16px", display: "flex", gap: 12 }}>
               <CircleAlert size={18} strokeWidth={1.75} color="#9A4A12" style={{ flexShrink: 0, marginTop: 1 }} aria-hidden="true" />

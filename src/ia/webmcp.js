@@ -71,11 +71,13 @@ export function registrarFerramentasWebMCP(acoes) {
       inputSchema: { type: "object", properties: {} },
       annotations: { readOnlyHint: true },
       execute: async () => {
-        let entrega = null, cfg = null;
-        try { const r = await fetch(ENTREGA_ESTADO_URL, { mode: "cors", signal: AbortSignal.timeout(3000) }); entrega = r.ok ? entregaPorLoja(await r.json()) : null; } catch { entrega = null; }
+        const pegar = async (url, op) => { try { const r = await fetch(url, { ...op, signal: AbortSignal.timeout(3000) }); return r.ok ? await r.json() : null; } catch { return null; } };
         // Horário editado no painel (site:config) vale por cima do código, como no resto do site.
-        try { const r = await fetch("/api/site-config", { cache: "no-store", signal: AbortSignal.timeout(3000) }); cfg = r.ok ? await r.json() : null; } catch { cfg = null; }
-        return resposta({ lojas: lojasAgora(cfg && cfg.lojas), entrega: entrega || "sem dados agora; o pedido online mostra se a entrega está disponível", pedido_online: "https://totem.bentogelateria.com/pedir" });
+        const [estado, cfg] = await Promise.all([pegar(ENTREGA_ESTADO_URL, { mode: "cors" }), pegar("/api/site-config", { cache: "no-store" })]);
+        const lojas = lojasAgora(cfg && cfg.lojas);
+        // Entregando agora = loja aberta e dentro da janela de entrega, não só "oferece".
+        const entrega = estado ? entregaPorLoja(estado, { lojas }) : null;
+        return resposta({ lojas, entrega: entrega || "sem dados agora; o pedido online mostra se a entrega está disponível", pedido_online: "https://totem.bentogelateria.com/pedir" });
       },
     },
     {

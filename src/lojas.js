@@ -28,6 +28,21 @@ export const LOJAS = [
    ifood:"https://www.ifood.com.br/delivery/vitoria-es/bento-gelatos-jardim-camburi/e654e388-ebc8-480c-bb0d-7d0c31f6cc3a?utm_medium=share"},
 ];
 
+/* Janela de entrega. A casa não entrega antes das 11h nem depois das 20h, então
+   fora disso nada oferece entrega — só retirada e iFood.
+   O horário é regra de negócio e, como o resto da entrega, deveria vir do totem:
+   se o endpoint mandar horario:{abre,fecha}, é ele que vale. O padrão abaixo
+   existe só enquanto o campo não for exposto lá — quando for, some daqui.
+   Aqui, e não no App, porque a Bentô IA (src/ia/catalogo.js) aplica a mesma
+   janela antes de dizer que há entrega agora: duas cópias divergiriam caladas. */
+export const JANELA_ENTREGA_PADRAO = { abre: 11, fecha: 20 };
+export function janelaEntrega(e) {
+  const h = e && (e.horario || e.janela);
+  const abre = Number(h && (h.abre ?? h.inicio ?? h.open));
+  const fecha = Number(h && (h.fecha ?? h.fim ?? h.close));
+  return Number.isFinite(abre) && Number.isFinite(fecha) && fecha > abre ? { abre, fecha } : JANELA_ENTREGA_PADRAO;
+}
+
 // Link "Ver no Google Maps": busca por nome + endereço completo — determinística
 // (o endereço identifica o ponto) e abre a FICHA da loja (fotos, avaliações,
 // horários), que coordenadas puras não abrem. A rota ("Como chegar") usa

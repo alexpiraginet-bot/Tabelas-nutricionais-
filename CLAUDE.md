@@ -60,9 +60,15 @@ conversa; **quem mostra dado é o código**: ele só escolhe QUAIS cards aparece
 validados, e o site monta os cards com os dados do bundle. Nunca deixe o modelo
 escrever número, preço ou tabela na tela por conta própria.
 
-- `lib/ia-motor.js`: prompt (regras + catálogo), ferramentas, laço com o Claude,
-  filtro que troca "zero açúcar"/"sem açúcar adicionado" por "sem adição de
-  açúcares" mesmo no streaming. `api/ia.js`: HTTP, limites por IP e por dia,
+- `lib/ia-motor.js`: prompt (regras + catálogo), ferramentas, laço com o Claude
+  e a **revisão frase a frase** do texto (`fraseSegura`), também no streaming:
+  sai inteira a frase com algarismo que o cliente não escreveu (o de convidados
+  que foi ao orçamento pode), número por extenso com unidade, "zero/sem açúcar"
+  e "sem adição de açúcares" sem o nome de um sabor que tem a alegação. **Nada é
+  reescrito**: trocar "zero açúcar" por "sem adição" sem saber o sabor fazia de
+  "o Extra Dark é zero açúcar" uma alegação falsa com cara de oficial. O número
+  que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
+  Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
   `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
 - Modelo `claude-sonnet-5-5` (metade do custo do Opus 5.5), esforço `low`
@@ -76,8 +82,16 @@ escrever número, preço ou tabela na tela por conta própria.
   o pensamento do modelo só vale com o histórico intacto. Entre perguntas, o
   histórico é só texto (sem blocos de pensamento) — de propósito.
 - Entrega: a IA só afirma o que `/api/delivery/estado` do totem disse (mesma
-  regra de ouro). Evento: valores do `calcEvento`, e o botão abre o orçamento já
-  com os convidados (`convidadosInicial`).
+  regra de ouro), e "oferece entrega" não é "entregando agora": agora exige loja
+  aberta e a janela de entrega (`janelaEntrega` em `src/lojas.js`, a mesma do
+  site). Grátis só com entrega acontecendo. Evento: valores do `calcEvento`, e o
+  botão abre o orçamento já com os convidados (`convidadosInicial`).
+- Shake: alérgicos separados por proteína e por líquido (`alergicosShake`). A
+  proteína vegana (opção do Açaí) não tem alérgicos no cadastro: fica "confirme
+  com a equipe" — nem LEITE (falso para quem escolhe a vegana) nem "sem alérgicos".
+- Resposta que não terminou (falha ou Parar) fica marcada (`interrompida`) na
+  aba e vai marcada ao modelo na pergunta seguinte. Card além do limite (6) não
+  aparece e o modelo recebe erro dizendo isso.
 - WebMCP (`src/ia/webmcp.js`): as mesmas ferramentas para agentes de IA do
   navegador, em `document.modelContext` (padrão em incubação; sem suporte, nada
   acontece). `public/llms.txt` é gerado no build — não edite.
@@ -235,7 +249,7 @@ npm run test:ia            # trava a Bentô IA: cards só com id real, alegaçõ
 ## Pendências conhecidas
 
 - Totem deve expor `horario: {abre, fecha}`; enquanto não expõe, 11h–20h está fixo
-  em `src/App.jsx` como padrão.
+  em `src/lojas.js` (`JANELA_ENTREGA_PADRAO`) como padrão — site e Bentô IA leem dali.
 - `jardim_camburi` chega com `gratis: true` e `entrega: false` — o site ignora o
   grátis de loja que não entrega, de propósito.
 - PR do protótipo de movimento (`/proto`) e da bancada shadcn (`/ui`) segue aberto,

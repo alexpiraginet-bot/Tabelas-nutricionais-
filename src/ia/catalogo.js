@@ -8,7 +8,7 @@
 // Sem JSX e sem nada do navegador: este arquivo roda na função da API
 // (api/ia.js) e também no site (cards da conversa e ferramentas WebMCP).
 import { PRODUCTS, SHAKES, ALLERGENS, PODE_CONTER, AVISO_POLIOL, sugarClaim, proteinClaim } from "../data.js";
-import { LOJAS } from "../lojas.js";
+import { LOJAS, janelaEntrega } from "../lojas.js";
 import { EV_FORMATOS, EV_PRECO_PESSOA, EV_MIN, EV_SUGERE, EV_CABE, EV_PERS_ACRESCIMO, EV_PERS_GRANDE, EV_LIMITE_SABORES, calcEvento } from "../eventos-regras.js";
 
 export const PEDIR_URL = "https://totem.bentogelateria.com/pedir";
@@ -29,30 +29,48 @@ export function saborPorId(id) {
 }
 export const ehShake = (x) => !!(x && SHAKES.includes(x));
 
-// Alérgicos do shake saem da receita: o whey é LEITE, e o líquido escolhido
-// soma o dele — com leite de amêndoas, a amêndoa é ingrediente, não traço.
-// Proteína vegana (opção de algum shake) não tem alérgicos no cadastro: aí o
-// caminho é confirmar com a equipe, nunca supor.
+// Alérgicos do shake saem da receita, e a pessoa escolhe duas coisas: a
+// proteína e o líquido. Cada escolha soma os alérgicos dela — o whey é LEITE;
+// com leite de amêndoas, a amêndoa é ingrediente, não traço. Por isso os dois
+// vão separados, e não somados de antemão.
+// Proteína vegana (opção do Açaí) não tem alérgicos no cadastro: fica null, e
+// o texto manda confirmar com a equipe. Nem LEITE (seria falso para quem
+// escolhe a vegana) nem "sem alérgicos" (seria supor).
 const alergicosDoLiquido = (liquido) => (/amêndoa/i.test(liquido) ? ["AMÊNDOA"] : /leite/i.test(liquido) ? ["LEITE"] : []);
 export function alergicosShake(x) {
-  const proteina = x.ingredients.find((i) => /soro de leite|whey/i.test(i.name));
-  const base = proteina ? ["LEITE"] : [];
+  const whey = x.ingredients.find((i) => /soro de leite|whey/i.test(i.name));
+  const vegana = !!(whey && /vegan/i.test(whey.note || ""));
   return {
-    porLiquido: x.nutrition.map((r) => ({ liquido: r.liquid, contem: [...new Set([...base, ...alergicosDoLiquido(r.liquid)])] })),
-    vegana: !!(proteina && /vegan/i.test(proteina.note || "")),
+    proteinas: [...(whey ? [{ proteina: "whey", contem: ["LEITE"] }] : []), ...(vegana ? [{ proteina: "vegana", contem: null }] : [])],
+    liquidos: x.nutrition.map((r) => ({ liquido: r.liquid, contem: alergicosDoLiquido(r.liquid) })),
   };
 }
 // Em uma linha, para card, catálogo da IA e llms.txt.
 export function alergicosShakeTexto(x) {
-  const { porLiquido, vegana } = alergicosShake(x);
-  let t = "LEITE (whey)";
-  for (const l of porLiquido) {
-    const extra = l.contem.filter((a) => a !== "LEITE");
-    if (extra.length) t += `; com ${l.liquido.toLowerCase()}, também ${extra.join(", ")}`;
+  const { proteinas, liquidos } = alergicosShake(x);
+  const vegana = proteinas.some((p) => p.contem === null);
+  const partes = vegana
+    ? ["com whey, LEITE", "com proteína vegana, alérgicos não cadastrados: confirme com a equipe"]
+    : [proteinas.length ? "LEITE (whey)" : "confirme os alérgicos com a equipe"];
+  for (const l of liquidos) {
+    // Com whey, o LEITE do líquido já está dito; com a vegana, não.
+    const extra = vegana ? l.contem : l.contem.filter((a) => a !== "LEITE");
+    if (extra.length) partes.push(`com ${l.liquido.charAt(0).toLowerCase() + l.liquido.slice(1)}, também ${extra.join(", ")}`);
   }
-  if (vegana) t += "; na versão com proteína vegana, confirme os alérgicos com a equipe";
-  return t;
+  return partes.join("; ");
 }
+
+// O número que decide uma recomendação — o modelo escolhe QUAL, o card mostra
+// o valor oficial em evidência. Assim o texto não precisa (nem pode) citar número.
+// campo = chave em nutrition (data.js).
+export const DESTAQUES = {
+  proteina: { rotulo: "proteína", campo: "protein", unidade: "g" },
+  kcal: { rotulo: "kcal", campo: "kcal", unidade: "" },
+  acucar_adicionado: { rotulo: "açúcar adic.", campo: "addedSugars", unidade: "g" },
+  fibras: { rotulo: "fibras", campo: "fiber", unidade: "g" },
+  carboidratos: { rotulo: "carboidratos", campo: "carbs", unidade: "g" },
+  gordura_saturada: { rotulo: "gord. saturada", campo: "satFat", unidade: "g" },
+};
 
 // Alegações que a marca PODE fazer, calculadas pelas mesmas funções da tabela
 // nutricional: a de açúcar é só a da sugarClaim, como manda a política da marca.
@@ -74,8 +92,10 @@ export function fatosSabor(x) {
       id: x.id, nome: x.name, linha: LINHA.shake, porcao: x.sub,
       proteina_g: x.protein, kcal_com_agua: agua.kcal,
       liquidos: x.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g proteína`),
+      // Total = os da proteína escolhida + os do líquido escolhido.
       alergicos: alergicosShakeTexto(x),
-      alergicos_por_liquido: Object.fromEntries(alergicosShake(x).porLiquido.map((l) => [l.liquido, l.contem])),
+      alergicos_da_proteina: Object.fromEntries(alergicosShake(x).proteinas.map((p) => [p.proteina, p.contem || "não cadastrados: confirmar com a equipe"])),
+      alergicos_do_liquido: Object.fromEntries(alergicosShake(x).liquidos.map((l) => [l.liquido, l.contem])),
       observacao: "Valores calculados por porção, variam com o líquido escolhido.",
     };
   }
@@ -128,7 +148,7 @@ export function catalogoTexto() {
     linhas.push(`  ${p.description}`);
   }
   linhas.push("");
-  linhas.push("SHAKES (batidos na hora, whey + fruta/cacau, líquido à escolha; os alérgicos mudam com o líquido)");
+  linhas.push("SHAKES (batidos na hora: proteína + fruta ou cacau, líquido à escolha; os alérgicos somam os da proteína e os do líquido)");
   for (const s of SHAKES) {
     linhas.push(`- ${s.id} | ${s.name} | ${s.sub} | ${s.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g prot`).join(" · ")} | contém: ${alergicosShakeTexto(s)}`);
     linhas.push(`  ${s.description}`);
@@ -192,26 +212,40 @@ export function lojasAgora(overrides, d = new Date()) {
 
 // Estado da entrega, lido do TOTEM (fonte única). Sem resposta do endpoint, a
 // IA não afirma nada sobre entrega — mesma regra de ouro do site.
+// "Oferece entrega" (configuração do totem) não é "entregando agora": como no
+// site (entregaAgora no App), agora exige a loja aberta E a janela de entrega
+// (11h–20h, ou a que o totem mandar). Às 10h com a loja aberta, só retirada.
 const chaveLoja = (x) => String(x || "").toLowerCase().replace(/[-_\s]+/g, "-");
-export function entregaPorLoja(cfg) {
+export function entregaPorLoja(cfg, { lojas = null, agora = new Date() } = {}) {
   if (!cfg || typeof cfg !== "object") return null;
   const fonte = cfg.lojas || cfg.stores || cfg;
+  const status = Array.isArray(lojas) ? lojas : lojasAgora(null, agora);
+  const { cur } = agoraSP(agora);
   return LOJAS.map((l) => {
     let e = null;
     if (Array.isArray(fonte)) e = fonte.find((x) => x && (chaveLoja(x.id) === l.id || chaveLoja(x.loja) === l.id)) || null;
     else { const k = Object.keys(fonte).find((k) => chaveLoja(k) === l.id); e = k ? fonte[k] : null; }
-    if (!e || typeof e !== "object") return { id: l.id, entrega: null };
-    const entrega = !!(e.entregaPropria ?? e.entrega ?? e.ativo);
+    if (!e || typeof e !== "object") return { id: l.id, oferece_entrega: null };
+    const oferece = !!(e.entregaPropria ?? e.entrega ?? e.ativo);
+    const j = janelaEntrega(e);
+    const aberta = !!(status.find((x) => x && x.id === l.id) || {}).aberta;
+    const agoraSim = oferece && aberta && cur >= j.abre && cur < j.fecha;
     const km = Number(e.raioKm ?? e.raio_km);
-    // Grátis só vale para loja que ENTREGA (o totem já mandou grátis em loja
-    // sem entrega; o site ignora de propósito, e a IA também).
     const minimo = Number(e.pedidoMinimo ?? e.pedido_minimo);
     const prazo = e.prazoEntrega && e.prazoEntrega.modo === "prazo" ? Number(e.prazoEntrega.minutos) : NaN;
     return {
-      id: l.id, entrega, gratis: entrega ? !!e.gratis : false,
-      raio_km: entrega && Number.isFinite(km) && km > 0 ? km : null,
-      pedido_minimo: entrega && Number.isFinite(minimo) && minimo > 0 ? minimo : null,
-      prazo_min: entrega && Number.isFinite(prazo) && prazo > 0 ? prazo : null,
+      id: l.id,
+      oferece_entrega: oferece,
+      horario_entrega: oferece ? `${hh(j.abre)} às ${hh(j.fecha)}` : null,
+      entregando_agora: agoraSim,
+      ...(oferece && !agoraSim ? { agora_nao_porque: aberta ? "fora do horário de entrega: agora, só retirada na loja" : "loja fechada agora" } : {}),
+      // Grátis só com entrega acontecendo agora — o selo do site segue a mesma
+      // regra. E só para loja que ENTREGA (o totem já mandou grátis em loja sem
+      // entrega; o site ignora de propósito, e a IA também).
+      gratis: agoraSim ? !!(e.gratis ?? e.entregaGratis ?? e.free) : false,
+      raio_km: oferece && Number.isFinite(km) && km > 0 ? km : null,
+      pedido_minimo: oferece && Number.isFinite(minimo) && minimo > 0 ? minimo : null,
+      prazo_min: oferece && Number.isFinite(prazo) && prazo > 0 ? prazo : null,
     };
   });
 }
