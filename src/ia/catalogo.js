@@ -45,6 +45,19 @@ export function alergicosShake(x) {
     liquidos: x.nutrition.map((r) => ({ liquido: r.liquid, contem: alergicosDoLiquido(r.liquid) })),
   };
 }
+// Shake com mais de um tipo de proteína (o Açaí tem 4): a tabela vale para a
+// proteína do cálculo (macrosCom, em data.js). Com outra, os números mudam —
+// e ninguém (IA, card, WebMCP, llms.txt) apresenta como se valesse para todas.
+export function calculoShake(x) {
+  const whey = x.ingredients.find((i) => /soro de leite|whey/i.test(i.name));
+  const m = whey && /\btipos?:\s*(.+)$/i.exec(whey.note || "");
+  return m ? { com: x.macrosCom || "a proteína padrão da receita", opcoes: m[1] } : null;
+}
+export function calculoShakeTexto(x) {
+  const c = calculoShake(x);
+  return c ? `valores com ${c.com}; com outra proteína (${c.opcoes}), os números mudam` : "";
+}
+
 // Em uma linha, para card, catálogo da IA e llms.txt.
 export function alergicosShakeTexto(x) {
   const { proteinas, liquidos } = alergicosShake(x);
@@ -96,7 +109,9 @@ export function fatosSabor(x) {
       alergicos: alergicosShakeTexto(x),
       alergicos_da_proteina: Object.fromEntries(alergicosShake(x).proteinas.map((p) => [p.proteina, p.contem || "não cadastrados: confirmar com a equipe"])),
       alergicos_do_liquido: Object.fromEntries(alergicosShake(x).liquidos.map((l) => [l.liquido, l.contem])),
-      observacao: "Valores calculados por porção, variam com o líquido escolhido.",
+      ...(calculoShake(x)
+        ? { valores_calculados_com: calculoShake(x).com, observacao: `Valores calculados por porção com ${calculoShake(x).com}; variam com o líquido e mudam com outro tipo de proteína (${calculoShake(x).opcoes}): para esses, confirme com a equipe.` }
+        : { observacao: "Valores calculados por porção, variam com o líquido escolhido." }),
     };
   }
   const n = x.nutrition;
@@ -150,7 +165,7 @@ export function catalogoTexto() {
   linhas.push("");
   linhas.push("SHAKES (batidos na hora: proteína + fruta ou cacau, líquido à escolha; os alérgicos somam os da proteína e os do líquido)");
   for (const s of SHAKES) {
-    linhas.push(`- ${s.id} | ${s.name} | ${s.sub} | ${s.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g prot`).join(" · ")} | contém: ${alergicosShakeTexto(s)}`);
+    linhas.push(`- ${s.id} | ${s.name} | ${s.sub} | ${s.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g prot`).join(" · ")}${calculoShake(s) ? ` (${calculoShakeTexto(s)})` : ""} | contém: ${alergicosShakeTexto(s)}`);
     linhas.push(`  ${s.description}`);
   }
   linhas.push("");

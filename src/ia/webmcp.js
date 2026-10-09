@@ -10,7 +10,8 @@
 // antigo foi descontinuado no Chrome 150). Sem suporte no navegador, isto não
 // faz nada — custo zero para quem não tem.
 import { PRODUCTS, MOOD_META } from "../data.js";
-import { fatosSabor, fichaSabor, lojasAgora, entregaPorLoja, orcamentoEvento, EV_TIPOS } from "./catalogo.js";
+import { fatosSabor, fichaSabor, lojasAgora, entregaPorLoja, orcamentoEvento, EV_TIPOS, ZAP_LABEL } from "./catalogo.js";
+import { EV_MIN } from "../eventos-regras.js";
 
 const ENTREGA_ESTADO_URL = "https://totem.bentogelateria.com/api/delivery/estado";
 const resposta = (dados) => ({ content: [{ type: "text", text: JSON.stringify(dados) }] });
@@ -103,9 +104,16 @@ export function registrarFerramentasWebMCP(acoes) {
     {
       name: "abrir_orcamento_evento",
       title: "Abrir orçamento de evento",
-      description: "Abre o orçamento online de evento já com o número de convidados, para a pessoa completar data, local e contato.",
-      inputSchema: { type: "object", properties: { convidados: { type: "integer", minimum: 1, maximum: 5000 } }, required: ["convidados"] },
-      execute: async (input) => { acoes.current.abrirOrcamento(Math.round(Number(input && input.convidados)) || null); return resposta({ aberto: true }); },
+      description: `Abre o orçamento online de evento já com o número de convidados (de ${EV_MIN} a 5000), para a pessoa completar data, local e contato. Abaixo de ${EV_MIN}, o atendimento é pelo WhatsApp.`,
+      inputSchema: { type: "object", properties: { convidados: { type: "integer", minimum: EV_MIN, maximum: 5000 } }, required: ["convidados"] },
+      execute: async (input) => {
+        const n = Math.round(Number(input && input.convidados));
+        // O formulário troca número fora da faixa por 150 sem avisar: abrir
+        // assim seria dizer ao agente que abriu o orçamento que ele pediu.
+        if (!Number.isFinite(n) || n < EV_MIN || n > 5000) return resposta({ aberto: false, minimo_online: EV_MIN, orientacao: `O orçamento online vai de ${EV_MIN} a 5000 convidados. Fora disso, a equipe atende pelo WhatsApp ${ZAP_LABEL}.` });
+        acoes.current.abrirOrcamento(n);
+        return resposta({ aberto: true, convidados: n });
+      },
     },
     {
       name: "perguntar_bento_ia",

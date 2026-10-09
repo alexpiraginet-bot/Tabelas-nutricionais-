@@ -234,6 +234,43 @@ caso("alérgicos do shake: proteína e líquido separados; a versão vegana não
   assert.match(montarLlmsTxt(), /Shake Açaí com Banana:[^\n]*Alérgicos: com whey, LEITE; com proteína vegana/);
 });
 
+caso("macros do Shake Açaí valem para a proteína do cálculo, e todo mundo diz qual", async () => {
+  const acai = fatosSabor(saborPorId("shake-acai-banana"));
+  assert.equal(acai.valores_calculados_com, "whey de coco hidrolisado/isolado");
+  assert.match(acai.observacao, /mudam com outro tipo de proteína \(hidrolisado, tradicional, zero lactose ou vegano\)/);
+  // Shake de proteína única não ganha a ressalva.
+  for (const id of ["shake-frutas-vermelhas", "shake-morango-maracuja", "shake-choco-power"]) {
+    assert.equal(fatosSabor(saborPorId(id)).valores_calculados_com, undefined, id);
+  }
+  assert.match(montarSistema(), /shake-acai-banana \|[^\n]*\(valores com whey de coco hidrolisado\/isolado; com outra proteína/);
+  assert.match(montarLlmsTxt(), /Shake Açaí com Banana:[^\n]*\(valores com whey de coco hidrolisado\/isolado; com outra proteína/);
+  const ficha = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-acai-banana" })).resultado);
+  assert.equal(ficha.valores_calculados_com, "whey de coco hidrolisado/isolado");
+});
+
+caso("WebMCP: orçamento abaixo do mínimo não abre um formulário com outro número", async () => {
+  const { registrarFerramentasWebMCP } = await import("../src/ia/webmcp.js");
+  const { EV_MIN } = await import("../src/eventos-regras.js");
+  const tools = {};
+  const docAntes = globalThis.document;
+  globalThis.document = { modelContext: { registerTool(f) { tools[f.name] = f; } } };
+  const abertos = [];
+  try {
+    registrarFerramentasWebMCP({ current: { abrirOrcamento: (n) => abertos.push(n), abrirSabor() {}, perguntar() {} } });
+    const t = tools.abrir_orcamento_evento;
+    assert.equal(t.inputSchema.properties.convidados.minimum, EV_MIN);
+    const pouco = JSON.parse((await t.execute({ convidados: 10 })).content[0].text);
+    assert.equal(pouco.aberto, false);
+    assert.match(pouco.orientacao, /WhatsApp/);
+    assert.deepEqual(abertos, [], "abriu o orçamento (que viraria 150 convidados)");
+    const ok = JSON.parse((await t.execute({ convidados: 45 })).content[0].text);
+    assert.deepEqual(ok, { aberto: true, convidados: 45 });
+    assert.deepEqual(abertos, [45]);
+  } finally {
+    if (docAntes === undefined) delete globalThis.document; else globalThis.document = docAntes;
+  }
+});
+
 caso("o orçamento de evento é o do motor oficial", async () => {
   const r = await executarFerramenta("orcamento_evento", { convidados: 45 });
   const o = JSON.parse(r.resultado);

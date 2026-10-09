@@ -449,6 +449,9 @@ export const SHAKES = [
     color:{bg:"#E7E0F2",ink:"#5A2DAA"},
     description:"Açaí e banana congelados batidos com whey sabor coco. O cliente escolhe o tipo de whey e o líquido base. Macros calculados com o whey de coco hidrolisado/isolado.",
     sub:"100 g açaí + 100 g banana · 4 tipos de whey", prep:"~90 s", protein:24,
+    // O cliente escolhe entre 4 proteínas, mas a tabela abaixo foi calculada com
+    // uma só: quem mostra estes números precisa dizer com qual.
+    macrosCom:"whey de coco hidrolisado/isolado",
     ingredients:[
       {name:"Açaí congelado",qty:"100 g"},
       {name:"Banana congelada",qty:"100 g"},

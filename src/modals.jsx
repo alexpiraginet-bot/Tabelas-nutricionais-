@@ -793,7 +793,20 @@ export function EventosModal({onClose,convidadosInicial}){
   // para as observações do orçamento — é dali que WhatsApp, lead e contrato leem.
   // Sem isto, um "convidado alérgico a amendoim" sumia no passo seguinte.
   const[notasSabores,setNotasSabores]=useState("");
-  const levarNotas=()=>{const n=notasSabores.trim();if(n)setCad(c=>c.obs.includes(n)?c:{...c,obs:c.obs.trim()?c.obs.trim()+"\n"+n:n});};
+  // Guarda o que foi copiado da última vez: voltar ao passo 3 e corrigir (ou
+  // apagar) a nota troca esse texto nas observações, em vez de somar — senão o
+  // "alérgico a amendoim" corrigido seguia junto com a correção para o contrato.
+  const notaCopiada=useRef("");
+  const levarNotas=()=>{
+    const n=notasSabores.trim(),antes=notaCopiada.current;
+    notaCopiada.current=n;
+    setCad(c=>{
+      let obs=c.obs;
+      if(antes&&obs.includes(antes)) obs=n?obs.replace(antes,n):obs.replace(obs.includes("\n"+antes)?"\n"+antes:obs.includes(antes+"\n")?antes+"\n":antes,"");
+      else if(n&&!obs.includes(n)) obs=obs.trim()?obs.trim()+"\n"+n:n;
+      return obs===c.obs?c:{...c,obs};
+    });
+  };
   const iaAtiva=useIAAtiva();
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   // Mudar o número de convidados pode deixar o formato escolhido fora da faixa

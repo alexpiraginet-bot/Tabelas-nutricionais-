@@ -15,7 +15,7 @@ import { Sparkles, X, ArrowUp, Mic, Square, RotateCcw, MapPin, MessageCircle, Sh
 import { tk, T, ProductArt, useModal, useSemFlutuantes } from "../shared.jsx";
 import { ALLERGENS } from "../data.js";
 import { LOJAS } from "../lojas.js";
-import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, orcamentoEvento, DESTINOS, DESTAQUES, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
+import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, calculoShake, orcamentoEvento, DESTINOS, DESTAQUES, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
 import { SUGESTOES } from "./sugestoes.js";
 
 const CHAVE = "bento:ia:v1";
@@ -98,6 +98,7 @@ function LinhaShake({ x, destaque }) {
           <Numero valor={`${x.protein} g`} rotulo="proteína" destaque={d !== "kcal"} />
           <Numero valor={`${Math.min(...kcal)}–${Math.max(...kcal)}`} rotulo="kcal, pelo líquido" destaque={d === "kcal"} />
         </div>
+        {calculoShake(x) && <div className="fb" style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 8, lineHeight: 1.5 }}>Números com {calculoShake(x).com}; com outra proteína, mudam.</div>}
         <div className="fb" style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 8, lineHeight: 1.5 }}>Contém: {alergicosShakeTexto(x)}</div>
         <div style={{ marginTop: 12 }}>
           <button onClick={() => tk("IA · Card · Pedir", () => abrir(PEDIR_URL))} style={BOTAO.primario}><ShoppingBag {...ICONE} size={15} />Pedir</button>

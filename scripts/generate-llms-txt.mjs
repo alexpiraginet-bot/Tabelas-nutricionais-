@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import { PRODUCTS, SHAKES } from "../src/data.js";
 import { LOJAS } from "../src/lojas.js";
 import { EV_FORMATOS, EV_PRECO_PESSOA, EV_MIN } from "../src/eventos-regras.js";
-import { fatosSabor, alergicosShakeTexto, PEDIR_URL, STUDIO_URL, ZAP_LABEL } from "../src/ia/catalogo.js";
+import { fatosSabor, alergicosShakeTexto, calculoShake, calculoShakeTexto, PEDIR_URL, STUDIO_URL, ZAP_LABEL } from "../src/ia/catalogo.js";
 
 const SITE = "https://bentogelateria.com";
 const n1 = (v) => String(Math.round(v * 10) / 10).replace(".", ",");
@@ -51,7 +51,7 @@ export function montarLlmsTxt() {
   out.push("- Também em tamanho G: o dobro do mini, com os valores em dobro.");
   out.push("");
   out.push("## Shakes proteicos");
-  for (const s of SHAKES) out.push(`- ${s.name}: ${s.protein} g de proteína; ${s.nutrition.map((r) => `${r.liquid.charAt(0).toLowerCase() + r.liquid.slice(1)} ${r.kcal} kcal`).join(", ")}. Alérgicos: ${alergicosShakeTexto(s)}.`);
+  for (const s of SHAKES) out.push(`- ${s.name}: ${s.protein} g de proteína; ${s.nutrition.map((r) => `${r.liquid.charAt(0).toLowerCase() + r.liquid.slice(1)} ${r.kcal} kcal`).join(", ")}${calculoShake(s) ? ` (${calculoShakeTexto(s)})` : ""}. Alérgicos: ${alergicosShakeTexto(s)}.`);
   out.push("");
   out.push("## Eventos");
   out.push(`- R$ ${EV_PRECO_PESSOA} por pessoa em qualquer formato; logística e personalização à parte. Orçamento online a partir de ${EV_MIN} convidados: [Orçamento de evento](${SITE}/?eventos)`);
