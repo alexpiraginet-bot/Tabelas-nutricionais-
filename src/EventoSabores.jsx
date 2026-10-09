@@ -40,13 +40,14 @@ function Chip({ ativo, onClick, children }) {
   );
 }
 
-export default function EventoSabores({ evento, limites, valor, onChange, iaAtiva }) {
+// notas: controlada pelo orçamento — o que a pessoa conta aqui (alergia, idade
+// das crianças) segue para as observações do pedido, e não morre neste passo.
+export default function EventoSabores({ evento, limites, valor, onChange, iaAtiva, notas = "", onNotas = () => {} }) {
   const todos = useMemo(() => saboresEvento(), []);
   const linhas = [limites.gelatos > 0 && "gelato", limites.picoles > 0 && "picole"].filter(Boolean);
   const [linha, setLinha] = useState(linhas[0]);
   const [filtro, setFiltro] = useState("todos");
   const [prefs, setPrefs] = useState({ criancas: false, semLactose: false, fitness: false });
-  const [notas, setNotas] = useState("");
   const [carregando, setCarregando] = useState(false);
   const [erroIA, setErroIA] = useState(null);
   const [aviso, setAviso] = useState(null);
@@ -116,9 +117,9 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
             ))}
           </div>
           <label className="fb" htmlFor="ev-sabores-notas" style={{ display: "block", fontSize: 12.5, color: T.inkSoft, marginTop: 12, marginBottom: 6 }}>Algo mais que a gente deva saber? (opcional)</label>
-          <textarea id="ev-sabores-notas" className="fb" rows={2} value={notas} maxLength={300} onChange={(e) => setNotas(e.target.value)}
-            placeholder="Ex.: aniversário de 6 anos, um convidado alérgico a amendoim"
-            style={{ width: "100%", boxSizing: "border-box", minHeight: 64, padding: "10px 12px", borderRadius: 12, border: `1px solid ${T.border}`, background: T.surface, color: T.ink, fontSize: 16, lineHeight: 1.4, outline: "none", resize: "none", fontFamily: "inherit" }} />
+          <textarea id="ev-sabores-notas" className="fb ev-campo" rows={2} value={notas} maxLength={300} onChange={(e) => onNotas(e.target.value)}
+            aria-describedby="ev-sabores-notas-ajuda" placeholder="Ex.: aniversário de 6 anos, um convidado alérgico a amendoim" />
+          <div id="ev-sabores-notas-ajuda" className="fb" style={{ fontSize: 12.5, color: T.inkSoft, marginTop: 6, lineHeight: 1.45 }}>Vai junto nas observações do orçamento, para a equipe ver.</div>
           <button type="button" onClick={pedirIA} disabled={carregando} className="fb"
             style={{ marginTop: 12, minHeight: 44, padding: "0 18px", borderRadius: 12, border: "none", background: carregando ? T.border : T.pistacheDark, color: carregando ? T.inkSoft : T.surface, fontSize: 14.5, fontWeight: 600, cursor: carregando ? "default" : "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
             {carregando ? <><LoaderCircle size={16} className="ev-gira" aria-hidden="true" />Montando a combinação…</> : <><Sparkles size={16} strokeWidth={1.75} aria-hidden="true" />Sugerir combinação</>}
@@ -201,7 +202,8 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
                     <span style={{ display: "block", padding: "10px 12px 12px" }}>
                       <span style={{ display: "block", fontSize: 14, fontWeight: 600, color: T.ink, lineHeight: 1.25 }}>{x.nome}</span>
                       <span style={{ display: "block", fontSize: 12, color: T.inkSoft, marginTop: 4, lineHeight: 1.35 }}>
-                        {[x.semLactose && "Sem lactose", x.nozes && "Tem castanha ou amendoim", !x.semLactose && !x.nozes && x.sub].filter(Boolean).join(" · ")}
+                        {/* Sem lactose não é sem leite (Framboesa Duo): quem tem alergia ao leite precisa ver. */}
+                        {[x.semLactose && (x.semLeite ? "Sem lactose" : "Sem lactose · contém leite"), x.nozes && "Tem castanha ou amendoim", !x.semLactose && !x.nozes && x.sub].filter(Boolean).join(" · ")}
                       </span>
                     </span>
                   </button>
@@ -212,6 +214,8 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
       </section>
       <style>{`
         .ev-sabor:focus-visible{outline:2px solid ${T.pistacheDark};outline-offset:2px}
+        .ev-campo{display:block;width:100%;box-sizing:border-box;min-height:64px;padding:10px 12px;border-radius:12px;border:1px solid ${T.border};background:${T.surface};color:${T.ink};font-size:16px;line-height:1.4;resize:none;font-family:inherit;outline:none;transition:border-color .2s,box-shadow .2s}
+        .ev-campo:focus{border-color:${T.pistacheDark};box-shadow:0 0 0 3px rgba(70,88,58,.18)}
         .ev-gira{animation:evGira .9s linear infinite}
         @keyframes evGira{to{transform:rotate(360deg)}}
         @media (prefers-reduced-motion:reduce){.ev-gira{animation:none}}
