@@ -474,6 +474,8 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
         if (ev === "texto" && typeof d.t === "string") { resposta.texto += d.t; resposta.status = null; }
         else if (ev === "bloco") resposta.blocos.push(d && d.tipo === "lojas" ? { ...d, em: Date.now() } : d);
         else if (ev === "status" && typeof d.texto === "string") resposta.status = d.texto;
+        // Preâmbulo de uma volta que acabou chamando ferramenta: sai da tela.
+        else if (ev === "recolher" && Number.isFinite(d.n)) resposta.texto = resposta.texto.slice(0, Math.max(0, resposta.texto.length - d.n));
         else if (ev === "erro") falha = d.msg || "Algo deu errado.";
         else if (ev === "fim") terminou = true;
         setAtual({ ...resposta, blocos: [...resposta.blocos] });

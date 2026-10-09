@@ -50,7 +50,8 @@ function clienteFalso(voltas) {
 function gravador() {
   const ev = [];
   const enviar = (tipo, dados) => ev.push([tipo, dados]);
-  const texto = () => ev.filter(([t]) => t === "texto").map(([, d]) => d.t).join("");
+  // O texto como a tela mostra: "recolher" tira os últimos n caracteres.
+  const texto = () => ev.reduce((acc, [t, d]) => (t === "texto" ? acc + d.t : t === "recolher" ? acc.slice(0, Math.max(0, acc.length - d.n)) : acc), "");
   return { ev, enviar, texto };
 }
 const usoDeFerramenta = (id, name, input) => ({ type: "tool_use", id, name, input });
@@ -253,6 +254,24 @@ caso("uma conversa com ferramenta: card, texto corrigido e a volta devolvida sem
   assert.equal(p2.messages[2].role, "user");
   assert.equal(p2.messages[2].content[0].tool_use_id, "t1");
   assert.deepEqual(p2.messages.slice(0, 1), p1.messages);
+});
+
+caso("preâmbulo antes da ferramenta sai da tela; fica só a resposta", async () => {
+  // Sonnet 5.5 às vezes anuncia ("Vou mostrar os cards.") antes de chamar a
+  // ferramenta, e depois responde de verdade: sem recolher, sairia repetido.
+  const cliente = clienteFalso([
+    { eventos: [{ texto: "Sabores sem lactose: Limão e Maracujá. Vou mostrar os cards." }], final: { stop_reason: "tool_use", content: [{ type: "text", text: "Sabores sem lactose: Limão e Maracujá. Vou mostrar os cards." }, usoDeFerramenta("t1", "mostrar_sabores", { ids: ["limao-siciliano", "maracuja"] })] } },
+    { eventos: [{ texto: "O Limão e o Maracujá não levam lactose." }], final: { stop_reason: "end_turn", content: [{ type: "text", text: "O Limão e o Maracujá não levam lactose." }] } },
+  ]);
+  const g = gravador();
+  await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "sem lactose?" }], enviar: g.enviar });
+  assert.equal(g.texto(), "O Limão e o Maracujá não levam lactose.");
+  const rec = g.ev.find(([t]) => t === "recolher");
+  assert.ok(rec, "o preâmbulo não foi recolhido");
+  assert.equal(rec[1].n, "Sabores sem lactose: Limão e Maracujá. Vou mostrar os cards.".length);
+  // E a regra está no prompt (a trava do código é a rede de segurança).
+  assert.match(montarSistema(), /sem escrever nada antes delas/);
+  assert.match(montarSistema(), /card de evento já traz o botão do orçamento/);
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
