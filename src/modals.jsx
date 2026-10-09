@@ -1,8 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
-import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, useSemFlutuantes, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 import { EV_PERS_DE, EV_POTINHOS, EV_UPGRADE_LOGISTICA, EV_TEM_UPGRADE, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, calcEvento } from "./eventos-regras.js";
+import { limiteSabores, sugestaoEquilibrada, validarEscolhaSabores, resumoSabores } from "./ia/catalogo.js";
+import { useIAAtiva } from "./ia/EntradaIA.jsx";
+import EventoSabores from "./EventoSabores.jsx";
 
 /* Cabeçalho de modal com a arte (banner) no topo + botão de fechar flutuante. */
 export function ModalArtHeader({img,alt,onClose}){
@@ -776,6 +779,7 @@ async function evGeocode(text){
 // orçamento online (abaixo do mínimo), vale o padrão: abaixo disso é WhatsApp.
 export function EventosModal({onClose,convidadosInicial}){
   useModal(onClose);
+  useSemFlutuantes();
   const[step,setStep]=useState(1);
   const[ev,setEv]=useState(()=>{
     const n=Math.round(Number(convidadosInicial));
@@ -783,6 +787,9 @@ export function EventosModal({onClose,convidadosInicial}){
     return {data:"",hora:"",local:"",convidados:n0,tipo:"Mix (gelatos + picolés)",pers:[],formato:EV_SUGERE(n0)};
   });
   const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:"",consent:false});
+  // Sabores escolhidos no passo 3: {gelatos,picoles,origem:"regra"|"ia"|"cliente"|"equipe",motivo}.
+  const[escolha,setEscolha]=useState(null);
+  const iaAtiva=useIAAtiva();
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   // Mudar o número de convidados pode deixar o formato escolhido fora da faixa
   // (120 pessoas não cabem na caixa térmica). Em vez de deixar a tela num estado
@@ -807,6 +814,11 @@ export function EventosModal({onClose,convidadosInicial}){
   const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null,ev.formato);
   const fmt=EV_FMT(ev.formato);
   const nConv=Number(ev.convidados)||0;
+  const limites=limiteSabores(nConv,ev.tipo,ev.formato);
+  const saboresOk=!!escolha&&(escolha.origem==="equipe"||validarEscolhaSabores(escolha,limites).ok);
+  // Texto dos sabores para WhatsApp, lead e contrato. Só existe depois do passo
+  // 3 — antes disso o cliente ainda não escolheu, e "a Bentô escolhe" seria falso.
+  const txtSabores=(qq)=>!escolha?null:escolha.origem==="equipe"?`a Bentô escolhe (até ${qq.sabores})`:resumoSabores(escolha);
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
   // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
   const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});}catch{}};
@@ -816,7 +828,8 @@ export function EventosModal({onClose,convidadosInicial}){
     sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,pers:ev.pers,persAC:qq.persACombinar,
     formato:qq.formato,formatoNome:qq.formatoNome,preco:qq.preco,servico:qq.servico,
     base:qq.base,logistica:qq.logistica,km:gg&&gg.ok?gg.km:null,loja:gg&&gg.ok?gg.loja:null,
-    potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim()});
+    potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim(),
+    ...(txtSabores(qq)?{saboresEscolha:txtSabores(qq)}:{})});
   const mkLink=(p)=>"https://bentogelateria.com/?contrato="+btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   // Campos do orçamento a guardar junto do lead (para abrir o PDF completo no painel)
   const orcFields=(qq,gg,link)=>({link,sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,base:qq.base,logistica:qq.logistica,potinhos:qq.potinhos,carrinho:qq.carrinho,pers:ev.pers,formato:qq.formatoNome,preco:qq.preco});
@@ -898,7 +911,7 @@ export function EventosModal({onClose,convidadosInicial}){
       `*Convidados:* ${ev.convidados}`,
       `*Formato:* ${q.formatoNome} — ${q.servico}`,
       `*Produtos:* ${ev.tipo}`,
-      `*Sabores:* até ${q.sabores}`,
+      `*Sabores:* ${txtSabores(q)||`até ${q.sabores}`}`,
       `*Rendimento:* ${q.rend}`,
       q.promotoras>0?`*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`:"*Equipe:* sem atendente (itens pré-envasados e selados)","",
       "*— Orçamento online —*",
@@ -914,8 +927,17 @@ export function EventosModal({onClose,convidadosInicial}){
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     tk("Conversão · Orçamento de evento");
-    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
+    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato),saboresEscolha:txtSabores(q)||""});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
+  };
+  // Entrar no passo dos sabores: quem ainda não escolheu (ou mudou o evento e
+  // a escolha antiga não cabe mais) começa com a sugestão equilibrada — o
+  // empurrão para uma combinação simples, que a pessoa troca se quiser.
+  const irParaSabores=()=>{
+    if(!escolha||(escolha.origem!=="equipe"&&!validarEscolhaSabores(escolha,limites).ok))
+      setEscolha({...sugestaoEquilibrada(limites),origem:"regra",motivo:"Combinação equilibrada para começar: chocolate, fruta e sabores que agradam a maioria. Troque o que quiser."});
+    tk("Eventos · Escolher sabores");
+    setStep(3);
   };
   // Antes de fechar: checa se a data já tem evento reservado (bloqueio suave, não trava o negócio)
   const enviar=async()=>{
@@ -942,7 +964,7 @@ export function EventosModal({onClose,convidadosInicial}){
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
-            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 3</div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 4</div>
             <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
@@ -1186,11 +1208,22 @@ export function EventosModal({onClose,convidadosInicial}){
             <div className="fb" style={{marginTop:10,fontSize:11,color:T.inkSoft,lineHeight:1.5,fontStyle:"italic"}}>Estimativa online sujeita a confirmação de data, logística e proposta final em contrato.</div>
             <div style={{display:"flex",gap:8,marginTop:18}}>
               <button onClick={()=>setStep(1)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Ajustar</button>
-              <button onClick={()=>setStep(3)} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Fechar orçamento →</button>
+              <button onClick={irParaSabores} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Escolher sabores →</button>
             </div>
           </>)}
 
           {step===3&&(<>
+            <EventoSabores evento={{convidados:nConv,tipo:ev.tipo,formato:ev.formato,formatoNome:q.formatoNome}} limites={limites}
+              valor={escolha||{gelatos:[],picoles:[]}} onChange={setEscolha} iaAtiva={iaAtiva===true}/>
+            <div style={{display:"flex",gap:8,marginTop:22}}>
+              <button onClick={()=>setStep(2)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Orçamento</button>
+              <button onClick={()=>{tk("Eventos · Sabores escolhidos");setStep(4);}} disabled={!saboresOk} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:saboresOk?T.pistacheDark:T.border,color:saboresOk?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:saboresOk?"pointer":"not-allowed"}}>Continuar →</button>
+            </div>
+            {!saboresOk&&escolha&&<div className="fb" style={{fontSize:12,color:T.inkSoft,textAlign:"center",marginTop:8}}>{limites.gelatos>0&&limites.picoles>0?"Escolha ao menos um gelato e um picolé.":"Escolha ao menos um sabor."}</div>}
+            <button onClick={()=>{setEscolha({gelatos:[],picoles:[],origem:"equipe"});tk("Eventos · Sabores · Equipe escolhe");setStep(4);}} className="fb" style={{width:"100%",marginTop:10,padding:"12px",borderRadius:10,border:"none",background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Prefiro que a Bentô escolha os sabores</button>
+          </>)}
+
+          {step===4&&(<>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quase lá! Com seus dados, nossa equipe formula o <strong style={{color:T.ink}}>contrato para assinatura online</strong> e confirma os detalhes:</div>
             <span className="fm" style={lab}>Nome completo *</span>
             <input className="fb" style={inp} value={cad.nome} onChange={e=>setC("nome",e.target.value)} placeholder="Seu nome"/>
@@ -1223,7 +1256,7 @@ export function EventosModal({onClose,convidadosInicial}){
               <button onClick={enviar} disabled={!ok3||busy} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok3&&!busy?"#25D366":T.border,color:ok3&&!busy?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3&&!busy?"pointer":"not-allowed"}}>{busy?"Verificando disponibilidade…":"💬 Enviar e solicitar contrato"}</button>
             )}
             <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
-            <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
+            <button onClick={()=>setStep(3)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar aos sabores</button>
           </>)}
         </div>
       </div>

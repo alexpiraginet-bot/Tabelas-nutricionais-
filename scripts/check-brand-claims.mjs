@@ -14,6 +14,8 @@ const publicSources = [
   "../src/ia/EntradaIA.jsx",
   "../src/ia/sugestoes.js",
   "../src/ia/catalogo.js",
+  // Passo de sabores do orçamento de evento (o motivo da IA passa pelo filtro no servidor).
+  "../src/EventoSabores.jsx",
   "../src/video/BentoStory.tsx",
   "../src/video/DeliveryStory.tsx",
   "../src/video/FranquiasStory.tsx",

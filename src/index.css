@@ -34,3 +34,8 @@ body {
 button, input, select, textarea {
   font-family: inherit;
 }
+
+/* Modal aberto com useSemFlutuantes (shared.jsx): os flutuantes saem da frente. */
+html.sem-flutuantes [data-alex-hub-support],
+html.sem-flutuantes [data-lex-cta],
+html.sem-flutuantes [data-flutuante]{display:none!important}

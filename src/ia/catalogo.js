@@ -9,7 +9,7 @@
 // (api/ia.js) e também no site (cards da conversa e ferramentas WebMCP).
 import { PRODUCTS, SHAKES, ALLERGENS, PODE_CONTER, AVISO_POLIOL, sugarClaim, proteinClaim } from "../data.js";
 import { LOJAS } from "../lojas.js";
-import { EV_FORMATOS, EV_PRECO_PESSOA, EV_MIN, EV_SUGERE, EV_CABE, EV_PERS_ACRESCIMO, EV_PERS_GRANDE, calcEvento } from "../eventos-regras.js";
+import { EV_FORMATOS, EV_PRECO_PESSOA, EV_MIN, EV_SUGERE, EV_CABE, EV_PERS_ACRESCIMO, EV_PERS_GRANDE, EV_LIMITE_SABORES, calcEvento } from "../eventos-regras.js";
 
 export const PEDIR_URL = "https://totem.bentogelateria.com/pedir";
 export const STUDIO_URL = "https://totem.bentogelateria.com/meu-studio";
@@ -235,6 +235,83 @@ export function orcamentoEvento(convidados, tipo) {
     fora_do_subtotal: ["logística (calculada pelo endereço no orçamento online)", `personalização opcional (+${Math.round(EV_PERS_ACRESCIMO * 100)}% abaixo de ${EV_PERS_GRANDE} convidados)`],
     corporativo: n > 300,
   };
+}
+
+/* ---------- sabores do evento (passo de escolha no orçamento) ---------- */
+
+// Tudo derivado de data.js — nada de lista à mão que envelhece quando a
+// nutricionista troca uma ficha. "Sem lactose" e "sem leite" são coisas
+// diferentes: o Framboesa Duo não tem lactose, mas a cobertura leva leite
+// zero lactose — serve para intolerância, não para alergia ao leite.
+const NOZES = /AMENDOIM|AVELÃ|AMÊNDOA|PISTACHE|CASTANHA|NOZ|MACADÂMIA/;
+const CHOCOLATE = /choco|cacau|brigadeiro|nutella|prest[ií]gio|snickers|opereta|dark/i;
+const FRUTA = /morango|framboesa|maracuj|lim[aã]o|banana|coco|frut/i;
+
+export function saboresEvento() {
+  return PRODUCTS.filter((p) => !ehG(p)).map((p) => {
+    const contem = ALLERGENS[p.id] || [];
+    const texto = p.name + " " + p.sub;
+    const nozes = contem.some((a) => NOZES.test(a));
+    const cafe = /caf[eé]/i.test(p.name);
+    const intenso = /extra dark|100%/i.test(texto);
+    return {
+      id: p.id, nome: p.name, sub: p.sub, linha: p.category === "gelato" ? "gelato" : "picole",
+      contem, semLactose: !p.flags.lactose, semLeite: !contem.includes("LEITE"), semGluten: !p.flags.gluten,
+      nozes, cafe, chocolate: CHOCOLATE.test(texto), fruta: FRUTA.test(texto), poliois: !!p.hasPolyols,
+      proteina: p.nutrition.protein,
+      // Para festa infantil: sem castanhas/amendoim (alergia comum e grave),
+      // sem café e sem o cacau 100% — o resto a criança toma sem estranhar.
+      crianca: !nozes && !cafe && !intenso,
+    };
+  });
+}
+
+export const limiteSabores = (convidados, tipo, formatoId) => EV_LIMITE_SABORES(convidados, EV_TIPOS.includes(tipo) ? tipo : EV_TIPOS[0], formatoId);
+
+// Confere uma escolha (da pessoa ou da IA) contra o catálogo e o limite do
+// formato. Devolve as listas limpas (sem repetição) e os problemas, em texto.
+export function validarEscolhaSabores(escolha, limites) {
+  const porId = new Map(saboresEvento().map((s) => [s.id, s]));
+  const lista = (x) => [...new Set((Array.isArray(x) ? x : []).map((v) => String(v).trim()).filter(Boolean))];
+  const gelatos = lista(escolha && escolha.gelatos), picoles = lista(escolha && escolha.picoles);
+  const erros = [];
+  for (const id of gelatos) if (!porId.has(id) || porId.get(id).linha !== "gelato") erros.push(`${id} não é um gelato do catálogo`);
+  for (const id of picoles) if (!porId.has(id) || porId.get(id).linha !== "picole") erros.push(`${id} não é um picolé do catálogo`);
+  if (gelatos.length > limites.gelatos) erros.push(`no máximo ${limites.gelatos} sabor(es) de gelato`);
+  if (picoles.length > limites.picoles) erros.push(`no máximo ${limites.picoles} sabor(es) de picolé`);
+  if (limites.gelatos > 0 && !gelatos.length) erros.push("escolha ao menos 1 sabor de gelato");
+  if (limites.picoles > 0 && !picoles.length) erros.push("escolha ao menos 1 sabor de picolé");
+  return { ok: !erros.length, erros, gelatos, picoles };
+}
+
+// Sugestão sem IA — o ponto de partida da tela e a resposta quando a IA não
+// está disponível. Princípio, não ranking de vendas (que não temos): em cada
+// linha, uma opção sem lactose quando pedida, um chocolate e uma fruta; o
+// resto completa pela proteína. Festa infantil: só sabores "crianca".
+export function sugestaoEquilibrada(limites, prefs = {}) {
+  const todos = saboresEvento();
+  const escolher = (linha, n) => {
+    if (n <= 0) return [];
+    let pool = todos.filter((s) => s.linha === linha);
+    if (prefs.criancas) pool = pool.filter((s) => s.crianca);
+    const ids = [];
+    const poe = (f) => { const s = pool.find((x) => !ids.includes(x.id) && f(x)); if (s && ids.length < n) ids.push(s.id); };
+    if (prefs.semLactose) poe((x) => x.semLactose);
+    poe((x) => x.chocolate && x.crianca);
+    poe((x) => x.fruta);
+    for (const s of [...pool].sort((a, b) => b.proteina - a.proteina)) if (ids.length < n && !ids.includes(s.id)) ids.push(s.id);
+    return ids;
+  };
+  return { gelatos: escolher("gelato", limites.gelatos), picoles: escolher("picole", limites.picoles) };
+}
+
+// Uma linha legível, para WhatsApp, lead e contrato.
+export function resumoSabores(escolha) {
+  const nome = (id) => (PRODUCTS.find((p) => p.id === id) || { name: id }).name;
+  const partes = [];
+  if (escolha && escolha.gelatos && escolha.gelatos.length) partes.push((escolha.gelatos.length > 1 ? "Gelatos: " : "Gelato: ") + escolha.gelatos.map(nome).join(", "));
+  if (escolha && escolha.picoles && escolha.picoles.length) partes.push((escolha.picoles.length > 1 ? "Picolés: " : "Picolé: ") + escolha.picoles.map(nome).join(", "));
+  return partes.join(" · ");
 }
 
 /* ---------- atalhos que a IA pode oferecer (lista fechada) ---------- */

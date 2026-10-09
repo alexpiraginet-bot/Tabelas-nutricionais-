@@ -5,17 +5,19 @@
 // "zero açúcar" nem alegação para a linha inteira (prompt e llms.txt), usa o
 // mesmo cálculo do orçamento de eventos, não afirma entrega sem dado do totem
 // e manda de volta ao modelo a volta inteira, sem editar (o pensamento do
-// Opus 5.5 só vale com o histórico intacto).
+// modelo só vale com o histórico intacto).
 import assert from "node:assert/strict";
 import Anthropic from "@anthropic-ai/sdk";
 import { PRODUCTS, SHAKES } from "../src/data.js";
 import { EV_PRECO_PESSOA } from "../src/eventos-regras.js";
 import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, corrigirAlegacoes,
-  filtroAlegacoes, FERRAMENTAS, ErroConversa,
+  filtroAlegacoes, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
 } from "../lib/ia-motor.js";
-import { alegacoes, fichaSabor, fatosSabor, saborPorId } from "../src/ia/catalogo.js";
+import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
+import { sugestaoEquilibrada } from "../src/ia/catalogo.js";
+const sugerirSaboresEventoRegra = (L) => sugestaoEquilibrada(L, { criancas: true });
 
 let falhas = 0;
 const casos = [];
@@ -62,7 +64,7 @@ caso("o prompt traz o catálogo inteiro e nenhuma alegação de açúcar proibid
   // Extra Dark, Maracujá e o Chocolate Dubai levam açúcar adicionado: a
   // apresentação da marca não pode prometer "sem adição" para a linha inteira.
   assert.doesNotMatch(s.split("\n")[0], /sem adição de açúcares|com proteína/i);
-  // Opus 5.5: texto escrito ENTRE chamadas de ferramenta volta como pensamento
+  // Sonnet/Opus 5.5: texto escrito ENTRE chamadas de ferramenta volta como pensamento
   // oculto. Sem esta regra, a resposta de "a loja está aberta?" sumia quando o
   // modelo chamava um segundo atalho depois de escrever (visto em produção).
   assert.match(s, /Texto escrito entre uma ferramenta e outra não aparece para o cliente/);
@@ -240,12 +242,12 @@ caso("uma conversa com ferramenta: card, texto corrigido e a volta devolvida sem
   assert.equal(g.texto(), "Os dois são ótimos no pós-treino e são sem adição de açúcares.");
   assert.equal(uso.voltas, 2);
   const [p1, p2] = cliente.pedidos;
-  assert.equal(p1.model, "claude-opus-5-5");
+  assert.equal(p1.model, "claude-sonnet-5-5");
   assert.deepEqual(p1.output_config, { effort: "low" });
   assert.equal(p1.fallbacks, "default");
   assert.deepEqual(p1.betas, ["server-side-fallback-2026-07-01"]);
   assert.deepEqual(p1.system[0].cache_control, { type: "ephemeral" });
-  assert.equal(p1.thinking, undefined, "Opus 5.5 recusa thinking desligado; não mande o campo");
+  assert.equal(p1.thinking, undefined, "pensamento fica no padrão adaptativo; desligado dá 400 no Sonnet/Opus 5.5");
   // A segunda chamada leva a volta anterior INTEIRA (pensamento + ferramenta) e todos os resultados numa mensagem.
   assert.deepEqual(p2.messages[1], { role: "assistant", content: [pensamento, usoDeFerramenta("t1", "mostrar_sabores", { ids: ["pacoca", "bentole-pistache-cb"] })] });
   assert.equal(p2.messages[2].role, "user");
@@ -325,6 +327,79 @@ caso("resposta cortada no limite de tokens sobe como erro, com o que chegou na t
   await assert.rejects(conversar({ client: so, mensagens: [{ papel: "cliente", texto: "oi" }], enviar: gravador().enviar }), /max_tokens/);
 });
 
+// Cliente falso para a sugestão de sabores (chamada única, sem streaming).
+function clienteCreate(respostas) {
+  const pedidos = [];
+  return { pedidos, beta: { messages: { async create(params) {
+    pedidos.push(JSON.parse(JSON.stringify(params)));
+    const r = respostas.shift();
+    if (!r) throw new Error("o teste não previu esta chamada");
+    if (r.lanca) throw r.lanca;
+    return { usage: { input_tokens: 50, output_tokens: 20, cache_read_input_tokens: 1500 }, stop_reason: "tool_use", ...r };
+  } } } };
+}
+const escolha = (id, input) => ({ content: [{ type: "tool_use", id, name: "escolher_sabores", input }] });
+const EV_CAIXA = { convidados: 45, tipo: "Mix (gelatos + picolés)", formato: "caixa" };
+
+caso("sugestão de sabores: a IA só escolhe ids, dentro do limite; o texto passa pelo filtro", async () => {
+  const c = clienteCreate([escolha("s1", { gelatos: ["brigadeiro"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Chocolate agrada as crianças e é zero açúcar." })]);
+  const r = await sugerirSaboresEvento({ client: c, evento: EV_CAIXA, prefs: { criancas: true } });
+  assert.equal(r.origem, "ia");
+  assert.deepEqual([r.gelatos, r.picoles], [["brigadeiro"], ["bentole-prestigio", "bentole-framboesa-duo"]]);
+  assert.deepEqual(r.limites, { gelatos: 1, picoles: 2, total: 3 });
+  assert.doesNotMatch(r.motivo, /zero açúcar/i);
+  const p = c.pedidos[0];
+  assert.equal(p.model, "claude-sonnet-5-5");
+  assert.deepEqual(p.output_config, { effort: "low" });
+  assert.equal(p.tool_choice, undefined, "tool_choice forçado dá 400 nos modelos 5.5");
+  assert.deepEqual(p.system[0].cache_control, { type: "ephemeral" });
+  assert.match(p.messages[0].content, /45 convidados · Caixa térmica/);
+  assert.match(p.messages[0].content, /até 1 sabor\(es\) de gelato e até 2 de picolé/);
+  assert.match(p.messages[0].content, /Tem crianças/);
+  // O prompt fixo (vai para o cache) tem o catálogo inteiro e separa lactose de leite.
+  const sist = sistemaSabores();
+  for (const x of saboresEvento()) assert.ok(sist.includes(x.id), "faltou " + x.id);
+  assert.match(sist, /Alergia ao leite é outra coisa/);
+});
+
+caso("sugestão inválida volta ao modelo com o erro; sem conserto, sai a sugestão equilibrada", async () => {
+  // Passou do limite (2 gelatos na caixa) e inventou id: volta como erro.
+  const c = clienteCreate([
+    escolha("s1", { gelatos: ["brigadeiro", "morango"], picoles: ["picole-unicornio"], motivo: "x" }),
+    escolha("s2", { gelatos: ["morango"], picoles: ["bentole-prestigio"], motivo: "Morango e chocolate agradam a todos." }),
+  ]);
+  const r = await sugerirSaboresEvento({ client: c, evento: EV_CAIXA });
+  assert.equal(r.origem, "ia");
+  assert.deepEqual([r.gelatos, r.picoles], [["morango"], ["bentole-prestigio"]]);
+  const volta = c.pedidos[1].messages[2].content[0];
+  assert.equal(volta.is_error, true);
+  assert.match(volta.content, /no máximo 1 sabor\(es\) de gelato/);
+  assert.match(volta.content, /picole-unicornio não é um picolé do catálogo/);
+  // Duas inválidas, API fora do ar ou resposta sem ferramenta: a regra responde.
+  for (const respostas of [
+    [escolha("a", { gelatos: [], picoles: [], motivo: "" }), escolha("b", { gelatos: ["x"], picoles: [], motivo: "" })],
+    [{ lanca: new Anthropic.APIConnectionError({ message: "fora" }) }],
+    [{ content: [{ type: "text", text: "Sugiro brigadeiro." }], stop_reason: "end_turn" }],
+  ]) {
+    const rr = await sugerirSaboresEvento({ client: clienteCreate(respostas), evento: EV_CAIXA, prefs: { semLactose: true } });
+    assert.equal(rr.origem, "regra");
+    assert.ok(validarEscolhaSabores(rr, limiteSabores(45, EV_CAIXA.tipo, "caixa")).ok, "a sugestão da regra saiu fora do limite");
+    assert.ok(rr.gelatos.concat(rr.picoles).some((id) => saboresEvento().find((x) => x.id === id).semLactose), "pediu sem lactose e não veio nenhum");
+  }
+  await assert.rejects(sugerirSaboresEvento({ client: clienteCreate([]), evento: { convidados: "muitos" } }), ErroConversa);
+});
+
+caso("sugestão para festa infantil (sem IA) só traz sabor bom para criança", () => {
+  for (const [n, formato] of [[45, "caixa"], [80, "balcao"], [200, "carrinho"]]) {
+    const L = limiteSabores(n, "Mix (gelatos + picolés)", formato);
+    const r = sugerirSaboresEventoRegra(L);
+    for (const id of r.gelatos.concat(r.picoles)) {
+      const x = saboresEvento().find((s) => s.id === id);
+      assert.ok(x.crianca && !x.nozes, `${id} não é para criança (${formato})`);
+    }
+  }
+});
+
 caso("cota do site só conta pergunta que passou no limite do IP; chave do IP morre na meia-noite", async () => {
   // Upstash falso em memória (só os comandos que a função usa).
   const banco = new Map(), validade = new Map();
@@ -386,6 +461,12 @@ caso("só a própria origem (ou bentogelateria.com) e só JSON chegam à IA", as
     assert.equal(await chamar({ ...json, origin: "null", host: "bentogelateria.com" }), 403);
     // text/plain é pedido "simples" (sem preflight): recusado mesmo da origem certa.
     assert.equal(await chamar({ "content-type": "text/plain", origin: "https://bentogelateria.com", host: "bentogelateria.com" }), 415);
+    // Sugestão de sabores com evento malformado: 400 antes de gastar cota.
+    const ruim = { statusCode: 0, setHeader() {}, writeHead() {}, write() {}, end() {}, on() {}, status(c) { this.statusCode = c; return this; }, json() { return this; } };
+    delete process.env.IA_DESLIGADA; process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || "chave-falsa";
+    await handler({ method: "POST", headers: { ...json, origin: "https://bentogelateria.com", host: "bentogelateria.com" }, body: { modo: "sabores-evento", evento: { convidados: "muitos" } } }, ruim);
+    assert.equal(ruim.statusCode, 400, "sabores-evento malformado não deu 400");
+    process.env.IA_DESLIGADA = "1";
     // Site, www, subdomínio nosso, o preview na própria origem e o dev local passam.
     assert.equal(await chamar({ ...json, origin: "https://bentogelateria.com", host: "bentogelateria.com" }), 503);
     assert.equal(await chamar({ ...json, origin: "https://www.bentogelateria.com", "x-forwarded-host": "www.bentogelateria.com", host: "interno" }), 503);

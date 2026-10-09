@@ -104,6 +104,22 @@ export const EV_FORMATOS=[
     prod:"servido",
   },
 ];
+/* ---------- sabores do evento ----------
+   Quantos sabores o cliente escolhe, por linha. O total é o `sabores` do
+   calcEvento (até 6 a partir de 150 convidados, proporcional abaixo). A caixa
+   térmica com mix é fechada: 1 sabor de gelato (potinhos) e até 2 de picolé —
+   decisão do dono. Nos formatos servidos com mix, o total se divide entre as
+   duas linhas e a sobra fica com o gelato, que é o que sai da cuba. Limite
+   fechado de propósito: o cliente escolhe dentro do que a operação entrega. */
+export function EV_LIMITE_SABORES(g,tipo="Mix (gelatos + picolés)",formatoId="carrinho"){
+  const {sabores}=calcEvento(g,tipo,[],null,formatoId);
+  if(tipo==="Gelatos") return {gelatos:sabores,picoles:0,total:sabores};
+  if(tipo==="Picolés") return {gelatos:0,picoles:sabores,total:sabores};
+  if(EV_FMT(formatoId).id==="caixa") return {gelatos:1,picoles:2,total:3};
+  const gelatos=Math.ceil(sabores/2);
+  return {gelatos,picoles:sabores-gelatos,total:sabores};
+}
+
 export const EV_FMT=(id)=>EV_FORMATOS.find(f=>f.id===id)||EV_FORMATOS[2];
 export const EV_CABE=(f,n)=>n>=f.min&&(f.max==null||n<=f.max);
 // Menor número de convidados que o orçamento online atende — abaixo disto é

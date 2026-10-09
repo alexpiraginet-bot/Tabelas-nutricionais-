@@ -5,7 +5,7 @@
 // eventos para o navegador.
 //
 // Env: ANTHROPIC_API_KEY (a mesma do painel de fichas e do contrato).
-// Opcionais: IA_MODELO (padrão claude-opus-5-5), IA_ESFORCO (padrão low),
+// Opcionais: IA_MODELO (padrão claude-sonnet-5-5), IA_ESFORCO (padrão low),
 // IA_LIMITE_DIA (perguntas por dia no site inteiro, padrão 500),
 // IA_DESLIGADA=1 (desliga a IA sem deploy de código: o site esconde a entrada).
 //
@@ -13,7 +13,7 @@
 // pergunta paga a leitura do cache, a conversa e a resposta curta. Os limites
 // abaixo existem para que um robô não transforme isso em conta alta.
 import Anthropic from "@anthropic-ai/sdk";
-import { conversar, montarSistema, ErroConversa, MODELO_PADRAO, ESFORCO_PADRAO } from "../lib/ia-motor.js";
+import { conversar, montarSistema, sugerirSaboresEvento, ErroConversa, MODELO_PADRAO, ESFORCO_PADRAO } from "../lib/ia-motor.js";
 
 export const config = { maxDuration: 60 };
 
@@ -137,6 +137,41 @@ async function carregarEntrega() {
   return r.json();
 }
 
+// Passo "Sabores" do orçamento de evento: a IA sugere a combinação dentro do
+// limite do formato. Uma resposta só, em JSON (não precisa de streaming).
+// Conta na mesma cota das perguntas: é uma chamada ao modelo como as outras.
+async function saboresEvento(req, res, body) {
+  const ev = body.evento && typeof body.evento === "object" ? body.evento : {};
+  const n = Number(ev.convidados);
+  // Pedido malformado sai antes de gastar cota de alguém.
+  if (!Number.isInteger(n) || n < 1 || n > 5000) { res.status(400).json({ ok: false, erro: "pedido inválido" }); return; }
+  const lim = await limitesEConfig(ipOf(req));
+  if (!lim.ok) {
+    res.status(429).json({ ok: false, erro: "A Bentô IA atendeu muita gente agora. Escolha abaixo ou tente de novo em alguns minutos." });
+    return;
+  }
+  const ctrl = new AbortController();
+  res.on("close", () => { if (!res.writableEnded) ctrl.abort(); });
+  const p = body.prefs && typeof body.prefs === "object" ? body.prefs : {};
+  try {
+    const { uso, ...r } = await sugerirSaboresEvento({
+      client: new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY, timeout: 30000, maxRetries: 1 }),
+      evento: { convidados: n, tipo: ev.tipo, formato: ev.formato },
+      notas: typeof body.notas === "string" ? body.notas : "",
+      prefs: { criancas: !!p.criancas, semLactose: !!p.semLactose, fitness: !!p.fitness },
+      modelo: process.env.IA_MODELO || MODELO_PADRAO,
+      esforco: process.env.IA_ESFORCO || ESFORCO_PADRAO,
+      sinal: ctrl.signal,
+    });
+    res.status(200).json({ ok: true, ...r });
+    await registrarUso(uso);
+  } catch (e) {
+    if (e instanceof Anthropic.APIUserAbortError) return;
+    console.error("ia sabores erro", e && e.constructor && e.constructor.name, String(e && e.message).slice(0, 300));
+    res.status(e instanceof ErroConversa ? 400 : 500).json({ ok: false, erro: "Não consegui sugerir agora. Escolha abaixo ou tente de novo." });
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method === "GET") {
     // O site pergunta se a IA está ligada antes de mostrar a entrada.
@@ -154,6 +189,7 @@ export default async function handler(req, res) {
     return;
   }
   const body = await readBody(req);
+  if (body && body.modo === "sabores-evento") { await saboresEvento(req, res, body); return; }
   if (!body || !Array.isArray(body.mensagens)) { res.status(400).json({ ok: false, erro: "pedido inválido" }); return; }
 
   const lim = await limitesEConfig(ipOf(req));

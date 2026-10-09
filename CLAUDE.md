@@ -29,6 +29,17 @@ trava tudo. Fechar por quantidade de itens é
 WhatsApp, nunca orçamento online: as duas réguas na mesma tela dão dois preços
 para o mesmo evento.
 
+O orçamento tem 4 passos: dados → orçamento → **sabores** → contrato. Os sabores
+têm limite fechado por formato (`EV_LIMITE_SABORES`): caixa com mix leva 1 de
+gelato e até 2 de picolé; nos servidos com mix o total do `calcEvento().sabores`
+se divide, com a sobra para o gelato. O passo abre com a sugestão sem IA
+(`sugestaoEquilibrada`, em `src/ia/catalogo.js`) e a Bentô IA sugere sob pedido
+(`/api/ia` com `modo: "sabores-evento"`: o modelo só devolve ids, o servidor
+confere contra catálogo e limite, e sem conserto cai na regra). A escolha segue
+no WhatsApp, no lead e no contrato (`saboresEscolha`). **Sem lactose não é sem
+leite**: o Framboesa Duo não tem lactose, mas leva leite zero lactose — serve
+para intolerância, nunca para alergia ao leite.
+
 **Nunca chame o Nominatim do navegador.** Ele recusa tráfego de aplicação (403
 sem User-Agent próprio, 429 na segunda chamada por IP) e o erro chega silencioso:
 o orçamento sai sem logística e ninguém vê erro nenhum. A geocodificação vive em
@@ -54,13 +65,15 @@ escrever número, preço ou tabela na tela por conta própria.
   açúcares" mesmo no streaming. `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
   `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
-- Modelo `claude-opus-5-5`, esforço `low`, fallback de recusa ligado. Env:
+- Modelo `claude-sonnet-5-5` (metade do custo do Opus 5.5), esforço `low`
+  sempre explícito (o padrão do Sonnet 5.5 é `high`), fallback de recusa ligado.
+  `tool_choice` forçado dá 400 nos modelos 5.5 — use `auto` e valide. Env:
   `ANTHROPIC_API_KEY` (a mesma das fichas), `IA_MODELO`, `IA_ESFORCO`,
   `IA_LIMITE_DIA` (padrão 500 perguntas/dia no site), `IA_DESLIGADA=1` (some a
   barra sem deploy). Uso diário em tokens fica em `ia:uso:<dia>` no Redis; o
   texto da conversa **não** é guardado em lugar nenhum nosso.
 - A volta inteira do modelo (pensamento + ferramenta) vai de volta sem edição:
-  o pensamento do Opus 5.5 só vale com o histórico intacto. Entre perguntas, o
+  o pensamento do modelo só vale com o histórico intacto. Entre perguntas, o
   histórico é só texto (sem blocos de pensamento) — de propósito.
 - Entrega: a IA só afirma o que `/api/delivery/estado` do totem disse (mesma
   regra de ouro). Evento: valores do `calcEvento`, e o botão abre o orçamento já
@@ -69,6 +82,13 @@ escrever número, preço ou tabela na tela por conta própria.
   navegador, em `document.modelContext` (padrão em incubação; sem suporte, nada
   acontece). `public/llms.txt` é gerado no build — não edite.
 - `npm run test:ia` trava tudo isso com um cliente falso, sem rede.
+- Visual no padrão da marca ("Deep Tech Clean": off-white, pistache, números em
+  JetBrains Mono, foto real do produto). Já reprovado como "amador": ícone em
+  quadradinho colorido, card dentro de card, chips de status por todo lado,
+  pontinhos pulando de "pensando", tela inicial com linhas idênticas. Use uma
+  superfície por resposta com linha fina entre itens, um botão principal por
+  item, esqueleto do card que vai chegar e o botão Parar durante a resposta.
+  Campo de texto no celular com 16px ou mais (abaixo disso o iPhone dá zoom).
 
 ## Fronteira com o TOTEM — a regra mais importante
 
@@ -114,6 +134,10 @@ Detalhe que já mordeu: o card da loja exibe `resumo` (texto agrupado), mas o pa
 edita `dias`. O `resumo` é **derivado** de `dias`; não editar os dois em paralelo.
 
 ## Rolagem
+
+Modal que não pode ficar com os botões flutuantes por cima (horários, suporte,
+selo da Lex, avisos do Clube) chama `useSemFlutuantes()` (`src/shared.jsx`):
+tem contador, porque modal abre modal (IA → orçamento de evento).
 
 Quem rola neste site é o **`<html>`**, não o `<body>`. Por isso
 `document.body.style.overflow="hidden"` **não trava nada** — foi medido: com o
