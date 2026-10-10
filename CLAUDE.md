@@ -66,7 +66,10 @@ escrever número, preço ou tabela na tela por conta própria.
   que foi ao orçamento pode), número por extenso com unidade, "zero/sem açúcar"
   e "sem adição de açúcares" sem o nome de um sabor que tem a alegação. **Nada é
   reescrito**: trocar "zero açúcar" por "sem adição" sem saber o sabor fazia de
-  "o Extra Dark é zero açúcar" uma alegação falsa com cara de oficial. O número
+  "o Extra Dark é zero açúcar" uma alegação falsa com cara de oficial. Alérgico
+  idem: "tem/não tem leite" (e lactose, glúten, amendoim, castanhas, "serve
+  para alérgicos") só passa com o nome do sabor e igual ao `vereditoFoco`; sem
+  nome, ou "sem traços", sai. O número
   que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,

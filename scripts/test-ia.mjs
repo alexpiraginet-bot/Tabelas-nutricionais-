@@ -11,7 +11,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { PRODUCTS, SHAKES } from "../src/data.js";
 import { EV_PRECO_PESSOA } from "../src/eventos-regras.js";
 import {
-  conversar, executarFerramenta, historicoParaMensagens, montarSistema, fraseSegura, filtroFrases,
+  conversar, executarFerramenta, historicoParaMensagens, montarSistema, fraseSegura, filtroFrases, frasesSeguras,
   numerosDe, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
 } from "../lib/ia-motor.js";
 import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento, vereditoFoco, FOCOS, lojasAgora, alergiasDasNotas, conflitosComAlergias } from "../src/ia/catalogo.js";
@@ -436,6 +436,31 @@ caso("alegação de proteína: só com o nome de um sabor que a tem (como a de a
     "O Morango é fonte de proteína.",
     "O Bentôlé Pistache e Chocolate Branco é fonte de proteína.",
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+});
+
+caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausência de traços nunca", () => {
+  const N = new Set();
+  for (const f of [
+    "O Limão Siciliano contém leite.",                       // a ficha diz que não
+    "O Pistache & Choco Branco não contém leite.",           // a ficha diz que sim
+    "O Framboesa Duo não tem leite.",                        // sem lactose não é sem leite
+    "O Morango não tem traços de amendoim.",                 // traço nunca se garante
+    "Separei opções sem amendoim.",                          // sem nome: não há o que conferir
+    "O Paçoca é seguro para alérgicos a amendoim.",
+    "Todos esses servem para celíacos.",
+    "O Paçoca e o Morango contêm amendoim.",                 // um dos dois não
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "O Pistache & Choco Branco contém leite.",
+    "O Paçoca contém amendoim e a produção é compartilhada, então pode haver traços de outros alérgicos.",
+    "O Framboesa Duo é sem lactose.",
+    "O Limão Siciliano não leva leite, mas a produção é compartilhada.",
+    "Sem o Pistache & Choco Branco, sobram outras opções.",   // "sem" + nome não é alegação
+    "O Doce de Leite contém leite.",                         // o nome do sabor não conta como alérgico
+    "Para alergia grave, fale com a equipe antes de consumir.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+  // No streaming, a frase errada some e a certa segue.
+  assert.equal(frasesSeguras("O Limão Siciliano contém leite. O card mostra a ficha.", N), "O card mostra a ficha.");
 });
 
 caso("número no texto só se o cliente escreveu: tabela, preço e horário ficam no card", () => {
