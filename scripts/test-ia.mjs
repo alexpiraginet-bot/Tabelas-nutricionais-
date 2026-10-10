@@ -508,6 +508,26 @@ caso("açúcar e vegano negam por padrão: paráfrase sai, vegano só o que data
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
 });
 
+caso("saúde e soja: alegação terapêutica sai; soja conferida, alérgico sem cadastro nunca confere", () => {
+  const N = new Set();
+  for (const f of [
+    "Pistache ajuda a controlar a glicemia.",
+    "Pistache ajuda a emagrecer.",
+    "Pistache é indicado para diabéticos.",
+    "É indicado para diabéticos.",                           // sem nome, mas alega adequação
+    "O Brigadeiro não utiliza soja.",                        // a ficha diz SOJA
+    "O Brigadeiro pode ser consumido por quem evita soja.",
+    "O Brigadeiro não contém ovo.",                          // ovo não está no cadastro: nada confere
+    "O Shake Choco Power não tem soja.",                     // shake sem cadastro de soja
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "Quem usa caneta de GLP-1 deve confirmar com o médico.",
+    "Se você tem diabetes, converse com seu médico antes.",
+    "O Brigadeiro contém soja.",
+    "O Extra Dark pode ter efeito laxativo para quem tem intestino sensível.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+});
+
 caso("número no texto só se o cliente escreveu: tabela, preço e horário ficam no card", () => {
   const N = numerosDe("Quanto fica um evento para 1.500 pessoas? E para 80?");
   for (const f of [
