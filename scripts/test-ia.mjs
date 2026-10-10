@@ -462,6 +462,10 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Pistache é tranquilo para alérgicos a leite.",        // forma não reconhecida: nega por padrão
     "Ele pode ser consumido por alérgicos a leite.",         // sem nome, falando de alergia
     "O Pistache foi preparado com leite.",
+    "O Pistache é livre de lácteos.",                        // sinônimo de leite
+    "O Pistache não contém caseína.",
+    "O Pistache é livre de proteína animal.",                // ausência não reconhecida, de sabor citado
+    "O Limão Siciliano não leva corante.",
   ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
   for (const f of [
     "O Pistache & Choco Branco contém leite.",
@@ -476,6 +480,9 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Limão Siciliano serve para alérgicos a leite.",       // igual à ficha
     "Se você tem alergia a leite, confirme com a equipe antes de pedir.",
     "Com leite A2 fica mais cremoso.",                       // sem sabor e sem falar de alergia
+    "O Limão Siciliano é livre de lácteos.",                 // igual à ficha
+    "Sem dúvida, o Pistache é o mais pedido.",
+    "Os shakes podem ser feitos com água, leite A2 integral ou leite de amêndoas.",
     "Para alergia grave, fale com a equipe antes de consumir.",
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
   // No streaming, a frase errada some e a certa segue.
