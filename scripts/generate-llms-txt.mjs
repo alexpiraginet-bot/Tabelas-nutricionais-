@@ -52,7 +52,9 @@ export function montarLlmsTxt() {
   out.push("");
   out.push("## Picolés Bentôlé");
   for (const p of PRODUCTS.filter((p) => p.category === "bentole" && !p.id.endsWith("-g"))) out.push(linhaSabor(p));
-  out.push("- Também em tamanho G: o dobro do mini, com os valores em dobro.");
+  // Picolé G tem ficha própria (o Framboesa Duo G publicado não é o dobro do mini): uma linha por sabor.
+  out.push("- Também em tamanho G, com ficha própria:");
+  for (const p of PRODUCTS.filter((p) => p.category === "bentole" && p.id.endsWith("-g"))) out.push(linhaSabor(p));
   out.push("");
   out.push("## Shakes proteicos");
   for (const s of SHAKES) out.push(`- ${s.name}: ${n1(faixaShake(s, "prot").min)} a ${n1(faixaShake(s, "prot").max)} g de proteína, conforme o líquido; ${s.nutrition.map((r) => `${r.liquid.charAt(0).toLowerCase() + r.liquid.slice(1)} ${r.kcal} kcal`).join(", ")}${calculoShake(s) ? ` (${calculoShakeTexto(s)})` : ""}. Alérgicos: ${alergicosShakeTexto(s)}.`);

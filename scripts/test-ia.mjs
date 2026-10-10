@@ -241,6 +241,76 @@ caso("comparação de nutriente fica no card; status de loja confere com o que l
   assert.equal(fraseSegura("A entrega é grátis agora.", N, { lojas: { ...lojas.lojas, entrega: null } }), false);
 });
 
+caso("alergia: menção à condição não é afirmação; sem nome, o sujeito são os cards da resposta", () => {
+  const N = new Set(), semLactose = { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }, semAmendoim = { sabores: ["morango", "limao-siciliano", "bentole-framboesa-duo"] };
+  for (const [f, ctx] of [
+    ["Separei quatro opções sem lactose; o card diz sabor por sabor.", semLactose],
+    ["Os quatro são sem lactose.", semLactose],
+    ["Nenhum deles leva amendoim.", semAmendoim],
+    ["Para alergia a amendoim, separei quatro opções.", semAmendoim],
+    ["Temos uma opção vegana.", { sabores: ["extra-dark"] }],
+    ["O Framboesa Duo é sem lactose, mas leva leite zero lactose: serve para intolerância, não para alergia ao leite.", {}],
+    ["Para alergia ao leite, só o Limão Siciliano, o Maracujá e o Extra Dark não levam leite.", {}],
+    ["Para quem tem alergia a amendoim, Limão Siciliano, Extra Dark, Morango e Baunilha não levam amendoim na receita.", {}],
+    ["Se a alergia for a amendoim, evite o Paçoca e o Snickers.", {}],
+    ["Quem tem alergia a castanhas deve evitar o Pistache e a Avelã.", {}],
+    ["O Pistache contém pistache e leite.", {}],
+    ["Todos os gelatos têm leite, menos o Limão Siciliano, o Maracujá e o Extra Dark.", {}],
+    ["Com whey, o Shake Açaí com Banana contém leite; com a proteína vegana, confirme com a equipe.", {}],
+    ["O Shake Açaí com Banana pode ser feito com água, leite A2 integral ou leite de amêndoas.", {}],
+    ["Sim, temos uma opção vegana: o Extra Dark, feito com base vegana e bebida de amêndoa.", {}],
+    ["O Extra Dark é a única opção vegana, com cacau 100% e bebida de amêndoa.", {}],
+    ["Para alergia grave, recomendo falar com a equipe.", {}],
+    ["Se você tem alergia a leite, pode confirmar com a equipe antes de pedir.", {}],
+  ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
+  for (const [f, ctx] of [
+    ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
+    ["Nenhum deles leva amendoim.", { sabores: ["pacoca", "morango"] }],
+    ["Para alergia a amendoim, separei quatro opções.", { sabores: ["pacoca", "morango"] }],
+    ["Separei opções sem lactose.", {}],                                            // sem card e sem nome
+    ["Quem tem alergia a castanhas deve evitar o Pistache, a Avelã e o Paçoca.", {}], // Paçoca: amendoim, não castanha
+    ["O Shake Açaí com Banana contém leite.", {}],                                  // depende da proteína: diga com o quê
+    ["O Shake Açaí com Banana não contém leite.", {}],
+    ["No Pistache não há leite.", {}],
+    ["O Pistache abre mão do leite.", {}],
+    ["O Limão Siciliano leva um toque de leite.", {}],
+    ["Quem tem alergia pode ficar tranquilo.", {}],
+    ["Temos uma opção vegana.", { sabores: ["extra-dark", "pistache"] }],
+  ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
+  // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
+  const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
+  for (const f of ["A Praia do Canto está aberta agora e fecha às 19h.", "A Jardim Camburi está fechada hoje; abre amanhã às 11h.", "A Praia do Canto está funcionando agora."])
+    assert.equal(fraseSegura(f, N, lojas), true, "barrou: " + f);
+  for (const f of ["A Praia do Canto fecha às 20h.", "A Jardim Camburi abre amanhã às 10h.", "A Jardim Camburi está funcionando agora."])
+    assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
+  assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
+  assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
+});
+
+caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
+  const cliente = clienteFalso([
+    { final: { stop_reason: "tool_use", content: [usoDeFerramenta("t1", "mostrar_sabores", { ids: ["extra-dark"], destaque: "kcal" })] } },
+    { eventos: [{ texto: "O Extra Dark tem 100 kcal." }], final: { stop_reason: "end_turn", content: [] } },
+  ]);
+  const g = gravador();
+  const uso = await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "tem opção vegana?" }], enviar: g.enviar });
+  assert.equal(uso.frases_cortadas, 1);
+  assert.equal(g.texto().trim(), "A resposta está no card, com os dados oficiais.");
+  const c2 = clienteFalso([
+    { final: { stop_reason: "tool_use", content: [usoDeFerramenta("t1", "mostrar_sabores", { ids: ["extra-dark"], destaque: "kcal" })] } },
+    { eventos: [{ texto: "Temos uma opção vegana." }], final: { stop_reason: "end_turn", content: [] } },
+  ]);
+  const g2 = gravador();
+  await conversar({ client: c2, mensagens: [{ papel: "cliente", texto: "tem opção vegana?" }], enviar: g2.enviar });
+  assert.equal(g2.texto().trim(), "Temos uma opção vegana.");
+});
+
+caso("llms.txt lista cada picolé G com a própria ficha (o Framboesa Duo G não é o dobro do mini)", () => {
+  const txt = montarLlmsTxt();
+  assert.doesNotMatch(txt, /valores em dobro/);
+  assert.match(txt, /- Framboesa Duo G \(110 g \(picolé G\)\): 174 kcal/);
+});
+
 caso("resposta interrompida vai marcada no histórico (falha ou parada pelo cliente)", () => {
   const m = historicoParaMensagens([
     { papel: "cliente", texto: "quero proteína" },
@@ -277,7 +347,7 @@ caso("llms.txt não publica horário de loja (a equipe muda pelo painel; o arqui
 
 caso("llms.txt só faz alegação de açúcar na linha do sabor que tem a alegação", () => {
   const linhas = montarLlmsTxt().split("\n");
-  const sabores = PRODUCTS.filter((p) => !(p.category === "bentole" && p.id.endsWith("-g")));
+  const sabores = PRODUCTS;
   // Nome sozinho não identifica: há Chocolate Dubai gelato e Bentôlé. A porção desempata.
   const saborDaLinha = (l) => sabores.find((p) => l.startsWith(`- ${p.name} (${p.portionLabel}):`));
   for (const l of linhas.filter((x) => /sem adição de açúcares/i.test(x))) {
@@ -518,7 +588,7 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Limão Siciliano contém derivados de leite.",
     "O Pistache é tranquilo para alérgicos a leite.",        // forma não reconhecida: nega por padrão
     "Ele pode ser consumido por alérgicos a leite.",         // sem nome, falando de alergia
-    "O Pistache foi preparado com leite.",
+    "O Limão Siciliano foi preparado com leite.",            // composição com sabor que NÃO contém: sai
     "O Pistache é livre de lácteos.",                        // sinônimo de leite
     "O Pistache não contém caseína.",
     "O Pistache é livre de proteína animal.",                // ausência não reconhecida, de sabor citado
@@ -538,6 +608,7 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "Se você tem alergia a leite, confirme com a equipe antes de pedir.",
     "Com leite A2 fica mais cremoso.",                       // sem sabor e sem falar de alergia
     "O Limão Siciliano é livre de lácteos.",                 // igual à ficha
+    "O Pistache foi preparado com leite.",                   // composição com sabor que contém: verdade conferível
     "Sem dúvida, o Pistache é o mais pedido.",
     "Os shakes podem ser feitos com água, leite A2 integral ou leite de amêndoas.",
     "Para alergia grave, fale com a equipe antes de consumir.",
@@ -854,6 +925,28 @@ caso("alergia escrita nas observações exclui o sabor — na regra e na escolha
   assert.match(c.pedidos[1].messages[2].content[0].content, /pacoca contém amendoim/);
   assert.equal(ia.origem, "regra");
   assert.deepEqual(conflitosComAlergias(ia, ["amendoim"]), []);
+});
+
+caso("preferência marcada é promessa: a IA não devolve combinação só com lactose nem castanha para criança", async () => {
+  const EV = { convidados: 45, tipo: "Mix (gelatos + picolés)", formato: "caixa" };
+  // Intolerância à lactose: a primeira escolha, só com lactose, volta como erro; a segunda, com opção sem lactose, passa.
+  const c = clienteCreate([
+    escolha("a1", { gelatos: ["pistache"], picoles: ["bentole-prestigio", "bentole-snickers"], motivo: "Clássicos." }),
+    escolha("a2", { gelatos: ["limao-siciliano"], picoles: ["bentole-framboesa-duo", "bentole-prestigio"], motivo: "Com opção sem lactose." }),
+  ]);
+  const r = await sugerirSaboresEvento({ client: c, evento: EV, prefs: { semLactose: true } });
+  assert.match(c.pedidos[1].messages[2].content[0].content, /sem lactose/);
+  assert.equal(r.origem, "ia");
+  assert.deepEqual(r.gelatos, ["limao-siciliano"]);
+  // Crianças: Paçoca volta como erro; sem conserto, sai a regra, sem castanha nem amendoim.
+  const c2 = clienteCreate([
+    escolha("b1", { gelatos: ["pacoca"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Clássicos." }),
+    escolha("b2", { gelatos: ["pacoca"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Clássicos." }),
+  ]);
+  const k = await sugerirSaboresEvento({ client: c2, evento: EV, prefs: { criancas: true } });
+  assert.match(c2.pedidos[1].messages[2].content[0].content, /castanha ou amendoim/);
+  assert.equal(k.origem, "regra");
+  assert.ok(k.gelatos.concat(k.picoles).every((id) => !saboresEvento().find((x) => x.id === id).nozes));
 });
 
 caso("shake: veredito de leite e lactose olha a proteína E o líquido", () => {

@@ -43,6 +43,8 @@ export const T = {
   ink:"#232619",inkSoft:"#5E6353",
   pistache:"#7C8C66",pistacheDark:"#46583A",
   border:"#E4DCC9",borderSoft:"#EFE8D8",accent:"#C9A24A",accentInk:"#7A5E1E",
+  // Alerta (conflito de alergia, erro): um só tom em todo o site.
+  alerta:"#8A3B12",alertaBg:"#FBF1EA",alertaBorda:"#E7C9B5",
 };
 
 // Lojas físicas — FONTE ÚNICA: Home ("Venha nos visitar"), Delivery (loja mais
@@ -163,6 +165,31 @@ export function useModal(onClose){
     travarRolagem();
     return()=>{document.removeEventListener("keydown",h);soltarRolagem();};
   },[onClose]);
+}
+
+// Tab não sai do modal. aria-modal esconde o fundo do leitor de tela, mas não
+// do teclado: medido, três Tabs levavam o foco do painel da IA para a página
+// de trás. No último focável volta ao primeiro (Shift+Tab, o inverso); com o
+// foco fora do modal (acabou de abrir), o Tab entra nele. Pilha, porque modal
+// abre modal (IA → orçamento de evento): só o de cima prende.
+const presos=[];
+export function usePrendeFoco(ref){
+  useEffect(()=>{
+    presos.push(ref);
+    const h=e=>{
+      if(e.key!=="Tab"||presos[presos.length-1]!==ref||!ref.current)return;
+      const raiz=ref.current;
+      const focaveis=[...raiz.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+        .filter(el=>el.getClientRects().length>0&&!el.closest("[aria-hidden=true]"));
+      if(!focaveis.length){e.preventDefault();return;}
+      const ativo=document.activeElement, dentro=raiz.contains(ativo);
+      const primeiro=focaveis[0], ultimo=focaveis[focaveis.length-1];
+      if(e.shiftKey){ if(!dentro||ativo===primeiro){e.preventDefault();ultimo.focus();} }
+      else if(!dentro||ativo===ultimo){e.preventDefault();primeiro.focus();}
+    };
+    document.addEventListener("keydown",h);
+    return()=>{document.removeEventListener("keydown",h);presos.splice(presos.lastIndexOf(ref),1);};
+  },[ref]);
 }
 
 // Placeholder para fotos que falharem ao carregar (evita ícone de imagem quebrada)
