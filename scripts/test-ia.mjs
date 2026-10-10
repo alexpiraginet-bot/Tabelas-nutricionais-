@@ -184,6 +184,45 @@ caso("o número de convidados que foi ao orçamento pode ser repetido no texto",
   assert.equal(g.texto().trim(), "Para 50 convidados, a caixa térmica atende bem.");
 });
 
+caso("status de loja e entrega ao vivo só vai ao texto na resposta em que lojas_agora rodou", async () => {
+  const frase = "A Praia do Canto está aberta agora. A entrega é grátis agora. Posso ajudar com mais alguma coisa?";
+  // Sem a ferramenta: o modelo afirma de cabeça e as duas frases saem.
+  const semFerramenta = clienteFalso([{ eventos: [{ texto: frase }], final: { stop_reason: "end_turn", content: [] } }]);
+  const g1 = gravador();
+  const uso = await conversar({ client: semFerramenta, mensagens: [{ papel: "cliente", texto: "tá aberta?" }], enviar: g1.enviar });
+  assert.equal(g1.texto().trim(), "Posso ajudar com mais alguma coisa?");
+  assert.equal(uso.frases_cortadas, 2);
+  // Com lojas_agora na mesma resposta: o card de lojas sai e o texto passa.
+  const comFerramenta = clienteFalso([
+    { final: { stop_reason: "tool_use", content: [usoDeFerramenta("t1", "lojas_agora", {})] } },
+    { eventos: [{ texto: "A Praia do Canto está aberta agora." }], final: { stop_reason: "end_turn", content: [] } },
+  ]);
+  const g2 = gravador();
+  await conversar({ client: comFerramenta, mensagens: [{ papel: "cliente", texto: "tá aberta?" }], enviar: g2.enviar,
+    ctx: { agora: new Date("2026-10-05T15:00:00Z"), carregarEntrega: async () => null } });
+  assert.ok(g2.ev.some(([t, d]) => t === "bloco" && d.tipo === "lojas"));
+  assert.equal(g2.texto().trim(), "A Praia do Canto está aberta agora.");
+  // E o resto da UI que fala de "abre" não é status de loja.
+  assert.equal(fraseSegura("O botão abaixo abre o orçamento já com os convidados.", new Set()), true);
+});
+
+caso("negação e efeito terapêutico: \"não é feito com leite\" confere invertido; \"previne cáries\" sai", () => {
+  const N = new Set();
+  for (const f of [
+    "O Pistache não é feito com leite.",                     // a ficha diz que é
+    "Pistache previne cáries.",                              // verbo terapêutico, sem condição da lista
+    "Pistache reduz o risco de câncer.",
+    "Pistache melhora o sono.",
+    "Ele previne cáries.",
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "O Limão Siciliano não é feito com leite.",              // igual à ficha
+    "Trata-se de um sabor intenso, o Pistache.",
+    "Os benefícios do Clube aparecem no seu perfil.",
+    "Pode haver risco de contaminação cruzada; confirme com a equipe.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+});
+
 caso("resposta interrompida vai marcada no histórico (falha ou parada pelo cliente)", () => {
   const m = historicoParaMensagens([
     { papel: "cliente", texto: "quero proteína" },

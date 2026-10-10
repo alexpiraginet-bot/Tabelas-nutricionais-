@@ -77,7 +77,11 @@ escrever número, preço ou tabela na tela por conta própria.
   (hoje só o Extra Dark). Soja confere com `ALLERGENS`; alérgico sem cadastro
   (ovo, gergelim…) nunca confere. Saúde: condição (glicemia, diabetes, dieta,
   GLP-1…) com sabor citado ou com "ajuda/indicado/bom para" sai; o aviso de
-  polióis e o "confirme com o médico" passam. O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
+  polióis e o "confirme com o médico" passam. Verbo terapêutico forte
+  ("previne", "cura", "reduz o risco") sai sempre; brando ("melhora", "ajuda
+  a") sai com sabor citado. Negação antes do predicado inverte ("não é feito
+  com leite"). Status de loja/entrega ao vivo só passa na resposta em que
+  `lojas_agora` rodou (`ctx.lojas` no filtro). O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
   `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
