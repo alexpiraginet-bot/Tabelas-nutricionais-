@@ -639,7 +639,9 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
       let falha = null, terminou = false;
       await lerFluxo(r, (ev, d) => {
         if (ev === "texto" && typeof d.t === "string") { resposta.texto += d.t; resposta.status = null; }
-        else if (ev === "bloco") resposta.blocos.push(d && d.tipo === "lojas" ? { ...d, em: Date.now() } : d);
+        // Card chegou: o esqueleto dele sai, senão a forma do card fica embaixo
+        // do card pronto até o texto chegar. Outra ferramenta manda status novo.
+        else if (ev === "bloco") { resposta.blocos.push(d && d.tipo === "lojas" ? { ...d, em: Date.now() } : d); resposta.status = "Escrevendo…"; }
         else if (ev === "status" && typeof d.texto === "string") resposta.status = d.texto;
         // Preâmbulo de uma volta que acabou chamando ferramenta: sai da tela.
         else if (ev === "recolher" && Number.isFinite(d.n)) resposta.texto = resposta.texto.slice(0, Math.max(0, resposta.texto.length - d.n));
