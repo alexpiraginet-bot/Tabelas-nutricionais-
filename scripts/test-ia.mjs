@@ -212,6 +212,12 @@ caso("shake não entra na comparação por porção: volta como erro e o caminho
   assert.deepEqual(doisGelatos.bloco, { tipo: "comparar", ids: ["pacoca", "pistache"] });
 });
 
+caso("llms.txt não publica horário de loja (a equipe muda pelo painel; o arquivo é estático)", () => {
+  const txt = montarLlmsTxt();
+  assert.doesNotMatch(txt, /Horário:|\b\d{1,2}h(?:\d{2})?\b/, "horário fixo no llms.txt");
+  assert.match(txt, /Horário de hoje[^\n]*Bentô IA/);
+});
+
 caso("llms.txt só faz alegação de açúcar na linha do sabor que tem a alegação", () => {
   const linhas = montarLlmsTxt().split("\n");
   const sabores = PRODUCTS.filter((p) => !(p.category === "bentole" && p.id.endsWith("-g")));
@@ -451,6 +457,11 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Paçoca e o Morango contêm amendoim.",                 // um dos dois não
     "O Limão Siciliano contém pistache.",                    // "Pistache" é sabor E castanha
     "O Morango contém avelã.",
+    "O Pistache pode ser consumido por alérgicos a leite.",  // passiva: a ficha diz que contém
+    "O Limão Siciliano contém derivados de leite.",
+    "O Pistache é tranquilo para alérgicos a leite.",        // forma não reconhecida: nega por padrão
+    "Ele pode ser consumido por alérgicos a leite.",         // sem nome, falando de alergia
+    "O Pistache foi preparado com leite.",
   ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
   for (const f of [
     "O Pistache & Choco Branco contém leite.",
@@ -461,6 +472,10 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Doce de Leite contém leite.",                         // o nome do sabor não conta como alérgico
     "O Limão Siciliano não contém pistache.",
     "O mix leva o Pistache e o Morango.",                    // com artigo, é o sabor citado
+    "O Pistache contém derivados de leite.",
+    "O Limão Siciliano serve para alérgicos a leite.",       // igual à ficha
+    "Se você tem alergia a leite, confirme com a equipe antes de pedir.",
+    "Com leite A2 fica mais cremoso.",                       // sem sabor e sem falar de alergia
     "Para alergia grave, fale com a equipe antes de consumir.",
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
   // No streaming, a frase errada some e a certa segue.

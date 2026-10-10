@@ -39,7 +39,11 @@ export function montarLlmsTxt() {
   out.push("");
   out.push("## Pedir e visitar");
   out.push(`- [Pedido online](${PEDIR_URL}): entrega da nossa equipe ou retirada na loja, pagamento no Pix. Se a entrega está disponível, o raio e o pedido mínimo aparecem no próprio pedido, na hora.`);
-  for (const l of LOJAS) out.push(`- Bentô ${l.nome}: ${l.endereco}. Horário: ${l.resumo.map(([d, h]) => d + " " + h).join(", ")}. [Mapa](${l.maps})`);
+  // Horário fora daqui de propósito: a equipe muda pelo painel (site:config) e
+  // este arquivo é estático até o próximo deploy — buscador e assistente
+  // repetiriam o horário velho. Vale o do site e o da Bentô IA, que leem o painel.
+  for (const l of LOJAS) out.push(`- Bentô ${l.nome}: ${l.endereco}. [Mapa](${l.maps})`);
+  out.push(`- Horário de hoje e se a loja está aberta agora: no [site](${SITE}) e na [Bentô IA](${SITE}/?ia=Quais%20lojas%20est%C3%A3o%20abertas%20agora%3F), que leem o horário atualizado pela equipe.`);
   out.push(`- WhatsApp da equipe: ${ZAP_LABEL}`);
   out.push(`- [Pergunte à Bentô IA](${SITE}/?ia): concierge do site, responde com o cardápio e as tabelas oficiais.`);
   out.push("");

@@ -69,7 +69,9 @@ escrever número, preço ou tabela na tela por conta própria.
   "o Extra Dark é zero açúcar" uma alegação falsa com cara de oficial. Alérgico
   idem: "tem/não tem leite" (e lactose, glúten, amendoim, castanhas, "serve
   para alérgicos") só passa com o nome do sabor e igual ao `vereditoFoco`; sem
-  nome, ou "sem traços", sai. O número
+  nome, ou "sem traços", sai. É **negar por padrão**: alérgico numa frase que
+  cita sabor ou fala de alergia, fora de forma reconhecida ("é tranquilo para
+  alérgicos"), sai — não acrescente frase a frase na lista. O número
   que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
