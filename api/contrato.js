@@ -133,6 +133,9 @@ function montaSnapshot(body) {
     local: texto(body.local, 240),
     horario: texto(body.horario, 60),
     convidados: numero(body.convidados, 0, 100000),
+    // Sabores escolhidos pelo cliente no orçamento. Só entra quando existe:
+    // contrato sem escolha continua com o mesmo snapshot (e o mesmo hash) de antes.
+    ...(texto(body.saboresEscolha, 600) ? { saboresEscolha: texto(body.saboresEscolha, 600) } : {}),
     itens,
     // dinheiro — congelado, nunca recalculado na exibição
     subtotal, desconto, descMotivo: texto(body.descMotivo, 120),

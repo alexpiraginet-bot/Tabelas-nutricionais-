@@ -54,7 +54,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
         headers:{"Content-Type":"application/json",Authorization:"Bearer "+chave},
         body:JSON.stringify({acao:"criar",
           nome:d.nome,doc:d.doc,email:d.email,zap:d.zap,empresa:d.empresa,
-          data:d.data,horario:d.hora,local:d.local,convidados:d.convidados,
+          data:d.data,horario:d.hora,local:d.local,convidados:d.convidados,saboresEscolha:d.saboresEscolha||"",
           subtotal, desconto:descV, descMotivo:motivo, observacoes:d.obs, pagamento})});
       const j=await r.json();
       setRegBusy(false);
