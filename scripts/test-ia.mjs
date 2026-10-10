@@ -489,6 +489,25 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
   assert.equal(frasesSeguras("O Limão Siciliano contém leite. O card mostra a ficha.", N), "O card mostra a ficha.");
 });
 
+caso("açúcar e vegano negam por padrão: paráfrase sai, vegano só o que data.js marca", () => {
+  const N = new Set();
+  for (const f of [
+    "Extra Dark não possui adição de açúcar.",               // paráfrase da forma aprovada
+    "Extra Dark não recebe açúcar na receita.",
+    "O Extra Dark tem pouco açúcar.",
+    "Pistache é vegano.",                                    // contém leite
+    "Pistache é adequado para veganos.",
+    "O Extra Dark e o Pistache são veganos.",
+    "Temos opções veganas.",                                 // sem nome: não há o que conferir
+    "O Pistache é feito com proteína vegana.",
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "O Extra Dark é vegano.",                                // o sub de data.js diz vegano
+    "O Pistache não é vegano.",
+    "O Shake Açaí com Banana tem opção de proteína vegana.", // opção de proteína do shake
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+});
+
 caso("número no texto só se o cliente escreveu: tabela, preço e horário ficam no card", () => {
   const N = numerosDe("Quanto fica um evento para 1.500 pessoas? E para 80?");
   for (const f of [
