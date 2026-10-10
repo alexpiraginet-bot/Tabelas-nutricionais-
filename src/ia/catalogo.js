@@ -58,6 +58,14 @@ export function calculoShakeTexto(x) {
   return c ? `valores com ${c.com}; com outra proteína (${c.opcoes}), os números mudam` : "";
 }
 
+// Proteína e kcal do shake mudam com o líquido (23,7 g com água, 28,6 g com
+// leite integral no Frutas Vermelhas): quem mostra um número só tem de dizer
+// de qual líquido é — ou mostrar a faixa.
+export function faixaShake(x, campo) {
+  const v = x.nutrition.map((r) => r[campo]).filter((n) => Number.isFinite(n));
+  return { min: Math.min(...v), max: Math.max(...v) };
+}
+
 // Em uma linha, para card, catálogo da IA e llms.txt.
 export function alergicosShakeTexto(x) {
   const { proteinas, liquidos } = alergicosShake(x);
@@ -71,6 +79,48 @@ export function alergicosShakeTexto(x) {
     if (extra.length) partes.push(`com ${l.liquido.charAt(0).toLowerCase() + l.liquido.slice(1)}, também ${extra.join(", ")}`);
   }
   return partes.join("; ");
+}
+
+/* ---------- lente de restrição: o card responde "tem X?" na primeira linha ----------
+   O modelo escolhe a lente (foco) pelo que a pessoa perguntou; o veredito de
+   cada sabor sai daqui, dos alérgicos e marcas de data.js. A frase nunca
+   garante ausência de traços: a produção é compartilhada. */
+export const FOCOS = {
+  lactose: { rotulo: "lactose", alergia: false },
+  leite: { rotulo: "leite", alergia: true },
+  gluten: { rotulo: "glúten", alergia: true },
+  amendoim: { rotulo: "amendoim", alergia: true },
+  castanhas: { rotulo: "castanhas", alergia: true },
+};
+const CASTANHAS = /AMÊNDOA|AVELÃ|PISTACHE|CASTANHA|NOZ|MACADÂMIA|PECÃ/;
+const TRACOS = "pode haver traços (produção compartilhada)";
+// { tom: "livre" | "contem" | "confirmar", texto }
+export function vereditoFoco(x, foco) {
+  if (!x || !FOCOS[foco]) return null;
+  const v = (tom, texto) => ({ tom, texto });
+  if (ehShake(x)) {
+    const { proteinas, liquidos } = alergicosShake(x);
+    const vegana = proteinas.some((p) => p.contem === null);
+    const comLiquido = (a) => liquidos.filter((l) => l.contem.includes(a)).map((l) => l.liquido.charAt(0).toLowerCase() + l.liquido.slice(1));
+    if (foco === "leite") return vegana ? v("confirmar", "Com whey, contém leite; com proteína vegana, confirme com a equipe") : v("contem", "Contém leite (whey)");
+    if (foco === "lactose") return vegana ? v("confirmar", "Com whey comum, contém lactose; há whey zero lactose e proteína vegana: confirme com a equipe") : v("contem", "Contém lactose (whey)");
+    if (foco === "castanhas") {
+      const com = comLiquido("AMÊNDOA");
+      return com.length ? v("contem", `Com ${com.join(" ou ")}, contém amêndoa; com outro líquido, não está na receita · ${TRACOS}`) : v("livre", `Castanhas não estão na receita · ${TRACOS}`);
+    }
+    if (foco === "gluten") return v("livre", `Glúten não está na receita · ${TRACOS}`);
+    return v("livre", `Amendoim não está na receita · ${TRACOS}`);
+  }
+  const contem = ALLERGENS[x.id] || [];
+  if (foco === "lactose") {
+    if (x.flags.lactose) return v("contem", "Contém lactose");
+    return contem.includes("LEITE") ? v("livre", "Sem lactose · contém leite (não serve para alergia ao leite)") : v("livre", "Sem lactose");
+  }
+  if (foco === "leite") return contem.includes("LEITE") ? v("contem", "Contém leite") : v("livre", `Leite não está na receita · ${TRACOS}`);
+  if (foco === "gluten") return x.flags.gluten ? v("contem", "Contém glúten") : v("livre", `Glúten não está na receita · ${TRACOS}`);
+  if (foco === "amendoim") return contem.includes("AMENDOIM") ? v("contem", "Contém amendoim") : v("livre", `Amendoim não está na receita · ${TRACOS}`);
+  const nozes = contem.filter((a) => CASTANHAS.test(a));
+  return nozes.length ? v("contem", "Contém " + nozes.join(", ").toLowerCase()) : v("livre", `Castanhas não estão na receita · ${TRACOS}`);
 }
 
 // O número que decide uma recomendação — o modelo escolhe QUAL, o card mostra
@@ -103,7 +153,9 @@ export function fatosSabor(x) {
     const agua = x.nutrition.find((r) => /água/i.test(r.liquid)) || x.nutrition[0];
     return {
       id: x.id, nome: x.name, linha: LINHA.shake, porcao: x.sub,
-      proteina_g: x.protein, kcal_com_agua: agua.kcal,
+      // Nada de um número de proteína "do shake": ele depende do líquido.
+      proteina_g_com_agua: agua.prot, kcal_com_agua: agua.kcal,
+      proteina_g_faixa: `${n1(faixaShake(x, "prot").min)} a ${n1(faixaShake(x, "prot").max)}, conforme o líquido`,
       liquidos: x.nutrition.map((r) => `${r.liquid}: ${r.kcal} kcal, ${n1(r.prot)} g proteína`),
       // Total = os da proteína escolhida + os do líquido escolhido.
       alergicos: alergicosShakeTexto(x),
@@ -208,18 +260,22 @@ export function lojasAgora(overrides, d = new Date()) {
     const dias = o && o.dias ? { ...l.dias, ...o.dias } : l.dias;
     const r = dias[wd];
     const aberta = !!(r && cur >= r[0] && cur < r[1]);
-    let proxima = null;
+    let proxima = null, abreEmMin = null;
     if (!aberta) {
       for (let k = 0; k < 7; k++) {
         const dia = (wd + k) % 7, rr = dias[dia];
-        if (rr && (k > 0 || cur < rr[0])) { proxima = (k === 0 ? "hoje" : k === 1 ? "amanhã" : DIA_ROT[dia]) + " às " + hh(rr[0]); break; }
+        if (rr && (k > 0 || cur < rr[0])) {
+          proxima = (k === 0 ? "hoje" : k === 1 ? "amanhã" : DIA_ROT[dia]) + " às " + hh(rr[0]);
+          abreEmMin = Math.round((k * 24 + rr[0] - cur) * 60);
+          break;
+        }
       }
     }
     return {
       id: l.id, nome: "Bentô " + l.nome, aberta,
       hoje: r ? `${hh(r[0])} às ${hh(r[1])}` : "fechada hoje",
       fecha_as: aberta ? hh(r[1]) : null,
-      abre: proxima,
+      abre: proxima, abre_em_min: abreEmMin,
       endereco: l.endereco, whatsapp: l.zapLabel,
     };
   });

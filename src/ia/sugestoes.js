@@ -7,8 +7,9 @@ import { MilkOff, Dumbbell, PartyPopper, Citrus, Activity, Store } from "lucide-
 export const SUGESTOES = [
   { rotulo: "Sem lactose", pergunta: "Tenho intolerância à lactose. O que posso pedir?", Icone: MilkOff },
   { rotulo: "Mais proteína", pergunta: "Qual sabor tem mais proteína e menos calorias?", Icone: Dumbbell },
-  { rotulo: "Evento", pergunta: "Quanto fica um evento para 50 pessoas?", Icone: PartyPopper },
+  // Sem número inventado: quem toca no chip não disse quantos convidados.
+  { rotulo: "Evento", pergunta: "Como funciona o orçamento de evento?", Icone: PartyPopper },
   { rotulo: "Leve e refrescante", pergunta: "Quero algo leve e refrescante", Icone: Citrus },
   { rotulo: "Pós-treino", pergunta: "Picolé pós-treino: qual você indica?", Icone: Activity },
-  { rotulo: "Loja aberta agora?", pergunta: "Qual loja está aberta agora?", Icone: Store },
+  { rotulo: "Lojas agora", pergunta: "Qual loja está aberta agora?", Icone: Store },
 ];

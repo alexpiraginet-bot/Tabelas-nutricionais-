@@ -14,7 +14,7 @@ import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, fraseSegura, filtroFrases,
   numerosDe, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
 } from "../lib/ia-motor.js";
-import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento } from "../src/ia/catalogo.js";
+import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento, vereditoFoco, FOCOS, lojasAgora } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
 import { sugestaoEquilibrada } from "../src/ia/catalogo.js";
 const sugerirSaboresEventoRegra = (L) => sugestaoEquilibrada(L, { criancas: true });
@@ -106,6 +106,45 @@ caso("o número que decide vai em destaque no card (o modelo escolhe qual; o val
   assert.match(montarSistema(), /passe em destaque o número que decide/);
   assert.match(montarSistema(), /No texto, nenhum algarismo nem número por extenso/);
   assert.doesNotMatch(montarSistema(), /10 g de proteína com 61 kcal/, "o exemplo que pedia número no texto voltou");
+});
+
+caso("lente de restrição: o card e o modelo recebem o mesmo veredito, calculado da ficha", async () => {
+  const v = (id, f) => vereditoFoco(saborPorId(id), f);
+  // Sem lactose não é sem leite (Framboesa Duo).
+  assert.deepEqual(v("bentole-framboesa-duo", "lactose"), { tom: "livre", texto: "Sem lactose · contém leite (não serve para alergia ao leite)" });
+  assert.equal(v("bentole-framboesa-duo", "leite").tom, "contem");
+  assert.equal(v("limao-siciliano", "lactose").texto, "Sem lactose");
+  assert.equal(v("pacoca", "amendoim").tom, "contem");
+  // Ausência nunca é garantida: sempre "pode haver traços".
+  for (const f of ["leite", "gluten", "amendoim", "castanhas"]) {
+    for (const p of PRODUCTS) { const r = vereditoFoco(p, f); if (r.tom === "livre" && f !== "lactose") assert.match(r.texto, /pode haver traços/, p.id + " " + f); }
+  }
+  assert.equal(v("pistache", "gluten").texto, "Contém glúten", "glúten da pasta de pistache (sem trigo na lista) sumiu");
+  assert.match(v("bentole-opereta", "castanhas").texto, /^Contém amêndoa/);
+  // Shake: a proteína vegana do Açaí manda confirmar, sem afirmar leite nem ausência.
+  assert.equal(v("shake-acai-banana", "leite").tom, "confirmar");
+  assert.match(v("shake-choco-power", "castanhas").texto, /leite de amêndoas, contém amêndoa/);
+  assert.equal(vereditoFoco(saborPorId("pacoca"), "unicornio"), null);
+  // Chega ao card (bloco.foco) e ao modelo (veredito) pela ferramenta; foco inventado é ignorado.
+  const r = await executarFerramenta("mostrar_sabores", { ids: ["pacoca", "morango"], foco: "amendoim" });
+  assert.deepEqual(r.bloco, { tipo: "sabores", ids: ["pacoca", "morango"], foco: "amendoim" });
+  assert.deepEqual(JSON.parse(r.resultado).sabores.map((s) => s.veredito), [v("pacoca", "amendoim").texto, v("morango", "amendoim").texto]);
+  const fi = await executarFerramenta("ficha_sabor", { id: "bentole-framboesa-duo", foco: "leite" });
+  assert.deepEqual(fi.bloco, { tipo: "ficha", id: "bentole-framboesa-duo", foco: "leite" });
+  assert.equal(JSON.parse(fi.resultado).veredito, "Contém leite");
+  const ruim = await executarFerramenta("mostrar_sabores", { ids: ["pacoca"], foco: "<script>" });
+  assert.deepEqual(ruim.bloco, { tipo: "sabores", ids: ["pacoca"] });
+  assert.deepEqual(FERRAMENTAS.find((f) => f.name === "mostrar_sabores").input_schema.properties.foco.enum, Object.keys(FOCOS));
+  assert.match(montarSistema(), /passe foco em mostrar_sabores ou ficha_sabor/);
+});
+
+caso("lojas: o card sabe qual abre primeiro (para dizer \"nenhuma aberta, X abre às…\")", async () => {
+  // Segunda 9h em Vitória: Praia do Canto abre às 10h (60 min); Jardim Camburi só amanhã às 11h.
+  const ls = lojasAgora(null, new Date("2026-10-05T12:00:00Z"));
+  assert.equal(ls.find((l) => l.id === "praia-do-canto").abre_em_min, 60);
+  assert.equal(ls.find((l) => l.id === "jardim-camburi").abre_em_min, 26 * 60);
+  const r = await executarFerramenta("lojas_agora", {}, { agora: new Date("2026-10-05T12:00:00Z"), carregarEntrega: async () => null });
+  assert.deepEqual(r.bloco.lojas.map((l) => l.abre_em_min), [60, 26 * 60]);
 });
 
 caso("card além do limite não aparece, e o modelo fica sabendo", async () => {
@@ -246,6 +285,18 @@ caso("macros do Shake Açaí valem para a proteína do cálculo, e todo mundo di
   assert.match(montarLlmsTxt(), /Shake Açaí com Banana:[^\n]*\(valores com whey de coco hidrolisado\/isolado; com outra proteína/);
   const ficha = JSON.parse((await executarFerramenta("ficha_sabor", { id: "shake-acai-banana" })).resultado);
   assert.equal(ficha.valores_calculados_com, "whey de coco hidrolisado/isolado");
+});
+
+caso("proteína do shake muda com o líquido: ninguém mostra um número só", () => {
+  for (const s of SHAKES) {
+    const f = fatosSabor(s);
+    assert.equal(f.proteina_g, undefined, s.id + " voltou a ter proteína única");
+    const agua = s.nutrition.find((r) => /água/i.test(r.liquid));
+    assert.equal(f.proteina_g_com_agua, agua.prot, s.id);
+    assert.match(f.proteina_g_faixa, /conforme o líquido$/);
+  }
+  assert.equal(fatosSabor(saborPorId("shake-frutas-vermelhas")).proteina_g_faixa, "23,7 a 28,6, conforme o líquido");
+  assert.match(montarLlmsTxt(), /Shake Frutas Vermelhas: 23,7 a 28,6 g de proteína, conforme o líquido/);
 });
 
 caso("WebMCP: orçamento abaixo do mínimo não abre um formulário com outro número", async () => {

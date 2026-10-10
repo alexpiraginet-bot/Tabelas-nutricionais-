@@ -1,7 +1,7 @@
 // Entrada da Bentô IA na home: uma barra de pergunta e três atalhos.
 // Fica no bundle principal (é leve); o painel da conversa carrega sob demanda.
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { tk, T } from "../shared.jsx";
 import { SUGESTOES } from "./sugestoes.js";
 
@@ -47,7 +47,8 @@ export default function EntradaIA({ onAbrir }) {
       `}</style>
       <button onClick={() => tk("Home · Bentô IA · Barra", () => onAbrir(null))} aria-label="Pergunte à Bentô IA"
         className="ia-barra fb" style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, minHeight: 62, background: T.surface, border: `1px solid ${T.border}`, borderRadius: 20, padding: "8px 8px 8px 16px", cursor: "pointer", textAlign: "left", boxShadow: "0 18px 40px -30px rgba(35,38,25,.55)" }}>
-        <Sparkles size={18} strokeWidth={1.75} color={T.pistacheDark} style={{ flexShrink: 0 }} aria-hidden="true" />
+        {/* O selo da Bentô marca a IA; o Sparkles já é do quiz e do Clube no site. */}
+        <img src="/bento-logo.webp" alt="" width={28} height={28} style={{ borderRadius: "50%", flexShrink: 0, display: "block" }} />
         <span style={{ flex: 1, minWidth: 0 }}>
           <span style={{ display: "block", fontSize: 15, fontWeight: 600, color: T.ink, lineHeight: 1.3 }}>Pergunte à Bentô IA</span>
           <span key={i} className="ia-troca" style={{ display: "block", fontSize: 13, color: T.inkSoft, lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{SUGESTOES[i].pergunta}</span>
@@ -57,7 +58,7 @@ export default function EntradaIA({ onAbrir }) {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
         {SUGESTOES.slice(0, 3).map(({ rotulo, pergunta, Icone }) => (
           <button key={rotulo} onClick={() => tk("Home · Bentô IA · Sugestão", () => onAbrir(pergunta))} className="fb ia-atalho"
-            style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 36, padding: "0 13px", fontSize: 13, fontWeight: 500, color: T.ink, background: "rgba(255,253,247,.85)", border: `1px solid ${T.border}`, borderRadius: 999, cursor: "pointer" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 44, padding: "0 14px", fontSize: 13, fontWeight: 500, color: T.ink, background: "rgba(255,253,247,.85)", border: `1px solid ${T.border}`, borderRadius: 999, cursor: "pointer" }}>
             <Icone size={14} strokeWidth={1.75} color={T.pistacheDark} aria-hidden="true" />{rotulo}
           </button>
         ))}

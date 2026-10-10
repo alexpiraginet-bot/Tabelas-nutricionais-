@@ -1232,13 +1232,15 @@ export function EventosModal({onClose,convidadosInicial}){
 
           {step===3&&(<>
             <EventoSabores evento={{convidados:nConv,tipo:ev.tipo,formato:ev.formato,formatoNome:q.formatoNome}} limites={limites}
-              valor={escolha||{gelatos:[],picoles:[]}} onChange={setEscolha} iaAtiva={iaAtiva===true} notas={notasSabores} onNotas={setNotasSabores}/>
-            <div style={{display:"flex",gap:8,marginTop:22}}>
-              <button onClick={()=>setStep(2)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Orçamento</button>
-              <button onClick={()=>{tk("Eventos · Sabores escolhidos");levarNotas();setStep(4);}} disabled={!saboresOk} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:saboresOk?T.pistacheDark:T.border,color:saboresOk?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:saboresOk?"pointer":"not-allowed"}}>Continuar →</button>
-            </div>
-            {!saboresOk&&escolha&&<div className="fb" style={{fontSize:12,color:T.inkSoft,textAlign:"center",marginTop:8}}>{limites.gelatos>0&&limites.picoles>0?"Escolha ao menos um gelato e um picolé.":"Escolha ao menos um sabor."}</div>}
-            <button onClick={()=>{setEscolha({gelatos:[],picoles:[],origem:"equipe"});tk("Eventos · Sabores · Equipe escolhe");levarNotas();setStep(4);}} className="fb" style={{width:"100%",marginTop:10,padding:"12px",borderRadius:10,border:"none",background:"transparent",color:T.pistacheDark,fontSize:13.5,fontWeight:600,cursor:"pointer"}}>Prefiro que a Bentô escolha os sabores</button>
+              valor={escolha||{gelatos:[],picoles:[]}} onChange={setEscolha} iaAtiva={iaAtiva===true} notas={notasSabores} onNotas={setNotasSabores}
+              onEquipeEscolhe={()=>{setEscolha({gelatos:[],picoles:[],origem:"equipe"});tk("Eventos · Sabores · Equipe escolhe");levarNotas();setStep(4);}}
+              rodape={<>
+                {!saboresOk&&escolha&&<div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginBottom:8}}>{limites.gelatos>0&&limites.picoles>0?"Escolha ao menos um gelato e um picolé.":"Escolha ao menos um sabor."}</div>}
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setStep(2)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Orçamento</button>
+                  <button onClick={()=>{tk("Eventos · Sabores escolhidos");levarNotas();setStep(4);}} disabled={!saboresOk} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:saboresOk?T.pistacheDark:T.border,color:saboresOk?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:saboresOk?"pointer":"not-allowed"}}>Continuar →</button>
+                </div>
+              </>}/>
           </>)}
 
           {step===4&&(<>

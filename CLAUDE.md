@@ -100,9 +100,23 @@ escrever número, preço ou tabela na tela por conta própria.
   JetBrains Mono, foto real do produto). Já reprovado como "amador": ícone em
   quadradinho colorido, card dentro de card, chips de status por todo lado,
   pontinhos pulando de "pensando", tela inicial com linhas idênticas. Use uma
-  superfície por resposta com linha fina entre itens, um botão principal por
-  item, esqueleto do card que vai chegar e o botão Parar durante a resposta.
-  Campo de texto no celular com 16px ou mais (abaixo disso o iPhone dá zoom).
+  superfície por resposta com linha fina entre itens, **um botão principal por
+  resposta** (não um "Pedir" por linha), esqueleto do card que vai chegar e o
+  botão Parar durante a resposta. Campo de texto no celular com 16px ou mais
+  (abaixo disso o iPhone dá zoom).
+- **O card responde a pergunta.** Pergunta de restrição usa a lente `foco`
+  (lactose, leite, glúten, amendoim, castanhas): o veredito de cada sabor sai de
+  `vereditoFoco` (catálogo), na primeira linha do card, e nunca garante ausência
+  de traços. Em alergia, a ação principal é "Confirmar com a equipe" (WhatsApp
+  com sabor e alérgico). O card de lojas abre com a conclusão ("Nenhuma loja
+  aberta agora · X abre…"). De onde vem o dado fica no pé do card ("Fichas
+  técnicas oficiais…", "Verificado às 14:05") — **nada de rótulo acima do
+  título**: o Impeccable proíbe e o resultado é genérico. O selo da Bentô marca
+  a IA; o Sparkles já é do quiz e do Clube.
+- Passo de sabores do evento: a combinação pronta vem primeiro, a IA fica
+  recolhida ("Ajustar com a Bentô IA", com Desfazer), e contadores + Continuar
+  ficam num rodapé fixo do modal. Pedido de sugestão em andamento morre quando
+  a pessoa sai do passo.
 
 ## Fronteira com o TOTEM — a regra mais importante
 
