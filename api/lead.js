@@ -124,6 +124,10 @@ export default async function handler(req, res) {
       potinhos: Number(body.potinhos) || 0,
       carrinho: Number(body.carrinho) || 0,
       pers: Array.isArray(body.pers) ? body.pers.slice(0, 8).map((x) => semControle(x)) : [],
+      // Sabores escolhidos no passo de sabores (ou "a Bentô escolhe"). A lista
+      // de campos é fechada: sem esta linha, o contrato gerado pelo painel a
+      // partir do lead nascia sem a escolha que foi no WhatsApp.
+      saboresEscolha: clean(body.saboresEscolha || "", 600),
       link: clean(body.link || "", 6000),
     };
     let gravou = true;
@@ -146,6 +150,7 @@ export default async function handler(req, res) {
         (lead.data || lead.hora) ? `📅 ${esc(lead.data)}${lead.hora ? ` ⏰ ${esc(lead.hora)}` : ""}` : "",
         lead.local ? `📍 ${esc(lead.local)}` : "",
         `👥 ${lead.convidados || "—"} convidados · ${esc(lead.tipo || "—")}${lead.formato ? ` · ${esc(lead.formato)}` : ""}`,
+        lead.saboresEscolha ? `🍨 ${esc(lead.saboresEscolha)}` : "",
         lead.total ? `💰 ${brl(lead.total)}` : "",
         lead.link ? `📄 <a href="${esc(lead.link)}">Abrir orçamento</a>` : "",
         `💬 <a href="${wa}">Responder no WhatsApp</a>`,

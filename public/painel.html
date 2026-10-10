@@ -1024,6 +1024,9 @@ async function ctDoLead(ts, el){
         zap: lead.phone || "", empresa: lead.empresa || "",
         data: lead.data ? fmtDateBR(lead.data) : "", horario: lead.hora || "",
         local: lead.local || "", convidados: lead.convidados || 0,
+        // Sabores escolhidos no orçamento: o documento assinado mostra
+        // "Sabores escolhidos" a partir do snapshot.
+        saboresEscolha: lead.saboresEscolha || "",
         subtotal: lead.total || 0, desconto: 0,
         // O contrato da API não tem campo de formato; sem isto, um contrato de
         // caixa térmica nasceria sem dizer que é caixa térmica.

@@ -1,7 +1,11 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
-import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, useSemFlutuantes, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { EV_PERS_DE, EV_POTINHOS, EV_UPGRADE_LOGISTICA, EV_TEM_UPGRADE, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, calcEvento } from "./eventos-regras.js";
+import { limiteSabores, sugestaoEquilibrada, validarEscolhaSabores, resumoSabores } from "./ia/catalogo.js";
+import { useIAAtiva } from "./ia/EntradaIA.jsx";
+import EventoSabores from "./EventoSabores.jsx";
 
 /* Cabeçalho de modal com a arte (banner) no topo + botão de fechar flutuante. */
 export function ModalArtHeader({img,alt,onClose}){
@@ -737,54 +741,10 @@ export function SejaParceiro({onClose,onForm}){
 
 /* ========== EVENTOS ========== */
 
-// A personalização da estrutura tem nome diferente conforme o formato — não dá
-// para oferecer "carrinho personalizado" a quem contratou o balcão. O PREÇO é o
-// mesmo, e os dois rótulos continuam valendo para sempre: orçamento antigo
-// (link salvo, lead no painel, PDF impresso) carrega o texto velho, e comparar
-// por igualdade faria o item sumir da conta — preço menor, sem ninguém notar.
-const EV_PERS_ESTRUTURA={carrinho:"Carrinho personalizado",balcao:"Balcão personalizado",caixa:null};
-const EV_ESTRUTURA=(pers)=>pers.includes("Carrinho personalizado")||pers.includes("Balcão personalizado");
-const EV_PERS_BASE=["Potinhos ou rótulos personalizados","Outra personalização"];
-// Opções visíveis para um formato: a caixa térmica não tem estrutura a decorar.
-const EV_PERS_DE=(formatoId)=>{const e=EV_PERS_ESTRUTURA[formatoId];return e?[e,...EV_PERS_BASE]:[...EV_PERS_BASE];};
-// O rótulo mudou de nome. Orçamento antigo — link salvo, lead no painel, PDF
-// impresso — carrega o texto velho, e comparar por igualdade faria o item
-// simplesmente sumir da conta: preço menor, sem ninguém perceber. Por isso os
-// dois nomes valem.
-const EV_POTINHOS=(pers)=>pers.includes("Potinhos ou rótulos personalizados")||pers.includes("Potinhos personalizados");
+// As regras de preço e formato (EV_*, calcEvento) moram em ./eventos-regras.js,
+// para que a IA e o teste usem exatamente o mesmo cálculo que esta tela.
 
 const fmtBRL=v=>v.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
-
-const EV_KM_RATE=2.0;     // R$/km rodado (combustível + deslocamento + tempo, média)
-
-const EV_ROTA=1.3;        // fator linha reta → rota real
-
-const EV_POTINHO=0.5;     // R$ por potinho personalizado (2 por pessoa)
-
-const EV_CARRINHO=200;    // R$ personalização da estrutura (carrinho ou balcão)
-
-// Personalização custa mais em quantidade pequena: tiragem curta de rótulo e
-// montagem sob medida têm custo fixo que se dilui em evento grande. Regra do
-// dono: cerca de 20% a mais abaixo de 100 convidados; a partir daí, preço
-// cheio. É régua de QUANTIDADE, não de formato — o carrinho começa em 80 e
-// ainda paga o acréscimo entre 80 e 99. Vale para potinhos/rótulos e para a
-// estrutura personalizada.
-const EV_PERS_ACRESCIMO=0.20;
-const EV_PERS_GRANDE=100;
-const EV_PERS_FATOR=(n)=>n<EV_PERS_GRANDE?1+EV_PERS_ACRESCIMO:1;
-
-// Subir de estrutura é UMA transição: balcão -> carrinho. O carrinho só é
-// alcançável acima de 80 convidados ou por conflito de data — quando o balcão
-// daquele dia já está reservado, a equipe joga o evento para o carrinho e cobra
-// logística extra. Acima do carrinho não há nada, e a caixa térmica não é
-// "estrutura abaixo" do balcão: entre 30 e 60 convidados os dois cabem de
-// propósito, porque ali a diferença é de serviço (sem atendente × promotora
-// servindo na hora), e isso o cliente escolhe. O site não decide o upgrade (a
-// reserva no painel é por data, não por estrutura); ele só avisa a regra e o
-// valor quando detecta a data ocupada, e só para quem está no balcão — a
-// única posição de onde se sobe.
-const EV_UPGRADE_LOGISTICA=200;
-const EV_TEM_UPGRADE=(formatoId)=>formatoId==="balcao";
 
 // Geocodificação do local — agora é uma chamada à NOSSA API (`api/geo.js`).
 //
@@ -814,115 +774,40 @@ async function evGeocode(text){
   return res;
 }
 
-/* ---------- os três formatos de evento ----------
-   A estrutura muda, o preço por pessoa muda junto, e o que vai no copo muda com
-   ela: onde não tem atendente, o produto sai pré-envasado e selado da fábrica.
-   Preço por pessoa é UM SÓ, R$ 27, em qualquer formato e quantidade — decisão
-   do dono. O que muda entre formatos é equipe e forma de entrega; logística,
-   horas de promotora e personalização são linhas à parte. Mexer aqui muda site,
-   orçamento, WhatsApp e contrato de uma vez só. */
-const EV_PRECO_PESSOA=27;
-const EV_FORMATOS=[
-  {
-    id:"caixa", nome:"Caixa térmica", sub:"Sem atendente",
-    min:20, max:60, preco:EV_PRECO_PESSOA, equipe:0,
-    img:"/eventos/caixa-1.jpg",
-    alt:"Caixa térmica Bentô aberta, com potinhos e picolés sobre gelo",
-    resumo:"A caixa chega montada e gelada. Seus convidados se servem sozinhos, no ritmo da festa.",
-    inclui:["Potinhos selados e picolés, prontos para servir","Caixa térmica que segura o gelo durante o evento","Entrega e recolhimento da caixa"],
-    servico:"Sem atendente · itens pré-envasados e selados",
-    prod:"envasado",
-  },
-  {
-    id:"balcao", nome:"Balcão Bentô", sub:"Eventos menores",
-    min:30, max:80, preco:EV_PRECO_PESSOA, equipe:1,
-    img:"/eventos/balcao-1.jpg",
-    alt:"Balcão Bentô em madeira com logo iluminado, freezer embutido e guarda-sol",
-    resumo:"Nosso balcão novo, feito para festas que não comportam o carrinho inteiro — mesma presença, menos espaço.",
-    inclui:["Balcão com freezer e iluminação própria","1 promotora uniformizada e treinada","Gelato servido na hora, da cuba — ou em potinhos selados"],
-    servico:"1 promotora · gelato servido na hora ou em potinhos",
-    // Tem promotora e cuba: o gelato é servido na hora, então o rendimento é em
-    // litros, como no carrinho. Potinho selado é alternativa, não a regra.
-    prod:"servido",
-  },
-  {
-    id:"carrinho", nome:"Carrinho Bentô", sub:"Estrutura completa",
-    // 81, não 80: o balcão vai ATÉ 80 inclusive. Com os dois cabendo em 80, a
-    // tela preservava o carrinho de quem abriu no padrão de 150 e trocou para
-    // 80 — e o cliente escolhia a estrutura maior sem conflito de data. Achado
-    // do Codex no PR #241.
-    min:81, max:null, preco:EV_PRECO_PESSOA, equipe:1,
-    img:"/eventos/carrinho-1.jpg",
-    alt:"Carrinho de gelateria Bentô montado em casamento",
-    resumo:"A estrutura completa: gelato servido na hora, na casquinha ou no copo, com a equipe atendendo a fila.",
-    inclui:["Carrinho de gelateria completo","Gelato servido na hora + picolés","Promotoras uniformizadas e treinadas"],
-    servico:"Gelato servido na hora · promotoras",
-    prod:"servido",
-  },
-];
-const EV_FMT=(id)=>EV_FORMATOS.find(f=>f.id===id)||EV_FORMATOS[2];
-const EV_CABE=(f,n)=>n>=f.min&&(f.max==null||n<=f.max);
-// Menor número de convidados que o orçamento online atende — abaixo disto é
-// conversa no WhatsApp, não formulário.
-const EV_MIN=Math.min(...EV_FORMATOS.map(f=>f.min));
-// Melhor formato para um número de convidados: o primeiro que couber. A ordem
-// do array é do menor para o maior, então 40 pessoas cai na caixa e 150 no
-// carrinho sem precisar de tabela à parte.
-const EV_SUGERE=(n)=>(EV_FORMATOS.find(f=>EV_CABE(f,n))||EV_FORMATOS[EV_FORMATOS.length-1]).id;
-
-function calcEvento(g,tipo="Mix (gelatos + picolés)",pers=[],km=null,formatoId="carrinho"){
-  const n=Math.max(1,Number(g)||0);
-  const f=EV_FMT(formatoId);
-  // O rendimento muda com a estrutura. No carrinho o gelato é servido na hora e
-  // a conta é em litros; na caixa e no balcão ele sai em potinho selado, e
-  // prometer "litros" ali seria descrever um serviço que não existe nesse
-  // formato.
-  let rend;
-  if(f.prod==="servido"){
-    if(tipo==="Gelatos") rend=`~${Math.round(n*0.15)} L de gelato · 150 ml/pessoa`;
-    else if(tipo==="Picolés") rend=`~${n*2} picolés · 2 por pessoa`;
-    else rend=`~${Math.round(n*0.075)} L de gelato + ~${n} picolés · 1 + 1 por pessoa`;
-  }else{
-    if(tipo==="Gelatos") rend=`~${n*2} potinhos selados · 2 por pessoa`;
-    else if(tipo==="Picolés") rend=`~${n*2} picolés · 2 por pessoa`;
-    // Mix na caixa (decisão do dono): 1 picolé por pessoa e 1 potinho a cada
-    // 2 — 30 convidados levam 30 picolés + 15 potinhos, não 30 + 30. E o
-    // sortimento é fechado: 1 sabor de gelato e até 2 de picolé.
-    else rend=`~${n} picolés (até 2 sabores) + ~${Math.ceil(n/2)} potinhos selados (1 sabor de gelato) · 1 picolé por pessoa e 1 potinho a cada 2`;
-  }
-  const base=n*f.preco;
-  // Arredondado em reais inteiros: com o acréscimo o unitário vira R$ 0,60 e
-  // 2 por pessoa daria centavos quebrados no contrato.
-  const persFator=EV_PERS_FATOR(n);
-  const potinhos=EV_POTINHOS(pers)?Math.round(n*2*EV_POTINHO*persFator):0;   // 2 por pessoa
-  const estrutura=EV_ESTRUTURA(pers)?Math.round(EV_CARRINHO*persFator):0;
-  const persACombinar=pers.filter(p=>!EV_POTINHOS([p])&&!EV_ESTRUTURA([p]));
-  const logistica=km!=null?Math.round(km*2*EV_KM_RATE):null;              // ida e volta × R$/km
-  // Duas promotoras só fazem sentido onde existe fila para atender. A caixa
-  // térmica não tem equipe nenhuma — é isso que a torna mais barata.
-  const promotoras=f.equipe===0?0:(f.id==="carrinho"&&n>300?2:f.equipe);
-  return{
-    formato:f.id, formatoNome:f.nome, preco:f.preco, servico:f.servico,
-    persFator, persUnit:Math.round(EV_POTINHO*persFator*100)/100,
-    // Até 6 sabores (150+), proporcional abaixo. O piso muda com o formato: a
-    // fórmula foi feita quando o evento mínimo era 70 pessoas, e com o mínimo em
-    // 20 ela passou a devolver "até 2 sabores" o tempo todo. Onde o produto sai
-    // pré-envasado o sabor não depende da máquina no local — é só variar o que
-    // se põe na caixa —, então ali o piso é 3.
-    sabores:n>=150?6:Math.max(f.prod==="servido"?2:3,Math.round(n*6/150)),
-    rend,
-    promotoras,
-    base,potinhos,carrinho:estrutura,persACombinar,logistica,
-    total:base+potinhos+estrutura+(logistica||0),
-    corporativo:n>300,
-  };
-}
-
-export function EventosModal({onClose}){
+// convidadosInicial: quem chega pela IA do site já disse quantas pessoas vêm —
+// o orçamento abre com esse número em vez do padrão de 150. Fora da faixa do
+// orçamento online (abaixo do mínimo), vale o padrão: abaixo disso é WhatsApp.
+export function EventosModal({onClose,convidadosInicial}){
   useModal(onClose);
+  useSemFlutuantes();
   const[step,setStep]=useState(1);
-  const[ev,setEv]=useState({data:"",hora:"",local:"",convidados:150,tipo:"Mix (gelatos + picolés)",pers:[],formato:EV_SUGERE(150)});
+  const[ev,setEv]=useState(()=>{
+    const n=Math.round(Number(convidadosInicial));
+    const n0=Number.isFinite(n)&&n>=EV_MIN&&n<=5000?n:150;
+    return {data:"",hora:"",local:"",convidados:n0,tipo:"Mix (gelatos + picolés)",pers:[],formato:EV_SUGERE(n0)};
+  });
   const[cad,setCad]=useState({nome:"",doc:"",email:"",zap:"",empresa:"",obs:"",consent:false});
+  // Sabores escolhidos no passo 3: {gelatos,picoles,origem:"regra"|"ia"|"cliente"|"equipe",motivo}.
+  const[escolha,setEscolha]=useState(null);
+  // O que a pessoa conta no passo de sabores (alergia, idade das crianças) vai
+  // para as observações do orçamento — é dali que WhatsApp, lead e contrato leem.
+  // Sem isto, um "convidado alérgico a amendoim" sumia no passo seguinte.
+  const[notasSabores,setNotasSabores]=useState("");
+  // Guarda o que foi copiado da última vez: voltar ao passo 3 e corrigir (ou
+  // apagar) a nota troca esse texto nas observações, em vez de somar — senão o
+  // "alérgico a amendoim" corrigido seguia junto com a correção para o contrato.
+  const notaCopiada=useRef("");
+  const levarNotas=()=>{
+    const n=notasSabores.trim(),antes=notaCopiada.current;
+    notaCopiada.current=n;
+    setCad(c=>{
+      let obs=c.obs;
+      if(antes&&obs.includes(antes)) obs=n?obs.replace(antes,n):obs.replace(obs.includes("\n"+antes)?"\n"+antes:obs.includes(antes+"\n")?antes+"\n":antes,"");
+      else if(n&&!obs.includes(n)) obs=obs.trim()?obs.trim()+"\n"+n:n;
+      return obs===c.obs?c:{...c,obs};
+    });
+  };
+  const iaAtiva=useIAAtiva();
   const setE=(k,v)=>setEv(f=>({...f,[k]:v}));
   // Mudar o número de convidados pode deixar o formato escolhido fora da faixa
   // (120 pessoas não cabem na caixa térmica). Em vez de deixar a tela num estado
@@ -947,6 +832,11 @@ export function EventosModal({onClose}){
   const q=calcEvento(ev.convidados,ev.tipo,ev.pers,geo&&geo.ok?geo.km:null,ev.formato);
   const fmt=EV_FMT(ev.formato);
   const nConv=Number(ev.convidados)||0;
+  const limites=limiteSabores(nConv,ev.tipo,ev.formato);
+  const saboresOk=!!escolha&&(escolha.origem==="equipe"||validarEscolhaSabores(escolha,limites).ok);
+  // Texto dos sabores para WhatsApp, lead e contrato. Só existe depois do passo
+  // 3 — antes disso o cliente ainda não escolheu, e "a Bentô escolhe" seria falso.
+  const txtSabores=(qq)=>!escolha?null:escolha.origem==="equipe"?`a Bentô escolhe (até ${qq.sabores})`:resumoSabores(escolha);
   const zapOk=cad.zap.replace(/\D/g,"").length>=10;
   // Captura do lead no nosso banco (não perder contato mesmo sem enviar o WhatsApp)
   const postLead=(payload)=>{try{fetch("/api/lead",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),keepalive:true}).catch(()=>{});}catch{}};
@@ -956,7 +846,8 @@ export function EventosModal({onClose}){
     sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,pers:ev.pers,persAC:qq.persACombinar,
     formato:qq.formato,formatoNome:qq.formatoNome,preco:qq.preco,servico:qq.servico,
     base:qq.base,logistica:qq.logistica,km:gg&&gg.ok?gg.km:null,loja:gg&&gg.ok?gg.loja:null,
-    potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim()});
+    potinhos:qq.potinhos,carrinho:qq.carrinho,total:qq.total,obs:cad.obs.trim(),
+    ...(txtSabores(qq)?{saboresEscolha:txtSabores(qq)}:{})});
   const mkLink=(p)=>"https://bentogelateria.com/?contrato="+btoa(unescape(encodeURIComponent(JSON.stringify(p)))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   // Campos do orçamento a guardar junto do lead (para abrir o PDF completo no painel)
   const orcFields=(qq,gg,link)=>({link,sabores:qq.sabores,rend:qq.rend,promotoras:qq.promotoras,base:qq.base,logistica:qq.logistica,potinhos:qq.potinhos,carrinho:qq.carrinho,pers:ev.pers,formato:qq.formatoNome,preco:qq.preco});
@@ -1038,7 +929,7 @@ export function EventosModal({onClose}){
       `*Convidados:* ${ev.convidados}`,
       `*Formato:* ${q.formatoNome} — ${q.servico}`,
       `*Produtos:* ${ev.tipo}`,
-      `*Sabores:* até ${q.sabores}`,
+      `*Sabores:* ${txtSabores(q)||`até ${q.sabores}`}`,
       `*Rendimento:* ${q.rend}`,
       q.promotoras>0?`*Promotoras:* ${q.promotoras} uniformizada${q.promotoras>1?"s":""} e treinada${q.promotoras>1?"s":""}`:"*Equipe:* sem atendente (itens pré-envasados e selados)","",
       "*— Orçamento online —*",
@@ -1054,8 +945,17 @@ export function EventosModal({onClose}){
       `📄 *Contrato pré-preenchido (uso interno):*\n${linkContrato}`,
     ].filter(Boolean);
     tk("Conversão · Orçamento de evento");
-    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato)});
+    postLead({stage:"contrato",phone:cad.zap.trim(),nome:cad.nome.trim(),email:cad.email.trim(),doc:cad.doc.trim(),empresa:cad.empresa.trim(),obs:cad.obs.trim(),data:ev.data,hora:ev.hora,local:ev.local.trim(),convidados:nConv,tipo:ev.tipo,total:q.total,km:geo&&geo.ok?geo.km:null,loja:geo&&geo.ok?geo.loja:null,...orcFields(q,geo,linkContrato),saboresEscolha:txtSabores(q)||""});
     window.open(`https://wa.me/${WHATS_REVENDA}?text=${encodeURIComponent(linhas.join("\n"))}`,"_blank","noopener,noreferrer");
+  };
+  // Entrar no passo dos sabores: quem ainda não escolheu (ou mudou o evento e
+  // a escolha antiga não cabe mais) começa com a sugestão equilibrada — o
+  // empurrão para uma combinação simples, que a pessoa troca se quiser.
+  const irParaSabores=()=>{
+    if(!escolha||(escolha.origem!=="equipe"&&!validarEscolhaSabores(escolha,limites).ok))
+      setEscolha({...sugestaoEquilibrada(limites),origem:"regra",motivo:"Combinação equilibrada para começar: chocolate, fruta e sabores que agradam a maioria. Troque o que quiser."});
+    tk("Eventos · Escolher sabores");
+    setStep(3);
   };
   // Antes de fechar: checa se a data já tem evento reservado (bloqueio suave, não trava o negócio)
   const enviar=async()=>{
@@ -1082,7 +982,7 @@ export function EventosModal({onClose}){
       <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
-            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 3</div>
+            <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 4</div>
             <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento</div>
           </div>
           <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
@@ -1326,11 +1226,24 @@ export function EventosModal({onClose}){
             <div className="fb" style={{marginTop:10,fontSize:11,color:T.inkSoft,lineHeight:1.5,fontStyle:"italic"}}>Estimativa online sujeita a confirmação de data, logística e proposta final em contrato.</div>
             <div style={{display:"flex",gap:8,marginTop:18}}>
               <button onClick={()=>setStep(1)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Ajustar</button>
-              <button onClick={()=>setStep(3)} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Fechar orçamento →</button>
+              <button onClick={irParaSabores} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:T.pistacheDark,color:T.surface,fontSize:15,fontWeight:600,cursor:"pointer"}}>Escolher sabores →</button>
             </div>
           </>)}
 
           {step===3&&(<>
+            <EventoSabores evento={{convidados:nConv,tipo:ev.tipo,formato:ev.formato,formatoNome:q.formatoNome}} limites={limites}
+              valor={escolha||{gelatos:[],picoles:[]}} onChange={setEscolha} iaAtiva={iaAtiva===true} notas={notasSabores} onNotas={setNotasSabores}
+              onEquipeEscolhe={()=>{setEscolha({gelatos:[],picoles:[],origem:"equipe"});tk("Eventos · Sabores · Equipe escolhe");levarNotas();setStep(4);}}
+              rodape={<>
+                {!saboresOk&&escolha&&<div className="fb" style={{fontSize:12.5,color:T.inkSoft,marginBottom:8}}>{limites.gelatos>0&&limites.picoles>0?"Escolha ao menos um gelato e um picolé.":"Escolha ao menos um sabor."}</div>}
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setStep(2)} className="fb" style={{padding:"14px 18px",borderRadius:10,border:`1px solid ${T.border}`,background:"transparent",color:T.ink,fontSize:14,cursor:"pointer"}}>← Orçamento</button>
+                  <button onClick={()=>{tk("Eventos · Sabores escolhidos");levarNotas();setStep(4);}} disabled={!saboresOk} className="fb" style={{flex:1,padding:"14px",borderRadius:10,border:"none",background:saboresOk?T.pistacheDark:T.border,color:saboresOk?T.surface:T.inkSoft,fontSize:15,fontWeight:600,cursor:saboresOk?"pointer":"not-allowed"}}>Continuar →</button>
+                </div>
+              </>}/>
+          </>)}
+
+          {step===4&&(<>
             <div className="fb" style={{fontSize:13,color:T.inkSoft}}>Quase lá! Com seus dados, nossa equipe formula o <strong style={{color:T.ink}}>contrato para assinatura online</strong> e confirma os detalhes:</div>
             <span className="fm" style={lab}>Nome completo *</span>
             <input className="fb" style={inp} value={cad.nome} onChange={e=>setC("nome",e.target.value)} placeholder="Seu nome"/>
@@ -1363,7 +1276,7 @@ export function EventosModal({onClose}){
               <button onClick={enviar} disabled={!ok3||busy} className="fb" style={{width:"100%",marginTop:14,padding:"14px",borderRadius:10,border:"none",background:ok3&&!busy?"#25D366":T.border,color:ok3&&!busy?"#fff":T.inkSoft,fontSize:15,fontWeight:600,cursor:ok3&&!busy?"pointer":"not-allowed"}}>{busy?"Verificando disponibilidade…":"💬 Enviar e solicitar contrato"}</button>
             )}
             <div className="fb" style={{fontSize:11,color:T.inkSoft,textAlign:"center",marginTop:10,lineHeight:1.5}}>Seu orçamento completo abre no WhatsApp — é só confirmar o envio.<br/>Retornamos com o contrato para assinatura online. 📄</div>
-            <button onClick={()=>setStep(2)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar ao orçamento</button>
+            <button onClick={()=>setStep(3)} className="fb" style={{width:"100%",marginTop:10,padding:"10px",borderRadius:10,border:"none",background:"transparent",color:T.inkSoft,fontSize:12,cursor:"pointer"}}>← Voltar aos sabores</button>
           </>)}
         </div>
       </div>

@@ -100,6 +100,20 @@ export function MacroBar({label,value,max,color=T.pistacheDark}){
 }
 
 
+// Botões flutuantes (horários, suporte, selo da Lex, avisos do Clube) por cima
+// de um modal tapam conteúdo e botão — no celular, o "Suporte" cobria o
+// contador de sabores do orçamento. Enquanto um modal que pede isso estiver
+// aberto, eles somem (regra em index.css). Contador porque modal abre modal:
+// sem ele, fechar o segundo traria os botões de volta por cima do primeiro.
+let semFlutuantes = 0;
+export function useSemFlutuantes() {
+  useEffect(() => {
+    const h = document.documentElement;
+    semFlutuantes++; h.classList.add("sem-flutuantes");
+    return () => { semFlutuantes = Math.max(0, semFlutuantes - 1); if (!semFlutuantes) h.classList.remove("sem-flutuantes"); };
+  }, []);
+}
+
 // TRAVA DE ROLAGEM DOS MODAIS
 //
 // `document.body.style.overflow="hidden"` não trava nada aqui, e isso foi

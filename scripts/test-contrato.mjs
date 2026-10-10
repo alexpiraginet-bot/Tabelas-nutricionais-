@@ -10,6 +10,8 @@ const srvKV = http.createServer((req,res)=>{
         case 'SETNX': if(db.has(a[0])) return 0; db.set(a[0],a[1]); return 1;
         case 'GET': return db.has(a[0])?db.get(a[0]):null;
         case 'DEL': db.delete(a[0]); return 1;
+        case 'INCR': { const n=Number(db.get(a[0])||0)+1; db.set(a[0],String(n)); return n; }
+        case 'EXPIRE': return 1;
         case 'LPUSH': { const l=lists.get(a[0])||[]; l.unshift(a[1]); lists.set(a[0],l); return l.length; }
         case 'RPUSH': { const l=lists.get(a[0])||[]; l.push(a[1]); lists.set(a[0],l); return l.length; }
         case 'LTRIM': { const l=lists.get(a[0])||[]; lists.set(a[0],l.slice(a[1],a[2]+1)); return 'OK'; }
@@ -559,5 +561,27 @@ ok(cd.status===409 && /já foi assinado/.test(cd.body.error||''),
 cd = await chamar({query:{id:cdId}, auth:'senha-de-teste'});
 ok(cd.body.contrato.status==='assinado' && cd.body.contrato.assinatura.nomeDigitado==='Sofia Braga',
    'e a assinatura seguiu intacta o tempo todo');
+
+// Sabores escolhidos no orçamento: o lead guarda, o contrato gerado do lead
+// congela no snapshot (o documento mostra "Sabores escolhidos" a partir dele).
+console.log('\n--- sabores escolhidos: lead → contrato ---');
+const { default: leadHandler } = await import('../api/lead.js');
+await new Promise((resolve)=>{
+  const req = { method:'POST', headers:{ 'x-forwarded-for':'201.10.20.99' }, body:{ stage:'contrato', phone:'27999990000',
+    nome:'Lia Sabores', convidados:40, total:1080, saboresEscolha:'Gelato: Morango · Picolés: Prestígio, Snickers' } };
+  const res = { statusCode:200, status(c){ this.statusCode=c; return this; }, end(){ resolve(); }, json(){ resolve(); }, setHeader(){} };
+  leadHandler(req,res);
+});
+const leadSalvo = JSON.parse((lists.get('leads')||[])[0] || '{}');
+ok(leadSalvo.saboresEscolha==='Gelato: Morango · Picolés: Prestígio, Snickers', 'lead guarda a escolha de sabores');
+let sb = await chamar({method:'POST', auth:'senha-de-teste', body:{ acao:'criar', nome:leadSalvo.nome,
+  zap:leadSalvo.phone, convidados:leadSalvo.convidados, subtotal:leadSalvo.total, saboresEscolha:leadSalvo.saboresEscolha }});
+sb = await chamar({query:{t:sb.body.token}});
+ok(sb.body.snapshot.saboresEscolha==='Gelato: Morango · Picolés: Prestígio, Snickers', 'contrato congela a escolha no snapshot');
+sb = await chamar({query:{t:token}});
+ok(sb.status===404 || !('saboresEscolha' in (sb.body.snapshot||{})), 'contrato sem escolha mantém o snapshot de antes (sem o campo)');
+cd = await chamar({method:'POST', auth:'senha-de-teste', body:{ acao:'criar', nome:'Sem Escolha', subtotal:900 }});
+cd = await chamar({query:{t:cd.body.token}});
+ok(cd.status===200 && !('saboresEscolha' in cd.body.snapshot), 'snapshot sem escolha não ganha campo vazio');
 
 srvKV.close();

@@ -54,7 +54,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
         headers:{"Content-Type":"application/json",Authorization:"Bearer "+chave},
         body:JSON.stringify({acao:"criar",
           nome:d.nome,doc:d.doc,email:d.email,zap:d.zap,empresa:d.empresa,
-          data:d.data,horario:d.hora,local:d.local,convidados:d.convidados,
+          data:d.data,horario:d.hora,local:d.local,convidados:d.convidados,saboresEscolha:d.saboresEscolha||"",
           subtotal, desconto:descV, descMotivo:motivo, observacoes:d.obs, pagamento})});
       const j=await r.json();
       setRegBusy(false);
@@ -153,7 +153,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
     const dateEnd=`${end.getFullYear()}${String(end.getMonth()+1).padStart(2,"0")}${String(end.getDate()).padStart(2,"0")}`;
     const stamp=new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
     const esc=s=>String(s||"").replace(/([,;\\])/g,"\\$1").replace(/\n/g,"\\n");
-    const desc=[`Contratante: ${d.nome} (${d.zap})`,`Convidados: ${d.convidados}`,`Produtos: ${d.tipo} - ate ${d.sabores} sabores`,`Equipe: ${d.promotoras} promotora(s)`,d.km!=null?`Logistica: ~${d.km} km - ref. Bento ${d.loja}`:"",descV>0?`Subtotal: ${money(subtotal)} | Desconto: -${money(descV)}`:"",`Total: ${money(total)}`].filter(Boolean).join("\\n");
+    const desc=[`Contratante: ${d.nome} (${d.zap})`,`Convidados: ${d.convidados}`,`Produtos: ${d.tipo} - ${d.saboresEscolha?esc(d.saboresEscolha):`ate ${d.sabores} sabores`}`,`Equipe: ${d.promotoras} promotora(s)`,d.km!=null?`Logistica: ~${d.km} km - ref. Bento ${d.loja}`:"",descV>0?`Subtotal: ${money(subtotal)} | Desconto: -${money(descV)}`:"",`Total: ${money(total)}`].filter(Boolean).join("\\n");
     const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Bento Gelateria//Eventos//PT","CALSCALE:GREGORIAN","BEGIN:VEVENT",`UID:ev-${date}-${Date.now()}@bentogelateria.com`,`DTSTAMP:${stamp}`,`DTSTART;VALUE=DATE:${date}`,`DTEND;VALUE=DATE:${dateEnd}`,`SUMMARY:Evento Bento - ${esc(d.nome)} (${d.convidados} pax)`,`LOCATION:${esc(d.local)}`,`DESCRIPTION:${desc}`,"END:VEVENT","END:VCALENDAR"].join("\r\n");
     dl(`evento-bento-${date}.ics`,ics,"text/calendar");
   };
@@ -167,7 +167,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
     const msg=["🎉 *EVENTO CONFIRMADO — Bentô*",
       `📅 ${d.data}${d.hora?`  ⏰ início ${d.hora}`:""}   📍 ${d.local}`,
       `👥 ${d.convidados} convidados · ${d.tipo}`,
-      `🍨 até ${d.sabores} sabores · ${d.rend}`,
+      `🍨 ${d.saboresEscolha||`até ${d.sabores} sabores`} · ${d.rend}`,
       `🧑‍🍳 ${d.promotoras} promotora${d.promotoras>1?"s":""} (uniformizada${d.promotoras>1?"s":""})`,
       d.km!=null?`🚚 ~${d.km} km · referência loja ${d.loja} (ida e volta)`:"🚚 logística a confirmar",
       d.pers&&d.pers.length?`✨ ${d.pers.join(", ")}`:"",
@@ -263,7 +263,7 @@ export default function ContratoPage({data:d,somenteLeitura,assinaturas}){
         </div>
         <Clause n="1ª" t="OBJETO">Prestação de serviço de gelateria para evento, no formato <strong>{fmtNome}</strong> ({fmtServico}), incluindo estrutura, produtos e equipe, a realizar-se em <strong>{d.data}</strong>{d.hora?<> com início previsto às <strong>{d.hora}</strong></>:null}, no endereço <strong>{d.local}</strong>, para aproximadamente <strong>{d.convidados} convidados</strong>.</Clause>
         <Clause n="2ª" t="DETALHAMENTO DO SERVIÇO">
-          Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}). Equipe: {Number(d.promotoras)>0
+          Produtos: <strong>{d.tipo}</strong>, com até <strong>{d.sabores} sabores</strong> ({d.rend}).{d.saboresEscolha?<> Sabores escolhidos: <strong>{d.saboresEscolha}</strong>.</>:null} Equipe: {Number(d.promotoras)>0
             ?<><strong>{d.promotoras} promotora{d.promotoras>1?"s":""}</strong> uniformizada{d.promotoras>1?"s":""} e treinada{d.promotoras>1?"s":""}</>
             :<><strong>sem atendente no local</strong> — os produtos são entregues pré-envasados e selados</>}. {d.pers&&d.pers.length>0?<>Personalização contratada: <strong>{d.pers.join(", ")}</strong>. </>:null}
           Duração do serviço: <Ed>[definir horário de início e término]</Ed>.

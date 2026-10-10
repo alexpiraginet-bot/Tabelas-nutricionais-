@@ -13,7 +13,10 @@ import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER
 import { Analytics } from "@vercel/analytics/react";
 import { track } from "@vercel/analytics";
 import { tk, T, LOJAS, PEDIR_URL, ENTREGA_ESTADO_URL, distanciaM, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { janelaEntrega as janelaDe } from "./lojas.js";
 import WorldFundo from "./WorldFundo.jsx";
+import EntradaIA, { useIAAtiva } from "./ia/EntradaIA.jsx";
+import { registrarFerramentasWebMCP } from "./ia/webmcp.js";
 // Movimento cinematográfico de rolagem para os cards REAIS da home:
 // entrada/saída 3D contínua presa ao scroll (nos dois sentidos). Escreve
 // direto no DOM (sem re-render). Reduced-motion: estático.
@@ -56,6 +59,8 @@ const PoteBuilder = lazy(() => import("./modals.jsx").then(m => ({ default: m.Po
 const PitchDeck = lazy(() => import("./modals.jsx").then(m => ({ default: m.PitchDeck })));
 const CulpaModal = lazy(() => import("./modals.jsx").then(m => ({ default: m.CulpaModal })));
 const GLP1Modal = lazy(() => import("./modals.jsx").then(m => ({ default: m.GLP1Modal })));
+// Bentô IA: o painel da conversa só carrega quando alguém abre.
+const BentoIA = lazy(() => import("./ia/BentoIA.jsx"));
 
 function GStyle(){return(<style>{`
 .fd{font-family:'Fraunces',Georgia,serif}
@@ -415,18 +420,8 @@ const raioDe=(e)=>{
   if(Number.isFinite(km)&&km>0) return Math.round(km*1000);
   return Number(e.raioM??e.raio_m??e.raioMetros)||0;
 };
-/* Janela de entrega. A casa não entrega antes das 11h nem depois das 20h, então
-   fora disso o site não oferece entrega — só retirada e iFood.
-   O horário é regra de negócio e, como o resto, deveria vir do totem: se o
-   endpoint mandar horario:{abre,fecha}, é ele que vale. O padrão abaixo existe
-   só enquanto o campo não for exposto lá — quando for, some daqui. */
-const JANELA_PADRAO={abre:11,fecha:20};
-const janelaDe=(e)=>{
-  const h=e&&(e.horario||e.janela);
-  const abre=Number(h&&(h.abre??h.inicio??h.open));
-  const fecha=Number(h&&(h.fecha??h.fim??h.close));
-  return Number.isFinite(abre)&&Number.isFinite(fecha)&&fecha>abre?{abre,fecha}:JANELA_PADRAO;
-};
+/* Janela de entrega (janelaDe: 11h–20h, ou a que o totem mandar) vem de
+   src/lojas.js, que a Bentô IA também usa antes de dizer que há entrega agora. */
 // Hora de Vitória (America/Sao_Paulo) — não a do aparelho do cliente, que pode
 // estar em qualquer fuso.
 function horaVitoria(){
@@ -584,7 +579,7 @@ function bannersDe({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas}){
 
 /* HOME OFICIAL — o filme do atelier ao fundo + cards de vidro reais, agora
    com movimento cinematográfico de entrada/saída na rolagem (CardMotion). */
-function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned}){
+function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,onQuizFicha,onQuizRefazer,onClube,clubeEarned,onIA}){
   const verCardapio=()=>window.open("https://totem.bentogelateria.com/pedir","_blank","noopener");
   const site=useSiteConfig();
   const ordem=ordemComConfig(useDestaqueOrdem(),site);
@@ -609,6 +604,9 @@ function Home({onTabelas,onPitch,onParceria,onDelivery,onEventos,onVagas,quiz,on
           <button onClick={()=>tk("Ver cardápio",verCardapio)} className="fb" style={{background:T.pistacheDark,color:T.surface,border:"none",borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer",letterSpacing:"0.01em"}}>Ver cardápio</button>
           <button onClick={()=>tk("Tabelas & sabores",onTabelas)} className="fb" style={{background:"transparent",color:T.ink,border:`1px solid ${T.border}`,borderRadius:999,padding:"12px 22px",fontSize:13,fontWeight:500,cursor:"pointer"}}>Tabelas & sabores</button>
         </div>
+
+        {/* Bentô IA — pergunta livre respondida com o cardápio e as tabelas oficiais */}
+        {onIA&&<EntradaIA onAbrir={onIA}/>}
 
         {/* Clube Bentô — entrada do hub de missões/conquistas/recompensas */}
         <button onClick={()=>tk("Clube Bentô · Abrir",onClube)} className="rise hl fb" style={{display:"flex",alignItems:"center",gap:9,marginTop:14,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",fontSize:12.5,fontWeight:600,cursor:"pointer",animationDelay:"180ms"}}>
@@ -1362,7 +1360,7 @@ function StoreHours(){
   const HORARIOS=useMemo(()=>horariosDe(site),[site]);
   const anyOpen=HORARIOS.some(s=>abertaAgora(s.dias,wd,cur));
   return(
-    <div className="no-print" style={{position:"fixed",right:16,bottom:16,zIndex:130,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,maxWidth:"calc(100vw - 32px)"}}>
+    <div className="no-print" data-flutuante="" style={{position:"fixed",right:16,bottom:16,zIndex:130,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:10,maxWidth:"calc(100vw - 32px)"}}>
       {open&&(
         <div className="rise" style={{background:T.surface,border:`1px solid ${T.border}`,borderRadius:18,boxShadow:"0 26px 64px -30px rgba(35,38,25,.55)",padding:"16px 18px",width:308,maxWidth:"calc(100vw - 32px)"}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
@@ -1444,6 +1442,15 @@ export default function App(){
   const[showCulpa,setShowCulpa]=useState(false);
   const[showGLP1,setShowGLP1]=useState(false);
   const[showEventos,setShowEventos]=useState(()=>{try{return new URLSearchParams(window.location.search).has("eventos");}catch{return false;}});
+  // Convidados já informados na conversa com a IA: o orçamento abre com eles.
+  const[evConv,setEvConv]=useState(null);
+  // Bentô IA: ?ia abre a conversa; ?ia=pergunta já pergunta (link de bio, QR).
+  const[ia,setIa]=useState(()=>{try{const p=new URLSearchParams(window.location.search);if(!p.has("ia"))return null;const q=(p.get("ia")||"").trim().slice(0,300);return{pergunta:q||null,focar:!q};}catch{return null;}});
+  const iaAtiva=useIAAtiva();
+  const abrirIA=useCallback((pergunta)=>{tk("Bentô IA · Abrir");setIa({pergunta:pergunta||null,focar:!pergunta});},[]);
+  // A pergunta do link já foi lida: sai da URL, senão recarregar a página
+  // mandaria a mesma pergunta de novo (e gastaria outra chamada à IA).
+  useEffect(()=>{try{const u=new URL(window.location.href);if(u.searchParams.has("ia")){u.searchParams.delete("ia");window.history.replaceState(window.history.state,"",u.pathname+(u.search||"")+u.hash);}}catch{/* */}},[]);
   const[compareIds,setCmpIds]=useState(()=>{try{return JSON.parse(localStorage.getItem("bento:cmp")||"[]");}catch{return[];}});
   useEffect(()=>{try{localStorage.setItem("bento:cmp",JSON.stringify(compareIds));}catch{}},[compareIds]);
   const[tabIntro,setTabIntro]=useState(()=>{try{return !sessionStorage.getItem("bento:tabIntro");}catch{return true;}});
@@ -1498,12 +1505,22 @@ export default function App(){
   // ?eventos, ?delivery, ?parceria…) Usado para não empilhar o push de campanha.
   const siteCfg=useSiteConfig();
   useVisual(siteCfg);
-  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos;
+  const overlayAberto=showQuiz||showCmp||showFavs||showClube||showPote||showPitch||showCardapio||showParceria||showRevenda||showFaq||showCulpa||showGLP1||showEventos||!!ia;
   const goHome=useCallback(()=>{setView("home");setCat(null);setProd(null);},[]);
   const openCat=useCallback((c)=>{setCat(c);setView("list");},[]);
   const openProd=useCallback((id)=>{const p=PRODUCTS.find(x=>x.id===id);if(p){setCat(p.category);tk("Sabor · "+p.name);try{const n=(Number(localStorage.getItem("bento:fichas"))||0)+1;localStorage.setItem("bento:fichas",String(n));if(n>=5)awardBadge("explorador");}catch{}}setProd(id);setView("detail");},[awardBadge]);
   const backList=useCallback(()=>{setView(category?"list":"home");setProd(null);},[category]);
   const toggleCmp=useCallback((id)=>setCmpIds(prev=>prev.includes(id)?prev.filter(x=>x!==id):prev.length<3?[...prev,id]:prev),[]);
+  // WebMCP: agentes de IA do navegador usam as ferramentas do site (buscar
+  // sabor, ficha, lojas, evento) em vez de clicar às cegas. Registro único; as
+  // ações apontam sempre para as funções atuais do App.
+  const acoesAgente=useRef({});
+  acoesAgente.current={
+    abrirSabor:(id)=>{setIa(null);openProd(id);},
+    abrirOrcamento:(n)=>{setIa(null);setEvConv(n);setShowEventos(true);},
+    perguntar:(q)=>abrirIA(q),
+  };
+  useEffect(()=>registrarFerramentasWebMCP(acoesAgente),[]);
   const toggleFav=useCallback((id)=>setFavs(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]),[]);
   // A assinatura vem ANTES do contrato interno: se as duas chaves vierem na URL,
   // vale a do cliente, que é a que carrega o texto congelado do servidor.
@@ -1520,7 +1537,7 @@ export default function App(){
       {view==="home"&&<WorldFundo/>}
       {view==="home"&&<FloatingTreats/>}
       <Header onHome={goHome} compareCount={compareIds.length} onOpenCompare={()=>setShowCmp(true)} onQuiz={()=>setShowQuiz(true)} favorites={favorites} onOpenFavs={()=>{tk("Favoritos · Abrir coleção");setShowFavs(true);}}/>
-      {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={abrirPedido} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length}/>)}
+      {view==="home"&&(<Home onTabelas={()=>setView("tabelas")} onPitch={()=>setShowPitch(true)} onCardapio={()=>setShowCardapio(true)} onParceria={()=>setShowParceria(true)} onDelivery={abrirPedido} onFaq={()=>setShowFaq(true)} onEventos={()=>setShowEventos(true)} onVagas={()=>{window.location.href="/?vagas";}} quiz={quizResult&&PRODUCTS.some(p=>p.id===quizResult.id)?quizResult:null} onQuizFicha={openProd} onQuizRefazer={()=>setShowQuiz(true)} onClube={()=>setShowClube(true)} clubeEarned={badges.length} onIA={iaAtiva?abrirIA:null}/>)}
       {view==="tabelas"&&<TabelasHub onSelect={openCat} onSelectProduct={openProd} onShakes={()=>{tk("Tabelas · Shakes");setView("shakes");}} onPote={()=>tk("Conversão · Monte seu pote",()=>setShowPote(true))} onQuiz={()=>setShowQuiz(true)} onBack={goHome} onCulpa={()=>setShowCulpa(true)} onGLP1={()=>setShowGLP1(true)}/>}
       {view==="tabelas"&&tabIntro&&<TabelasIntro onClose={fecharTabIntro}/>}
       {view==="shakes"&&<ShakesPage onBack={()=>setView("tabelas")} onDelivery={abrirPedido}/>}
@@ -1559,7 +1576,11 @@ export default function App(){
             {showFaq&&<FaqModal onClose={()=>setShowFaq(false)}/>}
       {showCulpa&&<CulpaModal productId={culpaProdId} onClose={()=>{setShowCulpa(false);setCulpaProdId(null);}} onDelivery={()=>{setShowCulpa(false);abrirPedido();}}/>}
       {showGLP1&&<GLP1Modal onClose={()=>setShowGLP1(false)} onSelectProduct={(id)=>{setShowGLP1(false);openProd(id);}} onTabelas={()=>{setShowGLP1(false);setView("tabelas");}} onDelivery={()=>{setShowGLP1(false);abrirPedido();}}/>}
-      {showEventos&&<EventosModal onClose={()=>setShowEventos(false)}/>}
+      {showEventos&&<EventosModal convidadosInicial={evConv} onClose={()=>{setShowEventos(false);setEvConv(null);}}/>}
+      {ia&&<BentoIA pergunta={ia.pergunta} focar={ia.focar} onClose={()=>setIa(null)}
+        onFicha={(id)=>{setIa(null);openProd(id);}}
+        onEventos={(n)=>{setIa(null);setEvConv(n);setShowEventos(true);}}
+        onTabelas={()=>{setIa(null);setView("tabelas");}}/>}
       </Suspense>
       <footer className="no-print" style={{maxWidth:1152,margin:"0 auto",padding:"24px 24px calc(84px + env(safe-area-inset-bottom))",display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",borderTop:`1px solid ${T.border}`,background:view==="home"?"rgba(246,241,231,.7)":"transparent",backdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined,WebkitBackdropFilter:view==="home"?"blur(18px) saturate(150%)":undefined}}>
         <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.inkSoft,textTransform:"uppercase"}}>Bentô · Functional Nutrition · ES · BR</div>
@@ -1580,7 +1601,7 @@ export default function App(){
         </div>
       </footer>
       {toastBadge&&(()=>{const TI=toastBadge.icon;return(
-        <div className="rise no-print" role="status" style={{position:"fixed",top:74,left:"50%",transform:"translateX(-50%)",zIndex:400,display:"flex",alignItems:"center",gap:10,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",boxShadow:"0 18px 40px -18px rgba(0,0,0,.5)",maxWidth:"calc(100vw - 30px)"}}>
+        <div className="rise no-print" role="status" data-flutuante="" style={{position:"fixed",top:74,left:"50%",transform:"translateX(-50%)",zIndex:400,display:"flex",alignItems:"center",gap:10,background:T.ink,color:T.bg,border:"1px solid #C9A24A",borderRadius:999,padding:"10px 18px",boxShadow:"0 18px 40px -18px rgba(0,0,0,.5)",maxWidth:"calc(100vw - 30px)"}}>
           {TI?<TI size={16} style={{color:"#C9A24A",flexShrink:0}}/>:null}
           <div style={{textAlign:"left",minWidth:0}}>
             <div className="fm" style={{fontSize:8.5,letterSpacing:"0.18em",textTransform:"uppercase",color:"#C9A24A"}}>{toastBadge.kicker||"Conquista desbloqueada"}</div>

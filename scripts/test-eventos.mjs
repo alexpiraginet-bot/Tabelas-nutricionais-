@@ -1,28 +1,14 @@
-// Trava o motor de preço dos três formatos de evento, extraído do modals.jsx.
+// Trava o motor de preço dos três formatos de evento (src/eventos-regras.js).
 //
 // O que este arquivo protege, em uma frase: o preço por pessoa, a faixa de
 // convidados e a equipe de cada formato são combinados com o dono, e mudar
 // qualquer um deles por acidente sai caro nos dois sentidos — orçamento abaixo
 // do custo ou cliente perdido por preço alto.
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-
-const src = readFileSync(new URL("../src/modals.jsx", import.meta.url), "utf8");
-// slice(a,-1) com marcador ausente fatia o arquivo INTEIRO e o teste quebra com
-// um erro de sintaxe que não diz nada. Melhor falhar dizendo qual marcador sumiu.
-const corte = (de, ate) => {
-  const a = src.indexOf(de), b = src.indexOf(ate);
-  if (a < 0) throw new Error("marcador sumiu do modals.jsx: " + de);
-  if (b < 0) throw new Error("marcador sumiu do modals.jsx: " + ate);
-  return src.slice(a, b);
-};
-const bloco =
-  corte("const EV_PERS_ESTRUTURA", "const fmtBRL") +
-  corte("const EV_KM_RATE", "// Geocodificação do local") +
-  corte("const EV_PRECO_PESSOA", "export function EventosModal(");
-
-const M = new Function(bloco + "\nreturn { calcEvento, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE };")();
-const { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE } = M;
+// As regras moram em src/eventos-regras.js (sem JSX), importadas pelo modal e
+// pela IA do site. Antes este teste fatiava o modals.jsx por marcadores de
+// texto; agora testa exatamente o módulo que as telas usam.
+import { calcEvento, EV_FORMATOS, EV_CABE, EV_MIN, EV_SUGERE, EV_PERS_DE, EV_LIMITE_SABORES } from "../src/eventos-regras.js";
 
 let falhas = 0;
 const caso = (nome, fn) => {
@@ -160,6 +146,27 @@ caso("a caixa térmica não oferece personalizar estrutura que ela não tem", ()
 caso("nenhum evento sai com menos de 3 sabores onde o produto é envasado", () => {
   assert.ok(calcEvento(20, "Mix (gelatos + picolés)", [], null, "caixa").sabores >= 3);
   assert.equal(calcEvento(150, "Mix (gelatos + picolés)", [], null, "carrinho").sabores, 6);
+});
+
+caso("a escolha de sabores respeita o limite de cada formato", () => {
+  const M = "Mix (gelatos + picolés)";
+  // Caixa com mix é fechada: 1 sabor de gelato (potinhos) e até 2 de picolé.
+  for (const n of [20, 30, 45, 60]) assert.deepEqual(EV_LIMITE_SABORES(n, M, "caixa"), { gelatos: 1, picoles: 2, total: 3 }, `caixa ${n}`);
+  assert.deepEqual(EV_LIMITE_SABORES(40, "Picolés", "caixa"), { gelatos: 0, picoles: 3, total: 3 });
+  assert.deepEqual(EV_LIMITE_SABORES(40, "Gelatos", "caixa"), { gelatos: 3, picoles: 0, total: 3 });
+  // Servidos com mix: o total se divide, e a sobra vai para o gelato.
+  assert.deepEqual(EV_LIMITE_SABORES(30, M, "balcao"), { gelatos: 1, picoles: 1, total: 2 });
+  assert.deepEqual(EV_LIMITE_SABORES(80, M, "balcao"), { gelatos: 2, picoles: 1, total: 3 });
+  assert.deepEqual(EV_LIMITE_SABORES(150, M, "carrinho"), { gelatos: 3, picoles: 3, total: 6 });
+  assert.deepEqual(EV_LIMITE_SABORES(400, "Gelatos", "carrinho"), { gelatos: 6, picoles: 0, total: 6 });
+  // Nunca promete mais sabores do que o orçamento diz ("até N sabores").
+  for (const f of EV_FORMATOS) for (const tipo of [M, "Gelatos", "Picolés"]) for (const n of [20, 30, 50, 60, 80, 81, 120, 150, 300]) {
+    if (!EV_CABE(f, n)) continue;
+    const l = EV_LIMITE_SABORES(n, tipo, f.id), q = calcEvento(n, tipo, [], null, f.id);
+    assert.equal(l.gelatos + l.picoles, l.total, `${f.id} ${tipo} ${n}`);
+    assert.ok(l.total <= q.sabores, `${f.id} ${tipo} ${n}: ${l.total} sabores para "até ${q.sabores}"`);
+    if (tipo === M) assert.ok(l.gelatos >= 1 && l.picoles >= 1, `${f.id} mix ${n} sem uma das linhas`);
+  }
 });
 
 console.log(falhas ? `\n${falhas} FALHA(S)` : "\nEventos: todos os casos passaram.");
