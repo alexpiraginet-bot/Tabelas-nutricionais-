@@ -71,8 +71,10 @@ escrever número, preço ou tabela na tela por conta própria.
   para alérgicos") só passa com o nome do sabor e igual ao `vereditoFoco`; sem
   nome, ou "sem traços", sai. É **negar por padrão**: alérgico numa frase que
   cita sabor ou fala de alergia, fora de forma reconhecida ("é tranquilo para
-  alérgicos"), sai — não acrescente frase a frase na lista. O número
-  que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
+  alérgicos"), sai — não acrescente frase a frase na lista. Açúcar também:
+  tirada a forma aprovada, açúcar com negação ou redução na frase sai ("não
+  possui adição de açúcar"). Vegano só o sabor que `data.js` marca no `sub`
+  (hoje só o Extra Dark). O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
   `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
