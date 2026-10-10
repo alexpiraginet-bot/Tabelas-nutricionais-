@@ -377,9 +377,12 @@ export function saboresEvento() {
 
 // Alergia escrita nas observações do evento ("um convidado alérgico a
 // amendoim"): vira exclusão de verdade na sugestão — da regra e da IA — e
-// aviso na tela quando a escolha bate com ela. Só vale com palavra de alergia
-// na nota ("alérgico", "APLV", "celíaco", "não pode"): "adoram pistache" não
-// exclui pistache. Exclusão a mais é o lado seguro.
+// aviso na tela quando a escolha bate com ela. Só vale o alérgico que está na
+// mesma oração da palavra de alergia ("alérgico", "APLV", "celíaco", "não pode
+// comer") ou na lista logo colada nela ("alergia a amendoim, castanhas e
+// leite"): em "alérgico a leite, os demais adoram pistache" o pistache fica, e
+// "não há alergia a amendoim" não exclui nada. Na dúvida dentro da oração,
+// exclusão a mais é o lado seguro.
 const ALERGIAS_NAS_NOTAS = [
   { chave: "amendoim", rotulo: "amendoim", re: /amendoim|pa[çc]oca/i, alergicos: ["AMENDOIM"] },
   { chave: "castanhas", rotulo: "castanhas", re: /castanha|\bnoz(es)?\b|avel[ãa]|am[êe]ndoa|pistache|macad[âa]mia|pec[ãa]|caju/i, alergicos: ["AMÊNDOA", "AVELÃ", "PISTACHE", "CASTANHA-DE-CAJU", "CASTANHA-DO-PARÁ", "MACADÂMIA", "NOZES", "PECÃ"] },
@@ -388,10 +391,28 @@ const ALERGIAS_NAS_NOTAS = [
   { chave: "soja", rotulo: "soja", re: /\bsoja\b/i, alergicos: ["SOJA"] },
   { chave: "ovo", rotulo: "ovo", re: /\bovos?\b/i, alergicos: ["OVOS"] },
 ];
-const TEM_ALERGIA = /al[ée]rgi|aplv|cel[íi]ac|n[ãa]o pode|anafila/i;
+const MARCA_ALERGIA = /al[ée]rgi|aplv|cel[íi]ac|anafila|n[ãa]o\s+podem?\s+(?:comer|tomar|consumir|ingerir)/i;
+// Negação até duas palavras antes da marca: "não há alergia", "ninguém tem
+// alergia", "sem alergias". Mais longe já é outra ideia ("não come glúten
+// porque é celíaca" é alergia).
+const NEGA_ALERGIA = /(?:^|[^\p{L}])(?:n[ãa]o|nenhum|nenhuma|ningu[ée]m|sem)(?:\s+[\p{L}-]+){0,2}\s*$/iu;
+// Item de lista: depois de artigo ou preposição, começa por um alérgico.
+const ITEM_ALERGICO = new RegExp("^\\s*(?:(?:a|à|ao|aos|as|o|os|de|do|da|dos|das|com|também)\\s+)*(?:" + ALERGIAS_NAS_NOTAS.map((a) => a.re.source).join("|") + ")", "i");
 export function alergiasDasNotas(notas) {
-  const t = String(notas || "");
-  if (!TEM_ALERGIA.test(t)) return [];
+  const valem = [];
+  for (const oracao of String(notas || "").split(/[;.!?\n]+|\s(?:mas|por[ée]m)\s/i)) {
+    const partes = oracao.split(/,|\/|:|\s+(?:e|ou|nem)\s+/i);
+    const vale = partes.map(() => false);
+    partes.forEach((p, i) => {
+      const m = MARCA_ALERGIA.exec(p);
+      if (!m || NEGA_ALERGIA.test(p.slice(0, m.index))) return;
+      vale[i] = true;
+      for (let j = i + 1; j < partes.length && ITEM_ALERGICO.test(partes[j]); j++) vale[j] = true;
+      for (let j = i - 1; j >= 0 && ITEM_ALERGICO.test(partes[j]); j--) vale[j] = true;
+    });
+    partes.forEach((p, i) => vale[i] && valem.push(p));
+  }
+  const t = valem.join(" , ");
   // "Intolerância à lactose" não é alergia ao leite: só a palavra lactose, sem
   // "alergia ao leite"/APLV, fica de fora da exclusão de leite.
   return ALERGIAS_NAS_NOTAS.filter((a) => a.re.test(t) && !(a.chave === "leite" && !/\bleite\b|aplv/i.test(t))).map((a) => a.chave);

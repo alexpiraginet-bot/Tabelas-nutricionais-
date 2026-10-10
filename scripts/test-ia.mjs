@@ -675,7 +675,18 @@ caso("alergia escrita nas observações exclui o sabor — na regra e na escolha
   assert.deepEqual(alergiasDasNotas("um convidado alérgico a amendoim"), ["amendoim"]);
   assert.deepEqual(alergiasDasNotas("as crianças adoram pistache"), [], "gosto não é alergia");
   assert.deepEqual(alergiasDasNotas("criança com APLV"), ["leite"]);
-  const EV = { convidados: 150, tipo: "Mix (gelatos + picolés)", formato: "carrinho" };
+  // Só o alérgico da oração com a marca (ou da lista colada nela) vale; negação não exclui.
+  for (const [nota, esperado] of [
+    ["um convidado alérgico a leite; os demais adoram pistache", ["leite"]],
+    ["um convidado alérgico a leite, os demais adoram pistache", ["leite"]],
+    ["não há alergia a amendoim", []],
+    ["ninguém tem alergia, as crianças adoram paçoca", []],
+    ["alergia: amendoim, castanhas e leite", ["amendoim", "castanhas", "leite"]],
+    ["Amendoim e castanhas: alergia grave", ["amendoim", "castanhas"]],
+    ["não come glúten porque é celíaca", ["gluten"]],
+    ["intolerância à lactose e alergia a amendoim", ["amendoim"]],
+  ]) assert.deepEqual(alergiasDasNotas(nota), esperado, nota);
+  const EV ={ convidados: 150, tipo: "Mix (gelatos + picolés)", formato: "carrinho" };
   // API fora do ar: a regra responde sem Paçoca nem Snickers e diz por quê.
   const r = await sugerirSaboresEvento({ client: clienteCreate([{ lanca: new Anthropic.APIConnectionError({ message: "fora" }) }]), evento: EV, notas: "um convidado alérgico a amendoim" });
   assert.equal(r.origem, "regra");
