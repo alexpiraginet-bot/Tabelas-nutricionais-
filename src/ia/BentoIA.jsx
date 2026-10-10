@@ -348,14 +348,20 @@ function vereditoLojas(estado) {
   return { tom: "confirmar", texto: prox ? `Nenhuma loja aberta agora · ${nome(prox)} abre ${prox.abre}` : "Nenhuma loja aberta agora" };
 }
 
-function Lojas({ bloco, acoes }) {
-  const em = typeof bloco.em === "number" ? bloco.em : 0;
+// Dado de lojas "vivo" por VALIDADE_LOJAS a partir de em; vira false sozinho.
+function useLojasVivo(em) {
   const [vivo, setVivo] = useState(() => Date.now() - em < VALIDADE_LOJAS);
   useEffect(() => {
     if (!vivo) return undefined;
     const t = setTimeout(() => setVivo(false), Math.max(0, em + VALIDADE_LOJAS - Date.now()));
     return () => clearTimeout(t);
   }, [vivo, em]);
+  return vivo;
+}
+
+function Lojas({ bloco, acoes }) {
+  const em = typeof bloco.em === "number" ? bloco.em : 0;
+  const vivo = useLojasVivo(em);
   const estado = vivo && Array.isArray(bloco.lojas) ? bloco.lojas : [];
   const entrega = vivo && Array.isArray(bloco.entrega) ? bloco.entrega : [];
   const algumaAberta = estado.some((s) => s && s.aberta);
@@ -502,10 +508,25 @@ function Esqueleto({ status }) {
 // Uma resposta da IA: texto (do modelo) + blocos (montados aqui).
 // Resposta que não terminou continua marcada depois de fechar e abrir o painel
 // (a falha da vez é o quadro de "Tentar de novo"; aviso=false nela).
+// Texto de uma resposta sobre lojas ("aberta agora", entrega) vence junto com o
+// card: depois de VALIDADE_LOJAS, sai da tela e fica só o aviso de que mudou.
+function TextoResposta({ m }) {
+  const lojas = (m.blocos || []).find((b) => b && b.tipo === "lojas");
+  const em = lojas && typeof lojas.em === "number" ? lojas.em : 0;
+  const lojasVivo = useLojasVivo(em);
+  if (!m.texto) return null;
+  if (lojas && !lojasVivo) {
+    return <div className="fb" style={{ fontSize: 14, color: T.inkSoft, lineHeight: 1.55 }}>{em > 0 ? `Resposta das ${horaDe(em)} sobre as lojas: ` : "Resposta sobre as lojas: "}horário e entrega mudam ao longo do dia. Toque em Ver agora para a situação atual.</div>;
+  }
+  return <div className="fb" style={{ fontSize: 15.5, color: T.ink, lineHeight: 1.6, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.texto}</div>;
+}
+
 function Resposta({ m, vivo, acoes, aviso = true }) {
   return (
     <div className="ia-entra" style={{ display: "grid", gap: 12, maxWidth: "100%" }}>
-      {m.texto ? <div className="fb" style={{ fontSize: 15.5, color: T.ink, lineHeight: 1.6, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.texto}</div> : null}
+      {vivo
+        ? (m.texto ? <div className="fb" style={{ fontSize: 15.5, color: T.ink, lineHeight: 1.6, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{m.texto}</div> : null)
+        : <TextoResposta m={m} />}
       {(m.blocos || []).map((b, i) => <Bloco key={i} b={b} acoes={acoes} />)}
       {aviso && !vivo && (m.interrompida === "falha" || m.interrompida === "parada") && (
         <div className="fb" style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.5 }}>{m.interrompida === "parada" ? "Você parou esta resposta antes do fim." : "Esta resposta foi interrompida antes do fim."}</div>
