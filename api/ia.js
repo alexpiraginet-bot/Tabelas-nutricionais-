@@ -229,6 +229,8 @@ export default async function handler(req, res) {
       sinal: ctrl.signal,
     });
     enviar("fim", { ok: true });
+    // Fecha o fluxo antes da contagem: banco lento não deixa a tela "ocupada".
+    try { res.end(); } catch { /* */ }
     await registrarUso(uso);
   } catch (e) {
     let msg = "Tive um problema para responder agora. Tente de novo em instantes ou fale com a equipe pelo WhatsApp (27) 99915-9995.";

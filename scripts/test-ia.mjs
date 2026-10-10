@@ -450,6 +450,11 @@ caso("número no texto só se o cliente escreveu: tabela, preço e horário fica
     "Abre amanhã às 13h.", "Fica pronto em dez minutos.", "Tem doze gramas de proteína.",
     "Fale no (27) 99915-9996.", "São 6 litros de gelato.",
   ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  // O número do cliente só volta como contagem de gente, nunca como dado.
+  const vinte = numerosDe("Quero um evento para 20 pessoas");
+  assert.equal(fraseSegura("Para 20 pessoas, a caixa térmica atende.", vinte), true);
+  assert.equal(fraseSegura("O Pistache tem 20 g de proteína.", vinte), false, "o 20 do evento virou dado de tabela");
+  assert.equal(fraseSegura("Custa R$ 20.", vinte), false);
   // "2.160": o ponto de milhar não é fim de frase.
   const fl = filtroFrases(numerosDe("80 convidados"));
   let s = "";

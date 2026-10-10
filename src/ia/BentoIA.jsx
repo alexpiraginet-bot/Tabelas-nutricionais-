@@ -49,6 +49,8 @@ async function lerFluxo(resp, onEvento) {
       }
       if (!dados) continue;
       try { onEvento(ev, JSON.parse(dados)); } catch { /* quadro corrompido: ignora */ }
+      // "fim" encerra a resposta: não espera o servidor fechar a conexão.
+      if (ev === "fim") { try { reader.cancel(); } catch { /* */ } return; }
     }
   }
 }
@@ -281,7 +283,20 @@ function Ficha({ id, foco, acoes }) {
     return (
       <div style={superficie}>
         <LinhaShake x={x} foco={f} />
-        <div className="fb" style={{ fontSize: 13, color: T.ink, padding: "12px 16px 0", borderTop: linhaFina, lineHeight: 1.5 }}>{AVISO_CRUZADO}</div>
+        {/* Ingredientes e quantidades da ficha técnica: o texto da IA não pode
+            citar número, então a receita tem de estar no card. */}
+        <div style={{ padding: "12px 16px 0", borderTop: linhaFina }}>
+          <div className="fb" style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>Ingredientes</div>
+          <ul className="fb" style={{ listStyle: "none", margin: "6px 0 0", padding: 0, display: "grid", gap: 6, fontSize: 13.5, color: T.ink, lineHeight: 1.45 }}>
+            {x.ingredients.map((i) => (
+              <li key={i.name} style={{ display: "flex", gap: 10, justifyContent: "space-between" }}>
+                <span style={{ minWidth: 0 }}>{i.name}{i.note && <span style={{ color: T.inkSoft }}> · {i.note}</span>}</span>
+                <span className="fm" style={{ flexShrink: 0, color: T.inkSoft, fontVariantNumeric: "tabular-nums" }}>{i.qty}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="fb" style={{ fontSize: 13, color: T.ink, padding: "12px 16px 0", lineHeight: 1.5 }}>{AVISO_CRUZADO}</div>
         <Origem>Ficha técnica oficial da Bentô.</Origem>
       </div>
     );
