@@ -102,8 +102,12 @@ export function vereditoFoco(x, foco) {
     const { proteinas, liquidos } = alergicosShake(x);
     const vegana = proteinas.some((p) => p.contem === null);
     const comLiquido = (a) => liquidos.filter((l) => l.contem.includes(a)).map((l) => l.liquido.charAt(0).toLowerCase() + l.liquido.slice(1));
-    if (foco === "leite") return vegana ? v("confirmar", "Com whey, contém leite; com proteína vegana, confirme com a equipe") : v("contem", "Contém leite (whey)");
-    if (foco === "lactose") return vegana ? v("confirmar", "Com whey comum, contém lactose; há whey zero lactose e proteína vegana: confirme com a equipe") : v("contem", "Contém lactose (whey)");
+    // Leite e lactose dependem das duas escolhas: a proteína E o líquido.
+    const leiteLiq = comLiquido("LEITE");
+    const ouLeite = leiteLiq.length ? ` ou com ${leiteLiq.join(" ou ")}` : "";
+    const outroLiq = leiteLiq.length ? " e um líquido sem leite" : "";
+    if (foco === "leite") return vegana ? v("confirmar", `Com whey${ouLeite}, contém leite; com proteína vegana${outroLiq}, confirme com a equipe`) : v("contem", "Contém leite (whey)");
+    if (foco === "lactose") return vegana ? v("confirmar", `Com whey comum${ouLeite}, contém lactose; com whey zero lactose ou proteína vegana${outroLiq}, confirme com a equipe`) : v("contem", "Contém lactose (whey)");
     if (foco === "castanhas") {
       const com = comLiquido("AMÊNDOA");
       return com.length ? v("contem", `Com ${com.join(" ou ")}, contém amêndoa; com outro líquido, não está na receita · ${TRACOS}`) : v("livre", `Castanhas não estão na receita · ${TRACOS}`);
@@ -371,11 +375,44 @@ export function saboresEvento() {
   });
 }
 
+// Alergia escrita nas observações do evento ("um convidado alérgico a
+// amendoim"): vira exclusão de verdade na sugestão — da regra e da IA — e
+// aviso na tela quando a escolha bate com ela. Só vale com palavra de alergia
+// na nota ("alérgico", "APLV", "celíaco", "não pode"): "adoram pistache" não
+// exclui pistache. Exclusão a mais é o lado seguro.
+const ALERGIAS_NAS_NOTAS = [
+  { chave: "amendoim", rotulo: "amendoim", re: /amendoim|pa[çc]oca/i, alergicos: ["AMENDOIM"] },
+  { chave: "castanhas", rotulo: "castanhas", re: /castanha|\bnoz(es)?\b|avel[ãa]|am[êe]ndoa|pistache|macad[âa]mia|pec[ãa]|caju/i, alergicos: ["AMÊNDOA", "AVELÃ", "PISTACHE", "CASTANHA-DE-CAJU", "CASTANHA-DO-PARÁ", "MACADÂMIA", "NOZES", "PECÃ"] },
+  { chave: "leite", rotulo: "leite", re: /\bleite\b|aplv|lactose/i, alergicos: ["LEITE"] },
+  { chave: "gluten", rotulo: "glúten", re: /gl[úu]ten|cel[íi]ac|trigo/i, alergicos: ["TRIGO"], gluten: true },
+  { chave: "soja", rotulo: "soja", re: /\bsoja\b/i, alergicos: ["SOJA"] },
+  { chave: "ovo", rotulo: "ovo", re: /\bovos?\b/i, alergicos: ["OVOS"] },
+];
+const TEM_ALERGIA = /al[ée]rgi|aplv|cel[íi]ac|n[ãa]o pode|anafila/i;
+export function alergiasDasNotas(notas) {
+  const t = String(notas || "");
+  if (!TEM_ALERGIA.test(t)) return [];
+  // "Intolerância à lactose" não é alergia ao leite: só a palavra lactose, sem
+  // "alergia ao leite"/APLV, fica de fora da exclusão de leite.
+  return ALERGIAS_NAS_NOTAS.filter((a) => a.re.test(t) && !(a.chave === "leite" && !/\bleite\b|aplv/i.test(t))).map((a) => a.chave);
+}
+const conflitoDe = (x, alergias) => ALERGIAS_NAS_NOTAS.filter((a) => alergias.includes(a.chave) && (x.contem.some((c) => a.alergicos.includes(c)) || (a.gluten && !x.semGluten)));
+// Sabores escolhidos que batem com a alergia avisada: [{ id, nome, alergia }].
+export function conflitosComAlergias(escolha, alergias) {
+  if (!alergias || !alergias.length) return [];
+  const porId = new Map(saboresEvento().map((x) => [x.id, x]));
+  return [...((escolha && escolha.gelatos) || []), ...((escolha && escolha.picoles) || [])]
+    .map((id) => porId.get(id)).filter(Boolean)
+    .flatMap((x) => conflitoDe(x, alergias).map((a) => ({ id: x.id, nome: x.nome, alergia: a.rotulo })));
+}
+export const rotuloAlergia = (chave) => (ALERGIAS_NAS_NOTAS.find((a) => a.chave === chave) || { rotulo: chave }).rotulo;
+
 export const limiteSabores = (convidados, tipo, formatoId) => EV_LIMITE_SABORES(convidados, EV_TIPOS.includes(tipo) ? tipo : EV_TIPOS[0], formatoId);
 
 // Confere uma escolha (da pessoa ou da IA) contra o catálogo e o limite do
 // formato. Devolve as listas limpas (sem repetição) e os problemas, em texto.
-export function validarEscolhaSabores(escolha, limites) {
+// alergias (opcional): as das observações; sabor que as contém vira erro.
+export function validarEscolhaSabores(escolha, limites, alergias = []) {
   const porId = new Map(saboresEvento().map((s) => [s.id, s]));
   const lista = (x) => [...new Set((Array.isArray(x) ? x : []).map((v) => String(v).trim()).filter(Boolean))];
   const gelatos = lista(escolha && escolha.gelatos), picoles = lista(escolha && escolha.picoles);
@@ -386,6 +423,7 @@ export function validarEscolhaSabores(escolha, limites) {
   if (picoles.length > limites.picoles) erros.push(`no máximo ${limites.picoles} sabor(es) de picolé`);
   if (limites.gelatos > 0 && !gelatos.length) erros.push("escolha ao menos 1 sabor de gelato");
   if (limites.picoles > 0 && !picoles.length) erros.push("escolha ao menos 1 sabor de picolé");
+  for (const c of conflitosComAlergias({ gelatos, picoles }, alergias)) erros.push(`${c.id} contém ${c.alergia}, e o cliente avisou alergia a ${c.alergia}`);
   return { ok: !erros.length, erros, gelatos, picoles };
 }
 
@@ -393,12 +431,16 @@ export function validarEscolhaSabores(escolha, limites) {
 // está disponível. Princípio, não ranking de vendas (que não temos): em cada
 // linha, uma opção sem lactose quando pedida, um chocolate e uma fruta; o
 // resto completa pela proteína. Festa infantil: só sabores "crianca".
+// prefs.alergias (das observações): nenhum sabor que as contenha — a linha
+// pode sair vazia, e quem chama diz que a equipe monta essa parte.
 export function sugestaoEquilibrada(limites, prefs = {}) {
   const todos = saboresEvento();
   const escolher = (linha, n) => {
     if (n <= 0) return [];
     let pool = todos.filter((s) => s.linha === linha);
     if (prefs.criancas) pool = pool.filter((s) => s.crianca);
+    // Alergia avisada nas observações tira o sabor do pool, sem exceção.
+    if (prefs.alergias && prefs.alergias.length) pool = pool.filter((s) => !conflitoDe(s, prefs.alergias).length);
     const ids = [];
     const poe = (f) => { const s = pool.find((x) => !ids.includes(x.id) && f(x)); if (s && ids.length < n) ids.push(s.id); };
     if (prefs.semLactose) poe((x) => x.semLactose);

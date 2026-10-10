@@ -14,7 +14,7 @@ import {
   conversar, executarFerramenta, historicoParaMensagens, montarSistema, fraseSegura, filtroFrases,
   numerosDe, FERRAMENTAS, ErroConversa, sugerirSaboresEvento, sistemaSabores,
 } from "../lib/ia-motor.js";
-import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento, vereditoFoco, FOCOS, lojasAgora } from "../src/ia/catalogo.js";
+import { alegacoes, fichaSabor, fatosSabor, saborPorId, validarEscolhaSabores, limiteSabores, saboresEvento, vereditoFoco, FOCOS, lojasAgora, alergiasDasNotas, conflitosComAlergias } from "../src/ia/catalogo.js";
 import { montarLlmsTxt } from "./generate-llms-txt.mjs";
 import { sugestaoEquilibrada } from "../src/ia/catalogo.js";
 const sugerirSaboresEventoRegra = (L) => sugestaoEquilibrada(L, { criancas: true });
@@ -421,6 +421,23 @@ caso("alegação de açúcar: forma proibida sai inteira (nunca vira a aprovada)
   assert.equal(s, "Ele é ótimo. Peça hoje.");
 });
 
+caso("alegação de proteína: só com o nome de um sabor que a tem (como a de açúcar)", () => {
+  const N = new Set();
+  for (const f of [
+    "O Limão Siciliano tem alto teor de proteína.",          // 1,2 g: sem alegação nenhuma
+    "O Morango tem alto teor de proteína.",                  // é só fonte
+    "Nossos gelatos são ricos em proteína.",                 // linha inteira
+    "O Chocolate Dubai tem alto teor de proteína.",          // gelato é alto, Bentôlé é só fonte: ambíguo
+    "O Shake Choco Power tem alto teor de proteína.",        // shake não tem alegação calculada
+    "O Paçoca e o Limão Siciliano são fonte de proteína.",   // um dos dois não é
+  ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of [
+    "O Paçoca tem alto teor de proteína.",
+    "O Morango é fonte de proteína.",
+    "O Bentôlé Pistache e Chocolate Branco é fonte de proteína.",
+  ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+});
+
 caso("número no texto só se o cliente escreveu: tabela, preço e horário ficam no card", () => {
   const N = numerosDe("Quanto fica um evento para 1.500 pessoas? E para 80?");
   for (const f of [
@@ -647,6 +664,39 @@ caso("sugestão inválida volta ao modelo com o erro; sem conserto, sai a sugest
     assert.ok(rr.gelatos.concat(rr.picoles).some((id) => saboresEvento().find((x) => x.id === id).semLactose), "pediu sem lactose e não veio nenhum");
   }
   await assert.rejects(sugerirSaboresEvento({ client: clienteCreate([]), evento: { convidados: "muitos" } }), ErroConversa);
+});
+
+caso("alergia escrita nas observações exclui o sabor — na regra e na escolha da IA", async () => {
+  assert.deepEqual(alergiasDasNotas("um convidado alérgico a amendoim"), ["amendoim"]);
+  assert.deepEqual(alergiasDasNotas("as crianças adoram pistache"), [], "gosto não é alergia");
+  assert.deepEqual(alergiasDasNotas("criança com APLV"), ["leite"]);
+  const EV = { convidados: 150, tipo: "Mix (gelatos + picolés)", formato: "carrinho" };
+  // API fora do ar: a regra responde sem Paçoca nem Snickers e diz por quê.
+  const r = await sugerirSaboresEvento({ client: clienteCreate([{ lanca: new Anthropic.APIConnectionError({ message: "fora" }) }]), evento: EV, notas: "um convidado alérgico a amendoim" });
+  assert.equal(r.origem, "regra");
+  assert.deepEqual(conflitosComAlergias(r, ["amendoim"]), [], "a regra trouxe sabor com amendoim");
+  assert.match(r.motivo, /sem amendoim, como você avisou/);
+  // Alergia ao leite: não há picolé sem leite; a linha fica vazia e o motivo manda falar com a equipe.
+  const l = await sugerirSaboresEvento({ client: clienteCreate([{ lanca: new Anthropic.APIConnectionError({ message: "fora" }) }]), evento: EV, notas: "criança com APLV, alergia a leite" });
+  assert.deepEqual(l.picoles, []);
+  assert.ok(l.gelatos.length > 0 && conflitosComAlergias(l, ["leite"]).length === 0);
+  assert.match(l.motivo, /não há picolé sem esse ingrediente/);
+  // A IA escolhe Paçoca mesmo avisada: volta como erro e, sem conserto, sai a regra.
+  const c = clienteCreate([
+    escolha("a1", { gelatos: ["pacoca", "morango"], picoles: ["bentole-prestigio"], motivo: "Clássicos." }),
+    escolha("a2", { gelatos: ["pacoca"], picoles: ["bentole-snickers"], motivo: "Clássicos." }),
+  ]);
+  const ia = await sugerirSaboresEvento({ client: c, evento: EV, notas: "um convidado alérgico a amendoim" });
+  assert.match(c.pedidos[0].messages[0].content, /Alergia avisada: amendoim/);
+  assert.match(c.pedidos[1].messages[2].content[0].content, /pacoca contém amendoim/);
+  assert.equal(ia.origem, "regra");
+  assert.deepEqual(conflitosComAlergias(ia, ["amendoim"]), []);
+});
+
+caso("shake: veredito de leite e lactose olha a proteína E o líquido", () => {
+  const acaiLeite = vereditoFoco(saborPorId("shake-acai-banana"), "leite").texto;
+  assert.match(acaiLeite, /^Com whey ou com leite A2 integral, contém leite; com proteína vegana e um líquido sem leite, confirme com a equipe$/);
+  assert.match(vereditoFoco(saborPorId("shake-acai-banana"), "lactose").texto, /com whey zero lactose ou proteína vegana e um líquido sem leite/);
 });
 
 caso("sugestão para festa infantil (sem IA) só traz sabor bom para criança", () => {

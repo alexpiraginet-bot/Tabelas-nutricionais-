@@ -11,7 +11,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { Check, X, LoaderCircle, Baby, MilkOff, Dumbbell, ChevronDown, Undo2 } from "lucide-react";
 import { T, tk, ProductArt } from "./shared.jsx";
 import { PRODUCTS } from "./data.js";
-import { saboresEvento } from "./ia/catalogo.js";
+import { saboresEvento, alergiasDasNotas, conflitosComAlergias } from "./ia/catalogo.js";
 
 // Filtros só na aba de gelatos (os picolés são poucos). "Sem glúten" saiu:
 // passava quase tudo; a marca "Contém glúten" no card diz mais.
@@ -120,6 +120,8 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
     ? `${g} ${plural(g, "sabor de gelato", "sabores de gelato")} e até ${pc} de picolé`
     : g ? `${g} ${plural(g, "sabor de gelato", "sabores de gelato")}` : `${pc} ${plural(pc, "sabor de picolé", "sabores de picolé")}`;
   const completa = linhas.every((l) => escolhidos[l].length > 0);
+  // Escolha que bate com a alergia escrita nas observações: avisa na hora.
+  const conflitos = conflitosComAlergias({ gelatos: escolhidos.gelato, picoles: escolhidos.picole }, alergiasDasNotas(notas));
 
   return (
     <div style={{ display: "grid", gap: 18 }}>
@@ -136,6 +138,11 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
         <div className="fb" style={{ padding: "2px 16px 0", fontSize: 13, color: completa ? T.pistacheDark : T.inkSoft, lineHeight: 1.5 }}>
           {completa ? "Pronta. Pode continuar ou trocar sabores na lista abaixo." : "Falta escolher: veja na lista abaixo."}
         </div>
+        {conflitos.length > 0 && (
+          <div className="fb" role="alert" style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12, border: "1px solid #E7C9B5", background: "#FBF1EA", fontSize: 13.5, color: "#8A3B12", lineHeight: 1.5 }}>
+            <strong style={{ fontWeight: 600 }}>{conflitos.map((c) => `${c.nome} contém ${c.alergia}`).join(" · ")}.</strong> Você avisou alergia a isso: troque o sabor ou confirme com a equipe.
+          </div>
+        )}
         {valor.motivo && (
           <div className="fb" aria-live="polite" style={{ display: "flex", gap: 10, margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12, background: T.bg }}>
             <Selo tam={20} />
