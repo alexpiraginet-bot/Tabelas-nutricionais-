@@ -449,6 +449,8 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Paçoca é seguro para alérgicos a amendoim.",
     "Todos esses servem para celíacos.",
     "O Paçoca e o Morango contêm amendoim.",                 // um dos dois não
+    "O Limão Siciliano contém pistache.",                    // "Pistache" é sabor E castanha
+    "O Morango contém avelã.",
   ]) assert.equal(fraseSegura(f, N), false, "passou: " + f);
   for (const f of [
     "O Pistache & Choco Branco contém leite.",
@@ -457,6 +459,8 @@ caso("alergia no texto: só citando o sabor e igual ao veredito do card; ausênc
     "O Limão Siciliano não leva leite, mas a produção é compartilhada.",
     "Sem o Pistache & Choco Branco, sobram outras opções.",   // "sem" + nome não é alegação
     "O Doce de Leite contém leite.",                         // o nome do sabor não conta como alérgico
+    "O Limão Siciliano não contém pistache.",
+    "O mix leva o Pistache e o Morango.",                    // com artigo, é o sabor citado
     "Para alergia grave, fale com a equipe antes de consumir.",
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
   // No streaming, a frase errada some e a certa segue.
