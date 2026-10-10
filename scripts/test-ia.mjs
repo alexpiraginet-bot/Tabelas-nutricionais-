@@ -223,6 +223,24 @@ caso("negação e efeito terapêutico: \"não é feito com leite\" confere inver
   ]) assert.equal(fraseSegura(f, N), true, "barrou: " + f);
 });
 
+caso("comparação de nutriente fica no card; status de loja confere com o que lojas_agora devolveu", () => {
+  const N = new Set();
+  for (const f of ["Pistache é o sabor com menos calorias.", "Limão Siciliano tem mais proteína que Paçoca.", "Ele tem mais proteína.", "O Morango é light."])
+    assert.equal(fraseSegura(f, N), false, "passou: " + f);
+  for (const f of ["Escolhi pelo que tem mais proteína por caloria; o card mostra o número.", "O Pistache é o mais pedido da casa."])
+    assert.equal(fraseSegura(f, N), true, "barrou: " + f);
+  // A ferramenta disse: Praia do Canto fechada, sem entrega; Jardim Camburi aberta, entregando e grátis.
+  const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: false }, { id: "jardim-camburi", aberta: true }],
+    entrega: [{ id: "praia-do-canto", entregando_agora: false, gratis: false }, { id: "jardim-camburi", entregando_agora: true, gratis: true }] } };
+  for (const f of ["A Praia do Canto está aberta agora.", "As duas lojas estão abertas.", "A entrega é grátis agora.", "A Praia do Canto está entregando agora."])
+    assert.equal(fraseSegura(f, N, lojas), false, "passou contra a ferramenta: " + f);
+  for (const f of ["A Praia do Canto está fechada agora, mas a Jardim Camburi está aberta.", "A Praia do Canto não está aberta agora.",
+    "Na Jardim Camburi a entrega é grátis agora.", "O pedido online mostra na hora se a entrega está disponível."])
+    assert.equal(fraseSegura(f, N, lojas), true, "barrou o que a ferramenta disse: " + f);
+  // Sem dados de entrega, nada de "grátis".
+  assert.equal(fraseSegura("A entrega é grátis agora.", N, { lojas: { ...lojas.lojas, entrega: null } }), false);
+});
+
 caso("resposta interrompida vai marcada no histórico (falha ou parada pelo cliente)", () => {
   const m = historicoParaMensagens([
     { papel: "cliente", texto: "quero proteína" },
