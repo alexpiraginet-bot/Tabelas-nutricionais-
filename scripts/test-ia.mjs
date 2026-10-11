@@ -387,7 +387,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e fecha às 19h.", N, lojas), true);
   // Com o card de lojas, só algarismo dentro de um horário completo escapa da política de número.
-  for (const f of ["Preço:50 reais.", "Proteína:20 g.", "São 6 litros de gelato.", "Na Praia do Canto, seu pedido fica pronto às 10h."]) assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
+  for (const f of ["Preço:50 reais.", "Proteína:20 g.", "São 6 litros de gelato.", "Na Praia do Canto, seu pedido fica pronto às 10h.",
+    "A Praia do Canto abre às 10h; seu pedido fica pronto às 19h."]) assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);   // a pista "abre" é de outra oração
+  assert.equal(fraseSegura("Horário da Praia do Canto: das 10h às 19h.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19:00.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto não fecha às 19h.", N, lojas), false, "o contrário do card passou");
   // Duas lojas coordenadas por "e" são um sujeito só: o horário tem de valer para as duas.

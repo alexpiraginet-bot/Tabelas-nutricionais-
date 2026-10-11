@@ -182,7 +182,9 @@ export function usePrendeFoco(ref){
       const focaveis=[...raiz.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
         .filter(el=>el.getClientRects().length>0&&!el.closest("[aria-hidden=true]"));
       if(!focaveis.length){e.preventDefault();return;}
-      const ativo=document.activeElement, dentro=raiz.contains(ativo);
+      // A raiz do modal recebe o foco ao abrir e não está em focaveis: conta
+      // como "antes do primeiro" (Shift+Tab vai ao último, Tab ao primeiro).
+      const ativo=document.activeElement, naRaiz=ativo===raiz, dentro=raiz.contains(ativo)&&!naRaiz;
       const primeiro=focaveis[0], ultimo=focaveis[focaveis.length-1];
       if(e.shiftKey){ if(!dentro||ativo===primeiro){e.preventDefault();ultimo.focus();} }
       else if(!dentro||ativo===ultimo){e.preventDefault();primeiro.focus();}
