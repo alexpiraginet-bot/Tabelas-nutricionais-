@@ -368,6 +368,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Nossa loja tem opções sem lactose.", { sabores: ["limao-siciliano", "extra-dark"] }],                          // nome neutro que oferece
     ["A Bentô tem opções veganas.", { sabores: ["extra-dark"] }],
     ["Minha recomendação é o Limão Siciliano, que não contém leite.", {}],                                           // nome neutro que apresenta
+    ["Na receita não vai leite.", { sabores: ["limao-siciliano"] }],                                                 // tópico da tela
+    ["No cone, o Limão Siciliano não contém leite.", {}],                                                            // tópico cede ao sujeito próprio
+    ["Para as crianças, esta opção é tranquila: não contém amendoim.", { sabores: ["limao-siciliano"] }],
+    ["Com proteína vegana e leite A2 integral, o Shake Açaí com Banana contém leite.", {}],                          // adjetivo colado no tópico não é predicado
+    ["Para celíacos, não contém glúten.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -509,6 +514,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Seu pedido sai sem leite.", { sabores: ["limao-siciliano"] }],
     ["Meu pedido e o Limão Siciliano não contêm leite.", {}],
     ["A loja é segura para alérgicos a leite.", { sabores: ["limao-siciliano"] }],
+    ["No cone, não contém leite.", { sabores: ["limao-siciliano"] }],                                                // tópico preposicionado estranho
+    ["Na casquinha não vai leite.", { sabores: ["limao-siciliano"] }],
+    ["Na calda não vai leite.", { sabores: ["limao-siciliano"] }],
+    ["No topping, não é vegano.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
