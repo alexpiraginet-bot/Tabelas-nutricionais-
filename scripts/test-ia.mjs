@@ -439,6 +439,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["A equipe confirma que o Limão Siciliano não contém leite.", {}],
     ["Vale dizer que não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Recomendo o Extra Dark, que é vegano.", {}],
+    ["O Limão Siciliano jamais poderia vir a ser feito com leite.", {}],                                            // negação atravessa a cadeia de auxiliares
+    ["O Limão Siciliano não vai acabar sendo feito com leite.", {}],
+    ["O Pistache jamais poderia vir a ser vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -669,6 +672,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Vai no cone, que não contém leite.", { sabores: ["limao-siciliano"] }],
     ["O Extra Dark vai no cone, que é vegano.", {}],
     ["O Extra Dark vai na casquinha, que não é feita com leite.", {}],
+    ["O Pistache jamais poderia vir a ser feito com leite.", {}],                                                   // cadeia de auxiliares: a negação chega ao predicado
+    ["O Pistache nunca vai chegar a ser feito com leite.", {}],
+    ["O Pistache não vai acabar sendo feito com leite.", {}],
+    ["Esta opção jamais poderia vir a ser feita com leite.", { sabores: ["pistache"] }],
+    ["O Extra Dark jamais poderia vir a ser vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -917,6 +925,23 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto estará aberta amanhã.", N, oferta(SIM, SIM)), false, "status em outro dia não se confere");
   assert.equal(fraseSegura("A Praia do Canto estará fechada amanhã.", N, todasFechadas), false);
   assert.equal(fraseSegura("A Jardim Camburi está fechada hoje e abre amanhã às 11h.", N, lojas), true);
+  // Entrega paga dita sem o nome da taxa confere com o grátis; sem o bloco, sai.
+  assert.equal(fraseSegura("A entrega é paga.", N, oferta(SIM, SIM)), false, "'é paga' com o totem grátis sai");
+  assert.equal(fraseSegura("A entrega é paga.", N, oferta({ ...SIM, gratis: false }, { ...SIM, gratis: false })), true);
+  assert.equal(fraseSegura("A entrega é paga.", N, {}), false, "sem a ferramenta, cobrança sai");
+  assert.equal(fraseSegura("O delivery é pago.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega tem cobrança.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega não é paga.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("A entrega é cobrada à parte.", N, oferta(SIM, SIM)), false);
+  // Fechada dita de outro jeito, só com loja na oração.
+  assert.equal(fraseSegura("A Praia do Canto está encerrada agora.", N, lojas), false, "'encerrada' com a loja aberta sai");
+  assert.equal(fraseSegura("A Praia do Canto está encerrada agora.", N, {}), false, "sem a ferramenta, status sai");
+  assert.equal(fraseSegura("A Jardim Camburi está encerrada agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto está fora de funcionamento.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto já fechou.", N, lojas), false);
+  assert.equal(fraseSegura("A Jardim Camburi já fechou por hoje.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto não está encerrada.", N, lojas), true);
+  assert.equal(fraseSegura("A pré-venda está encerrada.", N, lojas), true, "'encerrada' sem loja na oração não é status");
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
