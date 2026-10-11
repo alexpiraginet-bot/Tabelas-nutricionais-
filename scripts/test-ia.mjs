@@ -487,6 +487,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache sempre contém leite.", {}],
     ["O Limão Siciliano nunca contém leite.", {}],
     ["O Extra Dark é sempre vegano.", {}],
+    ["O Pistache foi feito com leite.", {}],                                                                       // pretérito perfeito descreve a receita atual
+    ["O Limão Siciliano continua sem leite.", {}],
+    ["O Extra Dark continua vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -819,6 +822,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esporadicamente, esta opção contém leite.", { sabores: ["pistache"] }],
     ["O Extra Dark dificilmente é vegano.", {}],
     ["O Extra Dark é vegano esporadicamente.", {}],
+    ["O Pistache era feito com leite.", {}],                                                                       // tempo que não é o de agora
+    ["O Pistache será feito com leite.", {}],
+    ["O Pistache vai ser feito com leite.", {}],
+    ["O Limão Siciliano era sem leite.", {}],
+    ["O Limão Siciliano passou a ser feito sem leite.", {}],
+    ["Esta opção era feita com leite.", { sabores: ["pistache"] }],
+    ["O Extra Dark era vegano.", {}],
+    ["O Extra Dark será vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1134,6 +1145,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto está operacional agora.", N, lojas), true);
   assert.equal(fraseSegura("A Jardim Camburi não está operacional agora.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto está operacional agora.", N, {}), false, "sem a ferramenta, status sai");
+  assert.equal(fraseSegura("A Jardim Camburi está em atendimento agora.", N, lojas), false, "'em atendimento' com a loja fechada sai");
+  assert.equal(fraseSegura("A Praia do Canto está em atendimento agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi não está em atendimento agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto está em atendimento agora.", N, {}), false);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
