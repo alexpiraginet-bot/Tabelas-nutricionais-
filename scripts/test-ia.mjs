@@ -413,10 +413,18 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Em relação ao Limão Siciliano, não contém leite.", {}],                                                       // introdutor composto com sabor
     ["Quanto a esse sabor, não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Em relação ao cone, o Limão Siciliano não contém leite.", {}],
-    ["Em geral, não contém leite.", { sabores: ["limao-siciliano"] }],                                              // locução adverbial não é tópico
-    ["No geral, os quatro não têm lactose.", { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }],
+    ["Em resumo, não contém leite.", { sabores: ["limao-siciliano"] }],                                             // locução adverbial não é tópico
     ["Em relação à alergia, não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Só um deles não contém leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],            // id repetido conta uma vez
+    ["O Pistache sempre contém leite.", {}],                                                                        // "sempre" afirma; frequência parcial sai
+    ["O Limão Siciliano nunca contém leite.", {}],
+    ["O Extra Dark é sempre vegano.", {}],
+    ["Esta opção: cacau 100%.", { sabores: ["extra-dark"] }],                                                       // título da tela dá o sujeito ao descritor
+    ["Extra Dark: cacau 100%.", {}],
+    ["Resposta curta: cacau 100%.", { sabores: ["extra-dark"] }],
+    ["Exatamente dois deles contêm leite.", { sabores: ["morango", "pistache"] }],                                  // contagem exata igual ao total
+    ["Dois deles contêm leite.", { sabores: ["morango", "pistache"] }],
+    ["Exatamente um deles é vegano.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -617,6 +625,22 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Quanto ao cone, é vegano.", { sabores: ["extra-dark"] }],
     ["Dois deles não contêm leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],             // id repetido não conta duas vezes
     ["Os dois não contêm leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],
+    ["O Pistache nem sempre contém leite.", {}],                                                                    // frequência é restrição: a ficha é incondicional
+    ["O Pistache raramente contém leite.", {}],
+    ["O Pistache contém leite ocasionalmente.", {}],
+    ["O Pistache quase sempre contém leite.", {}],
+    ["O Pistache geralmente contém leite.", {}],
+    ["Normalmente o Pistache contém leite.", {}],
+    ["O Pistache contém leite na maioria das vezes.", {}],
+    ["O Limão Siciliano nem sempre é livre de leite.", {}],
+    ["O Extra Dark nem sempre é vegano.", {}],
+    ["O Extra Dark é vegano na maioria das vezes.", {}],
+    ["Em geral, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["No geral, os quatro não têm lactose.", { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }],
+    ["Cone: cacau 100%.", { sabores: ["extra-dark"] }],                                                             // título estranho: o descritor não escapa da régua
+    ["Cobertura: cacau 100%.", { sabores: ["extra-dark"] }],
+    ["Exatamente dois deles contêm leite.", { sabores: ["morango", "limao-siciliano"] }],
+    ["Só dois deles contêm leite.", { sabores: ["morango", "pistache"] }],                                          // "só" pede sobra
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -753,6 +777,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Nem todas as lojas estão abertas agora.", N, todasFechadas), false);
   assert.equal(fraseSegura("Só uma das lojas está aberta agora.", N, lojas), true);
   assert.equal(fraseSegura("Só uma das lojas está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("Exatamente duas lojas estão abertas agora.", N, duas("10h às 19h", "11h às 19h")), true, "contagem exata igual ao total é verdade");
+  assert.equal(fraseSegura("Exatamente duas lojas estão abertas agora.", N, lojas), false);
+  assert.equal(fraseSegura("Exatamente uma loja está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("Só duas lojas estão abertas agora.", N, duas("10h às 19h", "11h às 19h")), false, "'só' pede sobra");
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, lojas), true);
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
   assert.equal(fraseSegura("No máximo uma das lojas está aberta agora.", N, lojas), true);
