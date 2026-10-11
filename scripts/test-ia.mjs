@@ -472,6 +472,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Nosso horário hoje é das 10h às 19h.", N, lojas), false, "a Jardim Camburi está fechada hoje");
   assert.equal(fraseSegura("A Jardim Camburi de forma alguma está aberta agora.", N, lojas), true, "negação idiomática nega");
   assert.equal(fraseSegura("A Praia do Canto de forma alguma está aberta agora.", N, lojas), false);
+  // "A outra loja" é a que a frase não nomeou; "a outra também/não" ecoa o status anterior.
+  assert.equal(fraseSegura("A Praia do Canto está aberta agora; a outra loja abre às 10h.", N, duas("10h às 19h", "11h às 19h")), false, "'a outra loja' é a Jardim Camburi, que abre às 11h");
+  assert.equal(fraseSegura("A Praia do Canto está aberta agora; a outra loja abre às 11h.", N, duas("10h às 19h", "11h às 19h")), true);
+  assert.equal(fraseSegura("A Praia do Canto está aberta agora; a outra está fechada.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi está fechada hoje; a outra abre às 10h.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi está fechada hoje; a outra também.", N, lojas), false, "a Praia do Canto está aberta");
+  assert.equal(fraseSegura("A Jardim Camburi está fechada hoje; a outra não.", N, lojas), true);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
