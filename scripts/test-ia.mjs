@@ -324,6 +324,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Temos uma opção vegana: o Extra Dark.", {}],
     ["Alergia a castanhas: evitar o Pistache e a Avelã.", {}],
     ["Quem tem alergia a castanhas deve evitar tudo com castanhas, como o Pistache.", {}],
+    ["O Shake Açaí com Banana contém leite; confirme com a equipe se o Shake Açaí com Banana leva whey.", {}],         // confirmação sobre o próprio shake
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -399,6 +400,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Quem tem alergia a castanhas deve evitá-lo; o Extra Dark evita cáries.", {}],
     ["Quem tem alergia a castanhas deve evitar o Pistache, mas o Extra Dark evita cáries.", {}],
     ["Quem tem alergia a castanhas deve evitar o Pistache; o Extra Dark melhora o humor.", {}],
+    ["O Shake Açaí com Banana contém leite; confirme com a equipe se o Pistache contém castanhas.", {}],              // confirmação presa a outro sabor
+    ["O Shake Açaí com Banana contém leite, confirme com a equipe se o Pistache tem castanhas.", {}],
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; confirme com a equipe se o Pistache contém castanhas.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -420,6 +424,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto e a Jardim Camburi abrem às 10h.", N, duas("10h às 19h", "10h às 19h")), true);
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e a Jardim Camburi abre às 11h.", N, duas("10h às 19h", "11h às 19h")), true);
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e a Jardim Camburi abre às 11h.", N, duas("10h às 19h", "10h às 19h")), false);
+  // Sujeito genérico ("as lojas", "abrimos") é todas as lojas, mesmo com outra oração nomeando uma.
+  assert.equal(fraseSegura("As lojas abrem às 10h; a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false, "a Jardim Camburi abre às 11h");
+  assert.equal(fraseSegura("As lojas abrem às 10h; a Praia do Canto está aberta agora.", N, duas("10h às 19h", "10h às 19h")), true);
+  assert.equal(fraseSegura("Abrimos às 10h; a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("As lojas estão abertas; a Praia do Canto fecha às 19h.", N, lojas), false, "a Jardim Camburi está fechada");
+  assert.equal(fraseSegura("A Praia do Canto está aberta agora; abre às 10h.", N, duas("10h às 19h", "11h às 19h")), true, "sem sujeito, a oração fala da loja citada");
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
