@@ -325,6 +325,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Alergia a castanhas: evitar o Pistache e a Avelã.", {}],
     ["Quem tem alergia a castanhas deve evitar tudo com castanhas, como o Pistache.", {}],
     ["O Shake Açaí com Banana contém leite; confirme com a equipe se o Shake Açaí com Banana leva whey.", {}],         // confirmação sobre o próprio shake
+    ["O Limão Siciliano não surpreende, mas não contém leite.", {}],                                                  // a negação de outra oração não entra
+    ["O Limão Siciliano nunca foi feito com leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -403,6 +405,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Shake Açaí com Banana contém leite; confirme com a equipe se o Pistache contém castanhas.", {}],              // confirmação presa a outro sabor
     ["O Shake Açaí com Banana contém leite, confirme com a equipe se o Pistache tem castanhas.", {}],
     ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; confirme com a equipe se o Pistache contém castanhas.", {}],
+    ["O Limão Siciliano não surpreende, mas contém leite.", {}],                                                      // "não surpreende" não nega "contém"
+    ["O Limão Siciliano não decepciona e contém leite.", {}],
+    ["O Morango não é um sabor feito com leite.", {}],                                                                // negação com nome genérico no meio
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -430,6 +435,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Abrimos às 10h; a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
   assert.equal(fraseSegura("As lojas estão abertas; a Praia do Canto fecha às 19h.", N, lojas), false, "a Jardim Camburi está fechada");
   assert.equal(fraseSegura("A Praia do Canto está aberta agora; abre às 10h.", N, duas("10h às 19h", "11h às 19h")), true, "sem sujeito, a oração fala da loja citada");
+  // Negação junto do predicado de status: "não só está aberta" e "não tem fila e está aberta" afirmam.
+  assert.equal(fraseSegura("A Praia do Canto não só está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi não só está aberta agora.", N, lojas), false, "'não só' afirma, e a Jardim Camburi está fechada");
+  assert.equal(fraseSegura("A Jardim Camburi não tem fila e está aberta agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto não tem fila e está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi não está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("Nenhuma loja está aberta agora.", N, lojas), false, "a Praia do Canto está aberta");
+  const todasFechadas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: false, hoje: "fechada hoje", abre: "amanhã às 10h", fecha_as: null }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
+  assert.equal(fraseSegura("Nenhuma loja está aberta agora.", N, todasFechadas), true);
+  assert.equal(fraseSegura("A Praia do Canto não está mais aberta.", N, todasFechadas), true);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
