@@ -780,6 +780,13 @@ async function evGeocode(text){
 export function EventosModal({onClose,convidadosInicial}){
   useModal(onClose);
   const raizModal=useRef(null); usePrendeFoco(raizModal);
+  // Foco entra no modal ao abrir e volta ao botão que o abriu ao fechar: só
+  // prender o Tab deixava o leitor de tela no controle escondido atrás.
+  useEffect(()=>{
+    const antes=document.activeElement;
+    try{raizModal.current&&raizModal.current.focus({preventScroll:true});}catch{/* */}
+    return()=>{try{antes&&typeof antes.focus==="function"&&antes.focus({preventScroll:true});}catch{/* */}};
+  },[]);
   useSemFlutuantes();
   const[step,setStep]=useState(1);
   const[ev,setEv]=useState(()=>{
@@ -980,7 +987,7 @@ export function EventosModal({onClose,convidadosInicial}){
   );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Nos leve para seu evento" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div ref={raizModal} className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div ref={raizModal} tabIndex={-1} className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,outline:"none"}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 4</div>
