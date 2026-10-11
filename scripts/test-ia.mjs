@@ -463,6 +463,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Separei esta opção; sendo assim, ela não contém leite.", { sabores: ["limao-siciliano"] }],
     ["O Limão Siciliano é leve; além disso, ele não contém leite.", {}],
     ["Recomendo o Extra Dark; por isso, ele é vegano.", {}],
+    ["Posso garantir que o Pistache contém leite.", {}],                                                           // moldura afirmativa segue
+    ["Não tem fila, e garanto que o Pistache contém leite.", {}],                                                  // a negação não é da moldura
+    ["O Pistache não leva amendoim e garanto que contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -731,6 +734,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano vem com uma cobertura; ou seja, ela não contém leite.", {}],
     ["O Extra Dark vem com uma cobertura; por isso, ela é vegana.", {}],
     ["O Extra Dark vem com uma cobertura; por isso, ela é cacau 100%.", {}],
+    ["Não se pode dizer que o Pistache contém leite.", {}],                                                        // moldura de relato negada: recusa a ficha
+    ["Não posso garantir que o Pistache contém leite.", {}],
+    ["Não dá para afirmar que o Pistache contém leite.", {}],
+    ["Não é certo que o Pistache contém leite.", {}],
+    ["Ninguém pode dizer que o Pistache contém leite.", {}],
+    ["Não sei se o Pistache contém leite.", {}],
+    ["Isso não quer dizer que o Pistache contém leite.", {}],
+    ["Não se pode dizer que o Limão Siciliano não contém leite.", {}],
+    ["Não se pode dizer que esta opção contém leite.", { sabores: ["pistache"] }],
+    ["Não posso garantir que o Extra Dark é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -983,6 +996,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A entrega é paga.", N, oferta(SIM, SIM)), false, "'é paga' com o totem grátis sai");
   assert.equal(fraseSegura("A entrega é paga.", N, oferta({ ...SIM, gratis: false }, { ...SIM, gratis: false })), true);
   assert.equal(fraseSegura("A entrega é paga.", N, {}), false, "sem a ferramenta, cobrança sai");
+  assert.equal(fraseSegura("A entrega é de graça.", N, {}), false, "sem a ferramenta, grátis dito de outro jeito sai");
+  assert.equal(fraseSegura("O frete é cortesia.", N, {}), false);
+  assert.equal(fraseSegura("A entrega sai por conta da casa.", N, {}), false);
+  assert.equal(fraseSegura("A entrega é de graça.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("O frete é cortesia.", N, oferta({ ...SIM, gratis: false }, { ...SIM, gratis: false })), false);
+  assert.equal(fraseSegura("O orçamento do evento sai por nossa conta.", N, {}), true, "sem entrega na oração não é promessa de frete");
   assert.equal(fraseSegura("O delivery é pago.", N, oferta(SIM, SIM)), false);
   assert.equal(fraseSegura("A entrega tem cobrança.", N, oferta(SIM, SIM)), false);
   assert.equal(fraseSegura("A entrega não é paga.", N, oferta(SIM, SIM)), true);
