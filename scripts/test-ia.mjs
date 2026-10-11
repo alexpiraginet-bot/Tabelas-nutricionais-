@@ -442,6 +442,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano jamais poderia vir a ser feito com leite.", {}],                                            // negação atravessa a cadeia de auxiliares
     ["O Limão Siciliano não vai acabar sendo feito com leite.", {}],
     ["O Pistache jamais poderia vir a ser vegano.", {}],
+    ["O Limão Siciliano é um gelato sem leite.", {}],                                                               // predicativo depois de cópula é o sujeito
+    ["O Limão Siciliano é uma opção sem leite.", {}],
+    ["Temos opções sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Para quem quer um sabor sem leite, o Limão Siciliano serve.", {}],
+    ["O Limão Siciliano, sem leite, vai bem no cone.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -677,6 +682,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache não vai acabar sendo feito com leite.", {}],
     ["Esta opção jamais poderia vir a ser feita com leite.", { sabores: ["pistache"] }],
     ["O Extra Dark jamais poderia vir a ser vegano.", {}],
+    ["Esta opção vem com um cone sem leite.", { sabores: ["limao-siciliano"] }],                                    // forma adjetiva qualifica o nome logo antes
+    ["O Limão Siciliano vem com um cone sem leite.", {}],
+    ["O Limão Siciliano vai no cone sem leite.", {}],
+    ["Pode pedir o Limão Siciliano com cobertura sem leite.", {}],
+    ["O Limão Siciliano vem com um cone artesanal sem leite.", {}],
+    ["O Limão Siciliano vem com um cone feito com leite.", {}],
+    ["O cone sem leite é ótimo.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
