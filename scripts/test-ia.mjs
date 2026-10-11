@@ -567,6 +567,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A entrega está disponível agora, mas não é grátis.", N, entrega(true, false)), true);
   assert.equal(fraseSegura("Estamos entregando agora, mas sem taxa.", N, entrega(true, false)), false);
   assert.equal(fraseSegura("A entrega está disponível agora, mas é grátis.", N, entrega(true, true)), true);
+  // Grátis dito de outro jeito e cobrança dita confere com o mesmo campo do totem.
+  assert.equal(fraseSegura("A entrega está sem custo agora.", N, entrega(true, false)), false, "'sem custo' é grátis");
+  assert.equal(fraseSegura("A entrega está sem custo agora.", N, entrega(true, true)), true);
+  assert.equal(fraseSegura("A entrega é de graça agora.", N, entrega(true, false)), false);
+  assert.equal(fraseSegura("A entrega fica por nossa conta agora.", N, entrega(true, false)), false);
+  assert.equal(fraseSegura("A entrega está disponível agora, mas sem custo.", N, entrega(true, false)), false);
+  assert.equal(fraseSegura("A entrega tem taxa agora.", N, entrega(true, true)), false, "'tem taxa' com o totem grátis sai");
+  assert.equal(fraseSegura("A entrega tem taxa agora.", N, entrega(true, false)), true);
+  assert.equal(fraseSegura("Não cobramos frete agora.", N, entrega(true, false)), false);
+  assert.equal(fraseSegura("Não cobramos frete agora.", N, entrega(true, true)), true);
   // Entrega sem loja nomeada na oração vale para todas as lojas; âncora ("dela") prende à loja da frase.
   const entregaMista = { lojas: { tipo: "lojas", lojas: LOJAS_IDS.map((id) => ({ id, aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" })), entrega: [{ id: "praia-do-canto", oferece_entrega: true, entregando_agora: true, gratis: false }, { id: "jardim-camburi", oferece_entrega: true, entregando_agora: false, gratis: false }] } };
   assert.equal(fraseSegura("As entregas estão disponíveis agora; a Praia do Canto está aberta.", N, entregaMista), false, "a Jardim Camburi não está entregando");
