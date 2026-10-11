@@ -459,6 +459,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano vem num potinho; ele não contém leite.", {}],
     ["Recomendo o Extra Dark; ele é vegano.", {}],
     ["Posso garantir que o Extra Dark é cacau 100%.", {}],                                                          // completiva com o sabor como sujeito do descritor
+    ["Recomendo o Limão Siciliano; por isso, ele não contém leite.", {}],                                           // conectivo antes do pronome
+    ["Separei esta opção; sendo assim, ela não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano é leve; além disso, ele não contém leite.", {}],
+    ["Recomendo o Extra Dark; por isso, ele é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -721,6 +725,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Posso garantir que o cone é cacau 100%.", { sabores: ["extra-dark"] }],
     ["A cobertura do Extra Dark é cacau 100%.", {}],
     ["O Extra Dark vem com uma cobertura; ela é cacau 100%.", {}],
+    ["Esta opção vem com uma cobertura; por isso, ela não contém leite.", { sabores: ["limao-siciliano"] }],       // conectivo de mais de uma palavra não esconde o antecedente
+    ["O Limão Siciliano vem com uma cobertura, portanto ela não contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura, o que significa que ela não contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura; ou seja, ela não contém leite.", {}],
+    ["O Extra Dark vem com uma cobertura; por isso, ela é vegana.", {}],
+    ["O Extra Dark vem com uma cobertura; por isso, ela é cacau 100%.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1000,6 +1010,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto estará aberta até as 19h.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto estará aberta até as 20h.", N, lojas), false);
   assert.equal(fraseSegura("A Praia do Canto continua aberta.", N, lojas), true);
+  // Dia da semana recorrente ("aos sábados", "todo sábado", "de segunda a sexta") é período que o bloco não cobre.
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h somente aos sábados.", N, lojas), false, "escala semanal não está no bloco");
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h às segundas-feiras.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h todos os sábados.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h de segunda a sexta.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto está aberta aos domingos.", N, lojas), false);
+  assert.equal(fraseSegura("A entrega é grátis aos sábados.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h hoje.", N, lojas), true);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
