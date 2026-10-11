@@ -481,6 +481,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta não contém leite.", { sabores: ["limao-siciliano"] }],                                                  // sem antecedente na frase, o card é o sujeito
     ["O Extra Dark é sempre cacau 100%.", {}],
     ["O Extra Dark continua cacau 100%.", {}],
+    ["O Limão Siciliano é a segunda opção sem leite.", {}],                                                       // ordinal não é dia da semana
+    ["A segunda opção não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Hoje o Limão Siciliano não contém leite.", {}],
+    ["O Pistache sempre contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -797,6 +801,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark nem sempre é cacau 100%.", {}],
     ["Não posso garantir que o Extra Dark é cacau 100%.", {}],
     ["Esta opção talvez seja cacau 100%.", { sabores: ["extra-dark"] }],
+    ["O Pistache contém leite apenas aos sábados.", {}],                                                           // calendário na alegação
+    ["O Extra Dark é vegano apenas aos sábados.", {}],
+    ["O Pistache contém leite de segunda a sexta.", {}],
+    ["Aos domingos o Limão Siciliano não contém leite.", {}],
+    ["O Extra Dark é vegano só no verão.", {}],
+    ["O Pistache contém leite nos feriados.", {}],
+    ["O Limão Siciliano não contém leite nesta semana.", {}],
+    ["Esta opção não contém leite aos sábados.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1101,6 +1113,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Jardim Camburi ainda não abriu.", N, lojas), true);
   assert.equal(fraseSegura("A Jardim Camburi abre agora.", N, {}), false, "sem a ferramenta, status sai");
   assert.equal(fraseSegura("A Jardim Camburi já abriu.", N, {}), false);
+  assert.equal(fraseSegura("A Jardim Camburi funciona agora.", N, lojas), false, "'funciona agora' com a loja fechada sai");
+  assert.equal(fraseSegura("A Jardim Camburi não funciona agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto funciona agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto não funciona agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto funciona agora.", N, {}), false, "sem a ferramenta, status sai");
+  assert.equal(fraseSegura("A Praia do Canto funciona das 10h às 19h.", N, lojas), true);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
