@@ -425,6 +425,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Exatamente dois deles contêm leite.", { sabores: ["morango", "pistache"] }],                                  // contagem exata igual ao total
     ["Dois deles contêm leite.", { sabores: ["morango", "pistache"] }],
     ["Exatamente um deles é vegano.", { sabores: ["extra-dark"] }],
+    ["Metade deles não contém leite.", { sabores: ["pistache", "morango", "limao-siciliano", "maracuja"] }],         // proporção confere a conta
+    ["A maioria contém leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Quase todos contêm leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Alguns não contêm leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Um terço deles não contém leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Metade deles é vegana.", { sabores: ["extra-dark", "pistache"] }],
+    ["A maioria não é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -641,6 +648,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Cobertura: cacau 100%.", { sabores: ["extra-dark"] }],
     ["Exatamente dois deles contêm leite.", { sabores: ["morango", "limao-siciliano"] }],
     ["Só dois deles contêm leite.", { sabores: ["morango", "pistache"] }],                                          // "só" pede sobra
+    ["Metade deles contém leite.", { sabores: ["pistache", "morango"] }],                                           // proporção: os dois contêm
+    ["A maioria contém leite.", { sabores: ["pistache", "morango"] }],
+    ["A minoria contém leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Alguns deles contêm leite.", { sabores: ["pistache", "morango"] }],
+    ["Poucos contêm leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
+    ["Metade deles é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
+    ["A maioria é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -781,6 +795,18 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Exatamente duas lojas estão abertas agora.", N, lojas), false);
   assert.equal(fraseSegura("Exatamente uma loja está aberta agora.", N, lojas), true);
   assert.equal(fraseSegura("Só duas lojas estão abertas agora.", N, duas("10h às 19h", "11h às 19h")), false, "'só' pede sobra");
+  assert.equal(fraseSegura("Metade das lojas está aberta agora.", N, lojas), true, "proporção no status");
+  assert.equal(fraseSegura("Metade das lojas está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  // Futuro ou modal sem data só confere com a próxima abertura do bloco.
+  const fechadaHoje = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: false, hoje: "10h às 19h", abre: "hoje às 10h", fecha_as: null }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
+  assert.equal(fraseSegura("A Praia do Canto abrirá às 10h.", N, lojas), false, "loja já aberta: o horário de hoje não sustenta abertura futura");
+  assert.equal(fraseSegura("A Praia do Canto vai abrir às 10h.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto pode abrir às 10h.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto vai abrir às 10h.", N, fechadaHoje), true, "abre hoje às 10h: a abertura futura é a do bloco");
+  assert.equal(fraseSegura("A Praia do Canto vai abrir às 11h.", N, fechadaHoje), false);
+  assert.equal(fraseSegura("A Jardim Camburi vai abrir amanhã às 11h.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto vai fechar às 19h.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto vai fechar às 20h.", N, lojas), false);
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, lojas), true);
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
   assert.equal(fraseSegura("No máximo uma das lojas está aberta agora.", N, lojas), true);
