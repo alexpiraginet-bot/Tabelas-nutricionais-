@@ -331,6 +331,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Com whey ou leite A2 integral, o Shake Açaí com Banana contém leite.", {}],
     ["O Pistache não é vegano e o Extra Dark é vegano.", {}],                                                         // " e " + sabor depois de afirmação abre oração
     ["O Extra Dark é vegano e o Pistache não.", {}],
+    ["O Limão Siciliano de forma alguma contém leite.", {}],                                                          // negação idiomática
+    ["Não, o Morango contém leite.", {}],                                                                             // "não" interjeição afirma
+    ["O Pistache nunca foi vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -417,6 +420,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Com whey ou proteína vegana, o Shake Açaí com Banana contém lactose.", {}],
     ["O Pistache deixou de ser vegano e o Limão Siciliano é vegano.", {}],                                           // a segunda afirmação também confere
     ["O Extra Dark é vegano e o Pistache também.", {}],
+    ["O Morango de forma alguma contém leite.", {}],                                                                  // negação idiomática
+    ["O Morango em hipótese alguma contém leite.", {}],
+    ["De forma alguma o Morango contém leite.", {}],
+    ["O Extra Dark nunca foi vegano.", {}],
+    ["Nem mesmo o Extra Dark é vegano.", {}],
+    ["Com água ou leite de amêndoas, o Shake Açaí com Banana contém castanhas.", {}],                                // o ramo da água não tem castanha
+    ["Com água ou leite de amêndoas, o Shake Açaí com Banana não contém castanhas.", {}],
+    ["Com whey comum ou whey zero lactose, o Shake Açaí com Banana contém lactose.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -459,6 +470,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("O horário de funcionamento da Praia do Canto é das 10h às 19h.", N, lojas), true);
   assert.equal(fraseSegura("O horário da Praia do Canto é 10h às 19h.", N, lojas), true);
   assert.equal(fraseSegura("Nosso horário hoje é das 10h às 19h.", N, lojas), false, "a Jardim Camburi está fechada hoje");
+  assert.equal(fraseSegura("A Jardim Camburi de forma alguma está aberta agora.", N, lojas), true, "negação idiomática nega");
+  assert.equal(fraseSegura("A Praia do Canto de forma alguma está aberta agora.", N, lojas), false);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
@@ -838,6 +851,7 @@ caso("açúcar e vegano negam por padrão: paráfrase sai, vegano só o que data
     "Extra Dark não possui adição de açúcar.",               // paráfrase da forma aprovada
     "Extra Dark não recebe açúcar na receita.",
     "O Extra Dark tem pouco açúcar.",
+    "O Extra Dark nunca leva açúcar.",
     "Pistache é vegano.",                                    // contém leite
     "Pistache é adequado para veganos.",
     "O Extra Dark e o Pistache são veganos.",
