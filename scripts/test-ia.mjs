@@ -383,6 +383,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Dois deles não contêm leite.", { sabores: ["limao-siciliano", "maracuja", "pistache"] }],
     ["Só um deles é vegano.", { sabores: ["extra-dark", "pistache"] }],
     ["Só o Extra Dark é vegano.", { sabores: ["extra-dark", "pistache", "morango"] }],
+    ["É falso que esta opção contém leite.", { sabores: ["limao-siciliano"] }],                                     // moldura de falsidade nega o predicado
+    ["É falso que esta opção não contém leite.", { sabores: ["pistache"] }],
+    ["É falso que o Pistache seja vegano.", {}],
+    ["No máximo um deles contém leite.", { sabores: ["limao-siciliano", "pistache"] }],                              // cardinalidade com limite
+    ["Pelo menos um deles contém leite.", { sabores: ["morango", "pistache"] }],
+    ["Mais de um deles contém leite.", { sabores: ["morango", "pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -542,6 +548,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
     ["Só o Limão Siciliano não contém leite.", {}],                                                                  // no catálogo, outros também não têm
     ["Só o Pistache é vegano.", { sabores: ["extra-dark", "pistache"] }],
+    ["É falso que esta opção contém leite.", { sabores: ["pistache"] }],                                             // a falsidade nega: Pistache contém
+    ["É falso que o Extra Dark seja vegano.", {}],
+    ["É falso que esta opção seja indicada para alérgicos a leite.", { sabores: ["limao-siciliano"] }],
+    ["No máximo um deles contém leite.", { sabores: ["morango", "pistache"] }],                                      // dois com leite: o limite é falso
+    ["Até um deles contém leite.", { sabores: ["morango", "pistache"] }],
+    ["Pelo menos um deles contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
+    ["Menos de dois deles contêm leite.", { sabores: ["morango", "pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -680,6 +693,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Só uma das lojas está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, lojas), true);
   assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("No máximo uma das lojas está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("No máximo uma das lojas está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("É falso que a Praia do Canto esteja aberta agora.", N, lojas), false, "a falsidade nega o status");
+  assert.equal(fraseSegura("É falso que a Praia do Canto abra às 10h.", N, lojas), false);
+  assert.equal(fraseSegura("É falso que a entrega esteja disponível agora.", N, entrega(true, false)), false);
   assert.equal(fraseSegura("Nem todas as lojas abrem às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
   assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
   assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "10h às 19h")), false);
