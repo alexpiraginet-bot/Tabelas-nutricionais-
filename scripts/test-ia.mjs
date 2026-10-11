@@ -285,6 +285,18 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
+  // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
+  const meia = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h30 às 19h45", abre: null, fecha_as: "19h45" }], entrega: null } };
+  for (const f of ["A Praia do Canto fecha às 19h45.", "A Praia do Canto fecha às 19:45.", "A Praia do Canto abre às 10h30 e fecha às 19h45."]) assert.equal(fraseSegura(f, N, meia), true, "barrou: " + f);
+  for (const f of ["A Praia do Canto fecha às 19:59.", "A Praia do Canto fecha às 19h.", "A Praia do Canto abre às 10h."]) assert.equal(fraseSegura(f, N, meia), false, "passou: " + f);
+  // Exceção com cards: o "todos" é o resto dos cards, não só a exceção; sem card nem linha, não há o que conferir.
+  assert.equal(fraseSegura("Todos têm leite, menos o Limão Siciliano.", N, { sabores: ["limao-siciliano", "maracuja"] }), false, "Maracujá também não tem leite");
+  assert.equal(fraseSegura("Todos têm leite, menos o Limão Siciliano e o Maracujá.", N, { sabores: ["limao-siciliano", "maracuja", "pistache"] }), true);
+  assert.equal(fraseSegura("Todos têm leite, menos o Limão Siciliano.", N), false, "sem card e sem linha: 'todos' não se confere");
+  assert.equal(fraseSegura("Todos os gelatos têm leite, menos o Limão Siciliano.", N), false, "Maracujá e Extra Dark também não têm");
+  // Condição com dois alérgicos: os dois entram na afirmação.
+  assert.equal(fraseSegura("Estas opções servem para alérgicos a amendoim e leite.", N, { sabores: ["morango"] }), false, "Morango tem leite");
+  assert.equal(fraseSegura("Estas opções servem para alérgicos a amendoim e leite.", N, { sabores: ["limao-siciliano"] }), true);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
