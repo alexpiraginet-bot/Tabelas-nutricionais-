@@ -291,6 +291,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção não é vegana.", { sabores: ["pistache"] }],
     ["O Pistache não é considerado vegano.", {}],
     ["Com whey, o Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],
+    ["O Shake Açaí com Banana contém lactose com whey comum e leite A2 integral.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -332,6 +333,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Essas opções são isentas de lácteos.", { sabores: ["morango"] }],
     ["Esta opção não é só vegana.", { sabores: ["pistache"] }],                                                       // "não é só" afirma vegano
     ["O Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],                                      // sem whey/leite A2 nomeado: com a vegana e água não é verdade
+    ["O Shake Açaí com Banana contém lactose com whey zero lactose e água.", {}],                                   // whey zero lactose não é prova de lactose
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -341,6 +343,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     "A Praia do Canto abre às 10h e reabre às 19h."])                          // "reabre" é abertura, e o card não tem abertura às 19h
     assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e fecha às 19h.", N, lojas), true);
+  // Com o card de lojas, só algarismo dentro de um horário completo escapa da política de número.
+  for (const f of ["Preço:50 reais.", "Proteína:20 g.", "São 6 litros de gelato."]) assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
+  assert.equal(fraseSegura("A Praia do Canto fecha às 19:00.", N, lojas), true);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
