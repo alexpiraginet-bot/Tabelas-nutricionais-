@@ -285,6 +285,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     // Escolhas do shake na oração da afirmação; a confirmação pode vir na outra.
     ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; confirme com a equipe.", {}],
     ["O Pistache foi preparado com leite.", {}],
+    // Alérgico solto e vegano com o card como sujeito; "contém leite" do shake só com whey/leite A2 nomeado.
+    ["Esta opção leva um toque de leite.", { sabores: ["pistache"] }],
+    ["Essas opções são sem lactose.", { sabores: ["limao-siciliano", "maracuja"] }],
+    ["Esta opção não é vegana.", { sabores: ["pistache"] }],
+    ["O Pistache não é considerado vegano.", {}],
+    ["Com whey, o Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -320,6 +326,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Shake Açaí com Banana contém leite; com whey fica mais cremoso.", {}],                                      // o whey não qualifica a afirmação da outra oração
     ["O Pistache deixou de ser preparado com leite.", {}],                                                           // cessação: a composição citada é a que saiu
     ["O Pistache parou de levar um toque de leite.", {}],
+    ["Esta opção dispensa leite.", { sabores: ["morango"] }],                                                        // forma não reconhecida com o card como sujeito: Morango tem leite
+    ["Essas opções abrem mão do leite.", { sabores: ["morango", "pistache"] }],
+    ["Esta opção leva um toque de leite.", { sabores: ["limao-siciliano"] }],
+    ["Essas opções são isentas de lácteos.", { sabores: ["morango"] }],
+    ["Esta opção não é só vegana.", { sabores: ["pistache"] }],                                                       // "não é só" afirma vegano
+    ["O Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],                                      // sem whey/leite A2 nomeado: com a vegana e água não é verdade
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
