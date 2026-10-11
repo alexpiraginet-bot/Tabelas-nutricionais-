@@ -410,6 +410,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Entre os três, só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "pistache", "morango"] }], // partitivo: o conjunto, não o sujeito
     ["Entre eles, só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "pistache", "morango"] }],
     ["Dos três, só o Extra Dark é vegano.", { sabores: ["extra-dark", "pistache", "morango"] }],
+    ["Em relação ao Limão Siciliano, não contém leite.", {}],                                                       // introdutor composto com sabor
+    ["Quanto a esse sabor, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Em relação ao cone, o Limão Siciliano não contém leite.", {}],
+    ["Em geral, não contém leite.", { sabores: ["limao-siciliano"] }],                                              // locução adverbial não é tópico
+    ["No geral, os quatro não têm lactose.", { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }],
+    ["Em relação à alergia, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Só um deles não contém leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],            // id repetido conta uma vez
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -602,6 +609,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Evite o Pistache, a menos que peça sem castanhas.", {}],
     ["O Extra Dark é vegano só na versão sem cobertura.", {}],
     ["O Extra Dark só é vegano se pedir sem cobertura.", {}],
+    ["Em relação ao cone, não contém leite.", { sabores: ["limao-siciliano"] }],                                    // introdutor composto mantém o sujeito estranho
+    ["Quanto ao cone, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Com relação ao cone, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["No caso do cone, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Falando do cone, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Quanto ao cone, é vegano.", { sabores: ["extra-dark"] }],
+    ["Dois deles não contêm leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],             // id repetido não conta duas vezes
+    ["Os dois não contêm leite.", { sabores: ["limao-siciliano", "pistache", "limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
