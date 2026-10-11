@@ -454,6 +454,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Posso garantir que o Extra Dark é vegano.", {}],
     ["Se você for alérgico a leite, o Limão Siciliano não contém leite.", {}],                                      // condição sobre a pessoa antes da afirmação
     ["Para quem tem alergia a leite, o Limão Siciliano não contém leite.", {}],
+    ["Recomendo o Limão Siciliano; ele não contém leite.", {}],                                                     // pronome retoma o sabor
+    ["Separei esta opção; ela não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano vem num potinho; ele não contém leite.", {}],
+    ["Recomendo o Extra Dark; ele é vegano.", {}],
+    ["Posso garantir que o Extra Dark é cacau 100%.", {}],                                                          // completiva com o sabor como sujeito do descritor
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -708,6 +713,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Se pedir sem cobertura, o Limão Siciliano não contém leite.", {}],
     ["Somente se for servido no pote, o Extra Dark é vegano.", {}],
     ["Dependendo da versão, o Pistache contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura; ela não contém leite.", {}],                                         // pronome retoma a cobertura, não o sabor
+    ["O Limão Siciliano vem com uma cobertura e ela não contém leite.", {}],
+    ["Esta opção vem com um cone; ele não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Extra Dark vem com uma cobertura; ela é vegana.", {}],
+    ["O Extra Dark vai no cone, que é cacau 100%.", {}],                                                            // descritor com sujeito local estranho
+    ["Posso garantir que o cone é cacau 100%.", { sabores: ["extra-dark"] }],
+    ["A cobertura do Extra Dark é cacau 100%.", {}],
+    ["O Extra Dark vem com uma cobertura; ela é cacau 100%.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -973,6 +986,20 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Jardim Camburi já fechou por hoje.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto não está encerrada.", N, lojas), true);
   assert.equal(fraseSegura("A pré-venda está encerrada.", N, lojas), true, "'encerrada' sem loja na oração não é status");
+  // Quantificador na entrega confere com a contagem das lojas; status em tempo que o bloco não cobre sai.
+  assert.equal(fraseSegura("Só uma das lojas oferece entrega.", N, oferta(SIM, SIM)), false, "'só uma' com as duas oferecendo sai");
+  assert.equal(fraseSegura("Só uma das lojas oferece entrega.", N, oferta(SIM, NAO)), true);
+  assert.equal(fraseSegura("Exatamente uma loja oferece entrega.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("Metade das lojas oferece entrega.", N, oferta(SIM, NAO)), true);
+  assert.equal(fraseSegura("Metade das lojas oferece entrega.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("Nem todas as lojas oferecem entrega.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("Nem todas as lojas oferecem entrega.", N, oferta(SIM, NAO)), true);
+  assert.equal(fraseSegura("A Praia do Canto estava aberta.", N, lojas), false, "passado não é o que o bloco diz");
+  assert.equal(fraseSegura("A Praia do Canto ficará aberta.", N, lojas), false, "futuro sem hora verificada sai");
+  assert.equal(fraseSegura("A Jardim Camburi ficará fechada.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto estará aberta até as 19h.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto estará aberta até as 20h.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto continua aberta.", N, lojas), true);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
