@@ -598,6 +598,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto abre às dez e fecha às sete da noite.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto abre às onze.", N, {}), false, "sem o card, hora por extenso é número como outro qualquer");
   assert.equal(fraseSegura("Para um evento ao meio-dia, sugiro a caixa térmica.", N, {}), true, "sem contexto de horário fica como está");
+  // A pista antes da hora também para no subordinador; vírgula + coordenação mantém a elipse de loja.
+  assert.equal(fraseSegura("A Praia do Canto abre quando seu pedido fica pronto às 10h.", N, lojas), false, "o 'abre' antes do 'quando' não governa o 10h");
+  assert.equal(fraseSegura("A Praia do Canto avisa que abre às 10h.", N, lojas), true);
+  assert.equal(fraseSegura("Hoje, a Praia do Canto abre às 10h.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h e fecha às 19h.", N, lojas), true);
   // Oração coordenada precisa da própria pista de horário; a elipse de loja herda o verbo.
   assert.equal(fraseSegura("A Praia do Canto abre às 10h, e seu pedido fica pronto às 19h.", N, lojas), false, "a coordenada não empresta o 'abre'");
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e seu pedido fica pronto às 19h.", N, lojas), false);
