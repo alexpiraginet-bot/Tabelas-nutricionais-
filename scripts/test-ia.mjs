@@ -293,6 +293,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Com whey, o Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],
     ["O Shake Açaí com Banana contém lactose com whey comum e leite A2 integral.", {}],
     ["Para alergia grave, não deixe de confirmar com a equipe.", {}],                                                 // dupla negação é afirmação
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; fale com a equipe antes de pedir.", {}],  // contato com propósito de conferir
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; pergunte à equipe sobre a proteína.", {}],
+    ["Se tiver alergia, pode falar com a equipe antes.", {}],                                                          // conversa com moldura de conselho
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -338,6 +341,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Para alergia grave, não fale com a equipe.", {}],                                                               // mandar não falar com a equipe em frase de alergia sai
     ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; não precisa confirmar com a equipe.", {}],
     ["Para alergia a amendoim, o Limão Siciliano serve e você nem precisa perguntar à equipe.", {}],
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; avise a equipe que vai pedir.", {}],      // contato sem conferir nada
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; mande mensagem para a equipe.", {}],
+    ["O Shake Açaí com Banana contém leite; avise a equipe.", {}],
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; fale com a equipe sobre o horário.", {}],  // conversa sobre outra coisa
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
