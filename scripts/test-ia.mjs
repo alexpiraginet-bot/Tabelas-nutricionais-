@@ -269,6 +269,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     // "Sensibilidade a leite" é condição como "alergia a leite".
     ["O Limão Siciliano serve para quem tem sensibilidade a leite.", {}],
     ["Quem tem sensibilidade a leite deve evitar o Morango.", {}],
+    // Nome + referência às opções da tela: os dois juntos são o sujeito; sem a
+    // referência, vale o nome; numeral igual à contagem de nomes é dos nomes.
+    ["Assim como o Limão Siciliano, estas opções não levam leite.", { sabores: ["maracuja", "extra-dark"] }],
+    ["Só o Limão Siciliano, o Maracujá e o Extra Dark não levam leite.", { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }],
+    ["Esses dois, Limão Siciliano e Maracujá, não levam leite.", { sabores: ["morango"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -291,6 +296,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Shake Frutas Vermelhas não contém leite com proteína vegana e água; confirme com a equipe.", {}],            // esse shake não tem a vegana
     ["O Morango serve para quem tem sensibilidade a leite.", {}],                                                      // Morango contém leite
     ["Para quem tem sensibilidade a lactose, o Pistache é tranquilo.", {}],
+    ["Assim como o Limão Siciliano, estas opções não levam leite.", { sabores: ["morango"] }],                        // "estas opções" é o card, e o Morango tem leite
+    ["Assim como o Extra Dark, essas opções são veganas.", { sabores: ["pistache"] }],
+    ["Assim como o Extra Dark, essas opções são cacau 100%.", { sabores: ["pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -307,6 +315,22 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   // Papel certo: 19h45 é fechamento, 10h30 é abertura.
   for (const f of ["A Praia do Canto abre às 19h45.", "A Praia do Canto fecha às 10h30.", "A Praia do Canto fica aberta até as 10h30."]) assert.equal(fraseSegura(f, N, meia), false, "passou: " + f);
   for (const f of ["A Praia do Canto funciona das 10h30 às 19h45.", "A Praia do Canto fica aberta até as 19h45.", "Hoje a Praia do Canto abre às 10h30 e fecha às 19h45."]) assert.equal(fraseSegura(f, N, meia), true, "barrou: " + f);
+  // Dia certo: hora com "amanhã" ou dia da semana só confere com a próxima abertura do bloco, no dia dela.
+  const fechada = (abre, hoje = "10h às 19h") => ({ lojas: { tipo: "lojas", lojas: [{ id: "jardim-camburi", aberta: false, hoje, abre, fecha_as: null }], entrega: null } });
+  for (const [f, b] of [
+    ["A Jardim Camburi abre amanhã às 8h.", fechada("amanhã às 8h")], ["A Jardim Camburi abre às 8h.", fechada("amanhã às 8h")],
+    ["A Jardim Camburi fechou às 19h; abre amanhã às 8h.", fechada("amanhã às 8h")], ["A Jardim Camburi abriu hoje às 10h e fechou às 19h.", fechada("amanhã às 8h")],
+    ["A Jardim Camburi abre hoje às 10h.", fechada("hoje às 10h")], ["A Jardim Camburi abre na segunda-feira, às 11h.", fechada("segunda às 11h", "fechada hoje")],
+    ["A Jardim Camburi abre às 11h de amanhã.", fechada("amanhã às 11h", "fechada hoje")],
+  ]) assert.equal(fraseSegura(f, N, b), true, "barrou: " + f);
+  for (const [f, b] of [
+    ["A Jardim Camburi abre amanhã às 10h.", fechada("amanhã às 8h")],            // 10h é o horário de hoje, não o de amanhã
+    ["A Jardim Camburi abre segunda às 8h.", fechada("amanhã às 8h")],            // dia errado
+    ["Amanhã a Jardim Camburi fecha às 19h.", fechada("amanhã às 8h")],           // o bloco não diz o fechamento de amanhã
+    ["A Jardim Camburi abre amanhã às 10h.", fechada("hoje às 10h")],
+    ["A Jardim Camburi abre amanhã.", fechada("segunda às 11h", "fechada hoje")], // sem hora, o dia também tem de bater
+    ["A Jardim Camburi abre às 10h de amanhã.", fechada("amanhã às 11h", "fechada hoje")],
+  ]) assert.equal(fraseSegura(f, N, b), false, "passou: " + f);
   // Descritor com número do catálogo só no sabor que o tem.
   assert.equal(fraseSegura("O Pistache é cacau 100%.", N), false, "cacau 100% é do Extra Dark, não do Pistache");
   assert.equal(fraseSegura("O Extra Dark é cacau intenso 100%.", N), true);
