@@ -466,6 +466,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Posso garantir que o Pistache contém leite.", {}],                                                           // moldura afirmativa segue
     ["Não tem fila, e garanto que o Pistache contém leite.", {}],                                                  // a negação não é da moldura
     ["O Pistache não leva amendoim e garanto que contém leite.", {}],
+    ["Temos sabor sem leite.", { sabores: ["limao-siciliano"] }],                                                   // nome sem artigo que é produto/tela segue
+    ["Separei sabores sem leite.", { sabores: ["limao-siciliano"] }],
+    ["O Extra Dark é um gelato vegano.", {}],                                                                       // predicativo depois de cópula
+    ["O Extra Dark é o sabor vegano da casa.", {}],
+    ["Temos uma opção vegana.", { sabores: ["extra-dark"] }],
+    ["Temos sabor vegano.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -744,6 +750,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Não se pode dizer que o Limão Siciliano não contém leite.", {}],
     ["Não se pode dizer que esta opção contém leite.", { sabores: ["pistache"] }],
     ["Não posso garantir que o Extra Dark é vegano.", {}],
+    ["Esta opção inclui cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                   // nome sem artigo em posição de objeto
+    ["O Limão Siciliano inclui cobertura sem leite.", {}],
+    ["O Limão Siciliano acompanha cone sem leite.", {}],
+    ["O Limão Siciliano traz calda sem leite.", {}],
+    ["O Extra Dark inclui um cone vegano.", {}],                                                                    // vegano preso ao nome de objeto
+    ["O Extra Dark inclui cone vegano.", {}],
+    ["O Extra Dark vem com uma cobertura vegana.", {}],
+    ["O Extra Dark acompanha calda vegana.", {}],
+    ["Esta opção inclui um cone vegano.", { sabores: ["extra-dark"] }],
+    ["O Extra Dark vai no cone vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
