@@ -475,6 +475,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache com certeza contém leite.", {}],                                                                  // certeza não é incerteza
     ["O Pistache deve ser evitado por quem tem alergia a leite.", {}],                                             // "deve ser evitado" não é "deve conter"
     ["Temos sabor sem leite; ele é o Limão Siciliano.", { sabores: ["limao-siciliano"] }],
+    ["Recomendo o Limão Siciliano; este não contém leite.", {}],                                                   // demonstrativo retoma o sabor
+    ["Separei esta opção; esta não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano está sem leite.", {}],                                                                     // "está" verbo segue
+    ["Esta não contém leite.", { sabores: ["limao-siciliano"] }],                                                  // sem antecedente na frase, o card é o sujeito
+    ["O Extra Dark é sempre cacau 100%.", {}],
+    ["O Extra Dark continua cacau 100%.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -778,6 +784,19 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Provavelmente esta opção contém leite.", { sabores: ["pistache"] }],
     ["O Extra Dark provavelmente é vegano.", {}],
     ["O Extra Dark pode ser vegano.", {}],
+    ["Esta opção tem uma cobertura; esta não contém leite.", { sabores: ["limao-siciliano"] }],                    // "esta" demonstrativo retoma a cobertura
+    ["O Limão Siciliano vem com uma cobertura e esta não contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura; por isso, esta não contém leite.", {}],
+    ["O Extra Dark vem com uma cobertura; esta é vegana.", {}],
+    ["O Extra Dark vem com uma cobertura; esta é cacau 100%.", {}],
+    ["O Extra Dark é cacau 100% somente na versão tradicional.", {}],                                             // qualificador no descritor
+    ["Só na versão tradicional, o Extra Dark é cacau 100%.", {}],
+    ["O Extra Dark talvez seja cacau 100%.", {}],
+    ["O Extra Dark será cacau 100%.", {}],
+    ["O Extra Dark era cacau 100%.", {}],
+    ["O Extra Dark nem sempre é cacau 100%.", {}],
+    ["Não posso garantir que o Extra Dark é cacau 100%.", {}],
+    ["Esta opção talvez seja cacau 100%.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
