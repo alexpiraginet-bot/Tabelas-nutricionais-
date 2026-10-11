@@ -352,6 +352,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Para você, esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                                   // sujeito da tela depois da introdução
     ["Além disso, a receita não leva leite.", { sabores: ["limao-siciliano"] }],
     ["Para quem tem alergia a leite, o Morango deve ser evitado.", {}],
+    ["O Limão Siciliano é delicioso; esta opção não contém leite.", {}],                                             // sujeito da tela na oração da afirmação
+    ["O Extra Dark é delicioso; essa opção é vegana.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -473,6 +475,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Além disso, a cobertura não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Para quem tem alergia a leite, o Morango por sua composição evita leite.", {}],                                // sabor sujeito de "evitar", com modificador no meio
     ["Hoje, o topping não é vegano.", { sabores: ["extra-dark"] }],
+    ["O Limão Siciliano é delicioso; o cone não contém leite.", {}],                                                  // sujeito estranho na oração da afirmação
+    ["A cobertura do Limão Siciliano não contém leite.", {}],
+    ["O Extra Dark é delicioso; o cone é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -536,6 +541,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A entrega não é grátis agora.", N, entrega(true, false)), true, "'agora' junto de 'grátis' é só tempo");
   assert.equal(fraseSegura("A entrega é grátis agora.", N, entrega(true, false)), false);
   assert.equal(fraseSegura("A entrega está disponível agora.", N, entrega(false, false)), false);
+  // Entrega sem loja nomeada na oração vale para todas as lojas; âncora ("dela") prende à loja da frase.
+  const entregaMista = { lojas: { tipo: "lojas", lojas: LOJAS_IDS.map((id) => ({ id, aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" })), entrega: [{ id: "praia-do-canto", oferece_entrega: true, entregando_agora: true, gratis: false }, { id: "jardim-camburi", oferece_entrega: true, entregando_agora: false, gratis: false }] } };
+  assert.equal(fraseSegura("As entregas estão disponíveis agora; a Praia do Canto está aberta.", N, entregaMista), false, "a Jardim Camburi não está entregando");
+  assert.equal(fraseSegura("A Praia do Canto está aberta e entregando agora.", N, entregaMista), true);
+  assert.equal(fraseSegura("A Praia do Canto está aberta; a entrega dela está disponível agora.", N, entregaMista), true);
   // Oração coordenada precisa da própria pista de horário; a elipse de loja herda o verbo.
   assert.equal(fraseSegura("A Praia do Canto abre às 10h, e seu pedido fica pronto às 19h.", N, lojas), false, "a coordenada não empresta o 'abre'");
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e seu pedido fica pronto às 19h.", N, lojas), false);
