@@ -452,6 +452,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Vale lembrar que nenhum deles contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
     ["O que importa é que o Limão Siciliano não contém leite.", {}],
     ["Posso garantir que o Extra Dark é vegano.", {}],
+    ["Se você for alérgico a leite, o Limão Siciliano não contém leite.", {}],                                      // condição sobre a pessoa antes da afirmação
+    ["Para quem tem alergia a leite, o Limão Siciliano não contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -700,6 +702,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Não sei se o cone contém leite.", { sabores: ["limao-siciliano"] }],
     ["Posso garantir que o cone é vegano.", { sabores: ["extra-dark"] }],
     ["O cone que acompanha o Limão Siciliano não contém leite.", {}],                                               // "que" relativo não abre completiva
+    ["Somente se pedir com cobertura, o Pistache contém leite.", {}],                                               // restrição antes da afirmação
+    ["Só na versão tradicional, o Pistache contém leite.", {}],
+    ["Apenas quando servido com cobertura, o Pistache contém leite.", {}],
+    ["Se pedir sem cobertura, o Limão Siciliano não contém leite.", {}],
+    ["Somente se for servido no pote, o Extra Dark é vegano.", {}],
+    ["Dependendo da versão, o Pistache contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
