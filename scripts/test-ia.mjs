@@ -337,6 +337,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção não pode ser considerada vegana.", { sabores: ["pistache"] }],                                       // negação com modal
     ["O Pistache não parece vegano.", {}],
     ["Não, o Extra Dark é vegano.", {}],                                                                              // interjeição afirma
+    ["Todos os gelatos têm leite, menos o Limão Siciliano, o Maracujá e o Extra Dark.", { sabores: ["limao-siciliano", "extra-dark"] }], // "todos os gelatos" é a linha, não o card
+    ["Todos os sabores do card não levam leite.", { sabores: ["limao-siciliano", "extra-dark"] }],                    // "do card" é a tela
+    ["Nenhum deles é vegano.", { sabores: ["pistache", "morango"] }],                                                 // quantificador negativo
+    ["Nem o Pistache nem o Morango são veganos.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -435,6 +439,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção não parece ser vegana.", { sabores: ["extra-dark"] }],
     ["O Extra Dark não chega a ser vegano.", {}],
     ["Não dá para chamar o Extra Dark de vegano.", {}],                                                                // negação não reconhecida perto de "vegano": sai
+    ["Todos os gelatos não contêm leite.", { sabores: ["limao-siciliano", "extra-dark"] }],                           // linha inteira: há gelato com leite
+    ["Os picolés não contêm leite.", { sabores: ["limao-siciliano", "extra-dark"] }],
+    ["Nenhum gelato leva amendoim.", { sabores: ["limao-siciliano", "extra-dark"] }],
+    ["Nenhuma opção é vegana.", { sabores: ["extra-dark"] }],                                                         // quantificador negativo nega o vegano do card
+    ["Nenhum deles é vegano.", { sabores: ["extra-dark"] }],
+    ["Nem o Extra Dark é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
