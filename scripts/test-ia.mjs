@@ -262,6 +262,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark é a única opção vegana, com cacau 100% e bebida de amêndoa.", {}],
     ["Para alergia grave, recomendo falar com a equipe.", {}],
     ["Se você tem alergia a leite, pode confirmar com a equipe antes de pedir.", {}],
+    // Shake com veredito "confirmar": ausência de leite só com proteína vegana E
+    // líquido sem leite nomeados, e confirmando com a equipe.
+    ["O Shake Açaí com Banana não contém leite se você escolher proteína vegana e água; confirme com a equipe.", {}],
+    ["Com proteína vegana e leite de amêndoas, o Shake Açaí com Banana não leva leite; confirme com a equipe.", {}],
+    // "Sensibilidade a leite" é condição como "alergia a leite".
+    ["O Limão Siciliano serve para quem tem sensibilidade a leite.", {}],
+    ["Quem tem sensibilidade a leite deve evitar o Morango.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -276,6 +283,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano leva um toque de leite.", {}],
     ["Quem tem alergia pode ficar tranquilo.", {}],
     ["Temos uma opção vegana.", { sabores: ["extra-dark", "pistache"] }],
+    ["O Shake Açaí com Banana não contém leite se você escolher proteína vegana; confirme com a equipe.", {}],       // a vegana vai com leite A2 integral também
+    ["O Shake Açaí com Banana não contém leite com proteína vegana e leite A2 integral; confirme com a equipe.", {}],
+    ["Com proteína vegana e água ou leite A2 integral, o Shake Açaí com Banana não leva leite; confirme com a equipe.", {}],
+    ["O Shake Açaí com Banana não contém leite se você escolher proteína vegana e água.", {}],                       // sem confirmar com a equipe
+    ["O Shake Açaí com Banana não contém leite com proteína vegana e água; nossa equipe prepara na hora.", {}],      // "equipe" sem confirmar
+    ["O Shake Frutas Vermelhas não contém leite com proteína vegana e água; confirme com a equipe.", {}],            // esse shake não tem a vegana
+    ["O Morango serve para quem tem sensibilidade a leite.", {}],                                                      // Morango contém leite
+    ["Para quem tem sensibilidade a lactose, o Pistache é tranquilo.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
