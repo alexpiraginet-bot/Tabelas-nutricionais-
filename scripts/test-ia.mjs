@@ -400,6 +400,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Limão Siciliano: não contém leite.", {}],                                                                       // título antes de ":"
     ["Resposta curta: não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Extra Dark: é vegano.", {}],
+    ["O Pistache contém leite, então não serve para alergia ao leite.", {}],                                       // sem restrição, segue
+    ["O Limão Siciliano não contém leite; se tiver dúvida, confirme com a equipe.", {}],                           // condição sobre a pessoa não restringe
+    ["O Limão Siciliano não contém leite, mas confirme com a equipe.", {}],
+    ["O Limão Siciliano pode ser pedido se você for alérgico a leite.", {}],
+    ["Evite o Pistache se tiver alergia a castanhas.", {}],
+    ["O Framboesa Duo leva leite, só que zero lactose.", {}],
+    ["O Shake Açaí com Banana não contém leite se você escolher proteína vegana e água; confirme com a equipe.", {}], // escolha do shake é documentada
+    ["Entre os três, só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "pistache", "morango"] }], // partitivo: o conjunto, não o sujeito
+    ["Entre eles, só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "pistache", "morango"] }],
+    ["Dos três, só o Extra Dark é vegano.", { sabores: ["extra-dark", "pistache", "morango"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -577,6 +587,21 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark não é verdadeiramente vegano.", {}],
     ["Cone: não contém leite.", { sabores: ["limao-siciliano"] }],                                                   // título estranho antes de ":"
     ["Cone: é vegano.", { sabores: ["extra-dark"] }],
+    ["O Pistache contém leite somente se você pedir com cobertura.", {}],                                           // restrição que a ficha não documenta
+    ["O Pistache contém leite só na versão tradicional.", {}],
+    ["O Pistache contém leite apenas quando servido com cobertura.", {}],
+    ["O Pistache contém leite, a menos que peça a versão vegana.", {}],
+    ["O Pistache contém leite, exceto se pedir sem cobertura.", {}],
+    ["O Pistache contém leite se vier com cobertura.", {}],
+    ["O Pistache contém leite, dependendo da versão.", {}],
+    ["O Pistache só contém leite.", {}],
+    ["O Pistache contém leite, mas só se pedir com cobertura.", {}],
+    ["O Limão Siciliano não contém leite, só se pedir com cobertura.", {}],
+    ["O Limão Siciliano não contém leite, exceto na versão com cobertura.", {}],
+    ["O Limão Siciliano é indicado para alergia a leite só se pedir sem cobertura.", {}],
+    ["Evite o Pistache, a menos que peça sem castanhas.", {}],
+    ["O Extra Dark é vegano só na versão sem cobertura.", {}],
+    ["O Extra Dark só é vegano se pedir sem cobertura.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -772,6 +797,43 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   // Condição com dois alérgicos: os dois entram na afirmação.
   assert.equal(fraseSegura("Estas opções servem para alérgicos a amendoim e leite.", N, { sabores: ["morango"] }), false, "Morango tem leite");
   assert.equal(fraseSegura("Estas opções servem para alérgicos a amendoim e leite.", N, { sabores: ["limao-siciliano"] }), true);
+  // Oferta de entrega confere com oferece_entrega; "só retirada" e "sem entrega" com entregando_agora.
+  const oferta = (praia, jardim) => ({ lojas: { tipo: "lojas", lojas: LOJAS_IDS.map((id) => ({ id, aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" })), entrega: [{ id: "praia-do-canto", ...praia }, { id: "jardim-camburi", ...jardim }] } });
+  const SIM = { oferece_entrega: true, entregando_agora: true, gratis: true }, NAO = { oferece_entrega: false, entregando_agora: false, gratis: false }, FORA = { oferece_entrega: true, entregando_agora: false, gratis: false };
+  assert.equal(fraseSegura("A Praia do Canto oferece entrega.", N, oferta(NAO, NAO)), false, "'oferece entrega' confere com o totem");
+  assert.equal(fraseSegura("A Praia do Canto oferece entrega.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("A Praia do Canto oferece entrega.", N, {}), false, "sem a ferramenta, a oferta sai");
+  assert.equal(fraseSegura("A Praia do Canto oferece entrega.", N, lojas), false, "bloco sem entrega: a oferta sai");
+  assert.equal(fraseSegura("A Praia do Canto não oferece entrega.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A Jardim Camburi não faz entrega, só retirada.", N, oferta(SIM, NAO)), true);
+  assert.equal(fraseSegura("As duas lojas oferecem entrega.", N, oferta(SIM, NAO)), false);
+  assert.equal(fraseSegura("Só a Praia do Canto oferece entrega.", N, oferta(SIM, NAO)), true);
+  assert.equal(fraseSegura("Só a Praia do Canto oferece entrega.", N, oferta(SIM, SIM)), false, "a Jardim Camburi também oferece");
+  assert.equal(fraseSegura("Temos delivery nas duas lojas.", N, oferta(SIM, NAO)), false);
+  assert.equal(fraseSegura("Entregamos nas duas lojas.", N, oferta(SIM, NAO)), false);
+  assert.equal(fraseSegura("A Jardim Camburi entrega em casa.", N, oferta(SIM, NAO)), false);
+  assert.equal(fraseSegura("A Praia do Canto oferece entrega, mas não está entregando agora.", N, oferta(FORA, FORA)), true);
+  assert.equal(fraseSegura("A Jardim Camburi oferece entrega, mas não está entregando agora.", N, oferta(SIM, FORA)), true, "depois do 'mas' o sujeito é a loja da oração anterior");
+  assert.equal(fraseSegura("A Jardim Camburi não tem entrega agora.", N, oferta(FORA, FORA)), true, "oferta negada só de agora é entregando_agora");
+  assert.equal(fraseSegura("A Jardim Camburi não tem entrega agora.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("Na Jardim Camburi é só retirada.", N, oferta(SIM, FORA)), true);
+  assert.equal(fraseSegura("Na Jardim Camburi é só retirada.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A Jardim Camburi está sem entrega.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("Não tem taxa de entrega agora.", N, oferta(SIM, SIM)), true, "'não tem taxa' nega a taxa, não a oferta");
+  assert.equal(fraseSegura("Não tem entrega grátis agora.", N, oferta({ ...SIM, gratis: false }, { ...SIM, gratis: false })), true);
+  assert.equal(fraseSegura("Não cobramos a entrega agora.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("Não cobramos a entrega agora.", N, oferta({ ...SIM, gratis: false }, { ...SIM, gratis: false })), false);
+  // Período que o bloco não cobre também vale para a entrega; status em outro dia idem.
+  assert.equal(fraseSegura("A entrega será grátis amanhã.", N, oferta(SIM, SIM)), false, "'amanhã' não é coberto");
+  assert.equal(fraseSegura("A entrega foi grátis ontem.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega é grátis todos os dias.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega será grátis.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega estará disponível no sábado.", N, oferta(SIM, SIM)), false);
+  assert.equal(fraseSegura("A entrega é grátis hoje.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("A entrega está disponível agora e é grátis.", N, oferta(SIM, SIM)), true);
+  assert.equal(fraseSegura("A Praia do Canto estará aberta amanhã.", N, oferta(SIM, SIM)), false, "status em outro dia não se confere");
+  assert.equal(fraseSegura("A Praia do Canto estará fechada amanhã.", N, todasFechadas), false);
+  assert.equal(fraseSegura("A Jardim Camburi está fechada hoje e abre amanhã às 11h.", N, lojas), true);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
