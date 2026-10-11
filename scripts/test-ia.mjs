@@ -282,6 +282,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pistache", "limao-siciliano"] }],
     ["Para alergia grave, o melhor é falar direto com a equipe.", {}],
     ["Estas opções não têm leite, inclusive o Limão Siciliano, menos o Pistache.", { sabores: ["maracuja", "limao-siciliano", "pistache"] }],
+    // Escolhas do shake na oração da afirmação; a confirmação pode vir na outra.
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; confirme com a equipe.", {}],
+    ["O Pistache foi preparado com leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -313,13 +316,19 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Todos têm leite, menos o Limão Siciliano, que contém castanhas.", { sabores: ["pistache", "limao-siciliano"] }], // a oração depois da exceção é da exceção
     ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pacoca", "limao-siciliano"] }],
     ["Estas opções não têm leite, inclusive o Limão Siciliano, menos o Pistache.", { sabores: ["morango", "limao-siciliano", "pistache"] }], // nome antes da exceção + "estas opções": os cards entram, e o Morango tem leite
+    ["Com whey, o Shake Açaí com Banana não contém leite; com proteína vegana e água, confirme com a equipe.", {}],  // a vegana e a água estão na outra oração; whey na da afirmação
+    ["O Shake Açaí com Banana contém leite; com whey fica mais cremoso.", {}],                                      // o whey não qualifica a afirmação da outra oração
+    ["O Pistache deixou de ser preparado com leite.", {}],                                                           // cessação: a composição citada é a que saiu
+    ["O Pistache parou de levar um toque de leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
   for (const f of ["A Praia do Canto está aberta agora e fecha às 19h.", "A Jardim Camburi está fechada hoje; abre amanhã às 11h.", "A Praia do Canto está funcionando agora."])
     assert.equal(fraseSegura(f, N, lojas), true, "barrou: " + f);
-  for (const f of ["A Praia do Canto fecha às 20h.", "A Jardim Camburi abre amanhã às 10h.", "A Jardim Camburi está funcionando agora."])
+  for (const f of ["A Praia do Canto fecha às 20h.", "A Jardim Camburi abre amanhã às 10h.", "A Jardim Camburi está funcionando agora.",
+    "A Praia do Canto abre às 10h e reabre às 19h."])                          // "reabre" é abertura, e o card não tem abertura às 19h
     assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
+  assert.equal(fraseSegura("A Praia do Canto abre às 10h e fecha às 19h.", N, lojas), true);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
