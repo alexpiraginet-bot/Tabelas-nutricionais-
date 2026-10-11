@@ -389,6 +389,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["No máximo um deles contém leite.", { sabores: ["limao-siciliano", "pistache"] }],                              // cardinalidade com limite
     ["Pelo menos um deles contém leite.", { sabores: ["morango", "pistache"] }],
     ["Mais de um deles contém leite.", { sabores: ["morango", "pistache"] }],
+    ["Não contém leite esta opção.", { sabores: ["limao-siciliano"] }],                                              // sujeito posposto da tela
+    ["É sem leite o Limão Siciliano.", {}],
+    ["Não contém leite, segundo a equipe.", { sabores: ["limao-siciliano"] }],
+    ["Para alergia a leite, pode pedir à vontade.", { sabores: ["limao-siciliano"] }],
+    ["Para alergia a leite, evite esse sabor.", { sabores: ["pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -555,6 +560,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Até um deles contém leite.", { sabores: ["morango", "pistache"] }],
     ["Pelo menos um deles contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
     ["Menos de dois deles contêm leite.", { sabores: ["morango", "pistache"] }],
+    ["Não contém leite o cone.", { sabores: ["limao-siciliano"] }],                                                  // sujeito posposto estranho
+    ["Sem leite é o cone.", { sabores: ["limao-siciliano"] }],
+    ["Não é vegano o topping.", { sabores: ["extra-dark"] }],
+    ["Para alergia a leite, não evite o cone.", { sabores: ["limao-siciliano"] }],                                    // objeto estranho do evitar
+    ["Para alergia a leite, evite a casquinha.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
