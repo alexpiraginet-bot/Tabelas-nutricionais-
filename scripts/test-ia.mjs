@@ -342,6 +342,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Nenhum deles é vegano.", { sabores: ["pistache", "morango"] }],                                                 // quantificador negativo
     ["Nem o Pistache nem o Morango são veganos.", {}],
     ["Todos não contêm leite, menos o Morango; o Pistache é delicioso.", { sabores: ["limao-siciliano", "morango"] }], // a exceção é só a da própria oração
+    ["Para quem tem alergia a castanhas, o Pistache deve ser evitado.", {}],                                          // passiva: o sabor é sujeito, mas é conselho
+    ["O Extra Dark não deixa de ser vegano.", {}],                                                                    // dupla negação afirma
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -449,6 +451,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Todos não contêm leite, menos o Morango; o Pistache é delicioso.", { sabores: ["limao-siciliano", "morango", "pistache"] }], // o Pistache não é exceção
     ["Com whey ou a opção de proteína vegana e água, o Shake Açaí com Banana contém leite.", {}],                    // modificador dentro da disjunção
     ["Com a opção de proteína vegana ou whey, o Shake Açaí com Banana contém leite.", {}],
+    ["Para quem tem alergia a leite, o Morango evita leite.", {}],                                                   // o sabor como sujeito de "evitar" diz o contrário
+    ["Para quem tem alergia a leite, o Limão Siciliano evita leite.", {}],
+    ["O Pistache não deixa de ser vegano.", {}],                                                                      // dupla negação: afirma vegano num sabor com leite
+    ["O Pistache não parou de ser vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -504,6 +510,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("Nenhuma loja abre às 10h.", N, duas("10h às 19h", "10h às 19h")), false, "'nenhuma' nega o horário");
   assert.equal(fraseSegura("Nenhuma das lojas fecha às 19h.", N, duas("10h às 19h", "10h às 19h")), false);
   assert.equal(fraseSegura("Nenhuma loja abre amanhã.", N, lojas), false, "a Jardim Camburi abre amanhã");
+  // Entrega: cada pista confere o próprio campo com a própria polaridade.
+  const LOJAS_IDS = ["praia-do-canto", "jardim-camburi"];
+  const entrega = (entregando, gratis) => ({ lojas: { tipo: "lojas", lojas: LOJAS_IDS.map((id) => ({ id, aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" })), entrega: LOJAS_IDS.map((id) => ({ id, oferece_entrega: true, entregando_agora: entregando, gratis })) } });
+  assert.equal(fraseSegura("A entrega não é grátis e está disponível agora.", N, entrega(false, false)), false, "a disponibilidade também confere");
+  assert.equal(fraseSegura("A entrega não é grátis e não está disponível agora.", N, entrega(false, false)), true);
+  assert.equal(fraseSegura("A entrega não é grátis agora.", N, entrega(true, false)), true, "'agora' junto de 'grátis' é só tempo");
+  assert.equal(fraseSegura("A entrega é grátis agora.", N, entrega(true, false)), false);
+  assert.equal(fraseSegura("A entrega está disponível agora.", N, entrega(false, false)), false);
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
