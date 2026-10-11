@@ -472,6 +472,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark é o sabor vegano da casa.", {}],
     ["Temos uma opção vegana.", { sabores: ["extra-dark"] }],
     ["Temos sabor vegano.", { sabores: ["extra-dark"] }],
+    ["O Pistache com certeza contém leite.", {}],                                                                  // certeza não é incerteza
+    ["O Pistache deve ser evitado por quem tem alergia a leite.", {}],                                             // "deve ser evitado" não é "deve conter"
+    ["Temos sabor sem leite; ele é o Limão Siciliano.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -760,6 +763,21 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark acompanha calda vegana.", {}],
     ["Esta opção inclui um cone vegano.", { sabores: ["extra-dark"] }],
     ["O Extra Dark vai no cone vegano.", {}],
+    ["Esta opção inclui cobertura; ela não contém leite.", { sabores: ["limao-siciliano"] }],                      // antecedente sem artigo em posição de objeto
+    ["O Limão Siciliano acompanha cone e ele não contém leite.", {}],
+    ["O Limão Siciliano inclui cobertura, que não contém leite.", {}],
+    ["O Extra Dark inclui cone; ele é vegano.", {}],
+    ["O Extra Dark inclui cone, que é vegano.", {}],
+    ["Possivelmente o Pistache contém leite.", {}],                                                                // incerteza rebaixa a ficha
+    ["O Pistache aparentemente contém leite.", {}],
+    ["É incerto se o Pistache contém leite.", {}],
+    ["Talvez o Pistache contenha leite.", {}],
+    ["O Pistache pode conter leite.", {}],
+    ["Parece que o Pistache contém leite.", {}],
+    ["Supostamente o Limão Siciliano não contém leite.", {}],
+    ["Provavelmente esta opção contém leite.", { sabores: ["pistache"] }],
+    ["O Extra Dark provavelmente é vegano.", {}],
+    ["O Extra Dark pode ser vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1053,6 +1071,17 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto está aberta aos domingos.", N, lojas), false);
   assert.equal(fraseSegura("A entrega é grátis aos sábados.", N, oferta(SIM, SIM)), false);
   assert.equal(fraseSegura("A Praia do Canto abre às 10h hoje.", N, lojas), true);
+  // Aberta dita com verbo ("abre agora", "está abrindo", "já abriu", "atende agora", "acabou de abrir") confere com o bloco.
+  assert.equal(fraseSegura("A Jardim Camburi abre agora.", N, lojas), false, "'abre agora' com a loja fechada sai");
+  assert.equal(fraseSegura("A Jardim Camburi está abrindo agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Jardim Camburi já abriu.", N, lojas), false);
+  assert.equal(fraseSegura("A Jardim Camburi atende agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Jardim Camburi acabou de abrir.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto já abriu.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto atende agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi ainda não abriu.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi abre agora.", N, {}), false, "sem a ferramenta, status sai");
+  assert.equal(fraseSegura("A Jardim Camburi já abriu.", N, {}), false);
 });
 
 caso("texto todo cortado com card na tela ganha uma linha; cards de sabores viram sujeito no conversar", async () => {
