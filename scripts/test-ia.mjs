@@ -363,6 +363,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Nem todos contêm leite.", { sabores: ["limao-siciliano", "pistache"] }],                                       // parcial: uns com, outros sem
     ["Nem todas são sem leite.", { sabores: ["limao-siciliano", "pistache"] }],
     ["Nem todos são veganos.", { sabores: ["extra-dark", "pistache"] }],
+    ["A equipe confirma que o Pistache contém leite.", {}],                                                          // nome neutro que reporta
+    ["O rótulo diz que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Nossa loja tem opções sem lactose.", { sabores: ["limao-siciliano", "extra-dark"] }],                          // nome neutro que oferece
+    ["A Bentô tem opções veganas.", { sabores: ["extra-dark"] }],
+    ["Minha recomendação é o Limão Siciliano, que não contém leite.", {}],                                           // nome neutro que apresenta
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -499,6 +504,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Nem todos contêm leite.", { sabores: ["limao-siciliano", "maracuja"] }],
     ["Não são todos que contêm leite.", { sabores: ["morango", "pistache"] }],
     ["Nem todos são veganos.", { sabores: ["extra-dark"] }],
+    ["Meu pedido não contém leite.", { sabores: ["limao-siciliano"] }],                                              // nome neutro que encabeça a composição
+    ["Seu pedido pode conter leite.", { sabores: ["limao-siciliano"] }],
+    ["Seu pedido sai sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Meu pedido e o Limão Siciliano não contêm leite.", {}],
+    ["A loja é segura para alérgicos a leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
