@@ -396,6 +396,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Para alergia a leite, evite esse sabor.", { sabores: ["pistache"] }],
     ["É vegano o Extra Dark.", {}],                                                                                   // cópula no começo, sujeito posposto
     ["É livre de leite esta opção.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano não é verdadeiramente feito com leite.", {}],                                                // negação atravessa advérbio
+    ["Limão Siciliano: não contém leite.", {}],                                                                       // título antes de ":"
+    ["Resposta curta: não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Extra Dark: é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -569,6 +573,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Para alergia a leite, evite a casquinha.", { sabores: ["limao-siciliano"] }],
     ["É vegano o cone.", { sabores: ["extra-dark"] }],                                                               // cópula no começo, sujeito posposto estranho
     ["É livre de leite o cone.", { sabores: ["extra-dark"] }],
+    ["O Pistache não é verdadeiramente feito com leite.", {}],                                                       // a negação atravessa o advérbio
+    ["O Extra Dark não é verdadeiramente vegano.", {}],
+    ["Cone: não contém leite.", { sabores: ["limao-siciliano"] }],                                                   // título estranho antes de ":"
+    ["Cone: é vegano.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
