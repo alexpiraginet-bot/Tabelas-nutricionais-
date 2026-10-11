@@ -432,6 +432,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Um terço deles não contém leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
     ["Metade deles é vegana.", { sabores: ["extra-dark", "pistache"] }],
     ["A maioria não é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
+    ["Recomendo o Limão Siciliano, que não contém leite.", {}],                                                     // relativa com sabor como antecedente
+    ["O Limão Siciliano, que não contém leite, vai bem no cone.", {}],
+    ["O Limão Siciliano é uma opção que não contém leite.", {}],
+    ["Lembre que o Limão Siciliano não contém leite.", {}],                                                         // "que" conjunção não é relativa
+    ["A equipe confirma que o Limão Siciliano não contém leite.", {}],
+    ["Vale dizer que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Recomendo o Extra Dark, que é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -655,6 +662,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Poucos contêm leite.", { sabores: ["pistache", "morango", "limao-siciliano"] }],
     ["Metade deles é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
     ["A maioria é vegana.", { sabores: ["extra-dark", "pistache", "morango"] }],
+    ["O Limão Siciliano vai no cone, que não contém leite.", {}],                                                   // relativa: o antecedente estranho é o sujeito
+    ["O Limão Siciliano vem com a cobertura, que não contém leite.", {}],
+    ["O Limão Siciliano vai no cone artesanal, que não leva leite.", {}],
+    ["O Limão Siciliano vai no cone, o qual não contém leite.", {}],
+    ["Vai no cone, que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Extra Dark vai no cone, que é vegano.", {}],
+    ["O Extra Dark vai na casquinha, que não é feita com leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
