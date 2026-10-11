@@ -281,6 +281,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Todos têm leite, menos o Limão Siciliano, que é sorbet e não leva leite.", { sabores: ["pistache", "limao-siciliano"] }],
     ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pistache", "limao-siciliano"] }],
     ["Para alergia grave, o melhor é falar direto com a equipe.", {}],
+    ["Estas opções não têm leite, inclusive o Limão Siciliano, menos o Pistache.", { sabores: ["maracuja", "limao-siciliano", "pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -311,6 +312,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Para alergia grave ao leite, o Pistache é feito pela nossa equipe.", {}],
     ["Todos têm leite, menos o Limão Siciliano, que contém castanhas.", { sabores: ["pistache", "limao-siciliano"] }], // a oração depois da exceção é da exceção
     ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pacoca", "limao-siciliano"] }],
+    ["Estas opções não têm leite, inclusive o Limão Siciliano, menos o Pistache.", { sabores: ["morango", "limao-siciliano", "pistache"] }], // nome antes da exceção + "estas opções": os cards entram, e o Morango tem leite
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
