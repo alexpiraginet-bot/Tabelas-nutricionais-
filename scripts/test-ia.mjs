@@ -274,6 +274,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Assim como o Limão Siciliano, estas opções não levam leite.", { sabores: ["maracuja", "extra-dark"] }],
     ["Só o Limão Siciliano, o Maracujá e o Extra Dark não levam leite.", { sabores: ["limao-siciliano", "extra-dark", "maracuja", "bentole-framboesa-duo"] }],
     ["Esses dois, Limão Siciliano e Maracujá, não levam leite.", { sabores: ["morango"] }],
+    // "Não precisa evitar" é adequação; "contém leite" do shake exige confirmar de
+    // verdade; o que vem depois da exceção fala da exceção (ou de todos, com "nenhum").
+    ["Quem tem alergia a leite não precisa evitar o Limão Siciliano.", {}],
+    ["O Shake Açaí com Banana contém leite; confirme com a equipe antes de pedir.", {}],
+    ["Todos têm leite, menos o Limão Siciliano, que é sorbet e não leva leite.", { sabores: ["pistache", "limao-siciliano"] }],
+    ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pistache", "limao-siciliano"] }],
+    ["Para alergia grave, o melhor é falar direto com a equipe.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -299,6 +306,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Assim como o Limão Siciliano, estas opções não levam leite.", { sabores: ["morango"] }],                        // "estas opções" é o card, e o Morango tem leite
     ["Assim como o Extra Dark, essas opções são veganas.", { sabores: ["pistache"] }],
     ["Assim como o Extra Dark, essas opções são cacau 100%.", { sabores: ["pistache"] }],
+    ["Quem tem alergia a leite não deve evitar o Morango.", {}],                                                      // negação em "evitar": Morango tem leite
+    ["O Shake Açaí com Banana contém leite; nossa equipe prepara na hora.", {}],                                      // "equipe" sem confirmar
+    ["Para alergia grave ao leite, o Pistache é feito pela nossa equipe.", {}],
+    ["Todos têm leite, menos o Limão Siciliano, que contém castanhas.", { sabores: ["pistache", "limao-siciliano"] }], // a oração depois da exceção é da exceção
+    ["Todos têm leite, menos o Limão Siciliano; nenhum deles leva amendoim.", { sabores: ["pacoca", "limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
