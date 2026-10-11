@@ -303,6 +303,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache não só contém leite, como é cremoso.", {}],                                                           // "não só" afirma
     ["O Pistache não deixa de ser feito com leite.", {}],                                                              // dupla negação afirma
     ["Para alergia a leite: o Limão Siciliano é perfeito; confirme com a equipe.", {}],
+    ["O Shake Açaí com Banana contém leite; confirme com a equipe se a proteína é whey.", {}],                        // objeto da confirmação é ingrediente
+    ["O Pistache não é mais vegano.", {}],                                                                            // negação de vegano em forma contínua
+    ["Todos têm leite, menos o Limão Siciliano.", { sabores: ["pistache", "limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -359,6 +362,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano não só contém leite; ele também é refrescante.", {}],                                          // "não só" não é negação
     ["Para alergia a leite: o Morango é perfeito; confirme com a equipe.", {}],                                        // condição + sabor sem afirmação conferida, em qualquer oração
     ["Se tiver alergia a leite, confirme com a equipe antes de pedir o Pistache.", {}],                                // idem: negar por padrão
+    ["O Extra Dark não é mais vegano.", {}],                                                                          // nega vegano num sabor vegano
+    ["O Extra Dark deixou de ser vegano.", {}],
+    ["O Shake Açaí com Banana contém leite; confirme com a equipe se a promoção vale.", {}],                          // confirmação sobre outra coisa
+    ["Todos têm leite; entre meus favoritos, menos o Limão Siciliano.", { sabores: ["pistache", "limao-siciliano"] }], // exceção de outra oração não qualifica
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
