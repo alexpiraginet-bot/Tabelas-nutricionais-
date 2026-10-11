@@ -394,6 +394,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Não contém leite, segundo a equipe.", { sabores: ["limao-siciliano"] }],
     ["Para alergia a leite, pode pedir à vontade.", { sabores: ["limao-siciliano"] }],
     ["Para alergia a leite, evite esse sabor.", { sabores: ["pistache"] }],
+    ["É vegano o Extra Dark.", {}],                                                                                   // cópula no começo, sujeito posposto
+    ["É livre de leite esta opção.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -565,6 +567,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Não é vegano o topping.", { sabores: ["extra-dark"] }],
     ["Para alergia a leite, não evite o cone.", { sabores: ["limao-siciliano"] }],                                    // objeto estranho do evitar
     ["Para alergia a leite, evite a casquinha.", { sabores: ["limao-siciliano"] }],
+    ["É vegano o cone.", { sabores: ["extra-dark"] }],                                                               // cópula no começo, sujeito posposto estranho
+    ["É livre de leite o cone.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -708,6 +712,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("É falso que a Praia do Canto esteja aberta agora.", N, lojas), false, "a falsidade nega o status");
   assert.equal(fraseSegura("É falso que a Praia do Canto abra às 10h.", N, lojas), false);
   assert.equal(fraseSegura("É falso que a entrega esteja disponível agora.", N, entrega(true, false)), false);
+  // Dia da semana depois da hora, com "na": confere com a próxima abertura.
+  assert.equal(fraseSegura("A Jardim Camburi abre às 8h na segunda-feira.", N, todasFechadas), false, "o dia depois da hora conta");
+  assert.equal(fraseSegura("A Jardim Camburi abre às 11h amanhã.", N, todasFechadas), true);
   assert.equal(fraseSegura("Nem todas as lojas abrem às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
   assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
   assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "10h às 19h")), false);
