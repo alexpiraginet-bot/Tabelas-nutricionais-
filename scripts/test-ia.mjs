@@ -309,6 +309,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano não contém leite e o Morango contém leite.", {}],                                             // " e " + sabor depois de afirmação abre oração
     ["O Limão Siciliano e o Maracujá não levam leite.", {}],                                                          // sujeito composto continua um só
     ["Assim como o Limão Siciliano, ambas não contêm leite.", { sabores: ["maracuja", "extra-dark"] }],
+    // Castanhas no shake vêm do líquido: com o líquido nomeado, vale o líquido.
+    ["Com leite de amêndoas, quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],
+    ["Quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],                                        // sem líquido: o agregado do card
+    ["Com água, o Shake Açaí com Banana não contém castanhas.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -371,6 +375,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Todos têm leite; entre meus favoritos, menos o Limão Siciliano.", { sabores: ["pistache", "limao-siciliano"] }], // exceção de outra oração não qualifica
     ["O Morango não contém leite e o Limão Siciliano contém leite.", {}],
     ["Assim como o Limão Siciliano, ambas não contêm leite.", { sabores: ["morango", "baunilha"] }],                 // "ambas" é o card
+    ["Com whey e água, quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],                       // água não tem castanha
+    ["Com leite de amêndoas, o Shake Açaí com Banana não contém castanhas.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
