@@ -292,6 +292,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache não é considerado vegano.", {}],
     ["Com whey, o Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],
     ["O Shake Açaí com Banana contém lactose com whey comum e leite A2 integral.", {}],
+    ["Para alergia grave, não deixe de confirmar com a equipe.", {}],                                                 // dupla negação é afirmação
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -334,6 +335,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção não é só vegana.", { sabores: ["pistache"] }],                                                       // "não é só" afirma vegano
     ["O Shake Açaí com Banana sempre contém leite, não importa o líquido.", {}],                                      // sem whey/leite A2 nomeado: com a vegana e água não é verdade
     ["O Shake Açaí com Banana contém lactose com whey zero lactose e água.", {}],                                   // whey zero lactose não é prova de lactose
+    ["Para alergia grave, não fale com a equipe.", {}],                                                               // mandar não falar com a equipe em frase de alergia sai
+    ["Com proteína vegana e água, o Shake Açaí com Banana não contém leite; não precisa confirmar com a equipe.", {}],
+    ["Para alergia a amendoim, o Limão Siciliano serve e você nem precisa perguntar à equipe.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -346,6 +350,7 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   // Com o card de lojas, só algarismo dentro de um horário completo escapa da política de número.
   for (const f of ["Preço:50 reais.", "Proteína:20 g.", "São 6 litros de gelato."]) assert.equal(fraseSegura(f, N, lojas), false, "passou: " + f);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19:00.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto não fecha às 19h.", N, lojas), false, "o contrário do card passou");
   assert.equal(fraseSegura("Sem dados de entrega agora: o pedido online mostra na hora se está disponível.", N), true);
   assert.equal(fraseSegura("A Praia do Canto fecha às 19h.", N), false, "horário sem o card de lojas");
   // Hora E minuto: com o card dizendo 19h45, "19:59" e "19h" saem.
@@ -370,6 +375,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["A Jardim Camburi abre amanhã às 10h.", fechada("hoje às 10h")],
     ["A Jardim Camburi abre amanhã.", fechada("segunda às 11h", "fechada hoje")], // sem hora, o dia também tem de bater
     ["A Jardim Camburi abre às 10h de amanhã.", fechada("amanhã às 11h", "fechada hoje")],
+    ["A Jardim Camburi não abre amanhã às 8h.", fechada("amanhã às 8h")],         // o contrário do card
+    ["A Jardim Camburi não abre amanhã.", fechada("amanhã às 8h")],
+    ["Amanhã a Jardim Camburi não abre.", fechada("amanhã às 8h")],
   ]) assert.equal(fraseSegura(f, N, b), false, "passou: " + f);
   // Descritor com número do catálogo só no sabor que o tem.
   assert.equal(fraseSegura("O Pistache é cacau 100%.", N), false, "cacau 100% é do Extra Dark, não do Pistache");
