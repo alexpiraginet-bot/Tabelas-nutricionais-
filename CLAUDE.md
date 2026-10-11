@@ -93,7 +93,9 @@ escrever número, preço ou tabela na tela por conta própria.
   Em "todos têm leite, menos o Limão", o "todos" é o que vem antes da exceção,
   senão os cards (todos, não só a exceção), senão a linha inteira ("todos os
   gelatos"); sem nada disso, sai. Horário no texto só com o card de lojas e
-  igual ao da loja citada, hora E minuto ("19:59" com card de 19h sai). Texto todo cortado com card na tela ganha a linha "A resposta
+  igual ao da loja citada, hora E minuto e no papel certo ("abre às 19h" com
+  card "10h às 19h" sai: 19h é fechamento). Descritor com número do catálogo
+  ("cacau 100%") só no sabor cujo `sub` o tem. Texto todo cortado com card na tela ganha a linha "A resposta
   está no card…". Antes de mexer no filtro, rode o corpus de frases realistas
   (teste "menção à condição") e meça frase certa cortada, não só errada que passou. O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,

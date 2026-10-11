@@ -289,6 +289,14 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   const meia = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h30 às 19h45", abre: null, fecha_as: "19h45" }], entrega: null } };
   for (const f of ["A Praia do Canto fecha às 19h45.", "A Praia do Canto fecha às 19:45.", "A Praia do Canto abre às 10h30 e fecha às 19h45."]) assert.equal(fraseSegura(f, N, meia), true, "barrou: " + f);
   for (const f of ["A Praia do Canto fecha às 19:59.", "A Praia do Canto fecha às 19h.", "A Praia do Canto abre às 10h."]) assert.equal(fraseSegura(f, N, meia), false, "passou: " + f);
+  // Papel certo: 19h45 é fechamento, 10h30 é abertura.
+  for (const f of ["A Praia do Canto abre às 19h45.", "A Praia do Canto fecha às 10h30.", "A Praia do Canto fica aberta até as 10h30."]) assert.equal(fraseSegura(f, N, meia), false, "passou: " + f);
+  for (const f of ["A Praia do Canto funciona das 10h30 às 19h45.", "A Praia do Canto fica aberta até as 19h45.", "Hoje a Praia do Canto abre às 10h30 e fecha às 19h45."]) assert.equal(fraseSegura(f, N, meia), true, "barrou: " + f);
+  // Descritor com número do catálogo só no sabor que o tem.
+  assert.equal(fraseSegura("O Pistache é cacau 100%.", N), false, "cacau 100% é do Extra Dark, não do Pistache");
+  assert.equal(fraseSegura("O Extra Dark é cacau intenso 100%.", N), true);
+  assert.equal(fraseSegura("Temos opções com cacau 100%.", N, { sabores: ["extra-dark"] }), true);
+  assert.equal(fraseSegura("Temos opções com cacau 100%.", N), false, "sem sabor nem card");
   // Exceção com cards: o "todos" é o resto dos cards, não só a exceção; sem card nem linha, não há o que conferir.
   assert.equal(fraseSegura("Todos têm leite, menos o Limão Siciliano.", N, { sabores: ["limao-siciliano", "maracuja"] }), false, "Maracujá também não tem leite");
   assert.equal(fraseSegura("Todos têm leite, menos o Limão Siciliano e o Maracujá.", N, { sabores: ["limao-siciliano", "maracuja", "pistache"] }), true);
@@ -956,9 +964,14 @@ caso("preferência marcada é promessa: a IA não devolve combinação só com l
     escolha("b2", { gelatos: ["pacoca"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Clássicos." }),
   ]);
   const k = await sugerirSaboresEvento({ client: c2, evento: EV, prefs: { criancas: true } });
-  assert.match(c2.pedidos[1].messages[2].content[0].content, /castanha ou amendoim/);
+  assert.match(c2.pedidos[1].messages[2].content[0].content, /não é bom para criança/);
   assert.equal(k.origem, "regra");
-  assert.ok(k.gelatos.concat(k.picoles).every((id) => !saboresEvento().find((x) => x.id === id).nozes));
+  assert.ok(k.gelatos.concat(k.picoles).every((id) => saboresEvento().find((x) => x.id === id).crianca));
+  // Café também não é para criança, mesmo sem castanha.
+  const c3 = clienteCreate([escolha("c1", { gelatos: ["cafe"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Clássicos." }), escolha("c2", { gelatos: ["cafe"], picoles: ["bentole-prestigio", "bentole-framboesa-duo"], motivo: "Clássicos." })]);
+  const k3 = await sugerirSaboresEvento({ client: c3, evento: EV, prefs: { criancas: true } });
+  assert.match(c3.pedidos[1].messages[2].content[0].content, /cafe não é bom para criança/);
+  assert.equal(k3.origem, "regra");
 });
 
 caso("shake: veredito de leite e lactose olha a proteína E o líquido", () => {
