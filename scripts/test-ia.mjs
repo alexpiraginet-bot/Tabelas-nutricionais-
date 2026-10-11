@@ -313,6 +313,17 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Com leite de amêndoas, quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],
     ["Quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],                                        // sem líquido: o agregado do card
     ["Com água, o Shake Açaí com Banana não contém castanhas.", {}],
+    // Cada predicado vale por si e na própria oração; cada oração de "vegano" idem;
+    // "evitar o sabor" em frase de alergia é conselho, não terapia.
+    ["O Morango não é indicado para alergia a leite; o Limão Siciliano é indicado para alergia a leite.", {}],
+    ["Quem tem alergia a leite deve evitar o Morango, mas pode pedir o Limão Siciliano.", {}],
+    ["O Limão Siciliano é indicado para alergia a leite; evite o Morango.", {}],
+    ["O Pistache não é vegano; o Extra Dark é vegano.", {}],
+    ["O Extra Dark é vegano, mas o Pistache não.", {}],
+    ["O Pistache não é vegano, mas o Extra Dark sim.", {}],
+    ["Temos uma opção vegana: o Extra Dark.", {}],
+    ["Alergia a castanhas: evitar o Pistache e a Avelã.", {}],
+    ["Quem tem alergia a castanhas deve evitar tudo com castanhas, como o Pistache.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -377,6 +388,17 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Assim como o Limão Siciliano, ambas não contêm leite.", { sabores: ["morango", "baunilha"] }],                 // "ambas" é o card
     ["Com whey e água, quem tem alergia a castanhas deve evitar o Shake Açaí com Banana.", {}],                       // água não tem castanha
     ["Com leite de amêndoas, o Shake Açaí com Banana não contém castanhas.", {}],
+    ["O Morango não é indicado para alergia a leite; o Pistache é indicado para alergia a leite.", {}],             // o segundo predicado também confere
+    ["Quem tem alergia a leite deve evitar o Limão Siciliano, mas pode pedir o Morango.", {}],
+    ["O Morango é indicado para alergia a leite; evite o Limão Siciliano.", {}],
+    ["O Pistache deixou de ser vegano; o Limão Siciliano é vegano.", {}],                                           // polaridade por oração
+    ["O Extra Dark é vegano; o Pistache também é vegano.", {}],
+    ["O Pistache não é vegano; o Extra Dark também.", {}],
+    ["Temos uma opção vegana: o Pistache.", {}],
+    ["O Extra Dark evita cáries; quem tem alergia a castanhas deve evitá-lo.", {}],                                 // terapia numa oração, conselho na outra
+    ["Quem tem alergia a castanhas deve evitá-lo; o Extra Dark evita cáries.", {}],
+    ["Quem tem alergia a castanhas deve evitar o Pistache, mas o Extra Dark evita cáries.", {}],
+    ["Quem tem alergia a castanhas deve evitar o Pistache; o Extra Dark melhora o humor.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
