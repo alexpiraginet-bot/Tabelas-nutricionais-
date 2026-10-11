@@ -347,6 +347,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                                              // sujeito da tela herda o card
     ["Não contém leite.", { sabores: ["limao-siciliano"] }],
     ["A receita não leva leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano não contém leite e Pistache contém leite.", {}],                                            // "Pistache" sem artigo com verbo próprio é sujeito
+    ["Nenhuma opção deixou de ser vegana.", { sabores: ["extra-dark"] }],                                             // dupla negação com quantificador: todas continuam
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -461,6 +463,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O cone não contém leite.", { sabores: ["limao-siciliano"] }],                                                   // sujeito estranho ao catálogo não herda o card
     ["A cobertura não contém leite.", { sabores: ["limao-siciliano"] }],
     ["A casquinha é sem glúten.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano não contém leite e Pistache não contém leite.", {}],                                        // o Pistache tem leite
+    ["Nenhuma opção deixou de ser vegana.", { sabores: ["limao-siciliano"] }],                                        // o Limão não é vegano
+    ["Nenhum deles parou de ser vegano.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
