@@ -447,6 +447,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Temos opções sem leite.", { sabores: ["limao-siciliano"] }],
     ["Para quem quer um sabor sem leite, o Limão Siciliano serve.", {}],
     ["O Limão Siciliano, sem leite, vai bem no cone.", {}],
+    ["Posso garantir que o Limão Siciliano não contém leite.", {}],                                                 // completiva com sabor como sujeito
+    ["Posso garantir que esta opção não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Vale lembrar que nenhum deles contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
+    ["O que importa é que o Limão Siciliano não contém leite.", {}],
+    ["Posso garantir que o Extra Dark é vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -689,6 +694,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano vem com um cone artesanal sem leite.", {}],
     ["O Limão Siciliano vem com um cone feito com leite.", {}],
     ["O cone sem leite é ótimo.", { sabores: ["limao-siciliano"] }],
+    ["Posso garantir que o cone não contém leite.", { sabores: ["limao-siciliano"] }],                              // completiva: o sujeito é o cone
+    ["É certo que o cone não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["A equipe confirma que o cone não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Não sei se o cone contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Posso garantir que o cone é vegano.", { sabores: ["extra-dark"] }],
+    ["O cone que acompanha o Limão Siciliano não contém leite.", {}],                                               // "que" relativo não abre completiva
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
