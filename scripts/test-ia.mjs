@@ -377,6 +377,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["No cone artesanal, o Limão Siciliano não contém leite.", {}],
     ["O Extra Dark não leva leite e é cacau 100%.", {}],                                                             // descritor afirmado depois da coordenação
     ["Esta opção é cacau 100%.", { sabores: ["extra-dark"] }],
+    ["Só um deles contém leite.", { sabores: ["limao-siciliano", "pistache"] }],                                     // exclusivo: a conta confere
+    ["Só o Pistache contém leite.", { sabores: ["limao-siciliano", "pistache"] }],
+    ["Só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "pistache"] }],
+    ["Dois deles não contêm leite.", { sabores: ["limao-siciliano", "maracuja", "pistache"] }],
+    ["Só um deles é vegano.", { sabores: ["extra-dark", "pistache"] }],
+    ["Só o Extra Dark é vegano.", { sabores: ["extra-dark", "pistache", "morango"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -529,6 +535,13 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark deixou de ser cacau 100%.", {}],
     ["É falso que o Extra Dark seja cacau 100%.", {}],
     ["Esta opção não é cacau 100%.", { sabores: ["extra-dark"] }],
+    ["Só um deles contém leite.", { sabores: ["morango", "pistache"] }],                                             // exclusivo com os dois com leite
+    ["Só um deles contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
+    ["Só um deles contém leite.", { sabores: ["pistache"] }],
+    ["Só o Pistache contém leite.", { sabores: ["morango", "pistache"] }],
+    ["Só o Limão Siciliano não contém leite.", { sabores: ["limao-siciliano", "maracuja"] }],
+    ["Só o Limão Siciliano não contém leite.", {}],                                                                  // no catálogo, outros também não têm
+    ["Só o Pistache é vegano.", { sabores: ["extra-dark", "pistache"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -655,6 +668,21 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto abre às 10h na semana que vem.", N, lojas), false);
   assert.equal(fraseSegura("No feriado a Praia do Canto abre às 10h.", N, lojas), false);
   assert.equal(fraseSegura("Hoje a Praia do Canto abriu às 10h.", N, lojas), true);
+  assert.equal(fraseSegura("A Praia do Canto abre daqui a dois dias às 10h.", N, lojas), false, "período relativo não é coberto");
+  assert.equal(fraseSegura("A Praia do Canto abre todos os dias às 10h.", N, lojas), false, "hábito não é coberto");
+  assert.equal(fraseSegura("A Praia do Canto costuma abrir às 10h.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto fecha daqui a pouco, às 19h.", N, lojas), true);
+  // Parcial, cardinal e exclusiva no status e no horário das lojas.
+  assert.equal(fraseSegura("Nem todas as lojas estão abertas agora.", N, lojas), true, "uma aberta e uma fechada: 'nem todas' é verdade");
+  assert.equal(fraseSegura("Nem todas as lojas estão abertas agora.", N, duas("10h às 19h", "11h às 19h")), false, "as duas abertas: 'nem todas' é falso");
+  assert.equal(fraseSegura("Nem todas as lojas estão abertas agora.", N, todasFechadas), false);
+  assert.equal(fraseSegura("Só uma das lojas está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("Só uma das lojas está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, lojas), true);
+  assert.equal(fraseSegura("Só a Praia do Canto está aberta agora.", N, duas("10h às 19h", "11h às 19h")), false);
+  assert.equal(fraseSegura("Nem todas as lojas abrem às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
+  assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "11h às 19h")), true);
+  assert.equal(fraseSegura("Só a Praia do Canto abre às 10h.", N, duas("10h às 19h", "10h às 19h")), false);
   // Oração coordenada precisa da própria pista de horário; a elipse de loja herda o verbo.
   assert.equal(fraseSegura("A Praia do Canto abre às 10h, e seu pedido fica pronto às 19h.", N, lojas), false, "a coordenada não empresta o 'abre'");
   assert.equal(fraseSegura("A Praia do Canto abre às 10h e seu pedido fica pronto às 19h.", N, lojas), false);
