@@ -568,6 +568,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção acompanha o pedido e não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Posso garantir que esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                        // modal em 1ª pessoa não é nome solto
     ["Sempre acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Complemento a resposta: esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                  // "complemento" verbo segue verbo
+    ["Garanto que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Vem junto e não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -1061,6 +1064,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Cone acompanha esta opção e é vegano.", { sabores: ["extra-dark"] }],
     ["Cobertura vem junto e não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Cobertura artesanal acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Complemento não contém leite.", { sabores: ["limao-siciliano"] }],                                          // "complemento" é nome, não "eu complemento"
+    ["Complemento é vegano.", { sabores: ["extra-dark"] }],
+    ["Complemento: não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Complemento acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
