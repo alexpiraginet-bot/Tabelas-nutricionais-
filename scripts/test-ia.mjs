@@ -529,6 +529,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Na loja, temos opções sem leite.", { sabores: ["limao-siciliano"] }],
     ["Fornecemos opções sem leite.", { sabores: ["limao-siciliano"] }],                                            // objeto da tela segue
     ["O Limão Siciliano é cremoso e também sem leite.", {}],
+    ["A equipe desta loja confirma que o Limão Siciliano não contém leite.", {}],                                 // complemento com relato não é composição
+    ["Os atendentes desta loja confirmam que o Limão Siciliano não contém leite.", {}],                           // nome neutro com cara de adjetivo é nome
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -974,6 +976,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Preparou cobertura sem leite.", { sabores: ["limao-siciliano"] }],
     ["Esta opção inclui cobertura e também cone sem leite.", { sabores: ["limao-siciliano"] }],                    // advérbio entre o "e" e o segundo objeto
     ["Esta opção inclui cobertura e também cone vegano.", { sabores: ["extra-dark"] }],
+    ["O pedido desta opção não contém leite.", { sabores: ["limao-siciliano"] }],                                 // complemento depois do nome neutro
+    ["O pedido do Extra Dark é vegano.", {}],
+    ["O pedido com cobertura não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O pedido dela é vegano.", { sabores: ["extra-dark"] }],
+    ["No pedido desta opção não vai leite.", { sabores: ["limao-siciliano"] }],                                   // tópico com complemento contraído
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -2053,6 +2060,22 @@ caso("preferência marcada é promessa: a IA não devolve combinação só com l
   const k3 = await sugerirSaboresEvento({ client: c3, evento: EV, prefs: { criancas: true } });
   assert.match(c3.pedidos[1].messages[2].content[0].content, /cafe não é bom para criança/);
   assert.equal(k3.origem, "regra");
+  // "Sem lactose" marcado e alergia a soja: o único picolé sem lactose (Framboesa Duo) sai, e a
+  // regra deixa a linha vazia em vez de devolver um picolé com lactose — na regra e na reserva da IA.
+  assert.deepEqual(sugestaoEquilibrada(limiteSabores(45, EV.tipo, "caixa"), { semLactose: true, alergias: ["soja"] }).picoles, []);
+  const c4 = clienteCreate([
+    escolha("d1", { gelatos: ["limao-siciliano"], picoles: ["bentole-opereta"], motivo: "Sem soja." }),
+    escolha("d2", { gelatos: ["limao-siciliano"], picoles: ["bentole-opereta"], motivo: "Sem soja." }),
+  ]);
+  const s4 = await sugerirSaboresEvento({ client: c4, evento: EV, notas: "um convidado alérgico a soja", prefs: { semLactose: true } });
+  assert.match(c4.pedidos[1].messages[2].content[0].content, /nenhum picolé escolhido é sem lactose/);
+  assert.equal(s4.origem, "regra");
+  assert.deepEqual(s4.picoles, [], "a reserva devolveu picolé com lactose com 'sem lactose' marcado");
+  assert.ok(s4.gelatos.length && s4.gelatos.every((id) => saboresEvento().find((x) => x.id === id).semLactose));
+  assert.match(s4.motivo, /Não há picolé sem lactose e sem soja no cardápio: a equipe monta essa parte com você/);
+  // Só a alergia (sem "sem lactose"): a mensagem de antes continua.
+  const s5 = await sugerirSaboresEvento({ client: clienteCreate([{ lanca: new Anthropic.APIConnectionError({ message: "fora" }) }]), evento: EV, notas: "criança com APLV, alergia a leite" });
+  assert.match(s5.motivo, /não há picolé sem esse ingrediente/);
 });
 
 caso("shake: veredito de leite e lactose olha a proteína E o líquido", () => {
