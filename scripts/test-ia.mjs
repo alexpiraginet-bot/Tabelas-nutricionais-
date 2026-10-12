@@ -536,6 +536,17 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Correto, não contém leite.", { sabores: ["limao-siciliano"] }],                                              // interjeição não é nome solto
     ["Confirmado, sem leite.", { sabores: ["limao-siciliano"] }],
     ["Resposta curta: não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["É servida esta opção sem leite.", { sabores: ["limao-siciliano"] }],                                        // particípio depois da cópula não é nome solto
+    ["É servido sem leite.", { sabores: ["limao-siciliano"] }],
+    ["São servidas opções sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Vem sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Existe opção sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Adicione esta opção sem leite.", { sabores: ["limao-siciliano"] }],                                         // imperativo não é nome solto
+    ["Aproveite, não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Confira: sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Peça sem medo, não contém leite.", { sabores: ["limao-siciliano"] }],                                       // "peça" não é "pecã"
+    ["Peça pelo WhatsApp.", { sabores: ["limao-siciliano"] }],
+    ["Não contém pecã.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -992,6 +1003,19 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Casquinha artesanal da casa é vegana.", { sabores: ["extra-dark"] }],
     ["Cone sem leite acompanha esta opção.", { sabores: ["limao-siciliano"] }],                                   // "sem" + alérgeno depois do nome solto é a alegação
     ["Cobertura artesanal sem leite.", { sabores: ["limao-siciliano"] }],
+    ["É fornecida cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                       // passiva com sujeito posposto sem artigo
+    ["É servido cone sem leite.", { sabores: ["limao-siciliano"] }],
+    ["É servido cone vegano.", { sabores: ["extra-dark"] }],
+    ["É vegano cone.", { sabores: ["extra-dark"] }],
+    ["Vem cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Há cone sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Adicione cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                          // imperativo de verbo de objeto
+    ["Forneça cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Sirva cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Coloque cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Adicione cone vegano.", { sabores: ["extra-dark"] }],
+    ["Contém pecã.", { sabores: ["limao-siciliano"] }],                                                           // "pecã" continua castanha
+    ["Leva PECÃ.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
