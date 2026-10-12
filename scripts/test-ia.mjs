@@ -521,6 +521,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Temos o Limão Siciliano e o Maracujá sem leite.", {}],
     ["Incluímos o Limão Siciliano, que não contém leite.", {}],                                                    // primeira pessoa do plural com o sabor como objeto
     ["Oferecemos opções sem leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano, que com certeza não contém leite, é refrescante.", {}],                                   // locução adverbial na relativa do próprio sabor
+    ["Recomendo o Limão Siciliano; de fato, ele não contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -950,6 +952,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Incluímos cobertura vegana.", { sabores: ["extra-dark"] }],
     ["Trazemos calda sem leite.", { sabores: ["limao-siciliano"] }],
     ["O Limão Siciliano vem incluindo cobertura sem leite.", {}],
+    ["Incluo cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                             // primeira pessoa do singular
+    ["Ofereço cobertura vegana.", { sabores: ["extra-dark"] }],
+    ["Esta opção vem com uma cobertura que com certeza não contém leite.", { sabores: ["limao-siciliano"] }],      // locução adverbial entre o "que" e a alegação
+    ["O Extra Dark vem com uma cobertura que sem dúvida é vegana.", {}],
+    ["O Limão Siciliano vem com uma cobertura que, na verdade, não contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura; ela, sem dúvida, não contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
