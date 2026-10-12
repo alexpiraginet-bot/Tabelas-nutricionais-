@@ -964,6 +964,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção inclui chocolate sem leite.", { sabores: ["limao-siciliano"] }],                                 // palavra de nome solta como objeto é ingrediente
     ["Pode pedir o Limão Siciliano com cobertura sem leite.", {}],
     ["O Pistache contém leite à noite.", {}],                                                                       // período do dia é restrição: a ficha vale o dia inteiro
+    ["O Pistache contém leite em dias alternados.", {}],                                                           // revezamento também: nos outros dias seria o contrário
+    ["O Extra Dark é vegano dia sim, dia não.", {}],
+    ["O Limão Siciliano não contém leite a cada dois dias.", {}],
+    ["O Pistache contém leite uma vez por semana.", {}],
+    ["Dia sim, dia não, o Extra Dark é vegano.", {}],
     ["O Pistache contém leite pela manhã.", {}],
     ["O Pistache contém leite de madrugada.", {}],
     ["O Pistache contém leite ao meio-dia.", {}],
