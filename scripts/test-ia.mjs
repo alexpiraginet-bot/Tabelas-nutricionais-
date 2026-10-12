@@ -560,6 +560,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Pode vir sem leite.", { sabores: ["limao-siciliano"] }],
     ["Poderá ser incluída esta opção sem leite.", { sabores: ["limao-siciliano"] }],                              // modal no futuro
     ["Poderá ser considerada vegana.", { sabores: ["extra-dark"] }],
+    ["Tal opção não contém leite.", { sabores: ["limao-siciliano"] }],                                            // "tal" é determinante
+    ["Tal como o Limão Siciliano, esta opção não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Mesma coisa: não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Outra opção não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -1043,6 +1047,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Deverá ser incluída cobertura sem leite.", { sabores: ["limao-siciliano"] }],
     ["Poderá ser incluída cobertura vegana.", { sabores: ["extra-dark"] }],
     ["Costumava ser servida cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Tal cobertura não contém leite.", { sabores: ["limao-siciliano"] }],                                        // "tal" é determinante
+    ["Tal cobertura é vegana.", { sabores: ["extra-dark"] }],
+    ["Tais coberturas não contêm leite.", { sabores: ["limao-siciliano"] }],
+    ["Referida cobertura não contém leite.", { sabores: ["limao-siciliano"] }],                                   // modificador sem artigo antes do nome
+    ["Citada cobertura é vegana.", { sabores: ["extra-dark"] }],
+    ["Inclui tal cobertura sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1927,6 +1937,9 @@ caso("frase sem sujeito herda a cadeia das anteriores: pronome resolvido na fras
   assert.equal(frasesSeguras("O Limão Siciliano é leve. Combina perfeitamente. Não contém leite.", N, () => {}, {}), "O Limão Siciliano é leve. Combina perfeitamente. Não contém leite.");
   assert.equal(frasesSeguras("O Limão Siciliano é ótimo. Vale a pena. Não contém leite.", N, () => {}, {}), "O Limão Siciliano é ótimo. Vale a pena. Não contém leite.");
   assert.equal(frasesSeguras("Vale a pena experimentar. Não contém leite.", N, () => {}, LI), "Vale a pena experimentar. Não contém leite.");
+  // "Tal cobertura" tem sujeito próprio: a cobertura, estranha.
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Tal cobertura não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura.");
+  assert.equal(frasesSeguras("O Extra Dark inclui uma cobertura. Tal cobertura é vegana.", N, () => {}, ED), "O Extra Dark inclui uma cobertura.");
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
