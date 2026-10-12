@@ -1461,7 +1461,7 @@ caso("texto todo cortado com card na tela ganha uma linha; cards de sabores vira
   assert.equal(g2.texto().trim(), "Temos uma opção vegana.");
 });
 
-caso("llms.txt lista cada picolé G com a própria ficha (o Framboesa Duo G não é o dobro do mini)", () => {
+caso("llms.txt lista cada picolé G com a própria ficha", () => {
   const txt = montarLlmsTxt();
   assert.doesNotMatch(txt, /valores em dobro/);
   assert.match(txt, /- Framboesa Duo G \(110 g \(picolé G\)\): 174 kcal/);

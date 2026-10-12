@@ -52,7 +52,7 @@ export function montarLlmsTxt() {
   out.push("");
   out.push("## Picolés Bentôlé");
   for (const p of PRODUCTS.filter((p) => p.category === "bentole" && !p.id.endsWith("-g"))) out.push(linhaSabor(p));
-  // Picolé G tem ficha própria (o Framboesa Duo G publicado não é o dobro do mini): uma linha por sabor.
+  // Picolé G tem ficha própria (pode ser publicada no painel à parte do mini): uma linha por sabor.
   out.push("- Também em tamanho G, com ficha própria:");
   for (const p of PRODUCTS.filter((p) => p.category === "bentole" && p.id.endsWith("-g"))) out.push(linhaSabor(p));
   out.push("");
