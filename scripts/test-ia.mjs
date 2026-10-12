@@ -558,6 +558,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Podem ser servidas opções sem leite.", { sabores: ["limao-siciliano"] }],
     ["Pode ser considerada vegana.", { sabores: ["extra-dark"] }],
     ["Pode vir sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Poderá ser incluída esta opção sem leite.", { sabores: ["limao-siciliano"] }],                              // modal no futuro
+    ["Poderá ser considerada vegana.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -1032,6 +1034,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Deve ser servido cone vegano.", { sabores: ["extra-dark"] }],
     ["Costuma ser servida cobertura sem leite.", { sabores: ["limao-siciliano"] }],
     ["Pode vir cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Poderá ser incluída cobertura sem leite.", { sabores: ["limao-siciliano"] }],                               // modal no futuro e no imperfeito
+    ["Deverá ser incluída cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Poderá ser incluída cobertura vegana.", { sabores: ["extra-dark"] }],
+    ["Costumava ser servida cobertura sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1907,6 +1913,15 @@ caso("frase sem sujeito herda a cadeia das anteriores: pronome resolvido na fras
   // Frase com sujeito próprio abre cadeia nova.
   assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Ela é artesanal. Esta opção não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Ela é artesanal. Esta opção não contém leite.");
   assert.equal(frasesSeguras("Separei esta opção para você. Não contém leite.", N, () => {}, LI), "Separei esta opção para você. Não contém leite.");
+  // Mais de uma frase sem sujeito no meio ("Combina perfeitamente.", "Vale a
+  // pena."): a cadeia continua até o pronome resolvido — a cobertura.
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Ela é artesanal. Combina perfeitamente. Não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Ela é artesanal. Combina perfeitamente.");
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Ela é artesanal. Combina perfeitamente. Vale a pena. Não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Ela é artesanal. Combina perfeitamente. Vale a pena.");
+  assert.equal(frasesSeguras("Esta opção vem com uma cobertura. Ela é artesanal. Combina perfeitamente. Não contém leite.", N, () => {}, LI), "Esta opção vem com uma cobertura. Ela é artesanal. Combina perfeitamente.");
+  // Sem pronome, a cadeia é do sabor; "vale a pena" não é sujeito.
+  assert.equal(frasesSeguras("O Limão Siciliano é leve. Combina perfeitamente. Não contém leite.", N, () => {}, {}), "O Limão Siciliano é leve. Combina perfeitamente. Não contém leite.");
+  assert.equal(frasesSeguras("O Limão Siciliano é ótimo. Vale a pena. Não contém leite.", N, () => {}, {}), "O Limão Siciliano é ótimo. Vale a pena. Não contém leite.");
+  assert.equal(frasesSeguras("Vale a pena experimentar. Não contém leite.", N, () => {}, LI), "Vale a pena experimentar. Não contém leite.");
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
