@@ -519,6 +519,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Algo que não contém leite: o Limão Siciliano.", {}],                                                         // a relativa é a própria alegação
     ["O Limão Siciliano, que certamente não contém leite, é refrescante.", {}],                                     // advérbio na relativa do próprio sabor
     ["Temos o Limão Siciliano e o Maracujá sem leite.", {}],
+    ["Incluímos o Limão Siciliano, que não contém leite.", {}],                                                    // primeira pessoa do plural com o sabor como objeto
+    ["Oferecemos opções sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -944,6 +946,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção inclui cobertura e cone sem leite.", { sabores: ["limao-siciliano"] }],                            // coordenação de objetos sem artigo
     ["Esta opção inclui cobertura e cone vegano.", { sabores: ["extra-dark"] }],
     ["O Limão Siciliano vem com cone e cobertura sem leite.", {}],
+    ["Incluímos cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                          // verbo de objeto na primeira pessoa do plural e no gerúndio
+    ["Incluímos cobertura vegana.", { sabores: ["extra-dark"] }],
+    ["Trazemos calda sem leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano vem incluindo cobertura sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1294,6 +1300,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto aceita pedidos agora.", N, lojas), true);
   assert.equal(fraseSegura("A Jardim Camburi não aceita pedidos agora.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto aceita pedidos pelo site.", N, lojas), true);
+  // Primeira pessoa do plural ("funcionamos agora", "estamos funcionando", "já fechamos") é status de todas as lojas.
+  assert.equal(fraseSegura("Funcionamos agora.", N, {}), false);
+  assert.equal(fraseSegura("Estamos funcionando.", N, {}), false);
+  assert.equal(fraseSegura("Já fechamos.", N, {}), false);
+  assert.equal(fraseSegura("Funcionamos agora.", N, lojas), false, "'funcionamos agora' com uma loja fechada sai");
+  assert.equal(fraseSegura("Já fechamos.", N, lojas), false, "'já fechamos' com uma loja aberta sai");
   assert.equal(fraseSegura("A Praia do Canto está em horário de funcionamento agora.", N, {}), false);
   // O nome da loja dentro do complemento de outro nome não faz dela o sujeito do horário.
   assert.equal(fraseSegura("A cozinha da Praia do Canto fecha às 19h.", N, lojas), false, "a cozinha não é a loja");
