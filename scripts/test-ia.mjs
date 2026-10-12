@@ -1754,6 +1754,16 @@ caso("pronome da resposta não resolve no preâmbulo recolhido", async () => {
   assert.equal(g2.texto().trim(), "Recomendo o Limão Siciliano. Ele não contém leite.");
 });
 
+caso("frase cortada não vira antecedente: o pronome resolve na última frase que foi para a tela", () => {
+  const N = new Set(), LI = { sabores: ["limao-siciliano"] };
+  // "O Pistache custa 99 reais." sai pelo número; o "Ele" não pode apontar para ele.
+  assert.equal(frasesSeguras("O Pistache custa 99 reais. Ele contém leite.", N, () => {}, LI), "");
+  assert.equal(frasesSeguras("O Pistache custa 99 reais. Ele não contém leite.", N, () => {}, LI), "");
+  // A frase cortada no meio não apaga a anterior que ficou: o leitor vê "Recomendo o Limão. Ele não contém leite."
+  assert.equal(frasesSeguras("Recomendo o Limão Siciliano. Custa 99 reais. Ele não contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano. Ele não contém leite.");
+  assert.equal(frasesSeguras("Recomendo o Limão Siciliano. O Pistache custa 99 reais. Ele contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano.");
+});
+
 caso("recusa vira conversa com a equipe, não erro", async () => {
   const cliente = clienteFalso([{ final: { stop_reason: "refusal", content: [] } }]);
   const g = gravador();
