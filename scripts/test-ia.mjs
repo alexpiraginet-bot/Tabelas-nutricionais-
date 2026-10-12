@@ -527,6 +527,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Na dúvida, não contém leite.", { sabores: ["limao-siciliano"] }],                                            // neutro de discurso: sem sujeito
     ["No pedido, o Limão Siciliano não contém leite.", {}],
     ["Na loja, temos opções sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Fornecemos opções sem leite.", { sabores: ["limao-siciliano"] }],                                            // objeto da tela segue
+    ["O Limão Siciliano é cremoso e também sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -966,6 +968,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["No seu pedido, não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Na loja, não contém leite.", { sabores: ["limao-siciliano"] }],
     ["No pedido, é vegano.", { sabores: ["extra-dark"] }],
+    ["Fornecemos cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                         // "fornecer" e outros verbos de objeto
+    ["Esta opção fornece cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Providenciamos cobertura sem leite.", { sabores: ["limao-siciliano"] }],                                     // verbo pela forma (-amos)
+    ["Preparou cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção inclui cobertura e também cone sem leite.", { sabores: ["limao-siciliano"] }],                    // advérbio entre o "e" e o segundo objeto
+    ["Esta opção inclui cobertura e também cone vegano.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
