@@ -531,6 +531,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano é cremoso e também sem leite.", {}],
     ["A equipe desta loja confirma que o Limão Siciliano não contém leite.", {}],                                 // complemento com relato não é composição
     ["Os atendentes desta loja confirmam que o Limão Siciliano não contém leite.", {}],                           // nome neutro com cara de adjetivo é nome
+    ["Opção artesanal não contém leite.", { sabores: ["limao-siciliano"] }],                                       // nome solto da tela com adjetivo
+    ["Cone artesanal acompanha esta opção, que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Correto, não contém leite.", { sabores: ["limao-siciliano"] }],                                              // interjeição não é nome solto
+    ["Confirmado, sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Resposta curta: não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -981,6 +986,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O pedido com cobertura não contém leite.", { sabores: ["limao-siciliano"] }],
     ["O pedido dela é vegano.", { sabores: ["extra-dark"] }],
     ["No pedido desta opção não vai leite.", { sabores: ["limao-siciliano"] }],                                   // tópico com complemento contraído
+    ["Cobertura artesanal não contém leite.", { sabores: ["limao-siciliano"] }],                                  // nome solto com adjetivo posposto
+    ["Cone artesanal é vegano.", { sabores: ["extra-dark"] }],
+    ["Cone crocante de chocolate não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Casquinha artesanal da casa é vegana.", { sabores: ["extra-dark"] }],
+    ["Cone sem leite acompanha esta opção.", { sabores: ["limao-siciliano"] }],                                   // "sem" + alérgeno depois do nome solto é a alegação
+    ["Cobertura artesanal sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
