@@ -511,6 +511,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Separei esta opção; a mesma não contém leite.", { sabores: ["limao-siciliano"] }],
     ["O Limão Siciliano não contém leite, e o mesmo vale para o Maracujá.", {}],
     ["O Limão Siciliano não contém leite; a mesma regra vale para o Maracujá.", {}],
+    ["O Limão Siciliano é um gelato de chocolate sem leite.", {}],                                                 // núcleo "gelato" é da tela; depois de cópula, predicativo
+    ["Esta opção é uma bola de gelato sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -904,6 +906,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção inclui, como um brinde, cobertura sem leite.", { sabores: ["limao-siciliano"] }],
     ["O Extra Dark inclui, como um brinde, cobertura vegana.", {}],
     ["O Limão Siciliano inclui, como um brinde especial, cobertura sem leite.", {}],
+    ["Esta opção inclui uma cobertura de chocolate sem leite.", { sabores: ["limao-siciliano"] }],                // "chocolate" no complemento não é o sabor: o núcleo é a cobertura
+    ["O Extra Dark inclui uma cobertura de chocolate vegana.", {}],
+    ["O Limão Siciliano vem com calda de pistache sem leite.", {}],
+    ["O Limão Siciliano vai num cone de baunilha sem leite.", {}],
+    ["O Limão Siciliano vem num cone feito de chocolate sem leite.", {}],
+    ["O Limão Siciliano vem num cone à base de chocolate sem leite.", {}],
+    ["Esta opção inclui uma cobertura de chocolate; ela não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção inclui uma cobertura de chocolate, que não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção inclui chocolate sem leite.", { sabores: ["limao-siciliano"] }],                                 // palavra de nome solta como objeto é ingrediente
+    ["Pode pedir o Limão Siciliano com cobertura sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1243,6 +1255,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto está aceitando pedidos agora.", N, {}), false);
   assert.equal(fraseSegura("A Praia do Canto está recebendo clientes agora.", N, lojas), true);
   assert.equal(fraseSegura("A Jardim Camburi está aceitando pedidos agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto está recebendo encomendas agora.", N, {}), false);
+  assert.equal(fraseSegura("A Jardim Camburi está aceitando encomendas agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto está recebendo encomendas agora.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto está em horário de funcionamento agora.", N, {}), false);
   // O nome da loja dentro do complemento de outro nome não faz dela o sujeito do horário.
   assert.equal(fraseSegura("A cozinha da Praia do Canto fecha às 19h.", N, lojas), false, "a cozinha não é a loja");
