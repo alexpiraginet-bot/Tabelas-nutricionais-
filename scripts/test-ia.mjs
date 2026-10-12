@@ -503,6 +503,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark é um gelato de cacau 100%.", {}],
     ["Temos, como cortesia, sabor sem leite.", { sabores: ["limao-siciliano"] }],                                   // parêntese antes de nome de produto segue
     ["O Limão Siciliano é, sem dúvida, um gelato sem leite.", {}],
+    ["O Limão Siciliano é a melhor opção sem leite.", {}],                                                         // modificador entre o artigo e o predicativo
+    ["O Limão Siciliano é um bom gelato sem leite.", {}],
+    ["O Extra Dark é mesmo vegano.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -876,6 +879,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção inclui, como cortesia, cobertura sem leite.", { sabores: ["limao-siciliano"] }],
     ["O Extra Dark inclui, como cortesia, cobertura vegana.", {}],
     ["O Limão Siciliano traz, de brinde, cobertura sem leite.", {}],
+    ["Esta opção inclui um adicional sem leite.", { sabores: ["limao-siciliano"] }],                               // nome com forma de adjetivo é o nome
+    ["Esta opção inclui um adicional vegano.", { sabores: ["extra-dark"] }],
+    ["O Limão Siciliano vem com um ingrediente sem leite.", {}],
+    ["O Limão Siciliano vai num recipiente sem leite.", {}],
+    ["O Extra Dark vem com um acompanhante vegano.", {}],
+    ["O Limão Siciliano inclui adicional sem leite.", {}],
+    ["Esta opção inclui um bom adicional sem leite.", { sabores: ["limao-siciliano"] }],                           // o artigo antes do modificador
+    ["O Limão Siciliano vem com um bom cone sem leite.", {}],
+    ["Esta opção inclui um adicional, que não contém leite.", { sabores: ["limao-siciliano"] }],                   // relativa e pronome com o mesmo nome
+    ["O Limão Siciliano inclui um adicional; ele não contém leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1200,6 +1213,15 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto está em horário de funcionamento agora.", N, lojas), true);
   assert.equal(fraseSegura("A Jardim Camburi está fora do horário de funcionamento.", N, lojas), true);
   assert.equal(fraseSegura("A Praia do Canto está fora do horário de funcionamento.", N, lojas), false);
+  // "Fora do expediente" é fechada; "em expediente" é aberta — os dois conferem com o bloco e saem sem ele.
+  assert.equal(fraseSegura("A Praia do Canto está fora do expediente agora.", N, lojas), false, "'fora do expediente' com a loja aberta sai");
+  assert.equal(fraseSegura("A Jardim Camburi está fora do expediente agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi não está fora do expediente agora.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto está em expediente agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi está em expediente.", N, lojas), false);
+  assert.equal(fraseSegura("A Praia do Canto está fora do expediente agora.", N, {}), false);
+  assert.equal(fraseSegura("A Praia do Canto está fora do expediente.", N, {}), false);
+  assert.equal(fraseSegura("A Praia do Canto está em expediente agora.", N, {}), false);
   assert.equal(fraseSegura("A Praia do Canto está em horário de funcionamento agora.", N, {}), false);
   // O nome da loja dentro do complemento de outro nome não faz dela o sujeito do horário.
   assert.equal(fraseSegura("A cozinha da Praia do Canto fecha às 19h.", N, lojas), false, "a cozinha não é a loja");
@@ -1671,6 +1693,29 @@ caso("preâmbulo antes da ferramenta sai da tela; fica só a resposta", async ()
   // E a regra está no prompt (a trava do código é a rede de segurança).
   assert.match(montarSistema(), /sem escrever nada antes delas/);
   assert.match(montarSistema(), /card de evento já traz o botão do orçamento/);
+});
+
+caso("pronome da resposta não resolve no preâmbulo recolhido", async () => {
+  // "Vou verificar o Limão." some da tela com o recolher; a resposta "Ele não
+  // contém leite." ao lado do card do Pistache não pode herdar o Limão escondido.
+  const cliente = clienteFalso([
+    { eventos: [{ texto: "Vou verificar o Limão Siciliano." }], final: { stop_reason: "tool_use", content: [{ type: "text", text: "Vou verificar o Limão Siciliano." }, usoDeFerramenta("t1", "mostrar_sabores", { ids: ["pistache"] })] } },
+    { eventos: [{ texto: "Ele não contém leite." }], final: { stop_reason: "end_turn", content: [{ type: "text", text: "Ele não contém leite." }] } },
+  ]);
+  const g = gravador();
+  const uso = await conversar({ client: cliente, mensagens: [{ papel: "cliente", texto: "o limão tem leite?" }], enviar: g.enviar });
+  assert.equal(uso.frases_cortadas, 1, "a frase com o pronome herdou o preâmbulo recolhido");
+  assert.doesNotMatch(g.texto(), /não contém leite/);
+  assert.match(g.texto(), /A resposta está no card/);
+  // Sem recolher (a resposta vem na mesma volta do nome), o pronome resolve no nome.
+  const cliente2 = clienteFalso([
+    { final: { stop_reason: "tool_use", content: [usoDeFerramenta("t1", "mostrar_sabores", { ids: ["limao-siciliano"] })] } },
+    { eventos: [{ texto: "Recomendo o Limão Siciliano. Ele não contém leite." }], final: { stop_reason: "end_turn", content: [{ type: "text", text: "Recomendo o Limão Siciliano. Ele não contém leite." }] } },
+  ]);
+  const g2 = gravador();
+  const uso2 = await conversar({ client: cliente2, mensagens: [{ papel: "cliente", texto: "o limão tem leite?" }], enviar: g2.enviar });
+  assert.equal(uso2.frases_cortadas, 0);
+  assert.equal(g2.texto().trim(), "Recomendo o Limão Siciliano. Ele não contém leite.");
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
