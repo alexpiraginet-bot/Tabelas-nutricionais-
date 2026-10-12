@@ -490,6 +490,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Pistache foi feito com leite.", {}],                                                                       // pretérito perfeito descreve a receita atual
     ["O Limão Siciliano continua sem leite.", {}],
     ["O Extra Dark continua vegano.", {}],
+    ["Temos também sabor sem leite.", { sabores: ["limao-siciliano"] }],                                            // advérbio antes de nome de produto segue
+    ["O Limão Siciliano é também um gelato sem leite.", {}],
+    ["Temos ainda uma opção vegana.", { sabores: ["extra-dark"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -830,6 +833,15 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Esta opção era feita com leite.", { sabores: ["pistache"] }],
     ["O Extra Dark era vegano.", {}],
     ["O Extra Dark será vegano.", {}],
+    ["Esta opção inclui também cobertura sem leite.", { sabores: ["limao-siciliano"] }],                            // advérbio entre o verbo e o objeto
+    ["O Limão Siciliano inclui ainda cobertura sem leite.", {}],
+    ["O Limão Siciliano traz junto cobertura sem leite.", {}],
+    ["O Extra Dark inclui também cone vegano.", {}],
+    ["Esta opção inclui também cobertura; ela não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Com whey, o Shake Açaí com Banana contém leite somente aos sábados.", {}],                                   // a escolha do shake não dispensa o resto
+    ["Com whey, o Shake Açaí com Banana raramente contém leite.", {}],
+    ["Com whey, o Shake Açaí com Banana contém leite só se pedir com cobertura.", {}],
+    ["Com whey, o Shake Açaí com Banana era feito com leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
