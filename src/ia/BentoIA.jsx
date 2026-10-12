@@ -12,7 +12,7 @@
 // automática respeita "Reduzir Movimento".
 import { useState, useEffect, useRef, useCallback } from "react";
 import { X, ArrowUp, Mic, Square, RotateCcw, MapPin, MessageCircle, ShoppingBag, ChevronRight, CupSoda, PartyPopper, Truck, Check, CircleAlert, Info, RefreshCw, LoaderCircle, SquarePen } from "lucide-react";
-import { tk, T, ProductArt, useModal, useSemFlutuantes } from "../shared.jsx";
+import { tk, T, ProductArt, useModal, useSemFlutuantes, usePrendeFoco } from "../shared.jsx";
 import { ALLERGENS } from "../data.js";
 import { LOJAS } from "../lojas.js";
 import { saborPorId, ehShake, alegacoes, alergicosShakeTexto, calculoShake, faixaShake, vereditoFoco, orcamentoEvento, DESTINOS, DESTAQUES, FOCOS, PEDIR_URL, STUDIO_URL, ZAP } from "./catalogo.js";
@@ -60,7 +60,7 @@ async function lerFluxo(resp, onEvento) {
 const linhaFina = `1px solid ${T.borderSoft}`;
 const superficie = { background: T.surface, border: `1px solid ${T.border}`, borderRadius: 16, overflow: "hidden" };
 const ICONE = { size: 16, strokeWidth: 1.75, "aria-hidden": true };
-const base = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 40, borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", textDecoration: "none", whiteSpace: "nowrap" };
+const base = { display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 44, borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: "pointer", textDecoration: "none", whiteSpace: "nowrap" };
 const BOTAO = {
   primario: { ...base, padding: "0 16px", border: "none", background: T.pistacheDark, color: T.surface },
   secundario: { ...base, padding: "0 14px", border: `1px solid ${T.border}`, background: T.surface, color: T.ink },
@@ -69,7 +69,7 @@ const BOTAO = {
 const AVISO_CRUZADO = "Produção compartilhada: pode conter traços de outros alérgicos.";
 
 // Um tom só para "atenção" no painel (antes eram dois marrons diferentes).
-const ALERTA = "#8A3B12";
+const ALERTA = T.alerta;
 
 function Alegacao({ children }) {
   return <span className="fb" style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12.5, fontWeight: 500, color: T.pistacheDark }}><Check size={13} strokeWidth={2.25} aria-hidden="true" />{children}</span>;
@@ -568,6 +568,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
   // Foco: entra no painel ao abrir (por chip, link ou barra) e volta ao que
   // estava focado antes ao fechar — leitor de tela e teclado não ficam na página de trás.
   const painel = useRef(null);
+  usePrendeFoco(painel);
   useEffect(() => {
     const antes = document.activeElement;
     try { painel.current && painel.current.focus({ preventScroll: true }); } catch { /* */ }
@@ -747,7 +748,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
         .ia-brilho{display:block;background:linear-gradient(90deg,${T.borderSoft} 0%,${T.bgWarm} 50%,${T.borderSoft} 100%);background-size:200% 100%;animation:iaBrilho 1.4s linear infinite}
         @keyframes iaBrilho{to{background-position:-200% 0}}
         @media(prefers-reduced-motion:reduce){.ia-painel,.ia-entra{animation:none}.ia-gira,.ia-brilho{animation:none}}
-        .ia-campo{resize:none;border:none;outline:none;background:transparent;width:100%;font:inherit;font-size:16px;line-height:1.45;color:${T.ink};max-height:132px;padding:9px 0}
+        .ia-campo{resize:none;border:none;outline:none;background:transparent;width:100%;font:inherit;font-size:16px;line-height:1.45;color:${T.ink};max-height:134px;padding:11px 0}
         .ia-campo::placeholder{color:${T.inkSoft}}
         .ia-caixa{transition:border-color .2s,box-shadow .2s}
         .ia-caixa:focus-within{border-color:${T.pistacheDark};box-shadow:0 0 0 3px rgba(70,88,58,.14)}
@@ -782,7 +783,7 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 22, maxWidth: 440 }}>
                 {SUGESTOES.map(({ rotulo, pergunta: p, Icone }) => (
                   <button key={rotulo} onClick={() => tk("IA · Sugestão", () => enviar(p))} className="fb ia-chip"
-                    style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 40, padding: "0 14px", borderRadius: 999, border: `1px solid ${T.border}`, background: T.surface, color: T.ink, fontSize: 13.5, fontWeight: 500, cursor: "pointer" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 44, padding: "0 14px", borderRadius: 999, border: `1px solid ${T.border}`, background: T.surface, color: T.ink, fontSize: 13.5, fontWeight: 500, cursor: "pointer" }}>
                     <Icone size={15} strokeWidth={1.75} color={T.pistacheDark} aria-hidden="true" />{rotulo}
                   </button>
                 ))}
@@ -818,13 +819,13 @@ export default function BentoIA({ onClose, pergunta, focar, onFicha, onEventos, 
               onChange={(e) => { setEntrada(e.target.value); const el = e.target; el.style.height = "auto"; el.style.height = Math.min(132, el.scrollHeight) + "px"; }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); enviar(entrada); } }} />
             {SR && !ocupado && <button type="button" onClick={falar} aria-label={ouvindo ? "Parar de ouvir" : "Falar a pergunta"} aria-pressed={ouvindo} className="ia-icone"
-              style={{ ...iconeBotao, width: 40, height: 40, borderRadius: "50%", background: ouvindo ? "#F2E2C5" : "transparent", color: ouvindo ? "#7A5320" : T.inkSoft }}>{ouvindo ? <Square size={14} strokeWidth={2} /> : <Mic size={18} strokeWidth={1.75} />}</button>}
+              style={{ ...iconeBotao, width: 44, height: 44, borderRadius: "50%", background: ouvindo ? T.bgWarm : "transparent", color: ouvindo ? T.accentInk : T.inkSoft }}>{ouvindo ? <Square size={14} strokeWidth={2} /> : <Mic size={18} strokeWidth={1.75} />}</button>}
             {ocupado
-              ? <button type="button" onClick={parar} aria-label="Parar resposta" title="Parar" style={{ width: 40, height: 40, borderRadius: "50%", border: "none", background: T.ink, color: T.surface, display: "grid", placeItems: "center", flexShrink: 0, cursor: "pointer" }}><Square size={13} strokeWidth={2.25} fill="currentColor" /></button>
-              : <button type="submit" disabled={!entrada.trim()} aria-label="Enviar pergunta" style={{ width: 40, height: 40, borderRadius: "50%", border: "none", background: entrada.trim() ? T.pistacheDark : T.border, color: T.surface, display: "grid", placeItems: "center", flexShrink: 0, cursor: entrada.trim() ? "pointer" : "default", transition: "background .2s" }}><ArrowUp size={18} strokeWidth={2} /></button>}
+              ? <button type="button" onClick={parar} aria-label="Parar resposta" title="Parar" style={{ width: 44, height: 44, borderRadius: "50%", border: "none", background: T.ink, color: T.surface, display: "grid", placeItems: "center", flexShrink: 0, cursor: "pointer" }}><Square size={13} strokeWidth={2.25} fill="currentColor" /></button>
+              : <button type="submit" disabled={!entrada.trim()} aria-label="Enviar pergunta" style={{ width: 44, height: 44, borderRadius: "50%", border: "none", background: entrada.trim() ? T.pistacheDark : T.border, color: T.surface, display: "grid", placeItems: "center", flexShrink: 0, cursor: entrada.trim() ? "pointer" : "default", transition: "background .2s" }}><ArrowUp size={18} strokeWidth={2} /></button>}
           </form>
           <p className="fb" style={{ fontSize: 12, color: T.inkSoft, textAlign: "center", margin: "8px 0 0", lineHeight: 1.4 }}>
-            Alergia grave? Confirme com a equipe antes de consumir · <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{ color: T.pistacheDark }}>Privacidade</a>
+            Alergia grave? Confirme com a equipe antes de consumir · <a href="/?privacidade=1" target="_blank" rel="noopener noreferrer" style={{ color: T.pistacheDark, display: "inline-block", padding: "14px 6px", margin: "-14px -6px" }}>Privacidade</a>
           </p>
         </div>
       </div>
