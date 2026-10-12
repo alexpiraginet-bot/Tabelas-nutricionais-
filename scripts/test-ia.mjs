@@ -234,14 +234,15 @@ caso("comparação de nutriente fica no card; status de loja confere com o que l
     entrega: [{ id: "praia-do-canto", entregando_agora: false, gratis: false }, { id: "jardim-camburi", entregando_agora: true, gratis: true }] } };
   for (const f of ["A Praia do Canto está aberta agora.", "As duas lojas estão abertas.", "A entrega é grátis agora.", "A Praia do Canto está entregando agora.",
     "A Jardim Camburi está com o atendimento suspenso agora.", "A Jardim Camburi está sem atendimento agora.", "A Jardim Camburi suspendeu o atendimento hoje.",   // atendimento suspenso é fechada
-    "O atendimento da Jardim Camburi está pausado no momento."])
+    "O atendimento da Jardim Camburi está pausado no momento.", "A Jardim Camburi está fora de atividade agora.", "A Jardim Camburi está sem atividade hoje."])
     assert.equal(fraseSegura(f, N, lojas), false, "passou contra a ferramenta: " + f);
   for (const f of ["A Praia do Canto está fechada agora, mas a Jardim Camburi está aberta.", "A Praia do Canto não está aberta agora.",
     "Na Jardim Camburi a entrega é grátis agora.", "O pedido online mostra na hora se a entrega está disponível.",
-    "A Praia do Canto está com o atendimento suspenso agora.", "A Praia do Canto está sem atendimento agora.", "O atendimento da Praia do Canto está suspenso agora."])
+    "A Praia do Canto está com o atendimento suspenso agora.", "A Praia do Canto está sem atendimento agora.", "O atendimento da Praia do Canto está suspenso agora.",
+    "A Praia do Canto está fora de atividade agora."])
     assert.equal(fraseSegura(f, N, lojas), true, "barrou o que a ferramenta disse: " + f);
   // Sem a ferramenta, status dito como "atendimento suspenso" também sai.
-  for (const f of ["A Praia do Canto está com o atendimento suspenso agora.", "Estamos sem atendimento agora.", "A Praia do Canto suspendeu o atendimento."])
+  for (const f of ["A Praia do Canto está com o atendimento suspenso agora.", "Estamos sem atendimento agora.", "A Praia do Canto suspendeu o atendimento.", "A Praia do Canto está fora de atividade agora."])
     assert.equal(fraseSegura(f, N, {}), false, "status sem ferramenta passou: " + f);
   // Sem dados de entrega, nada de "grátis".
   assert.equal(fraseSegura("A entrega é grátis agora.", N, { lojas: { ...lojas.lojas, entrega: null } }), false);
@@ -571,6 +572,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Complemento a resposta: esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                  // "complemento" verbo segue verbo
     ["Garanto que não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Vem junto e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Extra Dark é plant-based.", {}],                                                                           // "plant-based" com hífen é vegano
+    ["Esta opção inclui tanto cobertura quanto cone, e não contém leite.", { sabores: ["limao-siciliano"] }],       // a coordenação é do objeto; a afirmação é da opção
+    ["Tanto o Limão Siciliano quanto o Maracujá não contêm leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -1068,6 +1072,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Complemento é vegano.", { sabores: ["extra-dark"] }],
     ["Complemento: não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Complemento acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Pistache é plant-based.", {}],                                                                             // "plant-based" com hífen
+    ["Esta opção é plant-based.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção inclui tanto cobertura quanto cone sem leite.", { sabores: ["limao-siciliano"] }],                // coordenação correlativa do objeto
+    ["Esta opção inclui tanto cobertura quanto cone vegano.", { sabores: ["extra-dark"] }],
+    ["Esta opção inclui cobertura bem como cone sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção inclui cobertura, assim como cone sem leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
