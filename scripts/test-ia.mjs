@@ -514,6 +514,9 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano é um gelato de chocolate sem leite.", {}],                                                 // núcleo "gelato" é da tela; depois de cópula, predicativo
     ["Esta opção é uma bola de gelato sem leite.", { sabores: ["limao-siciliano"] }],
     ["Boa noite! O Pistache contém leite.", {}],                                                                   // "noite" sem preposição não é período
+    ["Tudo que mostrei não contém leite.", { sabores: ["limao-siciliano"] }],                                      // indefinido com apresentação é a tela
+    ["Tudo o que está na tela não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Algo que não contém leite: o Limão Siciliano.", {}],                                                         // a relativa é a própria alegação
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -928,6 +931,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Extra Dark é vegano à noite.", {}],
     ["O Extra Dark é vegano pela manhã.", {}],
     ["O Extra Dark é cacau 100% à noite.", {}],
+    ["Algo que vem junto não contém leite.", { sabores: ["limao-siciliano"] }],                                    // indefinido com relativa de outra coisa é estranho
+    ["Algo que acompanha o Limão Siciliano não contém leite.", {}],
+    ["Algo não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Algo que vem junto é vegano.", { sabores: ["extra-dark"] }],
+    ["Tudo que vem junto não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
