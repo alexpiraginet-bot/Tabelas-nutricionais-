@@ -506,6 +506,11 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano é a melhor opção sem leite.", {}],                                                         // modificador entre o artigo e o predicativo
     ["O Limão Siciliano é um bom gelato sem leite.", {}],
     ["O Extra Dark é mesmo vegano.", {}],
+    ["Recomendo o Limão Siciliano; o mesmo não contém leite.", {}],                                                // anáfora nominal com antecedente de produto
+    ["Recomendo o Extra Dark; o mesmo é vegano.", {}],
+    ["Separei esta opção; a mesma não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano não contém leite, e o mesmo vale para o Maracujá.", {}],
+    ["O Limão Siciliano não contém leite; a mesma regra vale para o Maracujá.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -889,6 +894,16 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["O Limão Siciliano vem com um bom cone sem leite.", {}],
     ["Esta opção inclui um adicional, que não contém leite.", { sabores: ["limao-siciliano"] }],                   // relativa e pronome com o mesmo nome
     ["O Limão Siciliano inclui um adicional; ele não contém leite.", {}],
+    ["O Limão Siciliano inclui cobertura; a mesma não contém leite.", { sabores: ["limao-siciliano"] }],           // anáfora nominal: "a mesma" é a cobertura
+    ["O Extra Dark inclui cobertura; a mesma é vegana.", { sabores: ["extra-dark"] }],
+    ["O Extra Dark inclui um cone; o mesmo é vegano.", {}],
+    ["O Limão Siciliano vem com uma cobertura; esta última não contém leite.", {}],
+    ["O Limão Siciliano vem com uma cobertura; a mesma também não contém leite.", {}],
+    ["A mesma não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["O Limão Siciliano inclui, como um brinde, cobertura sem leite.", {}],                                        // parêntese com artigo
+    ["Esta opção inclui, como um brinde, cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["O Extra Dark inclui, como um brinde, cobertura vegana.", {}],
+    ["O Limão Siciliano inclui, como um brinde especial, cobertura sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1222,6 +1237,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
   assert.equal(fraseSegura("A Praia do Canto está fora do expediente agora.", N, {}), false);
   assert.equal(fraseSegura("A Praia do Canto está fora do expediente.", N, {}), false);
   assert.equal(fraseSegura("A Praia do Canto está em expediente agora.", N, {}), false);
+  // "Recebendo/aceitando clientes ou pedidos" é aberta também na guarda sem ferramenta.
+  assert.equal(fraseSegura("A Praia do Canto está recebendo clientes agora.", N, {}), false);
+  assert.equal(fraseSegura("A Praia do Canto está recebendo pedidos.", N, {}), false);
+  assert.equal(fraseSegura("A Praia do Canto está aceitando pedidos agora.", N, {}), false);
+  assert.equal(fraseSegura("A Praia do Canto está recebendo clientes agora.", N, lojas), true);
+  assert.equal(fraseSegura("A Jardim Camburi está aceitando pedidos agora.", N, lojas), false);
   assert.equal(fraseSegura("A Praia do Canto está em horário de funcionamento agora.", N, {}), false);
   // O nome da loja dentro do complemento de outro nome não faz dela o sujeito do horário.
   assert.equal(fraseSegura("A cozinha da Praia do Canto fecha às 19h.", N, lojas), false, "a cozinha não é a loja");
