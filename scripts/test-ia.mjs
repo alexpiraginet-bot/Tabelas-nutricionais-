@@ -517,6 +517,8 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Tudo que mostrei não contém leite.", { sabores: ["limao-siciliano"] }],                                      // indefinido com apresentação é a tela
     ["Tudo o que está na tela não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Algo que não contém leite: o Limão Siciliano.", {}],                                                         // a relativa é a própria alegação
+    ["O Limão Siciliano, que certamente não contém leite, é refrescante.", {}],                                     // advérbio na relativa do próprio sabor
+    ["Temos o Limão Siciliano e o Maracujá sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -936,6 +938,12 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Algo não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Algo que vem junto é vegano.", { sabores: ["extra-dark"] }],
     ["Tudo que vem junto não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Esta opção vem com uma cobertura que certamente não contém leite.", { sabores: ["limao-siciliano"] }],       // advérbio dentro da relativa não solta o antecedente
+    ["O Extra Dark vem com um cone que certamente é vegano.", {}],
+    ["O Limão Siciliano vem com uma cobertura; ela certamente não contém leite.", {}],
+    ["Esta opção inclui cobertura e cone sem leite.", { sabores: ["limao-siciliano"] }],                            // coordenação de objetos sem artigo
+    ["Esta opção inclui cobertura e cone vegano.", { sabores: ["extra-dark"] }],
+    ["O Limão Siciliano vem com cone e cobertura sem leite.", {}],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1790,6 +1798,21 @@ caso("frase cortada não vira antecedente: o pronome resolve na última frase qu
   // A frase cortada no meio não apaga a anterior que ficou: o leitor vê "Recomendo o Limão. Ele não contém leite."
   assert.equal(frasesSeguras("Recomendo o Limão Siciliano. Custa 99 reais. Ele não contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano. Ele não contém leite.");
   assert.equal(frasesSeguras("Recomendo o Limão Siciliano. O Pistache custa 99 reais. Ele contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano.");
+});
+
+caso("frase sem sujeito herda a cadeia das anteriores: pronome resolvido na frase de antes", () => {
+  const N = new Set(), LI = { sabores: ["limao-siciliano"] }, ED = { sabores: ["extra-dark"] };
+  // "Ela" é a cobertura; "Não contém leite." continua falando dela, não do Limão.
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Ela é artesanal. Não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Ela é artesanal.");
+  assert.equal(frasesSeguras("O Extra Dark inclui um cone. Ele é crocante. É vegano.", N, () => {}, ED), "O Extra Dark inclui um cone. Ele é crocante.");
+  assert.equal(frasesSeguras("O cone é crocante. Não contém leite.", N, () => {}, LI), "O cone é crocante.");
+  // Cadeia que termina no sabor: a frase sem sujeito é dele, mesmo sem card.
+  assert.equal(frasesSeguras("Recomendo o Limão Siciliano. Não contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano. Não contém leite.");
+  assert.equal(frasesSeguras("Recomendo o Limão Siciliano. Ele é ótimo. Ele não contém leite.", N, () => {}, {}), "Recomendo o Limão Siciliano. Ele é ótimo. Ele não contém leite.");
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Não contém leite.");
+  // Frase com sujeito próprio abre cadeia nova.
+  assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Ela é artesanal. Esta opção não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura. Ela é artesanal. Esta opção não contém leite.");
+  assert.equal(frasesSeguras("Separei esta opção para você. Não contém leite.", N, () => {}, LI), "Separei esta opção para você. Não contém leite.");
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
