@@ -564,6 +564,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Tal como o Limão Siciliano, esta opção não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Mesma coisa: não contém leite.", { sabores: ["limao-siciliano"] }],
     ["Outra opção não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Opção acompanha o pedido e não contém leite.", { sabores: ["limao-siciliano"] }],                           // verbo de objeto depois do sujeito fecha a busca
+    ["Esta opção acompanha o pedido e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Posso garantir que esta opção não contém leite.", { sabores: ["limao-siciliano"] }],                        // modal em 1ª pessoa não é nome solto
+    ["Sempre acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), true, "barrou: " + f);
   for (const [f, ctx] of [
     ["Separei opções sem lactose.", { sabores: ["pistache", "limao-siciliano"] }],   // um dos cards tem lactose
@@ -1053,6 +1057,10 @@ caso("alergia: menção à condição não é afirmação; sem nome, o sujeito s
     ["Referida cobertura não contém leite.", { sabores: ["limao-siciliano"] }],                                   // modificador sem artigo antes do nome
     ["Citada cobertura é vegana.", { sabores: ["extra-dark"] }],
     ["Inclui tal cobertura sem leite.", { sabores: ["limao-siciliano"] }],
+    ["Cobertura acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],                      // nome solto + verbo de objeto é sujeito
+    ["Cone acompanha esta opção e é vegano.", { sabores: ["extra-dark"] }],
+    ["Cobertura vem junto e não contém leite.", { sabores: ["limao-siciliano"] }],
+    ["Cobertura artesanal acompanha esta opção e não contém leite.", { sabores: ["limao-siciliano"] }],
   ]) assert.equal(fraseSegura(f, N, ctx), false, "passou: " + f);
   // Horário e "funcionando" com o bloco de lojas; "o pedido online mostra" sem a ferramenta.
   const lojas = { lojas: { tipo: "lojas", lojas: [{ id: "praia-do-canto", aberta: true, hoje: "10h às 19h", abre: null, fecha_as: "19h" }, { id: "jardim-camburi", aberta: false, hoje: "fechada hoje", abre: "amanhã às 11h", fecha_as: null }], entrega: null } };
@@ -1940,6 +1948,9 @@ caso("frase sem sujeito herda a cadeia das anteriores: pronome resolvido na fras
   // "Tal cobertura" tem sujeito próprio: a cobertura, estranha.
   assert.equal(frasesSeguras("O Limão Siciliano inclui uma cobertura. Tal cobertura não contém leite.", N, () => {}, LI), "O Limão Siciliano inclui uma cobertura.");
   assert.equal(frasesSeguras("O Extra Dark inclui uma cobertura. Tal cobertura é vegana.", N, () => {}, ED), "O Extra Dark inclui uma cobertura.");
+  // Nome solto com verbo de objeto abre a cadeia pela cobertura.
+  assert.equal(frasesSeguras("Cobertura acompanha esta opção. Não contém leite.", N, () => {}, LI), "Cobertura acompanha esta opção.");
+  assert.equal(frasesSeguras("Cobertura acompanha esta opção. Esta opção não contém leite.", N, () => {}, LI), "Cobertura acompanha esta opção. Esta opção não contém leite.");
 });
 
 caso("recusa vira conversa com a equipe, não erro", async () => {
