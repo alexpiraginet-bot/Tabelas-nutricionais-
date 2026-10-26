@@ -84,7 +84,24 @@ escrever número, preço ou tabela na tela por conta própria.
   `lojas_agora` rodou, e confere com o que ela devolveu (`ctx.lojas` = o bloco:
   aberta/fechada por loja, grátis e entregando com a entrega). Comparação de
   nutriente ("tem mais proteína que…", "o mais leve é o…") com sabor citado ou
-  pronome sai: no texto só o critério; quem ganha, o card mostra. O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
+  pronome sai: no texto só o critério; quem ganha, o card mostra. **Sujeito sem
+  nome são os cards da resposta** (`ctx.sabores`): "os quatro são sem lactose"
+  com o card de quatro sem lactose passa — medido em produção, era o corte mais
+  comum e deixava "tem opção vegana?" com card e texto vazio. Nome na frase E
+  referência à tela ("assim como o Limão, estas opções não levam leite") =
+  citados + cards juntos; só o nome deixava passar o Morango do card. "Alergia a X" é
+  menção à condição, não afirmação de receita (sai antes da busca; X vira o foco
+  de "serve para…"/"evite…"; com dois alérgicos na condição, os dois entram).
+  Em "todos têm leite, menos o Limão", o "todos" é o que vem antes da exceção,
+  senão os cards (todos, não só a exceção), senão a linha inteira ("todos os
+  gelatos"); sem nada disso, sai. Horário no texto só com o card de lojas e
+  igual ao da loja citada, hora E minuto, no papel certo ("abre às 19h" com
+  card "10h às 19h" sai: 19h é fechamento) e no dia certo: hora com "amanhã"
+  ou dia da semana só confere com o `abre` do bloco, no dia dele ("abre amanhã
+  às 10h" com card "amanhã às 8h" sai, mesmo 10h sendo o horário de hoje). Descritor com número do catálogo
+  ("cacau 100%") só no sabor cujo `sub` o tem. Texto todo cortado com card na tela ganha a linha "A resposta
+  está no card…". Antes de mexer no filtro, rode o corpus de frases realistas
+  (teste "menção à condição") e meça frase certa cortada, não só errada que passou. O número que decide vai no card (`destaque` em `mostrar_sabores`), não no texto.
   Contagem diária em `frases_cortadas` (`ia:uso:<dia>`). `api/ia.js`: HTTP, limites por IP e por dia,
   SSE. `src/ia/catalogo.js`: tudo o que a IA sabe, DERIVADO de `data.js`,
   `lojas.js` e `eventos-regras.js` — nada copiado. `src/ia/BentoIA.jsx`: painel.
@@ -120,7 +137,12 @@ escrever número, preço ou tabela na tela por conta própria.
   superfície por resposta com linha fina entre itens, **um botão principal por
   resposta** (não um "Pedir" por linha), esqueleto do card que vai chegar e o
   botão Parar durante a resposta. Campo de texto no celular com 16px ou mais
-  (abaixo disso o iPhone dá zoom).
+  (abaixo disso o iPhone dá zoom). **Alvo de toque: 44px** em chip, botão de
+  ação, aba e ícone (auditado; 40 era o padrão e reprovou). Cor de alerta vem
+  de `T.alerta`/`T.alertaBg`/`T.alertaBorda`, não de hex solto. Modal prende o
+  Tab com `usePrendeFoco(ref)` (`src/shared.jsx`, pilha para modal sobre
+  modal): `aria-modal` não segura o teclado, e três Tabs levavam o foco para a
+  página de trás.
 - **O card responde a pergunta.** Pergunta de restrição usa a lente `foco`
   (lactose, leite, glúten, amendoim, castanhas): o veredito de cada sabor sai de
   `vereditoFoco` (catálogo), na primeira linha do card, e nunca garante ausência

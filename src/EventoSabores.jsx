@@ -139,7 +139,7 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
           {completa ? "Pronta. Pode continuar ou trocar sabores na lista abaixo." : "Falta escolher: veja na lista abaixo."}
         </div>
         {conflitos.length > 0 && (
-          <div className="fb" role="alert" style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12, border: "1px solid #E7C9B5", background: "#FBF1EA", fontSize: 13.5, color: "#8A3B12", lineHeight: 1.5 }}>
+          <div className="fb" role="alert" style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12, border: `1px solid ${T.alertaBorda}`, background: T.alertaBg, fontSize: 13.5, color: T.alerta, lineHeight: 1.5 }}>
             <strong style={{ fontWeight: 600 }}>{conflitos.map((c) => `${c.nome} contém ${c.alergia}`).join(" · ")}.</strong> Você avisou alergia a isso: troque o sabor ou confirme com a equipe.
           </div>
         )}
@@ -186,7 +186,7 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
         ))}
         <div className="fb" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", padding: "8px 16px 10px" }}>
           <span style={{ fontSize: 12.5, color: T.inkSoft, lineHeight: 1.5 }}>A equipe confirma a disponibilidade dos sabores para a data.</span>
-          {onEquipeEscolhe && <button type="button" onClick={onEquipeEscolhe} className="fb" style={{ minHeight: 40, padding: "0 4px", border: "none", background: "transparent", color: T.pistacheDark, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>Prefiro que a Bentô escolha</button>}
+          {onEquipeEscolhe && <button type="button" onClick={onEquipeEscolhe} className="fb" style={{ minHeight: 44, padding: "0 4px", border: "none", background: "transparent", color: T.pistacheDark, fontSize: 13.5, fontWeight: 600, cursor: "pointer" }}>Prefiro que a Bentô escolha</button>}
         </div>
       </section>
 
@@ -218,7 +218,7 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
                 style={{ marginTop: 12, minHeight: 44, padding: "0 18px", borderRadius: 12, border: "none", background: carregando ? T.border : T.pistacheDark, color: carregando ? T.inkSoft : T.surface, fontSize: 14.5, fontWeight: 600, cursor: carregando ? "default" : "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
                 {carregando ? <><LoaderCircle size={16} className="ev-gira" aria-hidden="true" />Montando a combinação…</> : "Sugerir combinação"}
               </button>
-              {erroIA && <div className="fb" role="alert" style={{ fontSize: 13, color: "#8A3B12", marginTop: 10, lineHeight: 1.5 }}>{erroIA}</div>}
+              {erroIA && <div className="fb" role="alert" style={{ fontSize: 13, color: T.alerta, marginTop: 10, lineHeight: 1.5 }}>{erroIA}</div>}
             </div>
           )}
         </section>
@@ -230,7 +230,7 @@ export default function EventoSabores({ evento, limites, valor, onChange, iaAtiv
           <div role="tablist" aria-label="Linha" style={{ display: "inline-flex", marginTop: 10, padding: 3, background: T.bgWarm, borderRadius: 12 }}>
             {linhas.map((l) => (
               <button key={l} type="button" role="tab" aria-selected={linha === l} onClick={() => { setLinha(l); setAviso(null); }} className="fb"
-                style={{ minHeight: 40, padding: "0 16px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13.5, fontWeight: 600,
+                style={{ minHeight: 44, padding: "0 16px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13.5, fontWeight: 600,
                   background: linha === l ? T.surface : "transparent", color: linha === l ? T.ink : T.inkSoft, boxShadow: linha === l ? "0 1px 2px rgba(35,38,25,.12)" : "none" }}>
                 {l === "gelato" ? "Gelatos" : "Picolés"}
               </button>

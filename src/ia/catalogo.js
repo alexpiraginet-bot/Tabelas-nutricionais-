@@ -464,7 +464,11 @@ export function sugestaoEquilibrada(limites, prefs = {}) {
     if (prefs.alergias && prefs.alergias.length) pool = pool.filter((s) => !conflitoDe(s, prefs.alergias).length);
     const ids = [];
     const poe = (f) => { const s = pool.find((x) => !ids.includes(x.id) && f(x)); if (s && ids.length < n) ids.push(s.id); };
-    if (prefs.semLactose) poe((x) => x.semLactose);
+    // "Sem lactose" marcado é promessa: sem opção sem lactose no que sobrou
+    // (alergia avisada, só bom para criança), a linha sai vazia — devolver um
+    // sabor com lactose quebraria a promessa da tela. Quem chama diz que a
+    // equipe monta essa parte.
+    if (prefs.semLactose) { poe((x) => x.semLactose); if (!ids.length) return []; }
     poe((x) => x.chocolate && x.crianca);
     poe((x) => x.fruta);
     for (const s of [...pool].sort((a, b) => b.proteina - a.proteina)) if (ids.length < n && !ids.includes(s.id)) ids.push(s.id);

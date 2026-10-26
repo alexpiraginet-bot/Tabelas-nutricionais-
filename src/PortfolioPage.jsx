@@ -8,8 +8,7 @@ const PICOLES=[
   {n:"Opereta", d:"Chocolate branco · castanhas", prot:"9,9 g", kcal:86, img:"/portfolio/heros/opereta.jpg"},
   {n:"Snickers", d:"Amendoim · doce de leite · chocolate meio amargo", prot:"9,6 g", kcal:95, img:"/portfolio/heros/snickers.jpg"},
   {n:"Prestígio", d:"Coco cremoso · cobertura de chocolate", prot:"8 g", kcal:91, img:"/portfolio/heros/prestigio.jpg"},
-  {n:"Framboesa Duo", d:"Framboesa · cobertura zero lactose — o mais leve", prot:"1,2 g", kcal:42, img:"/portfolio/heros/framboesa-duo.jpg"},
-  {n:"Magnésio + Inositol Relief 3.0", d:"Tangerina com Maracujá", soon:true, prot:null, kcal:null, img:"/portfolio/heros/magnesio.jpg"},
+  {n:"Framboesa Duo", d:"Framboesa · cobertura zero lactose", prot:"1,2 g", kcal:87, img:"/portfolio/heros/framboesa-duo.jpg"},
 ];
 const POTES=[
   {n:"Chocolate Dubai", d:"Chocolate com creme crocante e granela crocante", prot:"12 g"},
@@ -68,7 +67,7 @@ export default function PortfolioPage(){
           <h2 style={{fontFamily:SERIF,fontSize:"clamp(26px,4vw,40px)",margin:"6px 0 4px",fontWeight:500}}>Picolés Bentôlé</h2>
           <p style={{fontSize:13.5,color:C.soft,marginBottom:18}}>Mini picolés proteicos · tamanhos <strong>P (55 g)</strong> e <strong>G (110 g)</strong> · embalagem individual premium.</p>
           <figure style={{margin:"0 auto 22px",maxWidth:560}}>
-            <img src="/portfolio/picoles-poster.jpg" alt="Linha de picolés Bentôlé" loading="lazy" style={{width:"100%",display:"block",borderRadius:12,border:`1px solid ${C.border}`}}/>
+            <img src="/portfolio/picoles-lineup.jpg" alt="Linha de picolés Bentôlé" loading="lazy" style={{width:"100%",display:"block",borderRadius:12,border:`1px solid ${C.border}`}}/>
             <figcaption style={{fontSize:10,color:C.soft,textAlign:"center",marginTop:5,fontStyle:"italic"}}>Imagem meramente ilustrativa</figcaption>
           </figure>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(232px,1fr))",gap:12}}>
@@ -91,7 +90,7 @@ export default function PortfolioPage(){
               </div>
             ))}
           </div>
-          <p style={{fontSize:11,color:C.soft,marginTop:12,lineHeight:1.5}}>Valores nutricionais por unidade no tamanho P (~55 g). Magnésio + Inositol Relief 3.0 disponível apenas no tamanho P. Fichas completas em bentogelateria.com.</p>
+          <p style={{fontSize:11,color:C.soft,marginTop:12,lineHeight:1.5}}>Valores nutricionais por unidade no tamanho P (~55 g). Fichas completas em bentogelateria.com.</p>
         </section>
 
         {/* POTES */}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { ArrowLeft, ChevronRight, Search, Leaf, Beaker, Filter, Heart, Scale, X, Sparkles, Target, Printer } from "lucide-react";
 import { PRODUCTS, SHAKES, AVISO_POLIOL, MOOD_META, QUIZ, ALLERGENS, PODE_CONTER, lupaFrontal, proteinClaim } from "./data.js";
-import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, useSemFlutuantes, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
+import { tk, award, T, LOJAS, DECK_URL, BentoLogo, GelatoSVG, PicoleSVG, ProductArt, MoodChip, Chip, MacroBar, useModal, useSemFlutuantes, usePrendeFoco, onImgErr, IMG_FB, VD, br, orderIngredients } from "./shared.jsx";
 import { EV_PERS_DE, EV_POTINHOS, EV_UPGRADE_LOGISTICA, EV_TEM_UPGRADE, EV_FORMATOS, EV_FMT, EV_CABE, EV_MIN, EV_SUGERE, calcEvento } from "./eventos-regras.js";
 import { limiteSabores, sugestaoEquilibrada, validarEscolhaSabores, resumoSabores } from "./ia/catalogo.js";
 import { useIAAtiva } from "./ia/EntradaIA.jsx";
@@ -779,6 +779,14 @@ async function evGeocode(text){
 // orçamento online (abaixo do mínimo), vale o padrão: abaixo disso é WhatsApp.
 export function EventosModal({onClose,convidadosInicial}){
   useModal(onClose);
+  const raizModal=useRef(null); usePrendeFoco(raizModal);
+  // Foco entra no modal ao abrir e volta ao botão que o abriu ao fechar: só
+  // prender o Tab deixava o leitor de tela no controle escondido atrás.
+  useEffect(()=>{
+    const antes=document.activeElement;
+    try{raizModal.current&&raizModal.current.focus({preventScroll:true});}catch{/* */}
+    return()=>{try{antes&&typeof antes.focus==="function"&&antes.focus({preventScroll:true});}catch{/* */}};
+  },[]);
   useSemFlutuantes();
   const[step,setStep]=useState(1);
   const[ev,setEv]=useState(()=>{
@@ -979,13 +987,13 @@ export function EventosModal({onClose,convidadosInicial}){
   );
   return(
     <div className="fade" onClick={onClose} role="dialog" aria-modal="true" aria-label="Nos leve para seu evento" style={{position:"fixed",inset:0,zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(31,35,23,0.62)",backdropFilter:"blur(4px)",padding:16}}>
-      <div className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`}}>
+      <div ref={raizModal} tabIndex={-1} className="rise gn" onClick={e=>e.stopPropagation()} style={{background:T.surface,borderRadius:12,maxWidth:540,width:"100%",maxHeight:"92dvh",overflow:"auto",border:`1px solid ${T.border}`,outline:"none"}}>
         <div style={{background:T.ink,padding:"16px 22px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:1}}>
           <div>
             <div className="fm" style={{fontSize:9,letterSpacing:"0.3em",color:T.border,textTransform:"uppercase"}}>Eventos · Passo {step} de 4</div>
             <div className="fd" style={{fontSize:18,color:T.bg,marginTop:2}}>Nos leve para seu evento</div>
           </div>
-          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
+          <button onClick={onClose} aria-label="Fechar" style={{background:"rgba(255,255,255,0.12)",border:"none",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",color:T.bg}}><X size={16}/></button>
         </div>
         <div style={{padding:22}}>
           {step===1&&(<>
@@ -1632,7 +1640,6 @@ export function PitchDeck({onClose,onCatalog,onFaq}){
         <PitchStat v="13" u="g" l="proteína por porção (Paçoca, Brigadeiro)" gold={gold} cream={cream}/>
         <PitchStat v="61" u="kcal" l="campeão Pistache & Choco Branco — com 10 g de proteína" gold={gold} cream={cream}/>
         <PitchStat v="0" u="g" l="açúcar adicionado em toda a linha" gold={gold} cream={cream}/>
-        <PitchStat v="42" u="kcal" l="o mais leve (Framboesa Duo)" gold={gold} cream={cream}/>
       </div>
     </div>,
     // 5 — Engenharia / regulatório

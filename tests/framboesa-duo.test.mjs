@@ -40,7 +40,7 @@ test("Framboesa Duo keeps the published nutrition and RT audit metadata", () => 
   assert.equal(large.name, "Framboesa Duo G");
   assert.equal(mini.image, "/sabores/bentole-framboesa-duo.jpg");
   assert.deepEqual(mini.nutrition, {
-    kcal: 42,
+    kcal: 87,
     carbs: 8.9,
     sugars: 1.4,
     addedSugars: 0,
@@ -63,6 +63,11 @@ test("Framboesa Duo keeps the published nutrition and RT audit metadata", () => 
     fiber: 15.4,
     sodium: 9.28,
   });
+  // Decisão do dono: o G publicado está certo e o mini tem exatamente a metade
+  // de cada valor (antes o mini dizia 42 kcal, metade de 84, não de 174).
+  for (const [campo, valor] of Object.entries(large.nutrition)) {
+    assert.equal(Math.round(mini.nutrition[campo] * 2 * 100) / 100, valor, `mini não é metade do G em ${campo}`);
+  }
   assert.deepEqual(ALLERGENS[mini.id], ["LEITE", "SOJA"]);
   assert.deepEqual(ALLERGENS[large.id], ["LEITE", "SOJA"]);
   assert.deepEqual(OVERRIDES[large.id]?._pub, {
@@ -105,7 +110,7 @@ test("the replacement Story is generated from the canonical product data", async
   assert.equal(metadata.height, 1920);
   assert.match(svg, /Framboesa Duo/);
   assert.match(svg, /55 g \(mini picolé\)/);
-  assert.match(svg, />42 kcal<\/text>/);
+  assert.match(svg, />87 kcal<\/text>/);
   assert.match(svg, />1,2 g de proteína · 7,7 g de fibras<\/text>/);
   assert.match(svg, /Contém açúcares próprios dos ingredientes\./);
   assert.match(svg, /ZERO LACTOSE/);
@@ -142,7 +147,7 @@ test("the replacement Bentole lineup is generated from canonical product data", 
   }
   assert.match(svg, /Pistache &amp;/);
   assert.match(svg, /Choco Branco/);
-  assert.match(svg, />42 kcal</);
+  assert.match(svg, />87 kcal</);
   assert.match(svg, />1,2 g proteína</);
   const expectedJpeg = await sharp(Buffer.from(svg))
     .jpeg({ quality: 92, progressive: true, mozjpeg: true, chromaSubsampling: "4:4:4" })
