@@ -70,11 +70,11 @@ SRC=open("src/data.js").read()
 def pal(idkey):
     m=re.search(r'id:"'+re.escape(idkey)+r'"[\s\S]{0,400}?palette:\{base:"(#\w+)",mid:"(#\w+)",deep:"(#\w+)",swirl:"(#\w+)",hl:"(#\w+)"\}',SRC)
     return m.groups() if m else None
-PAL_EXTRA={"magnesio":("#F6C66A","#E8A34A","#B5651C","#C9402A","#FFE6B0")}
+PAL_EXTRA={}
 # Dollops reais (criados pela Bentô), extraídos com fundo transparente em public/portfolio/dollops/
 DOLLOP={"bentole-pistache-cb":"pistache","bentole-choco-dubai":"choco","bentole-opereta":"opereta",
         "bentole-snickers":"snickers","bentole-prestigio":"prestigio","bentole-framboesa-duo":"framboesa-duo",
-        "chocolate-dubai":"choco","pistache":"pistache","doce-de-leite":"doce","magnesio":"magnesio"}
+        "chocolate-dubai":"choco","pistache":"pistache","doce-de-leite":"doce"}
 def cream(idkey):
     return f"public/portfolio/dollops/{DOLLOP[idkey]}.png"
 
@@ -83,8 +83,7 @@ PIC=[("Pistache & Choco Branco","10 g proteína · 61 kcal","bentole-pistache-cb
      ("Opereta","9,9 g proteína · 86 kcal","bentole-opereta",False),
      ("Snickers","9,6 g proteína · 95 kcal","bentole-snickers",False),
      ("Prestígio","8 g proteína · 91 kcal","bentole-prestigio",False),
-     ("Framboesa Duo","1,2 g proteína · 87 kcal","bentole-framboesa-duo",False),
-     ("Magnésio + Inositol Relief 3.0","Lançamento em breve","magnesio",True)]
+     ("Framboesa Duo","1,2 g proteína · 87 kcal","bentole-framboesa-duo",False)]
 POT=[("Chocolate Dubai","Creme crocante e granela · 12 g prot.","chocolate-dubai"),
      ("Pistache","Pistache mesclado e granela · 10 g prot.","pistache"),
      ("Doce de Leite","Doce de leite e granela · 11 g prot.","doce-de-leite")]
@@ -115,8 +114,11 @@ hy=300
 for i,ln in enumerate(["Sabor de","sobremesa.","Ficha de","suplemento."]):
     col=PIST if i in (1,3) else INK
     d.text((90,hy),ln,font=F(SERIFB,76),fill=col); hy+=92
-# hero poster (caixas em pedestal)
-img_cover(c,"public/portfolio/picoles-poster.jpg",690,300,470,835,18)
+# capa: as fotos reais dos seis picolés da linha, em grade 2 × 3
+CAPA=["pistache-choco-branco","chocolate-dubai","opereta","snickers","prestigio","framboesa-duo"]
+cw,ch,gap=(470-12)//2,(835-24)//3,12
+for k,nome in enumerate(CAPA):
+    img_cover(c,f"public/portfolio/heros/{nome}.jpg",690+(k%2)*(cw+gap),300+(k//2)*(ch+gap),cw,ch,14)
 d.text((690,1142),"Imagem meramente ilustrativa",font=F(SANS,16),fill=(150,148,134))
 # rodapé
 d.line([(90,1300),(W-90,1300)],fill=LINE,width=2)
@@ -201,10 +203,6 @@ PICOLES=[
    desc="O mais frutado da linha: framboesa real, colágeno e cobertura dupla de chocolate — 87 kcal por unidade.",
    dollop="public/portfolio/dollops/framboesa-duo.png",photo="public/sabores/bentole-framboesa-duo.jpg",
    specs=[("Proteína","1,2 g"),("Valor energético","87 kcal"),("Açúcar adicionado","0 g"),("Fibra alimentar","7,7 g"),SZ,("Restrições","Sem glúten · sem lactose")]),
- dict(name="Magnésio + Inositol Relief 3.0",sub="Tangerina com Maracujá · funcional",
-   desc="Picolé funcional da linha Relief 3.0, em parceria com a True.",soon=True,
-   teaser="Em breve na linha Bentôlé: um picolé funcional de Tangerina com Maracujá, com magnésio e inositol. Disponível no tamanho P (55 g). Informações nutricionais completas no lançamento.",
-   dollop="public/portfolio/dollops/magnesio.png",photo="public/sabores/bentole-magnesio.jpg"),
 ]
 POTES=[
  dict(name="Chocolate Dubai",sub="Creme crocante e granela crocante",
